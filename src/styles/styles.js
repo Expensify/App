@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -1124,6 +1125,7 @@ const styles = {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
+        ...optionAlternateTextPlatformStyles,
     },
 
     // App Content Wrapper styles
