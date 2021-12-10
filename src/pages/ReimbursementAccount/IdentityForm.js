@@ -77,23 +77,6 @@ const IdentityForm = (props) => {
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '')
         || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
 
-    const getFormattedAddressValue = () => {
-        let addressString = '';
-        if (props.values.street) {
-            addressString += `${props.values.street}, `;
-        }
-        if (props.values.city) {
-            addressString += `${props.values.city}, `;
-        }
-        if (props.values.state) {
-            addressString += `${props.values.state}, `;
-        }
-        if (props.values.zipCode) {
-            addressString += `${props.values.zipCode}`;
-        }
-        return addressString;
-    };
-
     return (
         <View style={props.style}>
             <View style={[styles.flexRow]}>
