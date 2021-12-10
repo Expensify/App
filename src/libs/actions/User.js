@@ -14,6 +14,8 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
+import Growl from '../Growl';
+import * as Localize from '../Localize';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
@@ -69,9 +71,13 @@ function closeAccount(message) {
         console.debug('User_Delete: ', JSON.stringify(response));
 
         if (response.jsonCode === 200) {
+            Growl.show(Localize.translateLocal('closeAccountPage.closeAccountSuccess'), CONST.GROWL.SUCCESS);
             redirectToSignIn();
             return;
         }
+
+        // Unable to delete account
+        Growl.show(JSON.stringify(response.message), CONST.GROWL.SUCCESS);
     });
 }
 
