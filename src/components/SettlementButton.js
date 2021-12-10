@@ -11,6 +11,10 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import AddPaymentMethodMenu from './AddPaymentMethodMenu';
+import Navigation from '../libs/Navigation/Navigation';
+import getClickedElementLocation from '../libs/getClickedElementLocation';
+import * as PaymentUtils from '../libs/PaymentUtils';
 
 const propTypes = {
     /** Settlement currency type */
@@ -64,6 +68,9 @@ class SettlementButton extends React.Component {
 
         this.state = {
             buttonOptions,
+            shouldShowAddPaymentMenu: false,
+            anchorPositionTop: 0,
+            anchorPositionLeft: 0,
         };
     }
 
@@ -118,12 +125,52 @@ class SettlementButton extends React.Component {
 
     render() {
         return (
-            <ButtonWithMenu
-                isDisabled={this.props.isDisabled}
-                isLoading={this.props.isLoading}
-                onPress={this.props.onPress}
-                options={this.state.buttonOptions}
-            />
+            <>
+                <AddPaymentMethodMenu
+                    isVisible={this.state.shouldShowAddPaymentMenu}
+                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
+                    }}
+                    shouldShowPaypal={false}
+                    onItemSelected={(item) => {
+                        this.setState({shouldShowAddPaymentMenu: false});
+
+                        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                            Navigation.navigate(this.props.addBankAccountRoute);
+                        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                            Navigation.navigate(this.props.addDebitCardRoute);
+                        }
+                    }}
+                />
+                <ButtonWithMenu
+                    isDisabled={this.props.isDisabled}
+                    isLoading={this.props.isLoading}
+                    onPress={(event, value) => {
+                        // Check to see if user has a valid payment method on file and display the add payment popover if they don't
+                        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+                            const position = getClickedElementLocation(event.nativeEvent);
+                            this.setState({
+                                shouldShowAddPaymentMenu: true,
+                                anchorPositionTop: position.bottom - 226,
+                                anchorPositionLeft: position.right - 356,
+                            });
+                            return;
+                        }
+
+                        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
+                        const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
+                        if (!hasGoldWallet) {
+                            Navigation.navigate(this.props.enablePaymentsRoute);
+                            return;
+                        }
+
+                        this.props.onPress(value);
+                    }}
+                    options={this.state.buttonOptions}
+                />
+            </>
         );
     }
 }
@@ -136,6 +183,15 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
     }),
 )(SettlementButton);

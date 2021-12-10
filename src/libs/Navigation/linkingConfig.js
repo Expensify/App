@@ -159,8 +159,9 @@ export default {
                 screens: {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
-                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
+                    IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                     IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
+                    IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
             IOU_Details: {

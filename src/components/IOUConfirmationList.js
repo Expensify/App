@@ -17,13 +17,10 @@ import FixedFooter from './FixedFooter';
 import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
-import * as PaymentMethodUtils from '../libs/PaymentMethodUtils';
 import Log from '../libs/Log';
-import AddPaymentMethodMenu from './AddPaymentMethodMenu';
-import getClickedElementLocation from '../libs/getClickedElementLocation';
 import SettlementButton from './SettlementButton';
-import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -136,9 +133,6 @@ class IOUConfirmationList extends Component {
 
         this.state = {
             participants: formattedParticipants,
-            shouldShowAddPaymentMenu: false,
-            anchorPositionTop: 0,
-            anchorPositionLeft: 0,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
@@ -160,26 +154,6 @@ class IOUConfirmationList extends Component {
     onPress(event, value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-
-            // Check to see if user has a valid payment method on file
-            if (!PaymentMethodUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
-                // Open popover and then redirect to payment method... this should be moved into SettlementButton eventually
-                Log.info('User does not have valid payment method for Pay with Expensify option. Asking them to add one.');
-                const position = getClickedElementLocation(event.nativeEvent);
-                this.setState({
-                    shouldShowAddPaymentMenu: true,
-                    anchorPositionTop: position.bottom - 286,
-                    anchorPositionLeft: position.right - 356,
-                });
-                return;
-            }
-
-            const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
-            if (!hasGoldWallet) {
-                Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
-                return;
-            }
-
             this.props.onConfirm();
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
@@ -411,15 +385,6 @@ class IOUConfirmationList extends Component {
                             {this.props.translate('session.offlineMessage')}
                         </ExpensifyText>
                     )}
-                    <AddPaymentMethodMenu
-                        isVisible={this.state.shouldShowAddPaymentMenu}
-                        onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                        shouldShowPaypal={false}
-                    />
                     {shouldShowSettlementButton ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
@@ -428,6 +393,9 @@ class IOUConfirmationList extends Component {
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
                             currency={this.props.localCurrencyCode}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         />
                     ) : (
                         <ButtonWithMenu
@@ -462,15 +430,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
     }),
 )(IOUConfirmationList);

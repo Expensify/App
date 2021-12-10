@@ -18,7 +18,6 @@ import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
-import SettingsAddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -38,6 +37,7 @@ import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravel
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 import CONST from '../../../CONST';
+import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -100,8 +100,12 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
     name: 'IOU_Send_Add_Bank_Account',
 },
 {
+    Component: AddDebitCardPage,
+    name: 'IOU_Send_Add_Debit_Card',
+},
+{
     Component: EnablePaymentsPage,
-    name: 'IOU_Enable_Payments',
+    name: 'IOU_Send_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
@@ -183,7 +187,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Add_Paypal_Me',
     },
     {
-        Component: SettingsAddDebitCardPage,
+        Component: AddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
     },
     {
