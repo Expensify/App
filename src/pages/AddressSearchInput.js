@@ -16,18 +16,13 @@ class AddressSeachInput extends Component {
         if (!this.props.address) {
             return;
         }
-        if (
-            prevProps.address.addressStreet === this.props.address.addressStreet 
-            && prevProps.address.addressState === this.props.address.addressState
-            && prevProps.address.addressZipCode === this.props.address.addressZipCode
-            && prevProps.address.addressCity === this.props.address.addressCity
-            ) {
+        if (_.isEqual(prevProps.address, this.props.address)) {
             return;
         }
+        this.props.onChange('addressStreet', this.props.address.addressStreet);
         this.props.onChange('addressCity', this.props.address.addressCity);
         this.props.onChange('addressState', this.props.address.addressState);
         this.props.onChange('addressZipCode', this.props.address.addressZipCode);
-        this.props.onChange('addressStreet', this.props.address.addressStreet);
     }
 
     render() {

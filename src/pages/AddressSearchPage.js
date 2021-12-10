@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -31,7 +32,12 @@ class AddressSearchPage extends Component {
     }
 
     render() {
-        const fullAddress = `${this.props.address.addressStreet}, ${this.props.address.addressCity}, ${this.props.address.addressState}`;
+        const addressStreet = lodashGet(this.props.address, 'addressStreet', '');
+        const addressCity = lodashGet(this.props.address, 'addressCity', '');
+        const addressState = lodashGet(this.props.address, 'addressState', '');
+        const addressZipCode = lodashGet(this.props.address, 'addressZipCode', '');
+        const fullAddress = _.compact([addressStreet, addressCity, addressState, addressZipCode]).join(', ');
+
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
