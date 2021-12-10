@@ -38,13 +38,10 @@ class BigNumberPad extends React.Component {
         if (key !== '<') {
             return;
         }
-        this.setState(
-            {
-                timer: setInterval(() => {
-                    this.props.numberPressed(key);
-                }, 100),
-            },
-        );
+        const timer = setInterval(() => {
+            this.props.numberPressed(key);
+        }, 100);
+        this.setState({timer});
     }
 
     render() {
