@@ -44,9 +44,6 @@ const defaultProps = {
 
 class AddressSeachInput extends Component {
     componentDidUpdate(prevProps) {
-        if (!this.props.address) {
-            return;
-        }
         if (_.isEqual(prevProps.address, this.props.address)) {
             return;
         }
