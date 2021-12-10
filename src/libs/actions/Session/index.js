@@ -424,17 +424,11 @@ function validateEmail(accountID, validateCode, password) {
         });
 }
 
-// We only need to reconnect once. If an authToken is expired, and we try to
+// It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
+// reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
-let isReconnectingPusher = false;
-function reauthenticatePusher() {
-    if (isReconnectingPusher) {
-        return;
-    }
-
-    isReconnectingPusher = true;
+const reauthenticatePusher = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting');
-
     API.reauthenticate('Push_Authenticate')
         .then(Pusher.reconnect)
         .catch(() => {
@@ -442,11 +436,8 @@ function reauthenticatePusher() {
                 '[PusherConnectionManager]',
                 'Unable to re-authenticate Pusher because we are offline.',
             );
-        })
-        .finally(() => {
-            isReconnectingPusher = false;
         });
-}
+}, 5000, {trailing: false});
 
 /**
  * @param {String} socketID
