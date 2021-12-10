@@ -174,8 +174,7 @@ const IdentityForm = (props) => {
                     <AddressSearchInput
                         label={props.translate('common.personalAddress')}
                         containerStyles={[styles.mt4]}
-                        value={getFormattedAddressValue()}
-                        onText={(fieldName, value) => props.onFieldChange(fieldName, value)}
+                        onChange={(fieldName, value) => props.onFieldChange(fieldName, value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                     />
                     <TextLink
