@@ -25,6 +25,7 @@ import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
+import Hashtag from '../../../assets/images/hashtag.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
 import Link from '../../../assets/images/link.svg';
@@ -92,6 +93,7 @@ export {
     ExpensifyCard,
     Gallery,
     Gear,
+    Hashtag,
     Info,
     Invoice,
     Link,

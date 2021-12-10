@@ -166,7 +166,7 @@ class PasswordPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>

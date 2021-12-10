@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -683,6 +684,42 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    textInputWithPrefix: {
+        container: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            textAlignVertical: 'center',
+        },
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 10,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
+    },
+
     expensiPickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -1095,6 +1132,7 @@ const styles = {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
+        ...optionAlternateTextPlatformStyles,
     },
 
     // App Content Wrapper styles
@@ -1998,7 +2036,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
