@@ -1,17 +1,13 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import ExpensiTextInput from '../components/ExpensiTextInput';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiTextInput from '../components/ExpensiTextInput';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 
 class AddressSeachInput extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentDidUpdate(prevProps) {
         if (!this.props.address) {
             return;

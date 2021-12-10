@@ -10,7 +10,7 @@ import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import Navigation from '../libs/Navigation/Navigation';
-import {setAddress} from '../libs/actions/Address';
+import * as Address from '../libs/actions/Address';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -63,7 +63,7 @@ const AddressSearch = (props) => {
             const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            setAddress({
+            Address.setAddress({
                 addressStreet: `${streetNumber} ${streetName}`,
                 addressCity: city,
                 addressState: state,
@@ -76,7 +76,7 @@ const AddressSearch = (props) => {
                 address_components: addressComponents,
                 place_id: details.place_id,
             });
-            setAddress({
+            Address.setAddress({
                 addressStreet: null,
                 addressCity: null,
                 addressState: null,
