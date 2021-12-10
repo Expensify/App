@@ -59,11 +59,12 @@ class AddressSeachInput extends Component {
     render() {
         return (
             <ExpensiTextInput
+                editable={false}
                 label={this.props.label}
                 containerStyles={this.props.containerStyles}
                 value={lodashGet(this.props.address, 'addressStreet', '')}
                 errorText={this.props.errorText}
-                onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
+                onPress={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
             />
         );
     }

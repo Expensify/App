@@ -61,7 +61,7 @@ const AddressSearchPage = (props) => {
                         <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                         {didScreenTransitionEnd && (
                             <AddressSearch
-                                label={props.translate('addDebitCardPage.billingAddress')}
+                                label={props.translate('common.address')}
                                 containerStyles={[styles.mh5]}
                                 value={fullAddress}
                             />

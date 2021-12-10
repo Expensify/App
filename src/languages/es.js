@@ -51,6 +51,7 @@ export default {
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
+        address: 'Dirección',
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
         noPO: 'No se aceptan apartados ni direcciones postales',

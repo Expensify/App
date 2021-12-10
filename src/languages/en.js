@@ -51,6 +51,7 @@ export default {
         here: 'here',
         dob: 'Date of birth',
         ssnLast4: 'Last 4 digits of SSN',
+        address: 'Address',
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
         noPO: 'PO boxes and mail drop addresses are not allowed',
