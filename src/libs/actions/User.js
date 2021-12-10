@@ -12,6 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
@@ -66,6 +67,11 @@ function changePasswordAndNavigate(oldPassword, password) {
 function closeAccount(message) {
     API.User_Delete({message}).then((response) => {
         console.debug('User_Delete: ', JSON.stringify(response));
+
+        if (response.jsonCode === 200) {
+            redirectToSignIn();
+            return;
+        }
     });
 }
 
