@@ -8,7 +8,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Navigation, { navigationRef } from '../../../libs/Navigation/Navigation';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import ExpensifyText from '../../../components/ExpensifyText';
