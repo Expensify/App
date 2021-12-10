@@ -50,7 +50,9 @@ class WorkspaceInitialPage extends React.Component {
     /**
      * Open Workspace Editor
      */
-    openEditor() { Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id)); }
+    openEditor() {
+        Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id));
+    }
 
     /**
      * Toggle delete confirm modal visibility
@@ -125,7 +127,6 @@ class WorkspaceInitialPage extends React.Component {
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
             },
         ];
-
 
         return (
             <ScreenWrapper>
