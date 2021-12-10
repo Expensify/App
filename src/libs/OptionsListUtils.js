@@ -685,12 +685,12 @@ function getSidebarOptions(
         prioritizePinnedReports: true,
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
+        showReportsWithDrafts: true,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
             hideReadReports: true,
             sortByAlphaAsc: true,
-            showReportsWithDrafts: true,
         };
     }
 
