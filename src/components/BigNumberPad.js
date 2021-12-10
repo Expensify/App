@@ -22,7 +22,9 @@ class BigNumberPad extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {timer: null};
+        this.state = {
+        	timer: null,
+        };
     }
 
     /**
