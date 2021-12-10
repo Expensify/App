@@ -54,12 +54,13 @@ class AddressSeachInput extends Component {
     }
 
     render() {
+        console.log(this.props.value)
         return (
             <ExpensiTextInput
                 editable={false}
                 label={this.props.label}
                 containerStyles={this.props.containerStyles}
-                value={getFullAddress(this.props.address)}
+                value={getFullAddress(this.props.value)}
                 errorText={this.props.errorText}
                 onPress={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
             />

@@ -226,6 +226,12 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 onChange={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                value={{
+                                    addressStreet: this.state.addressStreet,
+                                    addressCity: this.state.addressCity,
+                                    addressState: this.state.addressState,
+                                    addressZipCode: this.state.addressZipCode,
+                                }}
                                 errorText={this.getErrorText('addressStreet')}
                             />
                             <CheckboxWithLabel
