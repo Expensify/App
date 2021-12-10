@@ -715,6 +715,24 @@ function subscribeToUserEvents() {
             );
         });
 
+    // Live-update a report's actions when a 'chunked report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_CHUNK} event sent by Pusher`, false, {reportID: pushJSON.reportID},
+        );
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_CHUNK},
+            );
+        });
+
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
@@ -732,6 +750,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment chunk' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK} event sent by Pusher`, false, {
+                reportActionID: pushJSON.reportActionID,
+            },
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK},
             );
         });
 
