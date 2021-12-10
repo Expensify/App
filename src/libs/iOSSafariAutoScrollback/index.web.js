@@ -69,8 +69,8 @@ function startWaitingForScroll() {
 
 function stopWaitingForScroll() {
     isWaitingForScroll = false;
+    maxScrollY = undefined;
 }
-
 
 export default function () {
     smoothscrollPolyfill.polyfill();
