@@ -67,16 +67,16 @@ function isAuthTokenRequired(command) {
  * @param {Object} request
  * @returns {Boolean}
  */
-function shouldRetry(request) {
+function isRequestRetriable(request) {
     return lodashGet(request, 'data.shouldRetry', false);
 }
 
 /**
- * Add the request back to the queue to be retried
+ * Adds the request back to the queue to be retried
  * It will either get retried now, or later when we're back online
  * @param {Object} request
  */
-function retry(request) {
+function retryRequest(request) {
     Network.post(request.command, request.data, request.type, request.shouldUseSecure)
         .then(request.resolve)
         .catch(request.reject);
@@ -117,7 +117,7 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
 function handleExpiredAuthToken(originalRequest) {
     // eslint-disable-next-line no-use-before-define
     reauthenticate(originalRequest.command)
-        .finally(() => retry(originalRequest));
+        .finally(() => retryRequest(originalRequest));
 }
 
 Network.registerRequestHandler((queuedRequest, finalParameters) => {
@@ -156,7 +156,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (!shouldRetry(queuedRequest) || unableToReauthenticate) {
+        if (!isRequestRetriable(queuedRequest) || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
@@ -185,8 +185,8 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Set an error state and signify we are done loading
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
-    if (shouldRetry(queuedRequest)) {
-        retry(queuedRequest);
+    if (isRequestRetriable(queuedRequest)) {
+        retryRequest(queuedRequest);
         return;
     }
 
