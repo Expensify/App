@@ -273,9 +273,9 @@ export default {
                 label: 'Desktop',
             },
         },
+        security: 'Seguridad',
         signOut: 'Desconectar',
         versionLetter: 'v',
-        changePassword: 'Cambiar contraseña',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
