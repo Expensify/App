@@ -34,8 +34,8 @@ const propTypes = {
     /** Whether to show selection checkboxes */
     enableSelection: PropTypes.bool,
 
-    /** Whether to filter the payment Method list */
-    filterList: PropTypes.oneOf([CONST.WALLET.PAYMENT_METHOD_TYPE.CARD, CONST.WALLET.PAYMENT_METHOD_TYPE.BANK]),
+    /** Type to filter the payment Method list */
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT]),
 
     /** Selected Account ID if selection is active */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -65,7 +65,7 @@ const defaultProps = {
     isLoadingPayments: false,
     enableSelection: false,
     selectedAccountID: '',
-    filterList: '',
+    filterType: '',
     isAddPaymentMenuActive: false,
 };
 
@@ -82,17 +82,17 @@ class PaymentMethodList extends Component {
 
     /**
      * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     * @return {Array}
+     * @returns {Array}
      */
     createPaymentMethodList() {
         let paymentMethods = [];
-        if (_.isEmpty(this.props.filterList)) {
+        if (_.isEmpty(this.props.filterType)) {
             paymentMethods = PaymentUtils.getPaymentMethodsList(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
         } else {
             paymentMethods = PaymentUtils.getPaymentMethodsList(
-                this.props.filterList === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? this.props.bankAccountList : [],
-                this.props.filterList === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD ? this.props.cardList : [],
-                !this.props.filterList ? this.props.payPalMeUsername : '',
+                this.props.filterType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? this.props.bankAccountList : [],
+                this.props.filterType === CONST.PAYMENT_METHODS.DEBIT_CARD ? this.props.cardList : [],
+                !this.props.filterType ? this.props.payPalMeUsername : '',
             );
         }
 
@@ -100,9 +100,9 @@ class PaymentMethodList extends Component {
             let iconProperties;
 
             switch (method.type) {
-                case 'bank': iconProperties = getBankIcon(method.bankName); break;
-                case 'card': iconProperties = getBankIcon(method.bankName, true); break;
-                case 'payPalMe': iconProperties = {icon: Expensicons.PayPal}; break;
+                case CONST.PAYMENT_METHODS.BANK_ACCOUNT: iconProperties = getBankIcon(method.bankName); break;
+                case CONST.PAYMENT_METHODS.DEBIT_CARD: iconProperties = getBankIcon(method.bankName, true); break;
+                case CONST.PAYMENT_METHODS.PAYPAL: iconProperties = {icon: Expensicons.PayPal}; break;
                 default: break;
             }
 
@@ -123,9 +123,9 @@ class PaymentMethodList extends Component {
         }
 
         let addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addPaymentMethod');
-        switch (this.props.filterList) {
-            case CONST.WALLET.PAYMENT_METHOD_TYPE.BANK: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addBankAccount'); break;
-            case CONST.WALLET.PAYMENT_METHOD_TYPE.CARD: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addDebitCard'); break;
+        switch (this.props.filterType) {
+            case CONST.PAYMENT_METHODS.BANK_ACCOUNT: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addBankAccount'); break;
+            case CONST.PAYMENT_METHODS.DEBIT_CARD: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addDebitCard'); break;
             default: break;
         }
 
@@ -148,7 +148,6 @@ class PaymentMethodList extends Component {
      *
      * @param {Object} e EventObject
      * @param {Object} item PaymentMethod
-     * @memberof PaymentMethodList
      */
     selectPaymentMethod(e, item) {
         item.onPress(e);
@@ -164,7 +163,7 @@ class PaymentMethodList extends Component {
      * @param {Object} params
      * @param {Object} params.item
      *
-     * @return {React.Component}
+     * @returns {React.Component}
      */
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
@@ -176,7 +175,7 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
-                    selectable={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
+                    shouldShowSelectedState={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
                     selected={this.state.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}

@@ -127,7 +127,7 @@ export default {
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
-    // Used while transferring wallet balance
+    // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
     // Stores draft information about the active reimbursement account being set up

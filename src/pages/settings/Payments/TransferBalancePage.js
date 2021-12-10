@@ -58,7 +58,7 @@ class TransferBalancePage extends React.Component {
 
         this.paymentTypes = [
             {
-                key: CONST.WALLET.PAYMENT_TYPE.INSTANT,
+                key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
                     amount: this.props.numberFormat(
@@ -67,14 +67,14 @@ class TransferBalancePage extends React.Component {
                     ),
                 }),
                 icon: Expensicons.Bolt,
-                type: CONST.WALLET.PAYMENT_METHOD_TYPE.CARD,
+                type: CONST.PAYMENT_METHODS.DEBIT_CARD,
             },
             {
-                key: CONST.WALLET.PAYMENT_TYPE.ACH,
+                key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
                 title: this.props.translate('transferAmountPage.ach'),
                 description: this.props.translate('transferAmountPage.achSummary'),
                 icon: Expensicons.Bank,
-                type: CONST.WALLET.PAYMENT_METHOD_TYPE.BANK,
+                type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             },
         ];
         PaymentMethods.startWalletTransfer(this.props.userWallet.currentBalance - Fee);
@@ -108,13 +108,15 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount;
 
-        const selectedPaymentType = selectAccount && selectAccount.type === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
+        const selectedPaymentType = selectAccount && selectAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+            ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
+            : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
         const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         const isButtonDisabled = !canTransfer || !selectAccount;
 
         if (selectAccount) {
-            const iconProperties = getBankIcon(selectAccount.bankName, selectAccount.type === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD);
+            const iconProperties = getBankIcon(selectAccount.bankName, selectAccount.type === CONST.PAYMENT_METHODS.DEBIT_CARD);
             selectAccount.icon = iconProperties.icon;
             selectAccount.iconSize = iconProperties.iconSize;
         }

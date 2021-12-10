@@ -371,12 +371,7 @@ const CONST = {
     },
 
     WALLET: {
-        PAYMENT_METHOD_TYPE: {
-            BANK: 'bank',
-            CARD: 'card',
-            PAYPAL: 'payPalMe',
-        },
-        PAYMENT_TYPE: {
+        TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
         },

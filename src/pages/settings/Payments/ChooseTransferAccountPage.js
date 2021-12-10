@@ -54,13 +54,13 @@ class ChooseTransferAccountPage extends React.Component {
                         title={this.props.translate('chooseTransferAccountPage.chooseAccount')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <View style={[styles.flex1, styles.pv5]}>
                         <PaymentMethodList
                             onPress={this.paymentMethodSelected}
                             enableSelection
-                            filterList={this.props.walletTransfer.filterPaymentMethodType}
+                            filterType={this.props.walletTransfer.filterPaymentMethodType}
                             selectedAccountID={this.props.walletTransfer.selectedAccountID}
                         />
                     </View>

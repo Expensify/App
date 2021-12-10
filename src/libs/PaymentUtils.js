@@ -43,7 +43,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
             id: bankAccount.bankAccountID,
             description: formattedBankAccountNumber,
             key: `bankAccount-${bankAccount.bankAccountID}`,
-            type: CONST.WALLET.PAYMENT_METHOD_TYPE.BANK,
+            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
         });
     });
 
@@ -59,7 +59,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
             id: card.fundID,
             description: formattedCardNumber,
             key: `card-${card.fundID}`,
-            type: CONST.WALLET.PAYMENT_METHOD_TYPE.CARD,
+            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         });
     });
 
@@ -86,11 +86,11 @@ function addPaymentMethodType(paymentType) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
     }
 
-    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD) {
+    if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
     }
 
-    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK) {
+    if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     }
 }

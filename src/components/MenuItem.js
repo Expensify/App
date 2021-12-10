@@ -6,19 +6,19 @@ import {
 import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
-import propTypes from './menuItemPropTypes';
+import menuItemPropTypes from './menuItemPropTypes';
+import RadioBox from './RadioBox';
 
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
-    selectable: false,
+    shouldShowSelectedState: false,
     wrapperStyle: [],
     success: false,
     icon: undefined,
@@ -30,7 +30,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
-    selected: false,
+    isSelected: false,
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
@@ -123,20 +123,14 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
-                    {props.selectable && (
-                        <View style={[styles.selectCircle, styles.alignSelfCenter]}>
-                            {props.selected && (
-                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                            )}
-                        </View>
-                    )}
+                    {props.selectable && <RadioBox isChecked={props.isSelected} />}
                 </View>
             </>
         )}
     </Pressable>
 );
 
-MenuItem.propTypes = propTypes;
+MenuItem.propTypes = menuItemPropTypes;
 MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
