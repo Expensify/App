@@ -19,6 +19,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import AddressSearchInput from '../../AddressSearchInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -222,11 +223,11 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <ExpensiTextInput
+                            <AddressSearchInput
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
-                                onChangeText={() => {}}
-                                value={''}
+                                onChange={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                value={this.state.addressStreet}
                                 errorText={this.getErrorText('addressStreet')}
                                 onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
                             />
