@@ -80,6 +80,5 @@ class BigNumberPad extends React.Component {
 
 
 BigNumberPad.propTypes = propTypes;
-BigNumberPad.displayName = 'BigNumberPad';
 
 export default BigNumberPad;
