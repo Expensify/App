@@ -4,6 +4,8 @@
  */
 export default {
     REPORT_COMMENT: 'reportComment',
+    REPORT_COMMENT_CHUNK: 'chunked-reportComment',
+    REPORT_COMMENT_EDIT_CHUNK: 'chunked-reportCommentEdit',
     REPORT_COMMENT_EDIT: 'reportCommentEdit',
     REPORT_TOGGLE_PINNED: 'reportTogglePinned',
     PREFERRED_LOCALE: 'preferredLocale',

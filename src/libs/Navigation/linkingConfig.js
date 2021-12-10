@@ -44,6 +44,10 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
+                    Settings_Security: {
+                        path: ROUTES.SETTINGS_SECURITY,
+                        exact: true,
+                    },
                     Settings_Payments: {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,
@@ -105,6 +109,9 @@ export default {
                     },
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
+                    },
+                    Workspace_NewRoom: {
+                        path: ROUTES.WORKSPACE_NEW_ROOM,
                     },
                     ReimbursementAccount: {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
