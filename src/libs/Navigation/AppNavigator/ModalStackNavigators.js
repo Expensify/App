@@ -111,6 +111,18 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
     Component: IOUDetailsModal,
     name: 'IOU_Details_Root',
+},
+{
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Details_Add_Bank_Account',
+},
+{
+    Component: AddDebitCardPage,
+    name: 'IOU_Details_Add_Debit_Card',
+},
+{
+    Component: EnablePaymentsPage,
+    name: 'IOU_Details_Enable_Payments',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{

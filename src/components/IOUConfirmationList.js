@@ -147,10 +147,9 @@ class IOUConfirmationList extends Component {
     /**
      * When confirmation button is clicked
      *
-     * @param {Event} event
      * @param {String} value
      */
-    onPress(event, value) {
+    onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
             this.props.onConfirm();
