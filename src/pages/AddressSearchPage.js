@@ -13,7 +13,6 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import AddressSearch from '../components/AddressSearch';
-import getFullAddress from '../libs/AddressUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -54,7 +53,6 @@ const AddressSearchPage = props => (
                         <AddressSearch
                             label={props.translate('common.address')}
                             containerStyles={[styles.mh5]}
-                            value={getFullAddress(props.address)}
                         />
                     )}
                 </View>
