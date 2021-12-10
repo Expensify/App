@@ -1451,28 +1451,33 @@ function handleInaccessibleReport() {
 }
 
 /**
- * Creates a policy room and fetches it
+ * Creates a policy room, fetches it, and navigates to it.
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
  * @return {Promise}
  */
 function createPolicyRoom(policyID, reportName, visibility) {
+    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Log.hmmm(response.message);
+                Growl.error(response.message);
                 return;
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then(([{reportID}]) => {
             if (!reportID) {
-                Log.hmmm('Unable to grab policy room after creation');
+                Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
 
 export {
