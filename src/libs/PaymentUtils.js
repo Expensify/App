@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
-import ROUTES from '../ROUTES';
 import * as Localize from './Localize';
-import Navigation from './Navigation/Navigation';
 
 /**
  * PaymentMethod Type
@@ -20,10 +18,10 @@ import Navigation from './Navigation/Navigation';
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
- * @param {String} [payPalMeUsername]
+ * @param {String} [payPalMeUsername='']
  * @returns {Array<PaymentMethod>}
  */
-function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
+function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername = '') {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -63,7 +61,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
         });
     });
 
-    if (payPalMeUsername) {
+    if (!_.isEmpty(payPalMeUsername)) {
         combinedPaymentMethods.push({
             title: 'PayPal.me',
             description: payPalMeUsername,
@@ -76,27 +74,6 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
     return combinedPaymentMethods;
 }
 
-/**
- * Navigate to the appropriate payment type addition screen
- *
- * @param {String} paymentType
- */
-function addPaymentMethodType(paymentType) {
-    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.PAYPAL) {
-        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-    }
-
-    if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-        Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
-    }
-
-    if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
-    }
-}
-
-export {
-    // eslint-disable-next-line import/prefer-default-export
+export default {
     getPaymentMethodsList,
-    addPaymentMethodType,
 };
