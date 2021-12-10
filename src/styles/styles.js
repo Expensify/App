@@ -1991,7 +1991,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
