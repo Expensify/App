@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import {withOnyx} from 'react-native-onyx';
@@ -11,18 +12,22 @@ class AddressSeachInput extends Component {
         super(props);
     }
 
-    componentDidUpdate() {
-        if (!this.props.address.addressStreet) {
+    componentDidUpdate(prevProps) {
+        if (!this.props.address) {
             return;
         }
-        if (this.props.value === this.props.address.addressStreet) {
+        if (
+            prevProps.address.addressStreet === this.props.address.addressStreet 
+            && prevProps.address.addressState === this.props.address.addressState
+            && prevProps.address.addressZipCode === this.props.address.addressZipCode
+            && prevProps.address.addressCity === this.props.address.addressCity
+            ) {
             return;
         }
         this.props.onChange('addressCity', this.props.address.addressCity);
         this.props.onChange('addressState', this.props.address.addressState);
         this.props.onChange('addressZipCode', this.props.address.addressZipCode);
         this.props.onChange('addressStreet', this.props.address.addressStreet);
-
     }
 
     render() {
@@ -30,7 +35,7 @@ class AddressSeachInput extends Component {
             <ExpensiTextInput
                 label={this.props.label}
                 containerStyles={this.props.containerStyles}
-                value={this.props.value}
+                value={lodashGet(this.props.address, 'addressStreet', '')}
                 errorText={this.props.errorText}
                 onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
             />
