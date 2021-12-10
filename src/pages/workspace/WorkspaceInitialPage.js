@@ -70,7 +70,6 @@ class WorkspaceInitialPage extends React.Component {
         this.toggleDeleteModal(false);
     }
 
-
     render() {
         const policy = this.props.policy;
         if (_.isEmpty(policy)) {
