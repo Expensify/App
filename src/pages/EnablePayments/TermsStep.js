@@ -16,7 +16,6 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import ExpensifyText from '../../components/ExpensifyText';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -102,15 +101,14 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                </ScrollView>
-                {this.state.error && (
-                    <ExpensifyText style={[styles.formError, styles.mb2]}>
-                        {this.props.translate('termsStep.termsMustBeAccepted')}
-                    </ExpensifyText>
-                )}
-                <FixedFooter>
+                    {this.state.error && (
+                        <ExpensifyText style={[styles.formError, styles.mb2]}>
+                            {this.props.translate('termsStep.termsMustBeAccepted')}
+                        </ExpensifyText>
+                    )}
                     <ExpensifyButton
                         success
+                        style={styles.mb4}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {
@@ -127,7 +125,7 @@ class TermsStep extends React.Component {
                             });
                         }}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }

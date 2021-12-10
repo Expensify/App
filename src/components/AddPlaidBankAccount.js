@@ -12,6 +12,7 @@ import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
+import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -21,10 +22,9 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
+import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
@@ -78,6 +78,11 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** Should we require a password to create a bank account? */
+    isPasswordRequired: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -90,6 +95,7 @@ const defaultProps = {
     text: '',
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    isPasswordRequired: false,
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -102,10 +108,14 @@ class AddPlaidBankAccount extends React.Component {
         this.state = {
             selectedIndex: undefined,
             institution: {},
+            password: '',
         };
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, {
+            password: 'passwordForm.error.incorrectLoginOrPassword',
+        }, inputKey);
     }
 
     componentDidMount() {
@@ -117,6 +127,10 @@ class AddPlaidBankAccount extends React.Component {
 
         BankAccounts.clearPlaidBankAccountsAndToken();
         BankAccounts.fetchPlaidLinkToken();
+    }
+
+    componentWillUnmount() {
+        BankAccounts.setBankAccountFormValidationErrors({});
     }
 
     /**
@@ -149,6 +163,11 @@ class AddPlaidBankAccount extends React.Component {
         if (_.isUndefined(this.state.selectedIndex)) {
             errors.selectedBank = true;
         }
+
+        if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
+            errors.password = true;
+        }
+
         BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
@@ -165,6 +184,7 @@ class AddPlaidBankAccount extends React.Component {
             bankName,
             account,
             plaidLinkToken: this.getPlaidLinkToken(),
+            password: this.state.password,
         });
     }
 
@@ -233,6 +253,22 @@ class AddPlaidBankAccount extends React.Component {
                                 hasError={this.getErrors().selectedBank}
                             />
                         </View>
+                        {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
+                            <View style={[styles.mb5]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                    secureTextEntry
+                                    value={this.state.password}
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    autoCapitalize="none"
+                                    autoFocus={canFocusInputOnScreenFocus()}
+                                    onChangeText={text => this.setState({password: text})}
+                                    errorText={this.getErrorText('password')}
+                                    hasError={this.getErrors().password}
+                                />
+                            </View>
+                        )}
                     </ReimbursementAccountForm>
                 )}
             </>
