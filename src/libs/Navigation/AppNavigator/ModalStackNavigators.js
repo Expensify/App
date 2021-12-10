@@ -193,6 +193,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Add_Debit_Card',
     },
     {
+        Component: AddPersonalBankAccountPage,
+        name: 'Settings_Add_Bank_Account',
+    },
+    {
         Component: WorkspaceInitialPage,
         name: 'Workspace_Initial',
     },

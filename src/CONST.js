@@ -289,6 +289,7 @@ const CONST = {
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
+        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -309,6 +310,10 @@ const CONST = {
     },
 
     EMOJI_SPACER: 'SPACER',
+
+    EMOJI_NUM_PER_ROW: 8,
+
+    EMOJI_FREQUENT_ROW_COUNT: 3,
 
     LOGIN_TYPE: {
         PHONE: 'phone',
@@ -425,6 +430,12 @@ const CONST = {
         Opera: 'opera',
         SAFARI: 'safari',
         OTHER: 'other',
+    },
+
+    PAYMENT_METHODS: {
+        PAYPAL: 'payPalMe',
+        DEBIT_CARD: 'debitCard',
+        BANK_ACCOUNT: 'bankAccount',
     },
 
     IOU: {

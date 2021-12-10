@@ -1,4 +1,5 @@
 import React, {PureComponent} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated, Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';

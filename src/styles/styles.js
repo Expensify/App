@@ -1991,7 +1991,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
@@ -2158,6 +2158,23 @@ const styles = {
         bottom: 0,
     },
 
+    shortTermsBorder: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+    },
+
+    shortTermsHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
+    shortTermsLargeHorizontalRule: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -2171,7 +2188,7 @@ const styles = {
     shortTermsBoldHeadingSection: {
         paddingRight: 12,
         paddingLeft: 12,
-        marginTop: 16,
+        marginTop: 12,
     },
 
     longTermsRow: {

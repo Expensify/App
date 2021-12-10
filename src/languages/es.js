@@ -89,6 +89,7 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Cuenta bancaria',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -484,6 +485,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
     },
@@ -530,37 +532,37 @@ export default {
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
         electronicFundsInstantFee: '1.5%',
-        electronicFundsInstantFeeMin: 'Mínimo $0.25',
         noOverdraftOrCredit: 'Sin función de sobregiro / crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
-        instant: 'Instantáneo',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La cuenta Expensify Payments es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
-            inNetwork: 'En la red',
+            inNetwork: 'en la red',
             outOfNetwork: 'fuera de la red',
             atmBalanceInquiry: 'Consulta de saldo de cajero automático',
-            inOrOutOfNetwork: 'Dentro o fuera de la red',
+            inOrOutOfNetwork: '(dentro o fuera de la red)',
             customerService: 'Servicio al cliente',
-            automatedOrLive: 'Agente automatizado o en vivo',
-            afterTwelveMonths: 'Después de 12 meses sin transacciones',
-            weChargeOneFee: 'Cobramos 1 tipo de tarifa.',
+            automatedOrLive: '(agente automatizado o en vivo)',
+            afterTwelveMonths: '(después de 12 meses sin transacciones)',
+            weChargeOneFee: 'Cobramos un tipo de tarifa.',
             fdicInsurance: 'Sus fondos son elegibles para el seguro de la FDIC.',
             generalInfo: 'Para obtener información general sobre cuentas prepagas, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
             conditionsPhone: 'o llamando al +1 833-400-0904.',
+            instant: '(instantáneo)',
+            electronicFundsInstantFeeMin: '(mínimo $0.25)',
         },
         longTermsForm: {
-            listOfAllFees: 'Todas las tarifas de la cuenta Expensify Payments:',
+            listOfAllFees: 'Una lista de todas las tarifas de la billetera Expensify',
             typeOfFeeHeader: 'Tipo de tarifa',
             feeAmountHeader: 'Importe de la tarifa',
             moreDetailsHeader: 'Más detalles',
             openingAccountTitle: 'Abrir una cuenta',
-            openingAccountDetails: 'No hay tarifa para crear una cuenta.',
-            monthlyFeeDetails: 'No hay tarifa mensual',
+            openingAccountDetails: 'No hay tarifa para abrir una cuenta.',
+            monthlyFeeDetails: 'No hay tarifa mensual.',
             customerServiceTitle: 'Servicio al cliente',
             customerServiceDetails: 'No hay tarifas de servicio al cliente.',
             inactivityDetails: 'No hay tarifa de inactividad.',
@@ -571,8 +573,8 @@ export default {
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
             electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
-                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
-                + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
+                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
+                + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp: 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o '
                 + 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos '
@@ -587,6 +589,8 @@ export default {
             printerFriendlyView: 'Ver versión para imprimir',
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
+            instant: 'Instantáneo',
+            electronicFundsInstantFeeMin: 'Mínimo $0.25',
         },
     },
     activateStep: {

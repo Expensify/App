@@ -31,6 +31,7 @@ export default {
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
+    SETTINGS_ADD_BANK_ACCOUNT: 'settings/payments/add-bank-account',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     NEW_GROUP: 'new/group',

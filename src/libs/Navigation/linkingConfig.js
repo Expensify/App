@@ -64,6 +64,10 @@ export default {
                         path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                         exact: true,
                     },
+                    Settings_Add_Bank_Account: {
+                        path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,

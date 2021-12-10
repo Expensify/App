@@ -89,6 +89,7 @@ export default {
         more: 'More',
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Bank account',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -484,6 +485,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
     },
@@ -530,37 +532,37 @@ export default {
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
         electronicFundsInstantFee: '1.5%',
-        electronicFundsInstantFeeMin: 'Min $0.25',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
-        electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
-        instant: 'Instant',
+        electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
+            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
-            inNetwork: 'In-network',
+            inNetwork: 'in-network',
             outOfNetwork: 'out-of-network',
             atmBalanceInquiry: 'ATM balance inquiry',
-            inOrOutOfNetwork: 'In-network or out-of-network',
+            inOrOutOfNetwork: '(in-network or out-of-network)',
             customerService: 'Customer service',
-            automatedOrLive: 'Automated or live agent',
-            afterTwelveMonths: 'After 12 months with no transactions',
-            weChargeOneFee: 'We charge 1 type of fee.',
+            automatedOrLive: '(automated or live agent)',
+            afterTwelveMonths: '(after 12 months with no transactions)',
+            weChargeOneFee: 'We charge one type of fee.',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
             conditionsPhone: 'or calling +1 833-400-0904.',
+            instant: '(instant)',
+            electronicFundsInstantFeeMin: '(min $0.25)',
         },
         longTermsForm: {
-            listOfAllFees: 'All Expensify Payments account fees:',
+            listOfAllFees: 'A list of all Expensify Wallet fees',
             typeOfFeeHeader: 'Type of fee',
             feeAmountHeader: 'Fee amount',
             moreDetailsHeader: 'More details',
             openingAccountTitle: 'Opening an account',
-            openingAccountDetails: 'There is no fee to create an account.',
-            monthlyFeeDetails: 'There is no monthly fee',
+            openingAccountDetails: 'There is no fee to open an account.',
+            monthlyFeeDetails: 'There is no monthly fee.',
             customerServiceTitle: 'Customer service',
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
@@ -571,7 +573,7 @@ export default {
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
             electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
-                + 'your linked debit card using the instant transfer option. This transfer usually completes within'
+                + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
                 + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
@@ -585,6 +587,8 @@ export default {
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
+            instant: 'Instant',
+            electronicFundsInstantFeeMin: 'Min $0.25',
         },
     },
     activateStep: {
