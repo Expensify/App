@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -7,6 +6,7 @@ import ExpensiTextInput from './ExpensiTextInput';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import getFullAddress from '../libs/AddressUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,7 +62,7 @@ class AddressSeachInput extends Component {
                 editable={false}
                 label={this.props.label}
                 containerStyles={this.props.containerStyles}
-                value={lodashGet(this.props.address, 'addressStreet', '')}
+                value={getFullAddress(this.props.address)}
                 errorText={this.props.errorText}
                 onPress={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
             />
