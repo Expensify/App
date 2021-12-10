@@ -145,8 +145,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * When confirmation button is clicked
-     *
      * @param {String} value
      */
     onPress(value) {
