@@ -58,6 +58,17 @@ function changePasswordAndNavigate(oldPassword, password) {
         });
 }
 
+/**
+ * Attempt to close the user's account
+ *
+ * @param {String} message optional reason for closing account
+ */
+function closeAccount(message) {
+    API.User_Delete({message}).then((response) => {
+        console.debug('User_Delete: ', JSON.stringify(response));
+    });
+}
+
 function getBetas() {
     API.User_GetBetas().then((response) => {
         if (response.jsonCode !== 200) {
@@ -343,6 +354,7 @@ function clearUserErrorMessage() {
 
 export {
     changePasswordAndNavigate,
+    closeAccount,
     getBetas,
     getUserDetails,
     resendValidateCode,

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import * as User from '../../../libs/actions/User';
 import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
@@ -37,9 +38,11 @@ class CloseAccountPage extends Component {
         this.submitForm = this.submitForm.bind(this);
     }
 
+    /**
+     * Attempt to close the user's account
+     */
     submitForm() {
-        // todo
-        console.debug('Mieow');
+        User.closeAccount({message: this.state.reasonForLeaving});
     }
 
     render() {
