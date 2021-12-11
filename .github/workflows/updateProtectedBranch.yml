@@ -105,7 +105,7 @@ jobs:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           number: ${{ steps.createPullRequest.outputs.pr_number }}
           body: |
-            @Expensify/mobile-deployers - The Update Protected Branch workflow has failed because this PR was not mergable, 
+            :bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable. 
             if you are the deployer this week, please resolve the error and merge this PR to continue the deploy process. 
 
       - name: Fail workflow if PR is not mergeable
