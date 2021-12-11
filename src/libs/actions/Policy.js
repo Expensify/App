@@ -53,7 +53,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @returns {Object}
  */
-function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
+function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isSummary) {
     return {
         id: fullPolicyOrPolicySummary.id,
         name: fullPolicyOrPolicySummary.name,
@@ -61,7 +61,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
         type: fullPolicyOrPolicySummary.type,
         owner: fullPolicyOrPolicySummary.owner,
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || '',
+        avatarURL: (isSummary ? lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL') : fullPolicyOrPolicySummary.avatarURL) || '',
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
     };
 }
