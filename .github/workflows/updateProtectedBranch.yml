@@ -106,7 +106,7 @@ jobs:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
           body: |
             :bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable. 
-            if you are the deployer this week, please resolve the error and merge this PR to continue the deploy process. 
+            If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process. 
 
       - name: Fail workflow if PR is not mergeable
         if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
