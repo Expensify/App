@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
+import SelectionScraper from '../../libs/SelectionScraper';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
 
@@ -30,7 +31,7 @@ class PressableWithSecondaryInteraction extends Component {
      * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
      */
     executeSecondaryInteractionOnContextMenu(e) {
-        const selection = window.getSelection().toString();
+        const selection = SelectionScraper.getAsMarkdown();
         e.stopPropagation();
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();

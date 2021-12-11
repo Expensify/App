@@ -159,6 +159,11 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
         },
+        COPY: {
+            descriptionKey: 'copy',
+            shortcutKey: 'C',
+            modifiers: ['CTRL'],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'Ctrl',
