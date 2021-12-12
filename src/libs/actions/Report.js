@@ -144,7 +144,7 @@ function getChatReportName(fullReport, chatType) {
 
     // For normal policy room return its originally name
     if (chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM) {
-        return fullReport.reportName
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;
