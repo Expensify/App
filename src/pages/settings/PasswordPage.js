@@ -166,7 +166,7 @@ class PasswordPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
@@ -236,7 +236,6 @@ class PasswordPage extends Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <ExpensifyButton
                             success
-                            style={[styles.mb2]}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
                             onPress={this.submit}

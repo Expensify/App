@@ -5,21 +5,16 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import ScreenWrapper from '../components/ScreenWrapper';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import FixedFooter from '../components/FixedFooter';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 import styles from '../styles/styles';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import AvatarWithImagePicker from '../components/AvatarWithImagePicker';
-import {
-    setAvatar,
-    deleteAvatar,
-    getFirstAndLastNameErrors,
-    setPersonalDetails,
-} from '../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import currentUserPersonalDetailsPropsTypes from './settings/Profile/currentUserPersonalDetailsPropsTypes';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
@@ -63,7 +58,7 @@ class WelcomePage extends React.Component {
     }
 
     validate() {
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         const errors = this.state.errors;
         errors.firstName = firstNameError;
@@ -77,11 +72,9 @@ class WelcomePage extends React.Component {
             return;
         }
 
-        const {firstName, lastName} = this.state;
-
-        setPersonalDetails({
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
+        PersonalDetails.setPersonalDetails({
+            firstName: this.state.firstName.trim(),
+            lastName: this.state.lastName.trim(),
         }, true, true);
     }
 
@@ -98,16 +91,16 @@ class WelcomePage extends React.Component {
 
                         <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
 
-                            <Text>
+                            <ExpensifyText>
                                 {this.props.translate('welcomeScreen.subtitle')}
-                            </Text>
+                            </ExpensifyText>
 
                             <View style={[styles.m5]}>
                                 <AvatarWithImagePicker
                                     isUploading={this.props.myPersonalDetails.avatarUploading}
                                     avatarURL={this.props.myPersonalDetails.avatar}
-                                    onImageSelected={setAvatar}
-                                    onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                                    onImageSelected={PersonalDetails.setAvatar}
+                                    onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                                     isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                                     anchorPosition={styles.createMenuPositionProfile}
@@ -135,7 +128,7 @@ class WelcomePage extends React.Component {
                             </View>
                         </ScrollView>
                         <FixedFooter>
-                            <Button
+                            <ExpensifyButton
                                 success
                                 style={[styles.w100]}
                                 text={this.props.translate('welcomeScreen.getStarted')}

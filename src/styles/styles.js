@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -427,6 +428,13 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -669,6 +677,42 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    textInputWithPrefix: {
+        container: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            textAlignVertical: 'center',
+        },
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 10,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
+    },
+
     expensiPickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -804,8 +848,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -1072,6 +1125,7 @@ const styles = {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
+        ...optionAlternateTextPlatformStyles,
     },
 
     // App Content Wrapper styles
@@ -1975,7 +2029,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
@@ -2142,6 +2196,23 @@ const styles = {
         bottom: 0,
     },
 
+    shortTermsBorder: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+    },
+
+    shortTermsHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
+    shortTermsLargeHorizontalRule: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -2155,7 +2226,7 @@ const styles = {
     shortTermsBoldHeadingSection: {
         paddingRight: 12,
         paddingLeft: 12,
-        marginTop: 16,
+        marginTop: 12,
     },
 
     longTermsRow: {

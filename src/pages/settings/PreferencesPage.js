@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
@@ -64,7 +64,7 @@ const PreferencesPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={styles.pageWrapper}>
+            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
                     <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
@@ -122,7 +122,7 @@ const PreferencesPage = (props) => {
                         </>
                     )}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };

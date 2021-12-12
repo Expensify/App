@@ -1,8 +1,11 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import ExpensifyText from '../../components/ExpensifyText';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -14,8 +17,7 @@ import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceSection from './WorkspaceSection';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
-import WorkspacePageWithSections from './WorkspacePageWithSections';
-
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -85,38 +87,39 @@ class WorkspaceBankAccountPage extends React.Component {
         }
 
         return (
-            <WorkspacePageWithSections
-                headerText={this.props.translate('workspace.common.bankAccount')}
-                route={this.props.route}
-            >
-                {() => (
-                    <>
-                        <WorkspaceSection
-                            title={this.props.translate('workspace.bankAccount.almostDone')}
-                            icon={Illustrations.BankArrowPink}
-                            menuItems={[
-                                {
-                                    title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                                    icon: Expensicons.Bank,
-                                    onPress: this.navigateToBankAccountRoute,
-                                    shouldShowRightIcon: true,
-                                },
-                                {
-                                    title: this.props.translate('workspace.bankAccount.startOver'),
-                                    icon: Expensicons.RotateLeft,
-                                    onPress: BankAccounts.requestResetFreePlanBankAccount,
-                                    shouldShowRightIcon: true,
-                                },
-                            ]}
-                        >
-                            <ExpensifyText>
-                                {this.props.translate('workspace.bankAccount.youreAlmostDone')}
-                            </ExpensifyText>
-                        </WorkspaceSection>
-                        <WorkspaceResetBankAccountModal />
-                    </>
-                )}
-            </WorkspacePageWithSections>
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.bankAccount')}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    shouldShowBackButton
+                />
+                <ScrollView style={styles.flex1}>
+                    <WorkspaceSection
+                        title={this.props.translate('workspace.bankAccount.almostDone')}
+                        icon={Illustrations.BankArrowPink}
+                        menuItems={[
+                            {
+                                title: this.props.translate('workspace.bankAccount.continueWithSetup'),
+                                icon: Expensicons.Bank,
+                                onPress: this.navigateToBankAccountRoute,
+                                shouldShowRightIcon: true,
+                            },
+                            {
+                                title: this.props.translate('workspace.bankAccount.startOver'),
+                                icon: Expensicons.RotateLeft,
+                                onPress: BankAccounts.requestResetFreePlanBankAccount,
+                                shouldShowRightIcon: true,
+                            },
+                        ]}
+                    >
+                        <ExpensifyText>
+                            {this.props.translate('workspace.bankAccount.youreAlmostDone')}
+                        </ExpensifyText>
+                    </WorkspaceSection>
+                </ScrollView>
+                <WorkspaceResetBankAccountModal />
+            </ScreenWrapper>
         );
     }
 }

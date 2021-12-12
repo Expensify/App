@@ -16,6 +16,8 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import * as ComponentUtils from '../../libs/ComponentUtils';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +35,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +45,6 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -50,6 +52,20 @@ class PasswordForm extends React.Component {
             password: '',
             twoFactorAuthCode: '',
         };
+    }
+
+    componentDidMount() {
+        if (!this.input) {
+            return;
+        }
+        this.input.focus();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isVisible || !this.props.isVisible) {
+            return;
+        }
+        this.input.focus();
     }
 
     /**
@@ -83,14 +99,16 @@ class PasswordForm extends React.Component {
             <>
                 <View style={[styles.mv3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType="password"
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                         textContentType="password"
+                        nativeID="password"
+                        name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
-                        autoFocus
                         blurOnSubmit={false}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
@@ -155,4 +173,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withToggleVisibilityView,
 )(PasswordForm);
