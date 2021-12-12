@@ -1119,6 +1119,7 @@ function UpdatePolicy(parameters) {
  */
 function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
+    requireParameters([_.has(parameters, 'bankAccountID') ? 'bankAccountID' : 'fundID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 

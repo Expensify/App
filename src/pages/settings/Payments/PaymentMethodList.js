@@ -162,7 +162,6 @@ class PaymentMethodList extends Component {
     }
 
     render() {
-        console.debug(this.props.selectedAccountID, this.props.enableSelection);
         return (
             <FlatList
                 data={this.createPaymentMethodList()}
