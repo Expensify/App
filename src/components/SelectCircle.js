@@ -7,7 +7,7 @@ import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    /** Whether radioBox is checked */
+    /** Whether SelectCircle is checked */
     isChecked: PropTypes.bool,
 };
 
@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 const SelectCircle = props => (
-    <View style={[styles.selectCircle]}>
+    <View style={[styles.selectCircle, styles.alignSelfCenter]}>
         {props.isChecked && (
             <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
         )}

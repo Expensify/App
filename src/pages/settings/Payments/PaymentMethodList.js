@@ -143,7 +143,7 @@ class PaymentMethodList extends Component {
                     key={item.key}
                     disabled={item.disabled}
                     shouldShowSelectedState={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
-                    selected={this.props.selectedAccountID === item.id}
+                    isSelected={this.props.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
@@ -162,6 +162,7 @@ class PaymentMethodList extends Component {
     }
 
     render() {
+        console.debug(this.props.selectedAccountID, this.props.enableSelection);
         return (
             <FlatList
                 data={this.createPaymentMethodList()}

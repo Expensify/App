@@ -66,7 +66,7 @@ class PaymentsPage extends React.Component {
     }
 
     /**
-     * Display the delete/default menu, or the add payment method menu
+     * Navigate to respective payment page when existing payment method is pressed
      *
      * @param {String} account
      */

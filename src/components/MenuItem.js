@@ -123,7 +123,7 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
-                    {props.selectable && <SelectCircle isChecked={props.isSelected} />}
+                    {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                 </View>
             </>
         )}
