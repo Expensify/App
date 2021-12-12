@@ -11,7 +11,7 @@ export default {
 
         /** Linked Bank account to the user wallet */
         // eslint-disable-next-line react/forbid-prop-types
-        walletLinkedAccount: PropTypes.object,
+        walletLinkedAccountID: PropTypes.number,
 
         /** The user's current wallet balance */
         availableBalance: PropTypes.number,

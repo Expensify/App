@@ -12,8 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as PaymentUtils from '../../../libs/PaymentUtils';
-import getBankIcon from '../../../components/Icon/BankIcons';
+import PaymentUtils from '../../../libs/PaymentUtils';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
 const MENU_ITEM = 'menuItem';
@@ -21,6 +20,9 @@ const MENU_ITEM = 'menuItem';
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Add payment method type menu item pressed */
+    addPaymentMethodPressed: PropTypes.func.isRequired,
 
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
@@ -35,7 +37,7 @@ const propTypes = {
     enableSelection: PropTypes.bool,
 
     /** Type to filter the payment Method list */
-    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT]),
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
     /** Selected Account ID if selection is active */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -72,11 +74,7 @@ const defaultProps = {
 class PaymentMethodList extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            selectedAccountID: this.props.selectedAccountID,
-        };
         this.renderItem = this.renderItem.bind(this);
-        this.selectPaymentMethod = this.selectPaymentMethod.bind(this);
         this.createPaymentMethodList = this.createPaymentMethodList.bind(this);
     }
 
@@ -85,39 +83,22 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        let paymentMethods = [];
-        if (_.isEmpty(this.props.filterType)) {
-            paymentMethods = PaymentUtils.getPaymentMethodsList(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
-        } else {
-            paymentMethods = PaymentUtils.getPaymentMethodsList(
-                this.props.filterType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? this.props.bankAccountList : [],
-                this.props.filterType === CONST.PAYMENT_METHODS.DEBIT_CARD ? this.props.cardList : [],
-                !this.props.filterType ? this.props.payPalMeUsername : '',
-            );
+        let paymentMethods = PaymentUtils.getPaymentMethodsList(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+
+        if (!_.isEmpty(this.props.filterType)) {
+            paymentMethods = _.filter(paymentMethods, paymentMethod => paymentMethod.type === this.props.filterType);
         }
 
-        const combinedPaymentMethods = _.map(paymentMethods, (method) => {
-            let iconProperties;
-
-            switch (method.type) {
-                case CONST.PAYMENT_METHODS.BANK_ACCOUNT: iconProperties = getBankIcon(method.bankName); break;
-                case CONST.PAYMENT_METHODS.DEBIT_CARD: iconProperties = getBankIcon(method.bankName, true); break;
-                case CONST.PAYMENT_METHODS.PAYPAL: iconProperties = {icon: Expensicons.PayPal}; break;
-                default: break;
-            }
-
-            return {
-                ...method,
-                icon: iconProperties.icon,
-                iconSize: iconProperties.iconSize,
-                type: MENU_ITEM,
-                onPress: e => this.props.onPress(e, method.id),
-            };
-        });
+        paymentMethods = _.map(paymentMethods, method => ({
+            ...method,
+            ...PaymentUtils.getPaymentMethodIconProperties(method),
+            type: MENU_ITEM,
+            onPress: () => this.props.onPress(method.id),
+        }));
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(paymentMethods)) {
-            combinedPaymentMethods.push({
+            paymentMethods.push({
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
         }
@@ -129,32 +110,18 @@ class PaymentMethodList extends Component {
             default: break;
         }
 
-        combinedPaymentMethods.push({
+        paymentMethods.push({
             type: MENU_ITEM,
             title: addPaymentMethodButtonTitle,
             icon: Expensicons.Plus,
-            onPress: e => this.props.onPress(e),
+            onPress: e => this.props.addPaymentMethodPressed(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
             iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
-        return combinedPaymentMethods;
-    }
-
-    /**
-     * Select the payment method
-     *
-     * @param {Object} e EventObject
-     * @param {Object} item PaymentMethod
-     */
-    selectPaymentMethod(e, item) {
-        item.onPress(e);
-        if (!item.id) {
-            return;
-        }
-        this.setState({selectedAccountID: item.id});
+        return paymentMethods;
     }
 
     /**
@@ -169,14 +136,14 @@ class PaymentMethodList extends Component {
         if (item.type === MENU_ITEM) {
             return (
                 <MenuItem
-                    onPress={e => this.selectPaymentMethod(e, item)}
+                    onPress={item.onPress}
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
                     shouldShowSelectedState={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
-                    selected={this.state.selectedAccountID === item.id}
+                    selected={this.props.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}

@@ -23,12 +23,12 @@ import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import * as paymentPropTypes from './paymentPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import * as PaymentUtils from '../../../libs/PaymentUtils';
-import getBankIcon from '../../../components/Icon/BankIcons';
+import PaymentUtils from '../../../libs/PaymentUtils';
+import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     /** User's wallet information */
-    userWallet: paymentPropTypes.userWalletPropTypes,
+    userWallet: userWalletPropTypes.userWallet,
 
     /** Array of bank account objects */
     bankAccountList: paymentPropTypes.bankAccountListPropTypes,
@@ -43,9 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userWallet: {
-        walletLinkedAccount: {},
-    },
+    userWallet: {},
     bankAccountList: [],
     cardList: [],
     walletTransfer: {},
@@ -116,7 +114,7 @@ class TransferBalancePage extends React.Component {
         const isButtonDisabled = !canTransfer || !selectAccount;
 
         if (selectAccount) {
-            const iconProperties = getBankIcon(selectAccount.bankName, selectAccount.type === CONST.PAYMENT_METHODS.DEBIT_CARD);
+            const iconProperties = PaymentUtils.getPaymentMethodIconProperties(selectAccount);
             selectAccount.icon = iconProperties.icon;
             selectAccount.iconSize = iconProperties.iconSize;
         }

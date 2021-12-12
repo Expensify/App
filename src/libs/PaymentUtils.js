@@ -1,4 +1,6 @@
 import _ from 'underscore';
+import * as Expensicons from '../components/Icon/Expensicons';
+import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 
@@ -67,13 +69,34 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername = '')
             description: payPalMeUsername,
             key: 'payPalMePaymentMethod',
             id: 'payPalMe',
-            type: CONST.WALLET.PAYMENT_METHOD_TYPE.PAYPAL,
+            type: CONST.PAYMENT_METHODS.PAYPAL,
         });
     }
 
     return combinedPaymentMethods;
 }
 
+/**
+ * Get the Icon for PaymentMethod and its properties
+ * @param {PaymentMethod} paymentMethod
+ * @typedef {Object} IconProperties
+ * @property {?} IconProperties.icon
+ * @property {Number} [IconProperties.iconSize]
+ * @returns {IconProperties}
+ */
+function getPaymentMethodIconProperties(paymentMethod) {
+    switch (paymentMethod.type) {
+        case CONST.PAYMENT_METHODS.BANK_ACCOUNT:
+            return getBankIcon(paymentMethod.bankName);
+        case CONST.PAYMENT_METHODS.DEBIT_CARD:
+            return getBankIcon(paymentMethod.bankName, true);
+        case CONST.PAYMENT_METHODS.PAYPAL:
+            return {icon: Expensicons.PayPal};
+        default: break;
+    }
+}
+
 export default {
     getPaymentMethodsList,
+    getPaymentMethodIconProperties,
 };
