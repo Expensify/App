@@ -142,6 +142,11 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
+    // For normal policy room return its originally name
+    if (chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM) {
+        return fullReport.reportName
+    }
+
     const {sharedReportList} = fullReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
