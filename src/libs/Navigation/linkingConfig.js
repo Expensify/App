@@ -189,11 +189,6 @@ export default {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
-            WelcomeScreen: {
-                screens: {
-                    WelcomeScreen_Root: ROUTES.WELCOME_SCREEN,
-                },
-            },
         },
     },
 };

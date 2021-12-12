@@ -152,7 +152,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: Expensicons.ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
-                                    onSelected: () => Navigation.navigate(ROUTES.WELCOME_SCREEN),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
                                     icon: Expensicons.Users,

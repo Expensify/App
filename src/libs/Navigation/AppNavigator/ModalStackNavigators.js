@@ -3,7 +3,6 @@ import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import NewChatPage from '../../../pages/NewChatPage';
-import WelcomePage from '../../../pages/WelcomePage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
@@ -144,11 +143,6 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
-const WelcomeScreenModalStackNavigator = createModalStackNavigator([{
-    Component: WelcomePage,
-    name: 'WelcomeScreen_Root',
-}]);
-
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsInitialPage,
@@ -285,5 +279,4 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     RequestCallModalStackNavigator,
-    WelcomeScreenModalStackNavigator,
 };
