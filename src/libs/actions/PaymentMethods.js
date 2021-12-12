@@ -39,12 +39,13 @@ function getPaymentMethods() {
  * Call the API to transfer wallet balance.
  * @param {Object} paymentMethod
  * @param {String} paymentMethod.id
- * @param {'bank'|'card'} paymentMethod.type
+ * @param {'bankAccount'|'debitCard'} paymentMethod.type
  * @returns {Promise}
  */
 function transferWalletBalance(paymentMethod) {
-    const parameters = {};
-    parameters[paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? 'bankAccountID' : 'fundID'] = paymentMethod.id;
+    const parameters = {
+        [paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? 'bankAccountID' : 'fundID']: paymentMethod.id,
+    };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
     return API.TransferWalletBalance(parameters)

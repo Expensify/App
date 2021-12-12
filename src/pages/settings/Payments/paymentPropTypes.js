@@ -1,21 +1,5 @@
 import PropTypes from 'prop-types';
 
-/** User's wallet information */
-const userWalletPropTypes = PropTypes.shape({
-    /** What step in the activation flow are we on? */
-    currentStep: PropTypes.string,
-
-    /** Status of wallet - e.g. SILVER or GOLD */
-    tierName: PropTypes.string,
-
-    /** Linked Bank account to the user wallet */
-    // eslint-disable-next-line react/forbid-prop-types
-    walletLinkedAccount: PropTypes.object,
-
-    /** The user's current wallet balance */
-    availableBalance: PropTypes.number,
-});
-
 /** Array of bank account objects */
 const bankAccountListPropTypes = PropTypes.arrayOf(PropTypes.shape({
     /** The name of the institution (bank of america, etc) */
@@ -56,7 +40,6 @@ const walletTransferPropTypes = PropTypes.shape({
 });
 
 export {
-    userWalletPropTypes,
     bankAccountListPropTypes,
     cardListPropTypes,
     walletTransferPropTypes,

@@ -7,10 +7,10 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import ExpensifyText from '../../components/ExpensifyText';
-import {userWalletPropTypes} from '../settings/Payments/paymentPropTypes';
+import userWalletPropTypes from './userWalletPropTypes';
 
 const propTypes = {
-    userWallet: userWalletPropTypes,
+    ...userWalletPropTypes,
     ...withLocalizePropTypes,
 };
 
