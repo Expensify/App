@@ -75,13 +75,45 @@ class TransferBalancePage extends React.Component {
                 type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             },
         ];
-        PaymentMethods.startWalletTransfer(this.props.userWallet.currentBalance - Fee);
+
         this.transferBalance = this.transferBalance.bind(this);
+
+        const selectedAccount = this.getSelectedAccount();
+        PaymentMethods.startWalletTransfer(
+            this.props.userWallet.currentBalance - Fee,
+            selectedAccount ? selectedAccount.id : '',
+        );
+    }
+
+    // eslint-disable-next-line valid-jsdoc
+    /**
+     * Get the selected/default Account for wallet tsransfer
+     * @typedef {import('../../../libs/PaymentUtils').PaymentMethod} PaymentMethod
+     * @returns {PaymentMethod|undefined}
+     */
+    getSelectedAccount() {
+        const paymentMethods = PaymentUtils.getPaymentMethodsList(
+            this.props.bankAccountList,
+            this.props.cardList,
+        );
+
+        const defaultAccount = _.find(
+            paymentMethods,
+            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccountID', ''),
+        );
+        const selectedAccount = this.props.walletTransfer.selectedAccountID
+            ? _.find(
+                paymentMethods,
+                method => method.id === this.props.walletTransfer.selectedAccountID,
+            )
+            : defaultAccount;
+
+        return selectedAccount;
     }
 
     /**
      * Transfer Wallet balance
-     * @param {Object} selectedAccount
+     * @param {PaymentMethod} selectedAccount
      */
     transferBalance(selectedAccount) {
         if (!selectedAccount) {
@@ -91,32 +123,19 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
-        const paymentMethods = PaymentUtils.getPaymentMethodsList(
-            this.props.bankAccountList,
-            this.props.cardList,
-        );
-        const defaultAccount = _.find(
-            paymentMethods,
-            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccountID', ''),
-        );
-        const selectAccount = this.props.walletTransfer.selectedAccountID
-            ? _.find(
-                paymentMethods,
-                method => method.id === this.props.walletTransfer.selectedAccountID,
-            )
-            : defaultAccount;
+        const selectedAccount = this.getSelectedAccount();
 
-        const selectedPaymentType = selectAccount && selectAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+        const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
         const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
-        const isButtonDisabled = !canTransfer || !selectAccount;
+        const isButtonDisabled = !canTransfer || !selectedAccount;
 
-        if (selectAccount) {
-            const iconProperties = PaymentUtils.getPaymentMethodIconProperties(selectAccount);
-            selectAccount.icon = iconProperties.icon;
-            selectAccount.iconSize = iconProperties.iconSize;
+        if (selectedAccount) {
+            const iconProperties = PaymentUtils.getPaymentMethodIconProperties(selectedAccount);
+            selectedAccount.icon = iconProperties.icon;
+            selectedAccount.iconSize = iconProperties.iconSize;
         }
 
         return (
@@ -160,21 +179,21 @@ class TransferBalancePage extends React.Component {
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
                         </ExpensifyText>
-                        {!!selectAccount
+                        {!!selectedAccount
                             && (
                                 <MenuItem
-                                    title={selectAccount.title}
-                                    description={selectAccount.description}
+                                    title={selectedAccount.title}
+                                    description={selectedAccount.description}
                                     shouldShowRightIcon
-                                    iconWidth={selectAccount.iconSize}
-                                    iconHeight={selectAccount.iconSize}
-                                    icon={selectAccount.icon}
+                                    iconWidth={selectedAccount.iconSize}
+                                    iconHeight={selectedAccount.iconSize}
+                                    icon={selectedAccount.icon}
                                     wrapperStyle={{
                                         ...styles.mrn5,
                                         ...styles.ph0,
                                     }}
                                     onPress={() => {
-                                        PaymentMethods.updateWalletTransferData({filterPaymentMethodType: selectAccount.type});
+                                        PaymentMethods.updateWalletTransferData({filterPaymentMethodType: selectedAccount.type});
                                         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
                                     }}
                                 />

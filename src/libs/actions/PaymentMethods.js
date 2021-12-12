@@ -123,9 +123,10 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
-function startWalletTransfer(transferAmount) {
+function startWalletTransfer(transferAmount, selectedAccountID) {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
         transferAmount,
+        selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
     });
