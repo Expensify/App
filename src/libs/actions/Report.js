@@ -125,7 +125,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns the title for a default room or generates one based on the participants
+ * Returns the title for a default room, a policy room or generates one based on the participants
  *
  * @param {Object} fullReport
  * @param {String} chatType
