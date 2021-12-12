@@ -15,16 +15,16 @@ const defaultProps = {
     isChecked: false,
 };
 
-const RadioBox = props => (
-    <View style={[styles.selectCircle, styles.alignSelfCenter]}>
+const SelectCircle = props => (
+    <View style={[styles.selectCircle]}>
         {props.isChecked && (
             <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
         )}
     </View>
 );
 
-RadioBox.propTypes = propTypes;
-RadioBox.defaultProps = defaultProps;
-RadioBox.displayName = 'RadioBox';
+SelectCircle.propTypes = propTypes;
+SelectCircle.defaultProps = defaultProps;
+SelectCircle.displayName = 'SelectCircle';
 
-export default RadioBox;
+export default SelectCircle;

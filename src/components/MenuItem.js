@@ -13,7 +13,7 @@ import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
-import RadioBox from './RadioBox';
+import SelectCircle from './SelectCircle';
 
 const defaultProps = {
     badgeText: undefined,
@@ -123,7 +123,7 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
-                    {props.selectable && <RadioBox isChecked={props.isSelected} />}
+                    {props.selectable && <SelectCircle isChecked={props.isSelected} />}
                 </View>
             </>
         )}

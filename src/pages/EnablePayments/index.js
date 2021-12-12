@@ -6,13 +6,13 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
+import userWalletPropTypes from './userWalletPropTypes';
 
 // Steps
 import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import userWalletPropTypes from './userWalletPropTypes';
 
 const propTypes = {
     ...userWalletPropTypes,
