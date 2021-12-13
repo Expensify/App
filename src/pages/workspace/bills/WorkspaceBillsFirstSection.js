@@ -3,17 +3,14 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Bill,
-    NewWindow,
-} from '../../../components/Icon/Expensicons';
-import {InvoiceOrange} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
@@ -40,25 +37,27 @@ const WorkspaceBillsFirstSection = (props) => {
     return (
         <WorkspaceSection
             title={props.translate('workspace.bills.manageYourBills')}
-            icon={InvoiceOrange}
+            icon={Illustrations.InvoiceOrange}
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
-                    icon: Bill,
+                    onPress: () => (
+                        Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
+                    ),
+                    icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>
+                <ExpensifyText>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
                         <TouchableOpacity
-                            onPress={() => openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
-                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                            <ExpensifyText style={[styles.textBlue]}>example.com@expensify.cash</ExpensifyText>
                         </TouchableOpacity>
                     ) : (
                         <CopyTextToClipboard
@@ -66,8 +65,8 @@ const WorkspaceBillsFirstSection = (props) => {
                             textStyles={[styles.textBlue]}
                         />
                     )}
-                    <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
-                </Text>
+                    <ExpensifyText>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</ExpensifyText>
+                </ExpensifyText>
             </View>
         </WorkspaceSection>
     );

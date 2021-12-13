@@ -6,11 +6,12 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
+import RNFetchBlob from 'rn-fetch-blob';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -60,15 +61,24 @@ const documentPickerOptions = {
   * send to the xhr will be handled properly.
   *
   * @param {Object} fileData
-  * @return {Object}
+  * @return {Promise}
   */
 function getDataForUpload(fileData) {
-    return {
+    const fileResult = {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.fileCopyUri || fileData.uri,
         size: fileData.fileSize || fileData.size,
     };
+
+    if (fileResult.size) {
+        return Promise.resolve(fileResult);
+    }
+
+    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        fileResult.size = stats.size;
+        return fileResult;
+    });
 }
 
 /**
@@ -87,12 +97,12 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Camera,
+                icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
-                icon: Gallery,
+                icon: Expensicons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
@@ -103,7 +113,7 @@ class AttachmentPicker extends Component {
         if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             this.menuItemData.push(
                 {
-                    icon: Paperclip,
+                    icon: Expensicons.Paperclip,
                     textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
@@ -119,6 +129,7 @@ class AttachmentPicker extends Component {
       * sends the selected attachment to the caller (parent component)
       *
       * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
+      * @returns {Promise}
       */
     pickAttachment(attachments = []) {
         if (attachments.length === 0) {
@@ -132,8 +143,12 @@ class AttachmentPicker extends Component {
             return;
         }
 
-        const result = getDataForUpload(fileData);
-        this.completeAttachmentSelection(result);
+        return getDataForUpload(fileData).then((result) => {
+            this.completeAttachmentSelection(result);
+        }).catch((error) => {
+            this.showGeneralAlert(error.message);
+            throw error;
+        });
     }
 
     /**

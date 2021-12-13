@@ -2,7 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../Text';
+import Str from 'expensify-common/lib/str';
+import ExpensifyText from '../ExpensifyText';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -29,16 +30,16 @@ const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
             <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
-                <Text style={[styles.chatItemMessage]}>
-                    {fragment.text}
-                </Text>
+                <ExpensifyText style={[styles.chatItemMessage]}>
+                    {Str.htmlDecode(fragment.text)}
+                </ExpensifyText>
                 {props.shouldShowViewDetailsLink && (
-                    <Text
+                    <ExpensifyText
                         style={[styles.chatItemMessageLink, styles.alignSelfStart]}
                         onPress={props.onViewDetailsPressed}
                     >
                         {props.translate('iou.viewDetails')}
-                    </Text>
+                    </ExpensifyText>
                 )}
             </View>
         ))}

@@ -49,7 +49,6 @@ class DatePicker extends React.Component {
                     hasError={this.props.hasError}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
-                    translateX={this.props.translateX}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -59,6 +58,7 @@ class DatePicker extends React.Component {
                         value={this.props.value ? moment(this.props.value).toDate() : new Date()}
                         mode="date"
                         onChange={this.raiseDateChange}
+                        maximumDate={this.props.maximumDate}
                     />
                 )}
             </>

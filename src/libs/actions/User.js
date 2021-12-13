@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -52,7 +51,7 @@ function changePasswordAndNavigate(oldPassword, password) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SETTINGS);
+            Navigation.goBack();
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -78,6 +77,7 @@ function getUserDetails() {
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
             CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
+            CONST.NVP.FREQUENTLY_USED_EMOJIS,
         ].join(','),
     })
         .then((response) => {
@@ -98,6 +98,9 @@ function getUserDetails() {
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
+
+            const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
         });
 }
 
@@ -239,12 +242,6 @@ function getDomainInfo() {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
-                // If the user is not on a public domain we'll want to know whether they are on a domain that has
-                // already provisioned the Expensify card
-                if (isFromPublicDomain) {
-                    return;
-                }
-
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
@@ -285,12 +282,52 @@ function subscribeToUserEvents() {
 }
 
 /**
+ * Subscribes to Expensify Card updates when checking loginList for private domains
+ */
+function subscribeToExpensifyCardUpdates() {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    // Handle Expensify Card approval flow updates
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
+        if (pushJSON.isUsingExpensifyCard) {
+            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
+            Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
+        } else {
+            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
+        }
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE},
+            );
+        });
+}
+
+/**
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
 
 function setPreferredSkinTone(skinTone) {
     return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * Sync frequentlyUsedEmojis with Onyx and Server
+ * @param {Object[]} frequentlyUsedEmojis
+ */
+
+function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 }
 
 /**
@@ -318,4 +355,6 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    subscribeToExpensifyCardUpdates,
+    setFrequentlyUsedEmojis,
 };

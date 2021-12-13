@@ -2,16 +2,16 @@ import lodashGet from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
-import {addTrailingForwardSlash} from './libs/Url';
+import * as Url from './libs/Url';
 import CONST from './CONST';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
-const expensifyURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
-const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
-const secureNgrokURL = addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const expensifyURLSecure = addTrailingForwardSlash(lodashGet(
+const expensifyCashURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
+const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
+const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
+const expensifyURLSecure = Url.addTrailingForwardSlash(lodashGet(
     Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
 ));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';

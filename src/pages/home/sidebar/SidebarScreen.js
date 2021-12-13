@@ -17,14 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import {
-    ChatBubble,
-    Users,
-    MoneyCircle,
-    Receipt,
-    NewWorkspace,
-    Send,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
@@ -38,12 +31,16 @@ const propTypes = {
     /* Flag for new users used to open the Global Create menu on first load */
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
+    /* Is workspace is being created by the user? */
+    isCreatingWorkspace: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     isFirstTimeNewExpensifyUser: false,
+    isCreatingWorkspace: false,
 };
 
 class SidebarScreen extends Component {
@@ -150,44 +147,49 @@ class SidebarScreen extends Component {
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
-                            animationIn="fadeInLeft"
-                            animationOut="fadeOutLeft"
                             onItemSelected={this.onCreateMenuItemSelected}
                             menuItems={[
                                 {
-                                    icon: ChatBubble,
+                                    icon: Expensicons.ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
-                                    icon: Users,
+                                    icon: Expensicons.Users,
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUseDefaultRooms(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.Hashtag,
+                                        text: this.props.translate('sidebarScreen.newRoom'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                    },
+                                ] : []),
                                 ...(Permissions.canUseIOUSend(this.props.betas) ? [
                                     {
-                                        icon: Send,
+                                        icon: Expensicons.Send,
                                         text: this.props.translate('iou.sendMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
                                     },
                                 ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
-                                        icon: MoneyCircle,
+                                        icon: Expensicons.MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
-                                        icon: Receipt,
+                                        icon: Expensicons.Receipt,
                                         text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
-                                        icon: NewWorkspace,
+                                        icon: Expensicons.NewWorkspace,
                                         iconWidth: 46,
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
@@ -220,6 +222,9 @@ export default compose(
         },
         isFirstTimeNewExpensifyUser: {
             key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        },
+        isCreatingWorkspace: {
+            key: ONYXKEYS.IS_CREATING_WORKSPACE,
         },
     }),
 )(SidebarScreen);

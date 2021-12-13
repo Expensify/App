@@ -22,6 +22,9 @@ export default {
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    // Boolean flag set when workspace is being created
+    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
@@ -130,6 +133,9 @@ export default {
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
+    // Store frequently used emojis for this user
+    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
+
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
@@ -144,4 +150,10 @@ export default {
 
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+
+    // Is report data loading?
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the create policy room command
+    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
 };

@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '../../components/ConfirmModal';
-import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import BankAccount from '../../libs/models/BankAccount';
 
@@ -40,17 +40,17 @@ const WorkspaceResetBankAccountModal = (props) => {
             confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
             cancelText={props.translate('common.cancel')}
             prompt={isInOpenState ? (
-                <Text>
-                    <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
-                    <Text style={styles.textStrong}>
+                <ExpensifyText>
+                    <ExpensifyText>{props.translate('workspace.bankAccount.disconnectYour')}</ExpensifyText>
+                    <ExpensifyText style={styles.textStrong}>
                         {bankShortName}
-                    </Text>
-                    <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
-                </Text>
+                    </ExpensifyText>
+                    <ExpensifyText>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</ExpensifyText>
+                </ExpensifyText>
             ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
-            onCancel={cancelResetFreePlanBankAccount}
-            onConfirm={() => resetFreePlanBankAccount()}
+            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount()}
             shouldShowCancelButton
             isVisible={lodashGet(props.reimbursementAccount, 'shouldShowResetModal', false)}
         />

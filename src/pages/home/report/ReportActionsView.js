@@ -9,13 +9,12 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Text from '../../../components/Text';
 import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import {lastItem} from '../../../libs/CollectionUtils';
+import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
@@ -23,15 +22,21 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
-import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
+import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
+import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
+import * as ReportUtils from '../../../libs/reportUtils';
+import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import ONYXKEYS from '../../../ONYXKEYS';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -66,6 +71,12 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -80,6 +91,8 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingReportActions: false,
+    personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -130,12 +143,13 @@ class ReportActionsView extends React.Component {
             this.scrollToListBottom();
         });
 
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
             Report.updateLastReadActionID(this.props.reportID);
         }
 
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         Report.fetchActions(this.props.reportID);
     }
 
@@ -175,13 +189,17 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
+            return true;
+        }
+
         return false;
     }
 
     componentDidUpdate(prevProps) {
         // The last sequenceNumber of the same report has changed.
-        const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
-        const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
+        const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
 
         // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
@@ -190,15 +208,9 @@ class ReportActionsView extends React.Component {
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
-            const lastAction = lastItem(this.props.reportActions);
+            const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
-            }
-
-            // When the last action changes, record the max action
-            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (shouldRecordMaxAction) {
-                Report.updateLastReadActionID(this.props.reportID);
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -211,12 +223,18 @@ class ReportActionsView extends React.Component {
                 // show new MarkerBadge when there is a new message
                 this.toggleMarker();
             }
+
+            // When the last action changes, record the max action
+            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            if (shouldRecordMaxAction) {
+                Report.updateLastReadActionID(this.props.reportID);
+            }
         } else if (shouldRecordMaxAction && (
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            Report.updateLastReadActionID(this.props.reportID);
             this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+            Report.updateLastReadActionID(this.props.reportID);
         }
     }
 
@@ -360,7 +378,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        scrollToBottom();
+        ReportScrollManager.scrollToBottom();
         Report.updateLastReadActionID(this.props.reportID);
     }
 
@@ -372,7 +390,7 @@ class ReportActionsView extends React.Component {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
-        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : (this.props.report.maxSequenceNumber - unreadActionCount) + 1;
+        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
         Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
 
@@ -503,6 +521,8 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
+
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
@@ -512,9 +532,14 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text>
-                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
-                    </Text>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
+                        <EmptyStateAvatars
+                            avatarImageURLs={this.props.report.icons}
+                            secondAvatarStyle={[styles.secondAvatarHovered]}
+                            isDefaultChatRoom={isDefaultChatRoom}
+                        />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
+                    </View>
                 </View>
             );
         }
@@ -522,21 +547,22 @@ class ReportActionsView extends React.Component {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         return (
             <>
                 <MarkerBadge
                     active={this.state.isMarkerActive}
                     count={this.state.localUnreadActionCount}
-                    onClick={scrollToBottom}
+                    onClick={this.scrollToListBottom}
                     onClose={this.hideMarker}
                 />
                 <InvertedFlatList
-                    ref={flatListRef}
+                    ref={ReportScrollManager.flatListRef}
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
@@ -550,7 +576,7 @@ class ReportActionsView extends React.Component {
                     onScroll={this.trackScroll}
                     extraData={extraData}
                 />
-                <PopoverReportActionContextMenu ref={contextMenuRef} />
+                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
             </>
         );
     }
@@ -564,10 +590,14 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
+    withPersonalDetails(),
     withOnyx({
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionsView);

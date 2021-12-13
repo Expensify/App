@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
@@ -11,10 +11,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {setExpensifyNewsStatus, setShouldUseSecureStaging} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -64,21 +64,21 @@ const PreferencesPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={styles.pageWrapper}>
+            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                    <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
-                    </Text>
+                    </ExpensifyText>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>
-                            <Text>
+                            <ExpensifyText>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
                                 isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
-                                onToggle={setExpensifyNewsStatus}
+                                onToggle={User.setExpensifyNewsStatus}
                             />
                         </View>
                     </View>
@@ -92,9 +92,9 @@ const PreferencesPage = (props) => {
                             value={props.priorityMode}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
+                    <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[props.priorityMode].description}
-                    </Text>
+                    </ExpensifyText>
                     <View style={[styles.mb2]}>
                         <LocalePicker />
                     </View>
@@ -103,26 +103,26 @@ const PreferencesPage = (props) => {
                     {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
                     {props.environment === CONST.ENVIRONMENT.STAGING && (
                         <>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                                 Test Preferences
-                            </Text>
+                            </ExpensifyText>
                             <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>
+                                    <ExpensifyText>
                                         Use Secure Staging Server
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         isOn={props.user.shouldUseSecureStaging || false}
-                                        onToggle={setShouldUseSecureStaging}
+                                        onToggle={User.setShouldUseSecureStaging}
                                     />
                                 </View>
                             </View>
                         </>
                     )}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };

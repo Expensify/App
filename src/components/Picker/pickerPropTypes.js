@@ -2,17 +2,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import styles from '../../styles/styles';
-import {DownArrow} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
     onChange: PropTypes.func.isRequired,
 
     /** Whether or not to show the disabled styles */
-    isDisabled: PropTypes.bool,
-
-    /** Disables interaction with the component */
     disabled: PropTypes.bool,
+
+    /** Should the picker be styled for errors  */
+    hasError: PropTypes.bool,
+
+    /** Should the picker be styled for focus state  */
+    focused: PropTypes.bool,
 
     /** The items to display in the list of selections */
     items: PropTypes.arrayOf(PropTypes.shape({
@@ -42,8 +45,9 @@ const propTypes = {
     size: PropTypes.oneOf(['normal', 'small']),
 };
 const defaultProps = {
-    isDisabled: false,
     disabled: false,
+    hasError: false,
+    focused: false,
     placeholder: {},
     value: null,
     icon: size => (
@@ -53,12 +57,12 @@ const defaultProps = {
                     <Icon
                         width={styles.pickerSmall.icon.width}
                         height={styles.pickerSmall.icon.height}
-                        src={DownArrow}
+                        src={Expensicons.DownArrow}
                     />
                 )
                 : (
                     <Icon
-                        src={DownArrow}
+                        src={Expensicons.DownArrow}
                     />
                 )}
         </>

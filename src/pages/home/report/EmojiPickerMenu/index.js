@@ -3,17 +3,19 @@ import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
+import styles from '../../../../styles/styles';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../../../components/Text';
+import ExpensifyText from '../../../../components/ExpensifyText';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 import EmojiSkinToneList from '../EmojiSkinToneList';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -27,6 +29,12 @@ const propTypes = {
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
+
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })).isRequired,
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -54,19 +62,20 @@ class EmojiPickerMenu extends Component {
         // For this reason to make headers work, we need to have the header be the only rendered element in its row
         // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
         // around each header.
-        this.numColumns = 8;
+        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
+
+        const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
-        // If more emojis are ever added to emojis.js this will need to be updated or things will break
-        this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
+        this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(allEmojis);
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? emojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
-            : emojis;
+            ? allEmojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
+            : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
@@ -118,7 +127,7 @@ class EmojiPickerMenu extends Component {
 
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code, this.state.filteredEmojis[this.state.highlightedIndex]);
                 return;
             }
 
@@ -332,9 +341,9 @@ class EmojiPickerMenu extends Component {
 
         if (header) {
             return (
-                <Text style={styles.emojiHeaderStyle}>
+                <ExpensifyText style={styles.emojiHeaderStyle}>
                     {code}
-                </Text>
+                </ExpensifyText>
             );
         }
 
@@ -345,7 +354,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={this.props.onEmojiSelected}
+                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
@@ -356,7 +365,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View
-                style={[styles.emojiPickerContainer, getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
+                style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
@@ -376,7 +385,7 @@ class EmojiPickerMenu extends Component {
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
-                        <Text
+                        <ExpensifyText
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
@@ -387,7 +396,7 @@ class EmojiPickerMenu extends Component {
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
-                        </Text>
+                        </ExpensifyText>
                     )
                     : (
                         <FlatList

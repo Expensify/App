@@ -6,17 +6,16 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import {activateWallet} from '../../libs/actions/BankAccounts';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -71,13 +70,13 @@ class TermsStep extends React.Component {
                         isChecked={this.state.hasAcceptedDisclosure}
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
-                            <Text>
+                            <ExpensifyText>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')} `}
 
                                 <TextLink href="https://use.expensify.com/fees">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
-                            </Text>
+                            </ExpensifyText>
                         )}
                     />
                     <CheckboxWithLabel
@@ -86,15 +85,15 @@ class TermsStep extends React.Component {
                         onPress={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <>
-                                <Text>
+                                <ExpensifyText>
                                     {`${this.props.translate('termsStep.agreeToThe')} `}
-                                </Text>
+                                </ExpensifyText>
 
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {`${this.props.translate('common.privacyPolicy')} `}
                                 </TextLink>
 
-                                <Text>{`${this.props.translate('common.and')} `}</Text>
+                                <ExpensifyText>{`${this.props.translate('common.and')} `}</ExpensifyText>
 
                                 <TextLink href="https://use.expensify.com/personalpaymentsterms">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
@@ -102,15 +101,14 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                </ScrollView>
-                {this.state.error && (
-                    <Text style={[styles.formError, styles.mb2]}>
-                        {this.props.translate('termsStep.termsMustBeAccepted')}
-                    </Text>
-                )}
-                <FixedFooter>
-                    <Button
+                    {this.state.error && (
+                        <ExpensifyText style={[styles.formError, styles.mb2]}>
+                            {this.props.translate('termsStep.termsMustBeAccepted')}
+                        </ExpensifyText>
+                    )}
+                    <ExpensifyButton
                         success
+                        style={styles.mb4}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {
@@ -121,13 +119,13 @@ class TermsStep extends React.Component {
                             }
 
                             this.setState({error: false});
-                            activateWallet(CONST.WALLET.STEP.TERMS, {
+                            BankAccounts.activateWallet(CONST.WALLET.STEP.TERMS, {
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                             });
                         }}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }

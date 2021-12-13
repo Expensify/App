@@ -1,8 +1,9 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {getBadgeColorStyle} from '../styles/styles';
-import Text from './Text';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** Is Success type */
@@ -38,7 +39,7 @@ const Badge = (props) => {
     const wrapperStyles = ({pressed}) => ([
         styles.badge,
         styles.ml2,
-        getBadgeColorStyle(props.success, props.error, pressed),
+        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed),
         ...props.badgeStyles,
     ]);
 
@@ -47,12 +48,12 @@ const Badge = (props) => {
             style={props.pressable ? wrapperStyles : wrapperStyles(false)}
             onPress={props.onPress}
         >
-            <Text
+            <ExpensifyText
                 style={[styles.badgeText, textStyles]}
                 numberOfLines={1}
             >
                 {props.text}
-            </Text>
+            </ExpensifyText>
         </Wrapper>
     );
 };
