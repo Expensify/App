@@ -3,11 +3,30 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
-import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
+
+let setupAction;
+
+/**
+ * @param {Function} action
+ */
+function setSetupAction(action) {
+    setupAction = action;
+}
+
+function continueSetup() {
+    if (!setupAction) {
+        Navigation.goBack();
+        return;
+    }
+
+    // Close the view on success and continue with setup
+    Navigation.goBack();
+    setupAction();
+}
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -73,7 +92,7 @@ function addBillingCard(params) {
             };
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
             Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+            continueSetup();
         } else {
             errorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
@@ -98,5 +117,7 @@ function clearDebitCardFormErrorAndSubmit() {
 export {
     getPaymentMethods,
     addBillingCard,
+    setSetupAction,
+    continueSetup,
     clearDebitCardFormErrorAndSubmit,
 };

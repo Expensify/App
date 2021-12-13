@@ -64,7 +64,9 @@ class OnfidoStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('onfidoStep.verifyIdentity')}
-                    onCloseButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 {
                     this.canShowOnfido() ? (

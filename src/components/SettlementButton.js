@@ -16,6 +16,8 @@ import AddPaymentMethodMenu from './AddPaymentMethodMenu';
 import Navigation from '../libs/Navigation/Navigation';
 import getClickedElementLocation from '../libs/getClickedElementLocation';
 import * as PaymentUtils from '../libs/PaymentUtils';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     /** Settlement currency type */
@@ -27,6 +29,7 @@ const propTypes = {
     /** Associated phone login for the person we are sending money to */
     recipientPhoneNumber: PropTypes.string,
 
+    ...userWalletPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -34,11 +37,16 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     recipientPhoneNumber: '',
     shouldShowPaypal: false,
+
+    // eslint-disable-next-line react/default-props-match-prop-types
+    userWallet: {},
 };
 
 class SettlementButton extends React.Component {
     constructor(props) {
         super(props);
+
+        this.payWithExpensify = this.payWithExpensify.bind(this);
 
         const buttonOptions = [];
 
@@ -86,6 +94,7 @@ class SettlementButton extends React.Component {
 
         this.checkVenmoAvailabilityPromise.cancel();
         this.checkVenmoAvailabilityPromise = null;
+        PaymentMethods.setSetupAction(null);
     }
 
     /**
@@ -124,15 +133,26 @@ class SettlementButton extends React.Component {
             });
     }
 
-    checkWalletAndContinue(value) {
+    payWithExpensify(event) {
+        // Check to see if user has a valid payment method on file and display the add payment popover if they don't
+        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+            const position = getClickedElementLocation(event.nativeEvent);
+            this.setState({
+                shouldShowAddPaymentMenu: true,
+                anchorPositionTop: position.bottom - 226,
+                anchorPositionLeft: position.right - 356,
+            });
+            return;
+        }
+
         // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-        const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
+        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
         if (!hasGoldWallet) {
             Navigation.navigate(this.props.enablePaymentsRoute);
             return;
         }
 
-        this.props.onPress(value);
+        this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
     render() {
@@ -158,19 +178,16 @@ class SettlementButton extends React.Component {
                 <ButtonWithMenu
                     isDisabled={this.props.isDisabled}
                     isLoading={this.props.isLoading}
-                    onPress={(event, value) => {
-                        // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-                        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
-                            const position = getClickedElementLocation(event.nativeEvent);
-                            this.setState({
-                                shouldShowAddPaymentMenu: true,
-                                anchorPositionTop: position.bottom - 226,
-                                anchorPositionLeft: position.right - 356,
-                            });
+                    onPress={(event, iouPaymentType) => {
+                        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                            // We are setting a callback here so that we can "continue" the original action the user wants to take
+                            // after they add a payment method and successfully go through KYC checks.
+                            PaymentMethods.setSetupAction(this.payWithExpensify);
+                            this.payWithExpensify(event);
                             return;
                         }
 
-                        this.checkWalletAndContinue(value);
+                        this.props.onPress(iouPaymentType);
                     }}
                     options={this.state.buttonOptions}
                 />
