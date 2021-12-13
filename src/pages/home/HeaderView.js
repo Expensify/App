@@ -85,9 +85,8 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
-    const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom || isPolicyRoom
+    const isBusinessChatRoom = ReportUtils.isBusinessRoom(props.report);
+    const title = isBusinessChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -123,7 +122,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (ReportUtils.isDefaultRoom(props.report)) {
+                                if (isBusinessChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -136,7 +135,7 @@ const HeaderView = (props) => {
                             <MultipleAvatars
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
-                                isDefaultChatRoom={isDefaultChatRoom}
+                                isDefaultChatRoom={isBusinessChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -146,9 +145,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
+                                    shouldUseFullTitle={isBusinessChatRoom}
                                 />
-                                {isDefaultChatRoom && (
+                                {isBusinessChatRoom && (
                                     <ExpensifyText
                                         style={[
                                             styles.sidebarLinkText,

@@ -132,7 +132,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @return {String}
  */
 function getChatReportName(fullReport, chatType) {
-    if (ReportUtils.isDefaultRoom({chatType})) {
+    if (ReportUtils.isBusinessRoom({chatType})) {
         return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
             stateNum: fullReport.state,
@@ -187,7 +187,7 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isBusinessRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 

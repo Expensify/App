@@ -521,7 +521,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
+        const isBusinessChatRoom = ReportUtils.isBusinessRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
@@ -536,9 +536,9 @@ class ReportActionsView extends React.Component {
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isDefaultChatRoom={isDefaultChatRoom}
+                            isDefaultChatRoom={isBusinessChatRoom}
                         />
-                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isBusinessChatRoom} />
                     </View>
                 </View>
             );

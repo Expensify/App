@@ -216,7 +216,7 @@ function hasReportDraftComment(report) {
 function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const isDefaultChatRoom = ReportUtils.isDefaultRoom(report);
+    const isDefaultChatRoom = ReportUtils.isBusinessRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -407,7 +407,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (ReportUtils.isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (ReportUtils.isBusinessRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -762,7 +762,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isDefaultRoom(report)) {
+    if (ReportUtils.isBusinessRoom(report)) {
         return [''];
     }
     const sortedParticipants = _.map(report.participants, dmParticipant => ({

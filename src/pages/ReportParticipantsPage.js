@@ -80,10 +80,10 @@ const ReportParticipantsPage = (props) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate(ReportUtils.isDefaultRoom(props.report) ? 'common.members' : 'common.details')}
+                title={props.translate(ReportUtils.isBusinessRoom(props.report) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.dismissModal}
-                shouldShowBackButton={ReportUtils.isDefaultRoom(props.report)}
+                shouldShowBackButton={ReportUtils.isBusinessRoom(props.report)}
             />
             <View
                 pointerEvents="box-none"

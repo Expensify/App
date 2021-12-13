@@ -102,6 +102,10 @@ function isPolicyRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
+function isBusinessRoom(report) {
+    return isPolicyRoom(report) || isDefaultRoom(report);
+}
+
 /**
  * Given a collection of reports returns the most recently accessed one
  *
@@ -209,6 +213,7 @@ export {
     sortReportsByLastVisited,
     isDefaultRoom,
     isPolicyRoom,
+    isBusinessRoom,
     getDefaultRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,

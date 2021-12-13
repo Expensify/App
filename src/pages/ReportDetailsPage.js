@@ -101,6 +101,7 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
+        const isBusinessChatRoom = ReportUtils.isBusinessRoom(this.props.report);
         const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
@@ -129,7 +130,7 @@ class ReportDetailsPage extends Component {
                             style={styles.reportDetailsTitleContainer}
                         >
                             <Avatar
-                                isDefaultChatRoom={ReportUtils.isDefaultRoom(this.props.report)}
+                                isDefaultChatRoom={isBusinessChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
@@ -142,7 +143,7 @@ class ReportDetailsPage extends Component {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.mb2]}
-                                    shouldUseFullTitle={ReportUtils.isDefaultRoom(this.props.report)}
+                                    shouldUseFullTitle={isBusinessChatRoom}
                                 />
                                 <ExpensifyText
                                     style={[
