@@ -86,7 +86,8 @@ const HeaderView = (props) => {
         },
     );
     const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom
+    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
+    const title = isDefaultChatRoom || isPolicyRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
