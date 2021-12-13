@@ -11,10 +11,6 @@ const propTypes = {
     /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
-    /** Callback to update payment type in IOUModal */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    onUpdatePaymentType: PropTypes.func.isRequired,
-
     /** Comment value from IOUModal */
     comment: PropTypes.string,
 
@@ -25,23 +21,6 @@ const propTypes = {
     iouAmount: PropTypes.string.isRequired,
 
     localCurrencyCode: PropTypes.string,
-
-    /** Menu options to display */
-    /** [
-     *   {text: 'I\'ll settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
-     *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
-     *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
-     *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
-     *  ]
-     * */
-    confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
-        text: PropTypes.string.isRequired,
-        paymentType: PropTypes.string,
-        icon: PropTypes.elementType,
-        iconWidth: PropTypes.number,
-        iconHeight: PropTypes.number,
-        iconDescription: PropTypes.string,
-    })).isRequired,
 
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
@@ -84,8 +63,6 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         iouType={props.iouType}
         localCurrencyCode={props.localCurrencyCode}
-        onUpdatePaymentType={props.onUpdatePaymentType}
-        confirmationButtonOptions={props.confirmationButtonOptions}
         isGroupSplit={props.isGroupSplit}
     />
 );

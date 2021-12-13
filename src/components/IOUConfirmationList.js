@@ -27,10 +27,6 @@ const propTypes = {
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
-    /** Callback to update payment type in IOUModal */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    onUpdatePaymentType: PropTypes.func.isRequired,
-
     /** Comment value from IOUModal */
     comment: PropTypes.string,
 
@@ -98,23 +94,6 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** Menu options to display */
-    /** [
-     *   {text: 'I\'ll settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
-     *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
-     *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
-     *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
-     *  ]
-     * */
-    confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
-        text: PropTypes.string.isRequired,
-        paymentType: PropTypes.string,
-        icon: PropTypes.elementType,
-        iconWidth: PropTypes.number,
-        iconHeight: PropTypes.number,
-        iconDescription: PropTypes.string,
-    })).isRequired,
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
@@ -170,7 +149,7 @@ class IOUConfirmationList extends Component {
     onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onConfirm();
+            this.props.onConfirm([], value);
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
