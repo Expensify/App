@@ -132,7 +132,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @return {String}
  */
 function getChatReportName(fullReport, chatType) {
-    if (ReportUtils.isBusinessRoom({chatType})) {
+    if (ReportUtils.isDefaultRoom({chatType})) {
         return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
             stateNum: fullReport.state,
