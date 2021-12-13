@@ -164,13 +164,13 @@ function getParticipantNames(personalDetailList) {
  *
  * @param {Object} report
  * @param {Array} personalDetailList
- * @param {Boolean} isDefaultChatRoom
+ * @param {Boolean} isBusinessChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList, isDefaultChatRoom) {
+function getSearchText(report, personalDetailList, isBusinessChatRoom) {
     const searchTerms = [];
 
-    if (!isDefaultChatRoom) {
+    if (!isBusinessChatRoom) {
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
             searchTerms.push(personalDetail.login);
@@ -180,7 +180,7 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
         searchTerms.push(...report.reportName);
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
-        if (isDefaultChatRoom) {
+        if (isBusinessChatRoom) {
             const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(report, policies);
             searchTerms.push(...defaultRoomSubtitle);
             searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
@@ -216,8 +216,8 @@ function hasReportDraftComment(report) {
 function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const isDefaultChatRoom = ReportUtils.isBusinessRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
+    const isBusinessChatRoom = ReportUtils.isBusinessRoom(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isBusinessChatRoom;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
@@ -237,7 +237,7 @@ function createOption(personalDetailList, report, {
 
     let text;
     let alternateText;
-    if (isDefaultChatRoom) {
+    if (isBusinessChatRoom) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
@@ -267,13 +267,13 @@ function createOption(personalDetailList, report, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
+        searchText: getSearchText(report, personalDetailList, isBusinessChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
-        isDefaultChatRoom,
+        isBusinessChatRoom,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }
@@ -284,10 +284,10 @@ function createOption(personalDetailList, report, {
  * @param {String} searchValue
  * @param {String} searchText
  * @param {Set<String>} [participantNames]
- * @param {Boolean} isDefaultChatRoom
+ * @param {Boolean} isBusinessChatRoom
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isBusinessChatRoom = false) {
     const searchWords = _.map(
         searchValue
             .replace(/,/g, ' ')
@@ -297,7 +297,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || (!isDefaultChatRoom && participantNames.has(word));
+        return matchRegex.test(valueToSearch) || (!isBusinessChatRoom && participantNames.has(word));
     });
 }
 
@@ -458,9 +458,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList, isDefaultChatRoom} = reportOption;
+            const {searchText, participantsList, isBusinessChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isBusinessChatRoom)) {
                 continue;
             }
 
@@ -505,14 +505,14 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // If we are prioritizing default rooms in search, do it only once we started something
     if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
-        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isDefaultChatRoom);
+        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isBusinessChatRoom);
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
     if (sortByReportTypeInSearch && searchValue !== '') {
         recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
-            if (option.isDefaultChatRoom || option.isArchivedRoom) {
+            if (option.isBusinessChatRoom || option.isArchivedRoom) {
                 return 3;
             }
             if (!option.login) {
@@ -530,9 +530,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantsList, isDefaultChatRoom} = personalDetailOption;
+            const {searchText, participantsList, isBusinessChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isBusinessChatRoom)) {
                 return;
             }
             personalDetailsOptions.push(personalDetailOption);
