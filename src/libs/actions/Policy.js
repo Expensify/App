@@ -43,14 +43,15 @@ function getSimplifiedEmployeeList(employeeList) {
  * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
- * @param {Object} fullPolicyOrPolicySummary
- * @param {String} fullPolicyOrPolicySummary.id
- * @param {String} fullPolicyOrPolicySummary.name
- * @param {String} fullPolicyOrPolicySummary.role
- * @param {String} fullPolicyOrPolicySummary.type
- * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
- * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
+ * @param {Object}  fullPolicyOrPolicySummary
+ * @param {String}  fullPolicyOrPolicySummary.id
+ * @param {String}  fullPolicyOrPolicySummary.name
+ * @param {String}  fullPolicyOrPolicySummary.role
+ * @param {String}  fullPolicyOrPolicySummary.type
+ * @param {String}  fullPolicyOrPolicySummary.outputCurrency
+ * @param {String}  [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {Object}  [fullPolicyOrPolicySummary.value.employeeList]
+ * @param {Boolean} isSummary
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isSummary) {
@@ -61,6 +62,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isSummary) {
         type: fullPolicyOrPolicySummary.type,
         owner: fullPolicyOrPolicySummary.owner,
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
+
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
         avatarURL: (isSummary ? fullPolicyOrPolicySummary.avatarURL : lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL')) || '',
