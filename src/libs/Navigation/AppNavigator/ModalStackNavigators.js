@@ -38,7 +38,6 @@ import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage'
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 import CONST from '../../../CONST';
 import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
-import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -98,15 +97,15 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
 },
 {
     Component: AddPersonalBankAccountPage,
-    name: SCREENS.IOU_SEND_ADD_BANK_ACCOUNT,
+    name: 'IOU_Send_Add_Bank_Account',
 },
 {
     Component: AddDebitCardPage,
-    name: SCREENS.IOU_SEND_ADD_DEBIT_CARD,
+    name: 'IOU_Send_Add_Debit_Card',
 },
 {
     Component: EnablePaymentsPage,
-    name: SCREENS.IOU_SEND_ENABLE_PAYMENTS,
+    name: 'IOU_Send_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{

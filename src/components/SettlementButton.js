@@ -128,15 +128,7 @@ class SettlementButton extends React.Component {
         // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
         const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
         if (!hasGoldWallet) {
-            this.props.navigation.navigate(this.props.enablePaymentsScreenName, {
-                onSuccess: () => {
-                    // Continue with original action whatever it is...
-                    this.props.onPress(value);
-                },
-                onFailure: () => {
-                    // In this case, the user could maybe see a message about KYC stuff
-                },
-            });
+            Navigation.navigate(this.props.enablePaymentsRoute);
             return;
         }
 
@@ -157,25 +149,9 @@ class SettlementButton extends React.Component {
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
                         if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                            this.props.navigation.navigate(this.props.addBankAccountScreenName, {
-                                onSuccess: () => {
-                                    // User successfully added a bank account check their wallet and continue
-                                    this.checkWalletAndContinue(item);
-                                },
-                                onFailure: () => {
-                                    this.setState({shouldShowAddPaymentMenu: true});
-                                },
-                            });
+                            Navigation.navigate(this.props.addBankAccountRoute);
                         } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                            this.props.navigation.navigate(this.props.addDebitCardScreenName, {
-                                onSuccess: () => {
-                                    // User successfully added a debit card check their wallet and continue
-                                    this.checkWalletAndContinue(item);
-                                },
-                                onFailure: () => {
-                                    this.setState({shouldShowAddPaymentMenu: true});
-                                },
-                            });
+                            Navigation.navigate(this.props.addDebitCardRoute);
                         }
                     }}
                 />

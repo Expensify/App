@@ -19,7 +19,7 @@ import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
-import SCREENS from '../SCREENS';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -389,9 +389,9 @@ class IOUConfirmationList extends Component {
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
                             currency={this.props.localCurrencyCode}
-                            enablePaymentsScreenName={SCREENS.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountScreenName={SCREENS.IOU_SEND_ADD_BANK_ACCOUNT}
-                            addDebitCardScreenName={SCREENS.IOU_SEND_ADD_DEBIT_CARD}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         />
                     ) : (
                         <ButtonWithMenu
