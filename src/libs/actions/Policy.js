@@ -61,7 +61,9 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isSummary) {
         type: fullPolicyOrPolicySummary.type,
         owner: fullPolicyOrPolicySummary.owner,
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
-        avatarURL: (isSummary ? lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL') : fullPolicyOrPolicySummary.avatarURL) || '',
+        // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
+        // avatarUrl will be nested within the key "value"
+        avatarURL: (isSummary ? fullPolicyOrPolicySummary.avatarURL : lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL')) || '',
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
     };
 }
@@ -182,7 +184,7 @@ function getPolicyList() {
 
             const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
                 ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, true),
             }), {});
 
             if (!_.isEmpty(policyCollection)) {
