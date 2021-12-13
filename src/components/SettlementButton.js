@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {withNavigation} from '@react-navigation/compat';
 import ButtonWithMenu from './ButtonWithMenu';
 import * as Expensicons from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
@@ -123,6 +124,25 @@ class SettlementButton extends React.Component {
             });
     }
 
+    checkWalletAndContinue(value) {
+        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
+        const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
+        if (!hasGoldWallet) {
+            this.props.navigation.navigate(this.props.enablePaymentsScreenName, {
+                onSuccess: () => {
+                    // Continue with original action whatever it is...
+                    this.props.onPress(value);
+                },
+                onFailure: () => {
+                    // In this case, the user could maybe see a message about KYC stuff
+                },
+            });
+            return;
+        }
+
+        this.props.onPress(value);
+    }
+
     render() {
         return (
             <>
@@ -136,11 +156,26 @@ class SettlementButton extends React.Component {
                     shouldShowPaypal={false}
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
-
                         if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                            Navigation.navigate(this.props.addBankAccountRoute);
+                            this.props.navigation.navigate(this.props.addBankAccountScreenName, {
+                                onSuccess: () => {
+                                    // User successfully added a bank account check their wallet and continue
+                                    this.checkWalletAndContinue(item);
+                                },
+                                onFailure: () => {
+                                    this.setState({shouldShowAddPaymentMenu: true});
+                                },
+                            });
                         } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                            Navigation.navigate(this.props.addDebitCardRoute);
+                            this.props.navigation.navigate(this.props.addDebitCardScreenName, {
+                                onSuccess: () => {
+                                    // User successfully added a debit card check their wallet and continue
+                                    this.checkWalletAndContinue(item);
+                                },
+                                onFailure: () => {
+                                    this.setState({shouldShowAddPaymentMenu: true});
+                                },
+                            });
                         }
                     }}
                 />
@@ -159,14 +194,7 @@ class SettlementButton extends React.Component {
                             return;
                         }
 
-                        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-                        const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
-                        if (!hasGoldWallet) {
-                            Navigation.navigate(this.props.enablePaymentsRoute);
-                            return;
-                        }
-
-                        this.props.onPress(value);
+                        this.checkWalletAndContinue(value);
                     }}
                     options={this.state.buttonOptions}
                 />
@@ -179,6 +207,7 @@ SettlementButton.propTypes = propTypes;
 SettlementButton.defaultProps = defaultProps;
 
 export default compose(
+    withNavigation,
     withLocalize,
     withOnyx({
         betas: {
