@@ -102,6 +102,12 @@ function isPolicyRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
+/**
+ * Whether the provided report is a business room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
 function isBusinessRoom(report) {
     return isPolicyRoom(report) || isDefaultRoom(report);
 }
