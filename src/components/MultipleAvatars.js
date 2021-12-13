@@ -16,8 +16,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether this avatar is for a default room */
-    isDefaultChatRoom: PropTypes.bool,
+    /** Whether this avatar is for a business room */
+    isBusinessChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
@@ -27,7 +27,7 @@ const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    isDefaultChatRoom: false,
+    isBusinessChatRoom: false,
     isArchivedRoom: false,
 };
 
@@ -49,7 +49,7 @@ const MultipleAvatars = (props) => {
                 <Avatar
                     source={props.avatarImageURLs[0]}
                     size={props.size}
-                    isDefaultChatRoom={props.isDefaultChatRoom}
+                    isBusinessChatRoom={props.isBusinessChatRoom}
                     isArchivedRoom={props.isArchivedRoom}
                 />
             </View>

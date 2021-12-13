@@ -173,7 +173,7 @@ const OptionRow = (props) => {
                                                 ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isDefaultChatRoom={props.option.isBusinessChatRoom}
+                                        isBusinessChatRoom={props.option.isBusinessChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
                                     />
                                 )

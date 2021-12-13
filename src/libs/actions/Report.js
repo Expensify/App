@@ -143,7 +143,7 @@ function getChatReportName(fullReport, chatType) {
     }
 
     // For a basic policy room, return its original name
-    if (ReportUtils.isPolicyRoom({chatType})) {
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return fullReport.reportName;
     }
 

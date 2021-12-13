@@ -130,7 +130,7 @@ class ReportDetailsPage extends Component {
                             style={styles.reportDetailsTitleContainer}
                         >
                             <Avatar
-                                isDefaultChatRoom={isBusinessChatRoom}
+                                isBusinessChatRoom={isBusinessChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}

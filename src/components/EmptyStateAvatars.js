@@ -12,12 +12,12 @@ const propTypes = {
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
     /** Whether this avatar is for a custom/default room */
-    isDefaultChatRoom: PropTypes.bool,
+    isBusinessChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
-    isDefaultChatRoom: false,
+    isBusinessChatRoom: false,
 };
 
 const EmptyStateAvatars = (props) => {
@@ -25,12 +25,12 @@ const EmptyStateAvatars = (props) => {
         return null;
     }
 
-    if (props.avatarImageURLs.length === 1 || props.isDefaultChatRoom) {
+    if (props.avatarImageURLs.length === 1 || props.isBusinessChatRoom) {
         return (
             <Avatar
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
-                isDefaultChatRoom={props.isDefaultChatRoom}
+                isBusinessChatRoom={props.isBusinessChatRoom}
             />
         );
     }

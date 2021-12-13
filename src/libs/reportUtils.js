@@ -93,12 +93,12 @@ function isDefaultRoom(report) {
 }
 
 /**
- * Whether the provided report is a policy room
+ * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
  * @returns {Boolean}
  */
-function isPolicyRoom(report) {
+function isUserCreatedPolicyRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
@@ -109,7 +109,7 @@ function isPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isBusinessRoom(report) {
-    return isPolicyRoom(report) || isDefaultRoom(report);
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
 }
 
 /**
@@ -218,7 +218,7 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
-    isPolicyRoom,
+    isUserCreatedPolicyRoom,
     isBusinessRoom,
     getDefaultRoomSubtitle,
     isArchivedRoom,

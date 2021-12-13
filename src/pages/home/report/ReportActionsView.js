@@ -536,7 +536,7 @@ class ReportActionsView extends React.Component {
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isDefaultChatRoom={isBusinessChatRoom}
+                            isBusinessChatRoom={isBusinessChatRoom}
                         />
                         <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isBusinessChatRoom} />
                     </View>
