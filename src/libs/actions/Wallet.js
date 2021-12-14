@@ -92,11 +92,13 @@ function activateWallet(currentStep, parameters) {
 
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
-                        const errors = _.reduce(response.data.fieldNames, (prev, curr) => ({
-                            ...prev,
-                            [curr]: true,
+                        // Errors for missing fields are returned from the API as an array of strings so we are converting this to an
+                        // object with field names as keys and boolean for values
+                        const errorFields = _.reduce(response.data.fieldNames, (errors, fieldName) => ({
+                            ...errors,
+                            [fieldName]: true,
                         }), {});
-                        setAdditionalDetailsStep(false, errors);
+                        setAdditionalDetailsStep(false, errorFields);
                         return;
                     }
 
