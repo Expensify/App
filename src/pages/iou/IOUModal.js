@@ -233,6 +233,17 @@ class IOUModal extends Component {
     }
 
     /**
+     * Update participants whenever user selects the payment recipient
+     *
+     * @param {Object} participants
+     */
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
+    }
+
+    /**
      * Navigate to the next IOU step if possible
      */
     navigateToPreviousStep() {
@@ -323,12 +334,6 @@ class IOUModal extends Component {
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-        });
-    }
-
-    addParticipants(participants) {
-        this.setState({
-            participants,
         });
     }
 

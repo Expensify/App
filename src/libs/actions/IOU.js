@@ -265,7 +265,6 @@ function payIOUReport({
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     const isSendingMoney = reportID === 0 && paymentMethodType;
-    const idempotencyKey = Str.guid();
 
     // If we're sending a payment then we need to create a new report on the fly
     const newIOUReportDetails = isSendingMoney ? {
@@ -273,7 +272,7 @@ function payIOUReport({
         currency,
         requestorEmail,
         comment,
-        idempotencyKey: String(idempotencyKey),
+        idempotencyKey: Str.guid(),
     } : {};
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails: JSON.stringify(newIOUReportDetails)})
