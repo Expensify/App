@@ -130,16 +130,21 @@ function activateWallet(currentStep, parameters) {
             }
 
             const userWallet = response.userWallet;
-            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet);
+            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet)
+                .then(() => {
+                    if (userWallet.currentStep !== CONST.WALLET.STEP.ACTIVATE || userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
+                        return;
+                    }
+
+                    Growl.success('All set, your wallet has been activated!');
+                    PaymentMethods.continueSetup();
+                });
             if (currentStep === CONST.WALLET.STEP.ONFIDO) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                 setAdditionalDetailsStep(false);
             } else if (currentStep === CONST.WALLET.STEP.TERMS) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
-            } else if (currentStep === CONST.WALLET.STEP.ACTIVATE && userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD) {
-                Growl.success('All set, your wallet has been enabled!');
-                PaymentMethods.continueSetup();
             }
         });
 }
