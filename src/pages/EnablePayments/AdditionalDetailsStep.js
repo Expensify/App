@@ -101,7 +101,7 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {String}
      */
     getErrorText(fieldName) {
-        const errors = lodashGet(this.props.walletAdditionalDetails, 'errors', {});
+        const errors = lodashGet(this.props.walletAdditionalDetails, 'errorFields', {});
         if (!errors[fieldName]) {
             return '';
         }
@@ -156,7 +156,7 @@ class AdditionalDetailsStep extends React.Component {
     clearErrorAndSetValue(fieldName, value) {
         this.setState({[fieldName]: value});
         Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errorFields', {});
         if (!lodashGet(errors, fieldName, false)) {
             return;
         }
@@ -167,7 +167,7 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'walletAdditionalDetails.errors', {})) > 0
+        const isErrorVisible = _.size(lodashGet(this.props, 'walletAdditionalDetails.errorFields', {})) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         return (
             <ScreenWrapper>

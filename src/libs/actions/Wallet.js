@@ -31,12 +31,12 @@ function fetchOnfidoToken() {
  * Privately used to update the additionalDetails object in Onyx (which will have various effects on the UI)
  *
  * @param {Boolean} loading whether we are making the API call to validate the user's provided personal details
- * @param {String[]} [errors] an array of field names that should display errors in the UI
+ * @param {String[]} [errorFields] an array of field names that should display errors in the UI
  * @param {String} [additionalErrorMessage] an additional error message to display in the UI
  * @private
  */
-function setAdditionalDetailsStep(loading, errors = null, additionalErrorMessage = '') {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errors, additionalErrorMessage});
+function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMessage = '') {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errorFields, additionalErrorMessage});
 }
 
 /**
@@ -152,11 +152,11 @@ function fetchUserWallet() {
 }
 
 /**
- * @param {Object} errors
+ * @param {Object} errorFields
  */
-function setAdditionalDetailsErrors(errors) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors: null});
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors});
+function setAdditionalDetailsErrors(errorFields) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
 }
 
 /**
