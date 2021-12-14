@@ -264,16 +264,17 @@ function payIOUReport({
     requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+    const isSendingMoney = reportID === 0 && paymentMethodType;
     const idempotencyKey = Str.guid();
 
-    // If the report doesn't exist yet, then that means we're sending a payment and need to create a new report
-    const newIOUReportDetails = reportID > 0 ? {} : {
+    // If we're sending a payment then we need to create a new report on the fly
+    const newIOUReportDetails = isSendingMoney ? {
         amount,
         currency,
         requestorEmail,
         comment,
         idempotencyKey: String(idempotencyKey),
-    };
+    } : {};
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails: JSON.stringify(newIOUReportDetails)})
         : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails: JSON.stringify(newIOUReportDetails)});
@@ -312,7 +313,12 @@ function payIOUReport({
             }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+            if (isSendingMoney) {
+                Navigation.navigate(ROUTES.REPORT);
+            }
+        }),
     url);
 }
 

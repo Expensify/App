@@ -52,7 +52,6 @@ AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 export default compose(
     withLocalize,
     withOnyx({
-        
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
