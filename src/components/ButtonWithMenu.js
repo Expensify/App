@@ -25,7 +25,6 @@ const propTypes = {
     options: PropTypes.arrayOf(PropTypes.shape({
         value: PropTypes.string.isRequired,
         text: PropTypes.string.isRequired,
-        paymentType: PropTypes.string,
         icon: PropTypes.elementType,
         iconWidth: PropTypes.number,
         iconHeight: PropTypes.number,

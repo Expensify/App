@@ -81,7 +81,6 @@
     "react-native-document-picker": "^5.1.0",
     "react-native-fast-image": "^8.5.11",
     "react-native-gesture-handler": "1.9.0",
-    "react-native-get-random-values": "^1.7.0",
     "react-native-google-places-autocomplete": "^2.4.1",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",

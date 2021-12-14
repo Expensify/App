@@ -9,7 +9,7 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
-import {getIdempotencyKey} from '../IOUUtils';
+import Str from 'expensify-common/lib/str';
 
 /**
  * @param {Object[]} requestParams
@@ -264,7 +264,7 @@ function payIOUReport({
     requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-    const idempotencyKey = getIdempotencyKey();
+    const idempotencyKey = Str.guid();
 
     // If the report doesn't exist yet, then that means we're sending a payment and need to create a new report
     const newIOUReportDetails = reportID > 0 ? {} : {
@@ -272,7 +272,7 @@ function payIOUReport({
         currency,
         requestorEmail,
         comment,
-        idempotencyKey,
+        idempotencyKey: String(idempotencyKey),
     };
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails: JSON.stringify(newIOUReportDetails)})

@@ -25,10 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import makeCancellablePromise from '../../libs/MakeCancellablePromise';
-import Permissions from '../../libs/Permissions';
-import isAppInstalled from '../../libs/isAppInstalled';
-import {isValidUSPhone} from '../../libs/ValidationUtils';
 import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../ROUTES';
 
@@ -115,7 +111,6 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.confirm = this.confirm.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.updatePaymentType = this.updatePaymentType.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
@@ -133,10 +128,6 @@ class IOUModal extends Component {
             previousStepIndex: 0,
             currentStepIndex: 0,
             participants: participantsWithDetails,
-            confirmationButtonOptions: [],
-
-            // Set default payment type to "Elsewhere"
-            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
 
             // amount is currency in decimal format
             amount: '',
@@ -282,8 +273,6 @@ class IOUModal extends Component {
             Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
             return;
         }
-
-        console.log(paymentOption);
 
         if (this.isSendRequest) {
             IOU.payIOUReport({
