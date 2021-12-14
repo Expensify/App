@@ -71,6 +71,9 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
+    /** Are we waiting for data from report? */
+    isLoadingReportData: PropTypes.bool,
+
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
@@ -91,6 +94,7 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingReportActions: false,
+    isLoadingReportData: false,
     personalDetails: {},
     myPersonalDetails: {},
 };
@@ -169,6 +173,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextProps.isLoadingReportData !== this.props.isLoadingReportData) {
+            return true;
+        }
+
         if (nextState.isMarkerActive !== this.state.isMarkerActive) {
             return true;
         }
@@ -197,6 +205,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Update unread count when Report data is ready for being accessed
+        if (this.props.isLoadingReportData !== prevProps.isLoadingReportData) {
+            this.updateLocalUnreadActionCount();
+        }
+
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
@@ -592,6 +605,10 @@ export default compose(
     withLocalize,
     withPersonalDetails(),
     withOnyx({
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            initwithStoredValues: false,
+        },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
