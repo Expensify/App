@@ -44,9 +44,9 @@ function setAdditionalDetailsErrors(errorFields) {
 }
 
 /**
- * @param {String} [additionalErrorMessage]
+ * @param {String} additionalErrorMessage
  */
-function setAdditionalDetailsErrorMessage(additionalErrorMessage = '') {
+function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {additionalErrorMessage});
 }
 
@@ -83,7 +83,7 @@ function activateWallet(currentStep, parameters) {
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
         setAdditionalDetailsLoading(true);
         setAdditionalDetailsErrors(null);
-        setAdditionalDetailsErrorMessage();
+        setAdditionalDetailsErrorMessage('');
         personalDetails = JSON.stringify(parameters.personalDetails);
     } else if (currentStep === CONST.WALLET.STEP.TERMS) {
         hasAcceptedTerms = parameters.hasAcceptedTerms;
@@ -113,7 +113,7 @@ function activateWallet(currentStep, parameters) {
                         }), {});
                         setAdditionalDetailsLoading(false);
                         setAdditionalDetailsErrors(errorFields);
-                        setAdditionalDetailsErrorMessage();
+                        setAdditionalDetailsErrorMessage('');
                         return;
                     }
 
@@ -133,7 +133,7 @@ function activateWallet(currentStep, parameters) {
 
                     setAdditionalDetailsLoading(false);
                     setAdditionalDetailsErrors(null);
-                    setAdditionalDetailsErrorMessage();
+                    setAdditionalDetailsErrorMessage('');
                     return;
                 }
 
@@ -147,7 +147,7 @@ function activateWallet(currentStep, parameters) {
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                 setAdditionalDetailsLoading(false);
                 setAdditionalDetailsErrors(null);
-                setAdditionalDetailsErrorMessage();
+                setAdditionalDetailsErrorMessage('');
             } else if (currentStep === CONST.WALLET.STEP.TERMS) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }

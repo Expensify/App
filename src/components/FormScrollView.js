@@ -4,6 +4,7 @@ import {ScrollView} from 'react-native';
 import styles from '../styles/styles';
 
 const propTypes = {
+    /** Form elements */
     children: PropTypes.node.isRequired,
 };
 

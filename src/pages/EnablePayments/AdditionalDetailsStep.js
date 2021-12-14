@@ -215,7 +215,14 @@ class AdditionalDetailsStep extends React.Component {
                                     <AddressSearch
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.state.addressStreet}
-                                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                        onChangeText={(fieldName, value) => {
+                                            if (fieldName === 'addressZipCode') {
+                                                this.clearErrorAndSetValue('addressZip', value);
+                                                return;
+                                            }
+
+                                            this.clearErrorAndSetValue(fieldName, value);
+                                        }}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
                                     <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>
