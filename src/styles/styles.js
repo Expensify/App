@@ -808,11 +808,6 @@ const styles = {
         marginBottom: 24,
     },
 
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
-    },
-
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -1125,12 +1120,6 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
-    },
-
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
     },
 
     appContent: {
