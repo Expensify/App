@@ -159,4 +159,7 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the create policy room command
+    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
 };

@@ -179,6 +179,7 @@ export default {
         fabAction: 'Nuevo chat',
         newChat: 'Nuevo chat',
         newGroup: 'Nuevo grupo',
+        newRoom: 'Nueva sala de chat',
         headerChat: 'Chats',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
@@ -273,9 +274,9 @@ export default {
                 label: 'Desktop',
             },
         },
+        security: 'Seguridad',
         signOut: 'Desconectar',
         versionLetter: 'v',
-        changePassword: 'Cambiar contraseña',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
@@ -797,6 +798,18 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+    },
+    newRoomPage: {
+        newRoom: 'Nueva sala de chat',
+        roomName: 'Nombre de la sala',
+        visibility: 'Visibilidad',
+        restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala a través de "Buscar"',
+        privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
+        createRoom: 'Crea una sala de chat',
+        roomAlreadyExists: 'Ya existe una sala con este nombre',
+        social: 'social',
+        selectAWorkspace: 'Seleccionar un espacio de trabajo',
+        growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',

@@ -38,12 +38,45 @@ class WorkspaceInitialPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const policy = this.props.policy;
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
 
-        this.menuItems = [
+        this.state = {
+            isDeleteModalOpen: false,
+        };
+    }
+
+    /**
+     * Open Workspace Editor
+     */
+    openEditor() {
+        Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id));
+    }
+
+    /**
+     * Toggle delete confirm modal visibility
+     * @param {Boolean} shouldOpen
+     */
+    toggleDeleteModal(shouldOpen) {
+        this.setState({isDeleteModalOpen: shouldOpen});
+    }
+
+    /**
+     * Call the delete policy and hide the modal
+     */
+    confirmDeleteAndHideModal() {
+        PolicyActions.deletePolicy(this.props.policy.id);
+        this.toggleDeleteModal(false);
+    }
+
+    render() {
+        const policy = this.props.policy;
+        if (_.isEmpty(policy)) {
+            return <FullScreenLoadingIndicator />;
+        }
+
+        const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
                 icon: Expensicons.Gear,
@@ -93,38 +126,6 @@ class WorkspaceInitialPage extends React.Component {
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
             },
         ];
-
-        this.state = {
-            isDeleteModalOpen: false,
-        };
-    }
-
-    /**
-     * Open Workspace Editor
-     */
-    openEditor() { Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id)); }
-
-    /**
-     * Toggle delete confirm modal visibility
-     * @param {Boolean} shouldOpen
-     */
-    toggleDeleteModal(shouldOpen) {
-        this.setState({isDeleteModalOpen: shouldOpen});
-    }
-
-    /**
-     * Call the delete policy and hide the modal
-     */
-    confirmDeleteAndHideModal() {
-        PolicyActions.deletePolicy(this.props.policy.id);
-        this.toggleDeleteModal(false);
-    }
-
-
-    render() {
-        if (_.isEmpty(this.props.policy)) {
-            return <FullScreenLoadingIndicator />;
-        }
 
         return (
             <ScreenWrapper>
@@ -203,7 +204,7 @@ class WorkspaceInitialPage extends React.Component {
                                 )}
                             </View>
                         </View>
-                        {_.map(this.menuItems, (item) => {
+                        {_.map(menuItems, (item) => {
                             const shouldFocus = this.props.isSmallScreenWidth ? !this.props.isFocused && item.isActive : item.isActive;
                             return (
                                 <MenuItem
