@@ -113,6 +113,9 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
+        // Reset server error messages when resubmitting form
+        Wallet.setAdditionalDetailsErrorMessage('');
+
         const errors = {};
 
         if (!ValidationUtils.isValidPastDate(this.state.dob)) {
@@ -140,8 +143,6 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     activateWallet() {
-        Wallet.setAdditionalDetailsStep(false);
-
         if (!this.validate()) {
             return;
         }

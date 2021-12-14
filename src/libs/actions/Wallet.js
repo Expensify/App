@@ -28,15 +28,26 @@ function fetchOnfidoToken() {
 }
 
 /**
- * Privately used to update the additionalDetails object in Onyx (which will have various effects on the UI)
- *
  * @param {Boolean} loading whether we are making the API call to validate the user's provided personal details
- * @param {String[]} [errorFields] an array of field names that should display errors in the UI
- * @param {String} [additionalErrorMessage] an additional error message to display in the UI
  * @private
  */
-function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMessage = '') {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errorFields, additionalErrorMessage});
+function setAdditionalDetailsLoading(loading) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading});
+}
+
+/**
+ * @param {Object} errorFields
+ */
+function setAdditionalDetailsErrors(errorFields) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
+}
+
+/**
+ * @param {String} [additionalErrorMessage]
+ */
+function setAdditionalDetailsErrorMessage(additionalErrorMessage = '') {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {additionalErrorMessage});
 }
 
 /**
@@ -70,7 +81,9 @@ function activateWallet(currentStep, parameters) {
         onfidoData = parameters.onfidoData;
         Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-        setAdditionalDetailsStep(true);
+        setAdditionalDetailsLoading(true);
+        setAdditionalDetailsErrors(null);
+        setAdditionalDetailsErrorMessage();
         personalDetails = JSON.stringify(parameters.personalDetails);
     } else if (currentStep === CONST.WALLET.STEP.TERMS) {
         hasAcceptedTerms = parameters.hasAcceptedTerms;
@@ -98,7 +111,9 @@ function activateWallet(currentStep, parameters) {
                             ...errors,
                             [fieldName]: true,
                         }), {});
-                        setAdditionalDetailsStep(false, errorFields);
+                        setAdditionalDetailsLoading(false);
+                        setAdditionalDetailsErrors(errorFields);
+                        setAdditionalDetailsErrorMessage();
                         return;
                     }
 
@@ -110,11 +125,15 @@ function activateWallet(currentStep, parameters) {
                     ];
 
                     if (_.contains(errorTitles, response.title)) {
-                        setAdditionalDetailsStep(false, null, response.message);
+                        setAdditionalDetailsLoading(false);
+                        setAdditionalDetailsErrorMessage(response.message);
+                        setAdditionalDetailsErrors(null);
                         return;
                     }
 
-                    setAdditionalDetailsStep(false);
+                    setAdditionalDetailsLoading(false);
+                    setAdditionalDetailsErrors(null);
+                    setAdditionalDetailsErrorMessage();
                     return;
                 }
 
@@ -126,7 +145,9 @@ function activateWallet(currentStep, parameters) {
             if (currentStep === CONST.WALLET.STEP.ONFIDO) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-                setAdditionalDetailsStep(false);
+                setAdditionalDetailsLoading(false);
+                setAdditionalDetailsErrors(null);
+                setAdditionalDetailsErrorMessage();
             } else if (currentStep === CONST.WALLET.STEP.TERMS) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }
@@ -154,14 +175,6 @@ function fetchUserWallet() {
 }
 
 /**
- * @param {Object} errorFields
- */
-function setAdditionalDetailsErrors(errorFields) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
-}
-
-/**
  * @param {Object} keyValuePair
  */
 function updateAdditionalDetailsDraft(keyValuePair) {
@@ -170,9 +183,9 @@ function updateAdditionalDetailsDraft(keyValuePair) {
 
 export {
     fetchOnfidoToken,
-    setAdditionalDetailsStep,
     activateWallet,
     fetchUserWallet,
     setAdditionalDetailsErrors,
     updateAdditionalDetailsDraft,
+    setAdditionalDetailsErrorMessage,
 };
