@@ -24,6 +24,8 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import AddressSearch from '../../components/AddressSearch';
+import DatePicker from '../../components/DatePicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -98,7 +100,7 @@ class AdditionalDetailsStep extends React.Component {
      * @param {String} fieldName
      * @returns {String}
      */
-    getErrorMessage(fieldName) {
+    getErrorText(fieldName) {
         const errors = lodashGet(this.props.walletAdditionalDetails, 'errors', {});
         if (!errors[fieldName]) {
             return '';
@@ -112,6 +114,14 @@ class AdditionalDetailsStep extends React.Component {
      */
     validate() {
         const errors = {};
+
+        if (!ValidationUtils.isValidPastDate(this.state.dob)) {
+            errors.dob = true;
+        }
+
+        if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
+            errors.addressStreet = true;
+        }
 
         _.each(this.requiredFields, (requiredField) => {
             if (ValidationUtils.isRequiredFulfilled(this.state[requiredField])) {
@@ -135,6 +145,10 @@ class AdditionalDetailsStep extends React.Component {
         });
     }
 
+    /**
+     * @param {String} fieldName
+     * @param {String} value
+     */
     clearErrorAndSetValue(fieldName, value) {
         this.setState({[fieldName]: value});
         Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
@@ -172,34 +186,30 @@ class AdditionalDetailsStep extends React.Component {
                             <View style={[styles.mh5, styles.mb5]}>
                                 <ExpensiTextInput
                                     containerStyles={[styles.mt4]}
-                                    key="legalFirstName"
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
                                     value={this.state.legalFirstName}
-                                    errorText={this.getErrorMessage('legalFirstName')}
+                                    errorText={this.getErrorText('legalFirstName')}
                                 />
                                 <ExpensiTextInput
                                     containerStyles={[styles.mt4]}
-                                    key="legalMiddleName"
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalMiddleName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalMiddleName', val)}
                                     value={this.state.legalMiddleName}
                                 />
                                 <ExpensiTextInput
                                     containerStyles={[styles.mt4]}
-                                    key="legalLastName"
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
                                     value={this.state.legalLastName}
-                                    errorText={this.getErrorMessage('legalLastName')}
+                                    errorText={this.getErrorText('legalLastName')}
                                 />
                                 <View style={styles.mt4}>
-                                    <ExpensiTextInput
-                                        key="addressStreet"
+                                    <AddressSearch
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
-                                        onChangeText={val => this.clearErrorAndSetValue('addressStreet', val)}
                                         value={this.state.addressStreet}
-                                        errorText={this.getErrorMessage('addressStreet')}
+                                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                        errorText={this.getErrorText('addressStreet')}
                                     />
                                     <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>
                                         {this.props.translate('common.noPO')}
@@ -207,51 +217,25 @@ class AdditionalDetailsStep extends React.Component {
                                 </View>
                                 <ExpensiTextInput
                                     containerStyles={[styles.mt4]}
-                                    key="addressCity"
-                                    label={this.props.translate(this.fieldNameTranslationKeys.addressCity)}
-                                    onChangeText={val => this.clearErrorAndSetValue('addressCity', val)}
-                                    value={this.state.addressCity}
-                                    errorText={this.getErrorMessage('addressCity')}
-                                />
-                                <ExpensiTextInput
-                                    containerStyles={[styles.mt4]}
-                                    key="addressState"
-                                    label={this.props.translate(this.fieldNameTranslationKeys.addressState)}
-                                    onChangeText={val => this.clearErrorAndSetValue('addressState', val)}
-                                    value={this.state.addressState}
-                                    errorText={this.getErrorMessage('addressState')}
-                                />
-                                <ExpensiTextInput
-                                    containerStyles={[styles.mt4]}
-                                    key="addressZip"
-                                    label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
-                                    onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
-                                    value={this.state.addressZip}
-                                    errorText={this.getErrorMessage('addressZip')}
-                                />
-                                <ExpensiTextInput
-                                    containerStyles={[styles.mt4]}
-                                    key="phoneNumber"
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                     value={this.state.phoneNumber}
-                                    errorText={this.getErrorMessage('phoneNumber')}
+                                    errorText={this.getErrorText('phoneNumber')}
                                 />
-                                <ExpensiTextInput
-                                    containerStyles={[styles.mt4]}
-                                    key="dob"
+                                <DatePicker
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onChangeText={val => this.clearErrorAndSetValue('dob', val)}
+                                    onChange={val => this.clearErrorAndSetValue('dob', val)}
                                     value={this.state.dob}
-                                    errorText={this.getErrorMessage('dob')}
+                                    placeholder={this.props.translate('common.dob')}
+                                    errorText={this.getErrorText('dob')}
+                                    maximumDate={new Date()}
                                 />
                                 <ExpensiTextInput
                                     containerStyles={[styles.mt4]}
-                                    key="ssn"
                                     label={this.props.translate(this.fieldNameTranslationKeys.ssn)}
                                     onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
                                     value={this.state.ssn}
-                                    errorText={this.getErrorMessage('ssn')}
+                                    errorText={this.getErrorText('ssn')}
                                     maxLength={4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />

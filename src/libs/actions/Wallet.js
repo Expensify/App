@@ -159,6 +159,9 @@ function setAdditionalDetailsErrors(errors) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors});
 }
 
+/**
+ * @param {Object} keyValuePair
+ */
 function updateAdditionalDetailsDraft(keyValuePair) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
 }
