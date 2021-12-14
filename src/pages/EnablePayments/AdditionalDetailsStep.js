@@ -123,6 +123,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
+        if (!ValidationUtils.isValidSSNLastFour(this.state.ssn)) {
+            errors.ssn = true;
+        }
+
         _.each(this.requiredFields, (requiredField) => {
             if (ValidationUtils.isRequiredFulfilled(this.state[requiredField])) {
                 return;
@@ -223,6 +227,7 @@ class AdditionalDetailsStep extends React.Component {
                                     errorText={this.getErrorText('phoneNumber')}
                                 />
                                 <DatePicker
+                                    containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                                     onChange={val => this.clearErrorAndSetValue('dob', val)}
                                     value={this.state.dob}
