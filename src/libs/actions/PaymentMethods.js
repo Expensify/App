@@ -123,19 +123,31 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
-function startWalletTransfer(transferAmount, selectedAccountID) {
+/**
+ * Set the necessary data for wallet transfer
+ * @param {Number} currentBalance
+ * @param {Number} selectedAccountID
+ */
+function saveWalletTransferAmountAndAccount(currentBalance, selectedAccountID) {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
-        transferAmount,
+        transferAmount: currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE,
         selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
     });
 }
 
+/**
+ * Update selected accountID and other data for wallet transfer
+ * @param {Object} data
+ */
 function updateWalletTransferData(data) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, data);
 }
 
+/**
+ * Cancel the wallet transfer
+ */
 function cancelWalletTransfer() {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, null);
 }
@@ -145,7 +157,7 @@ export {
     addBillingCard,
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
-    startWalletTransfer,
+    saveWalletTransferAmountAndAccount,
     updateWalletTransferData,
     cancelWalletTransfer,
 };

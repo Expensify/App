@@ -48,7 +48,6 @@ const defaultProps = {
     cardList: [],
     walletTransfer: {},
 };
-const Fee = 0.30;
 
 class TransferBalancePage extends React.Component {
     constructor(props) {
@@ -77,22 +76,21 @@ class TransferBalancePage extends React.Component {
         ];
 
         this.transferBalance = this.transferBalance.bind(this);
+        this.navigateToSelectAccount = this.navigateToChooseTransferAccount.bind(this);
 
         const selectedAccount = this.getSelectedAccount();
-        PaymentMethods.startWalletTransfer(
-            this.props.userWallet.currentBalance - Fee,
+        PaymentMethods.saveWalletTransferAmountAndAccount(
+            this.props.userWallet.currentBalance,
             selectedAccount ? selectedAccount.id : '',
         );
     }
 
-    // eslint-disable-next-line valid-jsdoc
     /**
      * Get the selected/default Account for wallet tsransfer
-     * @typedef {import('../../../libs/PaymentUtils').PaymentMethod} PaymentMethod
-     * @returns {PaymentMethod|undefined}
+     * @returns {Object|undefined}
      */
     getSelectedAccount() {
-        const paymentMethods = PaymentUtils.getPaymentMethodsList(
+        const paymentMethods = PaymentUtils.getPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
         );
@@ -108,7 +106,22 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount;
 
+        if (selectedAccount) {
+            const iconProperties = PaymentUtils.getPaymentMethodIconProperties(selectedAccount);
+            selectedAccount.icon = iconProperties.icon;
+            selectedAccount.iconSize = iconProperties.iconSize;
+        }
+
         return selectedAccount;
+    }
+
+    /**
+     * Navigate to SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT screen for selecting an account.
+     * @param {String} filterPaymentMethodType
+     */
+    navigateToChooseTransferAccount(filterPaymentMethodType) {
+        PaymentMethods.updateWalletTransferData({filterPaymentMethodType});
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
     }
 
     /**
@@ -124,19 +137,12 @@ class TransferBalancePage extends React.Component {
 
     render() {
         const selectedAccount = this.getSelectedAccount();
-
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
-        const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
-        const canTransfer = transferAmount > Fee;
+        const transferAmount = this.props.walletTransfer.transferAmount.toFixed(2);
+        const canTransfer = transferAmount > CONST.WALLET.TRANSFER_BALANCE_FEE;
         const isButtonDisabled = !canTransfer || !selectedAccount;
-
-        if (selectedAccount) {
-            const iconProperties = PaymentUtils.getPaymentMethodIconProperties(selectedAccount);
-            selectedAccount.icon = iconProperties.icon;
-            selectedAccount.iconSize = iconProperties.iconSize;
-        }
 
         return (
             <ScreenWrapper>
@@ -167,11 +173,7 @@ class TransferBalancePage extends React.Component {
                                     ...(selectedPaymentType === paymentType.key
                                         && styles.transferBalanceSelectedPayment),
                                 }}
-                                // eslint-disable-next-line react/no-unused-state
-                                onPress={() => {
-                                    PaymentMethods.updateWalletTransferData({filterPaymentMethodType: paymentType.type});
-                                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
-                                }}
+                                onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
                             />
                         ))}
                         <ExpensifyText
@@ -179,7 +181,7 @@ class TransferBalancePage extends React.Component {
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
                         </ExpensifyText>
-                        {!!selectedAccount
+                        {Boolean(selectedAccount)
                             && (
                                 <MenuItem
                                     title={selectedAccount.title}
@@ -192,10 +194,7 @@ class TransferBalancePage extends React.Component {
                                         ...styles.mrn5,
                                         ...styles.ph0,
                                     }}
-                                    onPress={() => {
-                                        PaymentMethods.updateWalletTransferData({filterPaymentMethodType: selectedAccount.type});
-                                        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
-                                    }}
+                                    onPress={() => this.navigateToChooseTransferAccount(selectedAccount.type)}
                                 />
                             )}
                         <ExpensifyText
@@ -213,7 +212,7 @@ class TransferBalancePage extends React.Component {
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
-                                Fee,
+                                CONST.WALLET.TRANSFER_BALANCE_FEE,
                                 {style: 'currency', currency: 'USD'},
                             )}
                         </ExpensifyText>

@@ -371,6 +371,7 @@ const CONST = {
     },
 
     WALLET: {
+        TRANSFER_BALANCE_FEE: 0.30,
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',

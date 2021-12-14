@@ -23,7 +23,7 @@ import * as Localize from './Localize';
  * @param {String} [payPalMeUsername='']
  * @returns {Array<PaymentMethod>}
  */
-function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername = '') {
+function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -97,6 +97,6 @@ function getPaymentMethodIconProperties(paymentMethod) {
 }
 
 export default {
-    getPaymentMethodsList,
+    getPaymentMethods,
     getPaymentMethodIconProperties,
 };

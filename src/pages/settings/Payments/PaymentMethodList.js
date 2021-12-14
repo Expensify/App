@@ -83,7 +83,7 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        let paymentMethods = PaymentUtils.getPaymentMethodsList(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+        let paymentMethods = PaymentUtils.getPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
 
         if (!_.isEmpty(this.props.filterType)) {
             paymentMethods = _.filter(paymentMethods, paymentMethod => paymentMethod.type === this.props.filterType);

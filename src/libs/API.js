@@ -1119,7 +1119,9 @@ function UpdatePolicy(parameters) {
  */
 function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
-    requireParameters([_.has(parameters, 'bankAccountID') ? 'bankAccountID' : 'fundID'], parameters, commandName);
+    if (!parameters.bankAccountID && !parameters.fundID) {
+        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
+    }
     return Network.post(commandName, parameters);
 }
 

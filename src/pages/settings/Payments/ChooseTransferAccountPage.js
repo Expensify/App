@@ -28,7 +28,7 @@ const defaultProps = {
 class ChooseTransferAccountPage extends React.Component {
     constructor(props) {
         super(props);
-        this.paymentMethodSelected = this.paymentMethodSelected.bind(this);
+        this.paymentMethodSelected = this.selectAccountAndNavigateBack.bind(this);
         this.navigateToAddPaymentMethod = this.navigateToAddPaymentMethod.bind(this);
     }
 
@@ -51,9 +51,9 @@ class ChooseTransferAccountPage extends React.Component {
 
     /**
      * Go back to TransferPage with the selected bank account
-     * @param {String} accountID id of the selected account.
+     * @param {String} accountID of the selected account.
      */
-    paymentMethodSelected(accountID) {
+    selectAccountAndNavigateBack(accountID) {
         PaymentMethods.updateWalletTransferData({selectedAccountID: accountID});
         Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
     }
@@ -70,7 +70,7 @@ class ChooseTransferAccountPage extends React.Component {
                     />
                     <View style={[styles.flex1, styles.pv5]}>
                         <PaymentMethodList
-                            onPress={this.paymentMethodSelected}
+                            onPress={this.selectAccountAndNavigateBack}
                             addPaymentMethodPressed={this.navigateToAddPaymentMethod}
                             enableSelection
                             filterType={this.props.walletTransfer.filterPaymentMethodType}
