@@ -704,7 +704,9 @@ class ReportActionCompose extends React.Component {
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
-                                hitSlop={{top: 3, right: 3, bottom: 3, left: 3}}
+                                hitSlop={{
+                                    top: 3, right: 3, bottom: 3, left: 3
+                                }}
                             >
                                 <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
                             </TouchableOpacity>
