@@ -28,6 +28,14 @@ const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 
+/**
+ * @param {Object} request
+ * @param {String} request.command
+ * @param {Object} request.data
+ * @param {String} request.type
+ * @param {Boolean} request.shouldUseSecure
+ * @returns {Promise}
+ */
 function processRequest(request) {
     const finalParameters = _.isFunction(enhanceParameters)
         ? enhanceParameters(request.command, request.data)
@@ -41,13 +49,13 @@ function processPersistedRequestsQueue() {
     const persistedRequests = NetworkRequestQueue.getPersistedRequests();
 
     // This sanity check is also a recursion exit point
-    if (isOffline || _.size(persistedRequests) === 0) {
+    if (isOffline || _.isEmpty(persistedRequests)) {
         return Promise.resolve();
     }
 
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .then((response) => {
-            if (response.jsonCode !== CONST.NETWORK.SUCCESS_CODE) {
+            if (response.jsonCode !== CONST.HTTP_STATUS_CODE.SUCCESS) {
                 throw new Error('Persisted request failed');
             }
 
@@ -121,7 +129,7 @@ function setIsReady(val) {
  * @param {Object} request
  * @param {String} request.type
  * @param {String} request.command
- * @param {Object} request.data
+ * @param {Object} [request.data]
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
