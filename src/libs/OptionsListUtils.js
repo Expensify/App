@@ -181,7 +181,7 @@ function getSearchText(report, personalDetailList, isBusinessChatRoom) {
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
         if (isBusinessChatRoom) {
-            const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(report, policies);
+            const defaultRoomSubtitle = ReportUtils.getBusinessRoomSubtitle(report, policies);
             searchTerms.push(...defaultRoomSubtitle);
             searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
         } else {
@@ -241,7 +241,7 @@ function createOption(personalDetailList, report, {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : ReportUtils.getDefaultRoomSubtitle(report, policies);
+            : ReportUtils.getBusinessRoomSubtitle(report, policies);
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
