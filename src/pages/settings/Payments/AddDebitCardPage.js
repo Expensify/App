@@ -1,8 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View,
-    ScrollView,
-} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +21,7 @@ import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitBu
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
+import FormScrollView from '../../../components/FormScrollView';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -181,12 +179,7 @@ class DebitCardPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={el => this.form = el}
-                    >
+                    <FormScrollView ref={el => this.form = el}>
                         <View style={[styles.mh5, styles.mb5]}>
                             <ExpensiTextInput
                                 label={this.props.translate('addDebitCardPage.nameOnCard')}
@@ -269,7 +262,7 @@ class DebitCardPage extends Component {
                             }}
                             isLoading={this.props.addDebitCardForm.submitting}
                         />
-                    </ScrollView>
+                    </FormScrollView>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

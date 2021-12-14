@@ -31,12 +31,12 @@ function fetchOnfidoToken() {
  * Privately used to update the additionalDetails object in Onyx (which will have various effects on the UI)
  *
  * @param {Boolean} loading whether we are making the API call to validate the user's provided personal details
- * @param {String[]} [errorFields] an array of field names that should display errors in the UI
+ * @param {String[]} [errors] an array of field names that should display errors in the UI
  * @param {String} [additionalErrorMessage] an additional error message to display in the UI
  * @private
  */
-function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMessage = '') {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errorFields, additionalErrorMessage});
+function setAdditionalDetailsStep(loading, errors = null, additionalErrorMessage = '') {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errors, additionalErrorMessage});
 }
 
 /**
@@ -71,18 +71,6 @@ function activateWallet(currentStep, parameters) {
         Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
         setAdditionalDetailsStep(true);
-
-        // Personal details are heavily validated on the API side. We will only do a quick check to ensure the values
-        // exist in some capacity and then stringify them.
-        const errorFields = _.reduce(CONST.WALLET.REQUIRED_ADDITIONAL_DETAILS_FIELDS, (missingFields, fieldName) => (
-            !personalDetails[fieldName] ? [...missingFields, fieldName] : missingFields
-        ), []);
-
-        if (!_.isEmpty(errorFields)) {
-            setAdditionalDetailsStep(false, errorFields);
-            return;
-        }
-
         personalDetails = JSON.stringify(parameters.personalDetails);
     } else if (currentStep === CONST.WALLET.STEP.TERMS) {
         hasAcceptedTerms = parameters.hasAcceptedTerms;
@@ -104,7 +92,11 @@ function activateWallet(currentStep, parameters) {
 
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
-                        setAdditionalDetailsStep(false, response.data.fieldNames);
+                        const errors = _.reduce(response.data.fieldNames, (prev, curr) => ({
+                            ...prev,
+                            [curr]: true,
+                        }), {});
+                        setAdditionalDetailsStep(false, errors);
                         return;
                     }
 
@@ -159,9 +151,23 @@ function fetchUserWallet() {
         });
 }
 
+/**
+ * @param {Object} errors
+ */
+function setAdditionalDetailsErrors(errors) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors: null});
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors});
+}
+
+function updateAdditionalDetailsDraft(keyValuePair) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
+}
+
 export {
     fetchOnfidoToken,
     setAdditionalDetailsStep,
     activateWallet,
     fetchUserWallet,
+    setAdditionalDetailsErrors,
+    updateAdditionalDetailsDraft,
 };
