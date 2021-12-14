@@ -274,9 +274,9 @@ class IOUModal extends Component {
      * Create the IOU transaction
      *
      * @param {Array} [splits]
-     * @param String paymentOption
+     * @param {String} paymentMethod
      */
-    confirm(splits, paymentOption) {
+    confirm(splits, paymentMethod) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
         // If the user is trying to send money, then they need to upgrade to a GOLD wallet
@@ -289,7 +289,7 @@ class IOUModal extends Component {
             IOU.payIOUReport({
                 chatReportID: this.props.route.params.reportID,
                 reportID: 0,
-                paymentMethodType: paymentOption,
+                paymentMethodType: paymentMethod,
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
                 submitterPayPalMeAddress: this.state.participants[0].payPalMeAddress,

@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -9,7 +10,6 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
-import Str from 'expensify-common/lib/str';
 
 /**
  * @param {Object[]} requestParams
