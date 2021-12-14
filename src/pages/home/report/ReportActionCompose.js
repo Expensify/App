@@ -699,13 +699,13 @@ class ReportActionCompose extends React.Component {
                             <TouchableOpacity
                                 style={[
                                     styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess
+                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                                 hitSlop={{
-                                    top: 3, right: 3, bottom: 3, left: 3
+                                    top: 3, right: 3, bottom: 3, left: 3,
                                 }}
                             >
                                 <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
