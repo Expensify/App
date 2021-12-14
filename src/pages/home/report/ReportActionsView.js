@@ -189,6 +189,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
+            return true;
+        }
+
         return false;
     }
 

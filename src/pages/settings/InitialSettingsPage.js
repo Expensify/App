@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
@@ -99,9 +99,9 @@ const defaultMenuItems = [
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        translationKey: 'initialSettingsPage.changePassword',
+        translationKey: 'initialSettingsPage.security',
         icon: Expensicons.Lock,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
     },
     {
         translationKey: 'common.payments',
@@ -169,19 +169,19 @@ const InitialSettingsPage = (props) => {
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
-                            <Text style={[styles.displayName]} numberOfLines={1}>
+                            <ExpensifyText style={[styles.displayName]} numberOfLines={1}>
                                 {props.myPersonalDetails.displayName
                                     ? props.myPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
-                            </Text>
+                            </ExpensifyText>
                         </Pressable>
                         {props.myPersonalDetails.displayName && (
-                            <Text
+                            <ExpensifyText
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(props.session.email)}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </View>
                     {_.map(menuItems, (item, index) => {

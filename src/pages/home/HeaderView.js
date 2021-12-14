@@ -24,7 +24,7 @@ import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/reportUtils';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
@@ -85,8 +85,9 @@ const HeaderView = (props) => {
             };
         },
     );
+    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
     const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom
+    const title = isDefaultChatRoom || isPolicyRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -145,10 +146,10 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom}
+                                    shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
                                 />
                                 {isDefaultChatRoom && (
-                                    <Text
+                                    <ExpensifyText
                                         style={[
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
@@ -158,7 +159,7 @@ const HeaderView = (props) => {
                                         numberOfLines={1}
                                     >
                                         {subtitle}
-                                    </Text>
+                                    </ExpensifyText>
                                 )}
                             </View>
                         </Pressable>

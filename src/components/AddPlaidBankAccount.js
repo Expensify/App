@@ -12,19 +12,19 @@ import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
+import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiPicker from './ExpensiPicker';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
+import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
@@ -72,6 +72,17 @@ const propTypes = {
 
     /** Additional text to display */
     text: PropTypes.string,
+
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI: PropTypes.string,
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    plaidLinkOAuthToken: PropTypes.string,
+
+    /** Should we require a password to create a bank account? */
+    isPasswordRequired: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -82,6 +93,9 @@ const defaultProps = {
     onExitPlaid: () => {},
     onSubmit: () => {},
     text: '',
+    receivedRedirectURI: null,
+    plaidLinkOAuthToken: '',
+    isPasswordRequired: false,
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -89,19 +103,34 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.selectAccount = this.selectAccount.bind(this);
+        this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
 
         this.state = {
             selectedIndex: undefined,
             institution: {},
+            password: '',
         };
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, {
+            password: 'passwordForm.error.incorrectLoginOrPassword',
+        }, inputKey);
     }
 
     componentDidMount() {
+        // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
+        // Otherwise, clear the existing token and fetch a new one
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+            return;
+        }
+
         BankAccounts.clearPlaidBankAccountsAndToken();
         BankAccounts.fetchPlaidLinkToken();
+    }
+
+    componentWillUnmount() {
+        BankAccounts.setBankAccountFormValidationErrors({});
     }
 
     /**
@@ -114,6 +143,19 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     /**
+     * @returns {String}
+     */
+    getPlaidLinkToken() {
+        if (!_.isEmpty(this.props.plaidLinkToken)) {
+            return this.props.plaidLinkToken;
+        }
+
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+            return this.props.plaidLinkOAuthToken;
+        }
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -121,6 +163,11 @@ class AddPlaidBankAccount extends React.Component {
         if (_.isUndefined(this.state.selectedIndex)) {
             errors.selectedBank = true;
         }
+
+        if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
+            errors.password = true;
+        }
+
         BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
@@ -136,30 +183,33 @@ class AddPlaidBankAccount extends React.Component {
         this.props.onSubmit({
             bankName,
             account,
-            plaidLinkToken: this.props.plaidLinkToken,
+            plaidLinkToken: this.getPlaidLinkToken(),
+            password: this.state.password,
         });
     }
 
     render() {
         const accounts = this.getAccounts();
+        const token = this.getPlaidLinkToken();
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
+
         return (
             <>
-                {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
-                    && (
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator color={themeColors.spinner} size="large" />
-                        </View>
-                    )}
-                {!_.isEmpty(this.props.plaidLinkToken) && (
+                {(!token || this.props.plaidBankAccounts.loading)
+                && (
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                    </View>
+                )}
+                {token && (
                     <PlaidLink
-                        token={this.props.plaidLinkToken}
+                        token={token}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
-                            BankAccounts.getPlaidBankAccounts(publicToken, metadata.institution.name);
+                            BankAccounts.fetchPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {
@@ -169,6 +219,7 @@ class AddPlaidBankAccount extends React.Component {
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
+                        receivedRedirectURI={this.props.receivedRedirectURI}
                     />
                 )}
                 {accounts.length > 0 && (
@@ -176,7 +227,7 @@ class AddPlaidBankAccount extends React.Component {
                         onSubmit={this.selectAccount}
                     >
                         {!_.isEmpty(this.props.text) && (
-                            <Text style={[styles.mb5]}>{this.props.text}</Text>
+                            <ExpensifyText style={[styles.mb5]}>{this.props.text}</ExpensifyText>
                         )}
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
@@ -184,7 +235,7 @@ class AddPlaidBankAccount extends React.Component {
                                 height={iconSize}
                                 width={iconSize}
                             />
-                            <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
+                            <ExpensifyText style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</ExpensifyText>
                         </View>
                         <View style={[styles.mb5]}>
                             <ExpensiPicker
@@ -202,6 +253,22 @@ class AddPlaidBankAccount extends React.Component {
                                 hasError={this.getErrors().selectedBank}
                             />
                         </View>
+                        {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
+                            <View style={[styles.mb5]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                    secureTextEntry
+                                    value={this.state.password}
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    autoCapitalize="none"
+                                    autoFocus={canFocusInputOnScreenFocus()}
+                                    onChangeText={text => this.setState({password: text})}
+                                    errorText={this.getErrorText('password')}
+                                    hasError={this.getErrors().password}
+                                />
+                            </View>
+                        )}
                     </ReimbursementAccountForm>
                 )}
             </>

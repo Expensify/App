@@ -10,7 +10,7 @@ import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
 } from './popoverMenuPropTypes';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 
 const propTypes = {
     /** Callback fired when the menu is completely closed */
@@ -40,11 +40,11 @@ class BasePopoverMenu extends PureComponent {
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
-                            <Text
+                            <ExpensifyText
                                 style={[styles.createMenuHeaderText, styles.ml3]}
                             >
                                 {this.props.headerText}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     )}
                     {_.map(this.props.menuItems, item => (

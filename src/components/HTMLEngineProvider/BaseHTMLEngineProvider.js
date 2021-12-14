@@ -21,7 +21,7 @@ import AttachmentModal from '../AttachmentModal';
 import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -99,28 +99,28 @@ function AnchorRenderer(props) {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalExpensifyPath) {
         return (
-            <Text
+            <ExpensifyText
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </Text>
+            </ExpensifyText>
         );
     }
 
     if (!isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+        // TODO: We should use TextLink, but I'm leaving it as ExpensifyText for now because TextLink breaks the alignment in Android.
         return (
-            <Text
+            <ExpensifyText
                 style={styles.link}
                 onPress={() => {
                     Linking.openURL(attrHref);
                 }}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </Text>
+            </ExpensifyText>
         );
     }
 
@@ -182,16 +182,16 @@ function CodeRenderer(props) {
 function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     return (
-        <Text
+        <ExpensifyText
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={styles.w1}>{' '}</Text>
+            <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
             {props.translate('reportActionCompose.edited')}
-        </Text>
+        </ExpensifyText>
     );
 }
 

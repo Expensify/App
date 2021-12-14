@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
@@ -22,7 +22,7 @@ import * as Report from '../libs/actions/Report';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import ExpensiPicker from '../components/ExpensiPicker';
 
 const propTypes = {
@@ -123,7 +123,7 @@ class ReportDetailsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1]}>
+                <ScrollView style={[styles.flex1]}>
                     <View style={[styles.m5]}>
                         <View
                             style={styles.reportDetailsTitleContainer}
@@ -144,7 +144,7 @@ class ReportDetailsPage extends Component {
                                     textStyles={[styles.headerText, styles.mb2]}
                                     shouldUseFullTitle={ReportUtils.isDefaultRoom(this.props.report)}
                                 />
-                                <Text
+                                <ExpensifyText
                                     style={[
                                         styles.sidebarLinkText,
                                         styles.optionAlternateText,
@@ -154,15 +154,15 @@ class ReportDetailsPage extends Component {
                                     numberOfLines={1}
                                 >
                                     {defaultRoomSubtitle}
-                                </Text>
+                                </ExpensifyText>
                             </View>
                         </View>
                         {!ReportUtils.isArchivedRoom(this.props.report) && (
                             <View>
                                 <View style={styles.mt4}>
-                                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                                    <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                                         {this.props.translate('common.notifications')}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                                 <View>
                                     <View style={[styles.mb5]}>
@@ -198,7 +198,7 @@ class ReportDetailsPage extends Component {
                             />
                         );
                     })}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         );
     }

@@ -352,11 +352,11 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
+    sortByReportTypeInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
-    showReportsWithDrafts = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
@@ -396,11 +396,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
-            && !shouldShowReportIfHasDraft
+            && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
             return;
@@ -508,6 +507,19 @@ function getOptions(reports, personalDetails, activeReportID, {
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
+    // If we are prioritizing 1:1 chats in search, do it only once we started searching
+    if (sortByReportTypeInSearch && searchValue !== '') {
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+            if (option.isDefaultChatRoom || option.isArchivedRoom) {
+                return 3;
+            }
+            if (!option.login) {
+                return 2;
+            }
+            return 1;
+        }], ['asc']);
+    }
+
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -576,7 +588,8 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: false,
-        prioritizeDefaultRoomsInSearch: true,
+        prioritizeDefaultRoomsInSearch: false,
+        sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
@@ -675,7 +688,6 @@ function getSidebarOptions(
         sideBarOptions = {
             hideReadReports: true,
             sortByAlphaAsc: true,
-            showReportsWithDrafts: true,
         };
     }
 

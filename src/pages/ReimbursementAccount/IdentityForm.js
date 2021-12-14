@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 
 
 const propTypes = {
@@ -140,7 +140,7 @@ const IdentityForm = (props) => {
                         onChangeText={value => props.onFieldChange('addressStreet', value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.address') : ''}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
+                    <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</ExpensifyText>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
                             <ExpensiTextInput

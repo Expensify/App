@@ -133,6 +133,9 @@ export default {
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
+    // Store frequently used emojis for this user
+    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
+
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
@@ -153,4 +156,7 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the create policy room command
+    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
 };
