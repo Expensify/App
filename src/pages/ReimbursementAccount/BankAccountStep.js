@@ -99,7 +99,6 @@ class BankAccountStep extends React.Component {
         }
 
         BankAccounts.setBankAccountFormValidationErrors(errors);
-        return _.size(errors) === 0;
     }
 
     /**
