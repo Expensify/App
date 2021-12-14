@@ -36,7 +36,7 @@ const propTypes = {
         loading: PropTypes.bool,
 
         /** Which field needs attention? */
-        errorFields: PropTypes.arrayOf(PropTypes.string),
+        errorFields: PropTypes.objectOf(PropTypes.bool),
 
         /** Any additional error message to show */
         additionalErrorMessage: PropTypes.string,
@@ -140,6 +140,8 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     activateWallet() {
+        Wallet.setAdditionalDetailsStep(false);
+
         if (!this.validate()) {
             return;
         }
