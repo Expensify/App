@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import expensiTextInputPlatformStyles from './expensiTextInputPlatformStyles';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
@@ -646,11 +647,13 @@ const styles = {
         paddingHorizontal: 11,
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
+        ...expensiTextInputPlatformStyles,
     },
 
     expensiTextInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
+        height: '100%',
     },
 
     expensiTextInputDesktop: addOutlineWidth({}, 0),
