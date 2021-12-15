@@ -92,7 +92,7 @@ const OptionRow = (props) => {
         : [styles.optionDisplayName, ...textUnreadStyle];
     const alternateTextStyle = props.mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.mt1];
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
     const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
