@@ -88,7 +88,7 @@ describe('isPullRequestMergeable', () => {
             expect(mockGetPullRequest).toHaveBeenCalledTimes(30);
             expect(mockSetOutput).toHaveBeenCalledWith('IS_MERGEABLE', false);
         });
-    })
+    });
 
     test('Github API error', () => {
         mockGetPullRequest.mockRejectedValue(new Error('Some github error'));
