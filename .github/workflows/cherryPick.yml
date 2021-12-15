@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
@@ -67,11 +67,25 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: staging
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Decrypt Botify GPG key
+        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Import Botify GPG Key
+        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+
+      - name: Set up git for Botify
+        run: |
+          git config user.signingkey DBF63700F60F5530
+          git config commit.gpgsign true
+          git config user.name OSBotify
+          git config user.email infra+osbotify@expensify.com
 
       - name: Create branch for new pull request
         run: |
-          git config user.name ${{ github.actor }}
           git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
@@ -104,13 +118,13 @@ jobs:
       - name: Cherry-pick the version-bump to new branch
         run: |
           git fetch
-          git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
 
       - name: Cherry-pick the merge commit of target PR to new branch
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          if git cherry-pick -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
+          if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "::set-output name=SHOULD_AUTOMERGE::true"
           else

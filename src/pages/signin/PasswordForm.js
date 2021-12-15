@@ -62,10 +62,19 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isVisible || !this.props.isVisible) {
-            return;
+        if (!prevProps.isVisible && this.props.isVisible) {
+            this.input.focus();
         }
-        this.input.focus();
+        if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
+            this.clearPassword();
+        }
+    }
+
+    /**
+     * Clear Password from the state
+     */
+    clearPassword() {
+        this.setState({password: ''}, this.input.clear);
     }
 
     /**
