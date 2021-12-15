@@ -5,7 +5,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import TextLink from '../../components/TextLink';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
