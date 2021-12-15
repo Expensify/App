@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-restricted-imports
-import {FlatList, Text} from 'react-native';
+import {FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
+import ExpensifyText from '../../../components/ExpensifyText';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -173,11 +173,11 @@ class PaymentMethodList extends Component {
         }
 
         return (
-            <Text
+            <ExpensifyText
                 style={[styles.popoverMenuItem]}
             >
                 {item.text}
-            </Text>
+            </ExpensifyText>
         );
     }
 

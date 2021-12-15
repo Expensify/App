@@ -1,9 +1,9 @@
 import React, {PureComponent} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated, Text, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import Button from '../../../../components/Button';
+import ExpensifyText from '../../../../components/ExpensifyText';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
@@ -85,7 +85,7 @@ class MarkerBadge extends PureComponent {
                             ContentComponent={() => (
                                 <View style={[styles.flexRow]}>
                                     <Icon small src={Expensicons.DownArrow} fill={themeColors.textReversed} />
-                                    <Text
+                                    <ExpensifyText
                                         selectable={false}
                                         style={[
                                             styles.ml2,
@@ -97,7 +97,7 @@ class MarkerBadge extends PureComponent {
                                             'reportActionsViewMarkerBadge.newMsg',
                                             {count: this.props.count},
                                         )}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             )}
                             shouldRemoveRightBorderRadius
