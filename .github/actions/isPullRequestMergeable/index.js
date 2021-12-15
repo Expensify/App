@@ -30,11 +30,11 @@ const run = function () {
         })
             .then(({data}) => {
                 if (_.isNull(data.mergeable)) {
+                    console.log('Pull request mergeability is not yet resolved...');
+                    retryCount++;
                     return;
                 }
 
-                console.log('Pull request mergeability is not yet resolved...');
-                retryCount++;
                 mergeabilityResolved = true;
                 isMergeable = data.mergeable;
             })
@@ -45,7 +45,11 @@ const run = function () {
             }), 5000),
     )
         .then(() => {
-            console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+            if (retryCount >= MAX_RETRIES) {
+                console.error('Maximum retries reached, mergeability is undetermined, defaulting to false');
+            } else {
+                console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+            }
             core.setOutput('IS_MERGEABLE', isMergeable);
         });
 };
