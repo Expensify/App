@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
