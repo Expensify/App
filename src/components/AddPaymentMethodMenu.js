@@ -123,7 +123,7 @@ class AddPaymentMethodMenu extends Component {
             <>
                 <MenuItem
                     onPress={e => (this.props.filterType
-                        ? this.addPaymentMethodTypePressed(CONST.PAYMENT_METHODS.BANK_ACCOUNT)
+                        ? this.addPaymentMethodTypePressed(this.props.filterType)
                         : this.addPaymentMethodPressed(e)
                     )}
                     title={addPaymentMethodButtonTitle}

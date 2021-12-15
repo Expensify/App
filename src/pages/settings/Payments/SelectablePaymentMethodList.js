@@ -22,9 +22,6 @@ const propTypes = {
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
-    /** Whether to show selection checkboxes */
-    enableSelection: PropTypes.bool,
-
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
@@ -53,7 +50,6 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
-    enableSelection: false,
     selectedAccountID: '',
     filterType: '',
 };

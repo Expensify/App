@@ -51,7 +51,7 @@ function transferWalletBalance(paymentMethod) {
     return API.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error();
+                throw new Error(response.message);
             }
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true, loading: false});

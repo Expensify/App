@@ -8,13 +8,13 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import PaymentMethodList from './PaymentMethodList';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import * as paymentPropTypes from './paymentPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import CONST from '../../../CONST';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
+import SelectablePaymentMethodList from './SelectablePaymentMethodList';
 
 const propTypes = {
     /** Wallet transfer propTypes */
@@ -71,10 +71,10 @@ class ChooseTransferAccountPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <View style={[styles.pv5]}>
-                        <PaymentMethodList
+                        <SelectablePaymentMethodList
                             onPress={this.selectAccountAndNavigateBack}
-                            enableSelection
                             selectedAccountID={this.props.walletTransfer.selectedAccountID}
+                            filterType={this.props.walletTransfer.filterPaymentMethodType}
                         />
                         <AddPaymentMethodMenu filterType={this.props.walletTransfer.filterPaymentMethodType} />
                     </View>
