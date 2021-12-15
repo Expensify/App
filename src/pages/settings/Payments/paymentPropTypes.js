@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '../../../CONST';
 
 /** Array of bank account objects */
 const bankAccountListPropTypes = PropTypes.arrayOf(PropTypes.shape({
@@ -32,10 +33,13 @@ const walletTransferPropTypes = PropTypes.shape({
     /** Amount being transferred  */
     transferAmount: PropTypes.number,
 
-    /** Account selected for transfer */
+    /** Selected accountID for transfer */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
-    /** Whether the transfer is completed */
+    /** Type to filter the payment Method list */
+    filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+
+    /** Whether the user has intiatied the tranfer and transfer request is submitted to backend. */
     completed: PropTypes.bool,
 });
 

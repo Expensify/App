@@ -9,6 +9,7 @@ import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
 import PaymentUtils from '../../../libs/PaymentUtils';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
@@ -20,6 +21,15 @@ const propTypes = {
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
+
+    /** Whether to show selection checkboxes */
+    enableSelection: PropTypes.bool,
+
+    /** Type to filter the payment Method list */
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+
+    /** Selected Account ID if selection is active */
+    selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Array of bank account objects */
     bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
@@ -43,9 +53,12 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
+    enableSelection: false,
+    selectedAccountID: '',
+    filterType: '',
 };
 
-class PaymentMethodList extends Component {
+class SelectablePaymentMethodList extends Component {
     constructor(props) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
@@ -58,6 +71,10 @@ class PaymentMethodList extends Component {
      */
     createPaymentMethodList() {
         let paymentMethods = PaymentUtils.getPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+
+        if (!_.isEmpty(this.props.filterType)) {
+            paymentMethods = _.filter(paymentMethods, paymentMethod => paymentMethod.type === this.props.filterType);
+        }
 
         paymentMethods = _.map(paymentMethods, method => ({
             ...method,
@@ -94,6 +111,8 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    shouldShowSelectedState={this.props.enableSelection}
+                    isSelected={this.props.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
@@ -121,8 +140,8 @@ class PaymentMethodList extends Component {
     }
 }
 
-PaymentMethodList.propTypes = propTypes;
-PaymentMethodList.defaultProps = defaultProps;
+SelectablePaymentMethodList.propTypes = propTypes;
+SelectablePaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -137,4 +156,4 @@ export default compose(
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
-)(PaymentMethodList);
+)(SelectablePaymentMethodList);

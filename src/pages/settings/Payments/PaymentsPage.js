@@ -24,6 +24,7 @@ import MenuItem from '../../../components/MenuItem';
 import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
+    /** Wallet balance transfer props */
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     /** List of betas available to current user */

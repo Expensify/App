@@ -244,7 +244,6 @@ class TransferBalancePage extends React.Component {
 
 TransferBalancePage.propTypes = propTypes;
 TransferBalancePage.defaultProps = defaultProps;
-TransferBalancePage.displayName = 'TransferBalancePage';
 
 export default compose(
     withLocalize,

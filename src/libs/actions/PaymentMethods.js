@@ -134,6 +134,7 @@ function saveWalletTransferAmountAndAccount(currentBalance, selectedAccountID) {
         selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
+        completed: false,
     });
 }
 

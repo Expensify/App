@@ -17,6 +17,7 @@ import CONST from '../../../CONST';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 
 const propTypes = {
+    /** Wallet transfer propTypes */
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     ...withLocalizePropTypes,
@@ -85,7 +86,6 @@ class ChooseTransferAccountPage extends React.Component {
 
 ChooseTransferAccountPage.propTypes = propTypes;
 ChooseTransferAccountPage.defaultProps = defaultProps;
-ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
 export default compose(
     withLocalize,
