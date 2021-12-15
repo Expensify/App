@@ -648,7 +648,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
-        height: '100%',
         paddingTop: 23,
         paddingBottom: 8,
         paddingHorizontal: 11,
@@ -814,11 +813,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
     },
 
     signInPageInner: {
@@ -1135,12 +1129,6 @@ const styles = {
         ...optionAlternateTextPlatformStyles,
     },
 
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
-    },
-
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
@@ -1180,7 +1168,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-start',
+        justifyContent: 'flex-end',
         paddingVertical: 16,
     },
 
@@ -1318,10 +1306,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },

@@ -90,6 +90,8 @@ export default {
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
         bankAccount: 'Cuenta bancaria',
+        join: 'Unirse',
+        decline: 'Rechazar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -194,7 +196,6 @@ export default {
         viewDetails: 'Ver detalles',
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
-        decline: 'Rechazar',
         settlePaypalMe: 'Pagar con PayPal.me',
         settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
@@ -819,5 +820,9 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
         },
+    },
+    guides: {
+        screenShare: 'Compartir pantalla',
+        screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
 };
