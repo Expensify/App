@@ -203,7 +203,7 @@ class IOUAmountPage extends React.Component {
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                             />
                         )}
                 </View>
