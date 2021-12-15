@@ -1,5 +1,5 @@
-import {signIn, fetchAccountDetails} from '../../src/libs/actions/Session';
-import {fetchPersonalDetails} from '../../src/libs/actions/PersonalDetails';
+import * as Session from '../../src/libs/actions/Session';
+import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
 
@@ -13,7 +13,7 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  * @param {String} authToken
  * @return {Promise}
  */
-function signInWithTestUser(accountID, login, password = 'Password1', authToken = 'asdfqwerty') {
+function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
@@ -24,7 +24,7 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
     }));
 
     // Simulate user entering their login and populating the credentials.login
-    fetchAccountDetails(login);
+    Session.fetchAccountDetails(login);
     return waitForPromisesToResolve()
         .then(() => {
             // First call to Authenticate
@@ -43,7 +43,7 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
                     authToken,
                     email: login,
                 }));
-            signIn(password);
+            Session.signIn(password);
             return waitForPromisesToResolve()
                 .then(() => {
                     HttpUtils.xhr = originalXhr;
@@ -60,21 +60,21 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
  * @returns {Promise}
  */
 function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) {
-    // Mock xhr()
+    const originalXHR = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
 
-    // Get the personalDetails
     HttpUtils.xhr
-
-        // fetchPersonalDetails
         .mockImplementationOnce(() => Promise.resolve({
             accountID,
             email,
             personalDetailsList,
         }));
 
-    fetchPersonalDetails();
-    return waitForPromisesToResolve();
+    PersonalDetails.fetchPersonalDetails();
+    return waitForPromisesToResolve()
+        .then(() => {
+            HttpUtils.xhr = originalXHR;
+        });
 }
 
 export {

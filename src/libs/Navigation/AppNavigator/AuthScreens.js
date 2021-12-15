@@ -1,17 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import {
-    subscribeToUserEvents,
-    fetchAllReports,
-} from '../../actions/Report';
+import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -21,53 +20,29 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
 import NetworkConnection from '../../NetworkConnection';
 import CONFIG from '../../../CONFIG';
-import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
+import * as GeoLocation from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
-import {setModalVisibility} from '../../actions/Modal';
+import * as Modal from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
+import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import Permissions from '../../Permissions';
-import getOperatingSystem from '../../getOperatingSystem';
-import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
+import * as BankAccounts from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
-// Validate login page
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-
 // Modal Stack Navigators
-import {
-    IOUBillStackNavigator,
-    IOURequestModalStackNavigator,
-    IOUSendModalStackNavigator,
-    IOUDetailsModalStackNavigator,
-    DetailsModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
-    NewGroupModalStackNavigator,
-    NewChatModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
-    RequestCallModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-    WorkspaceEditorNavigator,
-} from './ModalStackNavigators';
+import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
-import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
-import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import spacing from '../../../styles/utilities/spacing';
-import CardOverlay from '../../../components/CardOverlay';
+import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
+import * as App from '../../actions/App';
+import * as Session from '../../actions/Session';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -96,28 +71,12 @@ const RootStack = createCustomModalStackNavigator();
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
     focus: () => {
-        setModalVisibility(true);
+        Modal.setModalVisibility(true);
     },
     beforeRemove: () => {
-        setModalVisibility(false);
+        Modal.setModalVisibility(false);
     },
 };
-
-let hasLoadedPolicies = false;
-
-/**
- * We want to only load policy info if you are in the freePlan beta.
- * @param {Array} betas
- */
-function loadPoliciesBehindBeta(betas) {
-    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
-    // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
-        getPolicyList();
-        getPolicySummaries();
-        hasLoadedPolicies = true;
-    }
-}
 
 const propTypes = {
     /** Information about the network */
@@ -126,15 +85,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    betas: [],
 };
 
 class AuthScreens extends React.Component {
@@ -153,24 +108,35 @@ class AuthScreens extends React.Component {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(() => {
-            subscribeToUserEvents();
+            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
         });
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+        NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
+        App.getLocale();
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         User.getDomainInfo();
         PersonalDetails.fetchLocalCurrency();
-        fetchAllReports(true, true);
-        fetchCountryCodeByRequestIP();
+        Report.fetchAllReports(true, true);
+        GeoLocation.fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchUserWallet();
 
-        loadPoliciesBehindBeta(this.props.betas);
+        // Load policies, maybe creating a new policy first.
+        Linking.getInitialURL()
+            .then((url) => {
+                if (this.shouldCreateFreePolicy(url)) {
+                    Policy.createAndGetPolicyList();
+                    return;
+                }
+
+                Policy.getPolicyList();
+            });
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -186,39 +152,25 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        let searchShortcutModifiers = ['control'];
-        let groupShortcutModifiers = ['control', 'shift'];
+        const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
+        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(searchShortcutConfig.modifiers);
 
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            searchShortcutModifiers = ['meta'];
-            groupShortcutModifiers = ['meta', 'shift'];
-        }
+        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(groupShortcutConfig.modifiers);
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.SEARCH);
-        }, searchShortcutModifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+        }, searchShortcutConfig.descriptionKey, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
-        }, groupShortcutModifiers, true);
+        }, groupShortcutConfig.descriptionKey, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-            return true;
-        }
-
-        if (nextProps.betas !== this.props.betas) {
-            return true;
-        }
-
-        return false;
-    }
-
-    componentDidUpdate() {
-        loadPoliciesBehindBeta(this.props.betas);
+        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
     componentWillUnmount() {
@@ -228,10 +180,24 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        NetworkConnection.stopListeningForReconnect();
+        Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-        hasLoadedPolicies = false;
+    }
+
+    /**
+     * @param {String} [url]
+     * @returns {Boolean}
+     */
+    shouldCreateFreePolicy(url = '') {
+        if (!url) {
+            return false;
+        }
+
+        const path = new URL(url).pathname;
+        const exitTo = new URLSearchParams(url).get('exitTo');
+        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
     render() {
@@ -246,24 +212,13 @@ class AuthScreens extends React.Component {
         };
         const modalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyle: StyleUtils.getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
-        };
-        const fullscreenModalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: {
-                ...styles.fullscreenCard,
-                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
-            },
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: !this.props.isSmallScreenWidth,
-            isFullScreenModal: true,
-            cardOverlay: CardOverlay,
         };
 
         return (
@@ -300,24 +255,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
+                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
                     options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
+                    component={LogInWithShortLivedTokenPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -326,110 +266,85 @@ class AuthScreens extends React.Component {
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
                 <RootStack.Screen
-                    name="WorkspaceSettings"
-                    options={fullscreenModalScreenOptions}
-                    component={WorkspaceSettingsDrawerNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
-                    component={SettingsModalStackNavigator}
+                    component={ModalStackNavigators.SettingsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewChat"
                     options={modalScreenOptions}
-                    component={NewChatModalStackNavigator}
+                    component={ModalStackNavigators.NewChatModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewGroup"
                     options={modalScreenOptions}
-                    component={NewGroupModalStackNavigator}
+                    component={ModalStackNavigators.NewGroupModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Search"
                     options={modalScreenOptions}
-                    component={SearchModalStackNavigator}
+                    component={ModalStackNavigators.SearchModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Details"
                     options={modalScreenOptions}
-                    component={DetailsModalStackNavigator}
+                    component={ModalStackNavigators.DetailsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Report_Details"
                     options={modalScreenOptions}
-                    component={ReportDetailsModalStackNavigator}
+                    component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Participants"
                     options={modalScreenOptions}
-                    component={ReportParticipantsModalStackNavigator}
+                    component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
-                    component={IOURequestModalStackNavigator}
+                    component={ModalStackNavigators.IOURequestModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Bill"
                     options={modalScreenOptions}
-                    component={IOUBillStackNavigator}
+                    component={ModalStackNavigators.IOUBillStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="EnablePayments"
                     options={modalScreenOptions}
-                    component={EnablePaymentsStackNavigator}
+                    component={ModalStackNavigators.EnablePaymentsStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Details"
                     options={modalScreenOptions}
-                    component={IOUDetailsModalStackNavigator}
+                    component={ModalStackNavigators.IOUDetailsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
-                    component={AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="ReimbursementAccount"
-                    options={modalScreenOptions}
-                    component={ReimbursementAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
-                />
-                <RootStack.Screen
-                    name="WorkspaceInvite"
-                    options={modalScreenOptions}
-                    component={WorkspaceInviteModalStackNavigator}
+                    component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="RequestCall"
                     options={modalScreenOptions}
-                    component={RequestCallModalStackNavigator}
+                    component={ModalStackNavigators.RequestCallModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Send"
                     options={modalScreenOptions}
-                    component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceEditor"
-                    options={modalScreenOptions}
-                    component={WorkspaceEditorNavigator}
+                    component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
@@ -444,9 +359,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);

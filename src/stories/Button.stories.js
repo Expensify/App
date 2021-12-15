@@ -1,23 +1,23 @@
 import React from 'react';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
-    title: 'Components/Button',
-    component: Button,
+const story = {
+    title: 'Components/ExpensifyButton',
+    component: ExpensifyButton,
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <Button {...args} />;
+const Template = args => <ExpensifyButton {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-export const Default = Template.bind({});
-export const Loading = Template.bind({});
+const Default = Template.bind({});
+const Loading = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
@@ -26,4 +26,10 @@ Loading.args = {
     text: 'Save & Continue',
     isLoading: true,
     success: true,
+};
+
+export default story;
+export {
+    Default,
+    Loading,
 };

@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Boolean flag only true when first set
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
+
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
@@ -18,6 +21,9 @@ export default {
 
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
+
+    // Boolean flag set when workspace is being created
+    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
@@ -52,8 +58,11 @@ export default {
     // select a currency based on the list
     CURRENCY_LIST: 'currencyList',
 
-    // Indicates whether an update is available and ready to beinstalled.
+    // Indicates whether an update is available and ready to be installed.
     UPDATE_AVAILABLE: 'updateAvailable',
+
+    // Indicates that a request to join a screen share with a GuidesPlus agent was received
+    SCREEN_SHARE_REQUEST: 'screenShareRequest',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
@@ -91,6 +100,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
+        REPORTS_WITH_DRAFT: 'reportWithDraft_',
     },
 
     // Indicates which locale should be used
@@ -108,6 +118,9 @@ export default {
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
+    // Stores values put into the additional details step of the wallet KYC flow
+    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
+
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
@@ -120,6 +133,36 @@ export default {
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
+    // Stores draft information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
+
+    // Store preferred skintone for emoji
+    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
+
+    // Store frequently used emojis for this user
+    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
+
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
+
+    // Notifies all tabs that they should sign out and clear storage.
+    SHOULD_SIGN_OUT: 'shouldSignOut',
+
+    // Set when we are loading payment methods
+    IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
+
+    // Stores values for the add debit card form
+    ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+
+    // Stores values for the request call form
+    REQUEST_CALL_FORM: 'requestCallForm',
+
+    // Are report actions loading?
+    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+
+    // Is report data loading?
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the create policy room command
+    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
 };

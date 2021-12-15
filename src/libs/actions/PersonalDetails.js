@@ -8,10 +8,11 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
-import {isDefaultRoom} from '../reportUtils';
-import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
+import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
+import * as ValidationUtils from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -37,7 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return getDefaultAvatar(login);
+    return OptionsListUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -65,6 +66,21 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
+ * Returns object with first and last name errors. If either are valid,
+ * those errors get returned as empty strings.
+ *
+ * @param {String} firstName
+ * @param {String} lastName
+ * @returns {Object}
+ */
+function getFirstAndLastNameErrors(firstName, lastName) {
+    return {
+        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : Localize.translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : Localize.translateLocal('personalDetails.error.lastNameLength'),
+    };
+}
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
@@ -79,6 +95,8 @@ function formatPersonalDetails(personalDetailsList) {
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
         const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
         const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
+        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
+        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
 
         return {
             ...finalObject,
@@ -90,6 +108,8 @@ function formatPersonalDetails(personalDetailsList) {
                 lastName,
                 pronouns,
                 timezone,
+                payPalMeAddress,
+                phoneNumber,
             },
         };
     }, {});
@@ -124,8 +144,7 @@ function fetchPersonalDetails() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        })
-        .catch(error => console.debug('Error fetching personal details', error));
+        });
 }
 
 /**
@@ -149,12 +168,13 @@ function getFromReportParticipants(reports) {
             const existingDetails = _.pick(data, participantEmails);
 
             // Fallback to add logins that don't appear in the response
-            const details = participantEmails
+            const details = _.chain(participantEmails)
                 .filter(login => !data[login])
                 .reduce((previousDetails, login) => ({
                     ...previousDetails,
                     [login]: {}, // Simply just need the key to exist
-                }), existingDetails);
+                }), existingDetails)
+                .value();
 
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
@@ -164,22 +184,24 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length > 0 || isDefaultRoom(report)) {
-                    const avatars = getReportIcons(report, details);
-                    const reportName = isDefaultRoom(report)
-                        ? report.reportName
-                        : _.chain(report.participants)
-                            .filter(participant => participant !== currentUserEmail)
-                            .map(participant => lodashGet(
-                                formattedPersonalDetails,
-                                [participant, 'displayName'],
-                                participant,
-                            ))
-                            .value()
-                            .join(', ');
-
-                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+                if (report.participants.length <= 0 && !ReportUtils.isDefaultRoom(report)) {
+                    return;
                 }
+
+                const avatars = OptionsListUtils.getReportIcons(report, details);
+                const reportName = ReportUtils.isDefaultRoom(report)
+                    ? report.reportName
+                    : _.chain(report.participants)
+                        .filter(participant => participant !== currentUserEmail)
+                        .map(participant => lodashGet(
+                            formattedPersonalDetails,
+                            [participant, 'displayName'],
+                            participant,
+                        ))
+                        .value()
+                        .join(', ');
+
+                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -215,14 +237,25 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
-    if (details.timezone) {
-        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-    }
-    mergeLocalPersonalDetails(details);
-    if (shouldGrowl) {
-        Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-    }
+    API.PersonalDetails_Update({details: JSON.stringify(details)})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                if (details.timezone) {
+                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+                }
+                mergeLocalPersonalDetails(details);
+
+                if (shouldGrowl) {
+                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                }
+            } else if (response.jsonCode === 400) {
+                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
+            } else if (response.jsonCode === 401) {
+                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+            }
+        }).catch((error) => {
+            console.debug('Error while setting personal details', error);
+        });
 }
 
 /**
@@ -257,7 +290,6 @@ function fetchLocalCurrency() {
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,
@@ -272,12 +304,24 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file}).then((response) => {
-        // Once we get the s3url back, update the personal details for the user with the new avatar URL
-        if (response.jsonCode === 200) {
+    API.User_UploadAvatar({file})
+        .then((response) => {
+            // Once we get the s3url back, update the personal details for the user with the new avatar URL
+            if (response.jsonCode !== 200) {
+                const error = new Error();
+                error.jsonCode = response.jsonCode;
+                throw error;
+            }
             setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
-        }
-    });
+        })
+        .catch((error) => {
+            setPersonalDetails({avatarUploading: false});
+            if (error.jsonCode === 405 || error.jsonCode === 502) {
+                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+            } else {
+                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        });
 }
 
 /**
@@ -289,8 +333,8 @@ function deleteAvatar(login) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
-    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
@@ -301,7 +345,7 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getDefaultAvatar,
+    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,

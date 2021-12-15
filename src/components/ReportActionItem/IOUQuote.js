@@ -2,14 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../Text';
+import Str from 'expensify-common/lib/str';
+import ExpensifyText from '../ExpensifyText';
 import styles from '../../styles/styles';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Should the View Details link be displayed? */
     shouldShowViewDetailsLink: PropTypes.bool,
@@ -25,28 +26,21 @@ const defaultProps = {
     onViewDetailsPressed: () => {},
 };
 
-const IOUQuote = ({
-    action,
-    shouldShowViewDetailsLink,
-    onViewDetailsPressed,
-    translate,
-}) => (
+const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
-        {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                <View style={[styles.blockquote]}>
-                    <Text style={[styles.chatItemMessage]}>
-                        {fragment.text}
-                    </Text>
-                    {shouldShowViewDetailsLink && (
-                        <Text
-                            style={[styles.chatItemMessageLink]}
-                            onPress={onViewDetailsPressed}
-                        >
-                            {translate('iou.viewDetails')}
-                        </Text>
-                    )}
-                </View>
+        {_.map(props.action.message, (fragment, index) => (
+            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+                <ExpensifyText style={[styles.chatItemMessage]}>
+                    {Str.htmlDecode(fragment.text)}
+                </ExpensifyText>
+                {props.shouldShowViewDetailsLink && (
+                    <ExpensifyText
+                        style={[styles.chatItemMessageLink, styles.alignSelfStart]}
+                        onPress={props.onViewDetailsPressed}
+                    >
+                        {props.translate('iou.viewDetails')}
+                    </ExpensifyText>
+                )}
             </View>
         ))}
     </View>

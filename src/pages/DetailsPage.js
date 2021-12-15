@@ -1,11 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import styles from '../styles/styles';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -15,7 +15,9 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
+import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
+import * as ReportUtils from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -57,25 +59,31 @@ const getPhoneNumber = (details) => {
     return Str.removeSMSDomain(details.login);
 };
 
-const DetailsPage = ({
-    personalDetails, route, translate, toLocalPhone,
-}) => {
-    const details = personalDetails[route.params.login];
+const DetailsPage = (props) => {
+    const details = props.personalDetails[props.route.params.login];
     const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowBackButton = Boolean(route.params.reportID);
+    const shouldShowBackButton = Boolean(props.route.params.reportID);
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+    const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
+
+    let pronouns = details.pronouns;
+
+    if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+        const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+        pronouns = props.translate(`pronouns.${localeKey}`);
+    }
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.details')}
+                title={props.translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
@@ -85,7 +93,7 @@ const DetailsPage = ({
                 ]}
             >
                 {details ? (
-                    <View>
+                    <ScrollView>
                         <View style={styles.pageWrapper}>
                             <Avatar
                                 containerStyles={[styles.avatarLarge, styles.mb3]}
@@ -93,53 +101,55 @@ const DetailsPage = ({
                                 source={details.avatar}
                             />
                             {details.displayName && (
-                                <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
-                                    {isSMSLogin ? toLocalPhone(details.displayName) : details.displayName}
-                                </Text>
+                                <ExpensifyText style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                    {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
+                                </ExpensifyText>
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate(isSMSLogin
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        {props.translate(isSMSLogin
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
-                                    </Text>
+                                    </ExpensifyText>
                                     <CommunicationsLink
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1}>
-                                            {isSMSLogin
-                                                ? toLocalPhone(getPhoneNumber(details))
-                                                : details.login}
-                                        </Text>
+                                        <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                            <ExpensifyText numberOfLines={1}>
+                                                {isSMSLogin
+                                                    ? props.toLocalPhone(getPhoneNumber(details))
+                                                    : details.login}
+                                            </ExpensifyText>
+                                        </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {details.pronouns ? (
+                            {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>
-                                        {details.pronouns}
-                                    </Text>
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        {props.translate('profilePage.preferredPronouns')}
+                                    </ExpensifyText>
+                                    <ExpensifyText numberOfLines={1}>
+                                        {pronouns}
+                                    </ExpensifyText>
                                 </View>
                             ) : null}
-                            {details.timezone ? (
+                            {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('detailsPage.localTime')}
-                                    </Text>
-                                    <Text numberOfLines={1}>
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        {props.translate('detailsPage.localTime')}
+                                    </ExpensifyText>
+                                    <ExpensifyText numberOfLines={1}>
                                         {timezone.format('LT')}
                                         {' '}
                                         {currentTime}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             ) : null}
                         </View>
-                    </View>
+                    </ScrollView>
                 ) : null}
             </View>
         </ScreenWrapper>

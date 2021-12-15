@@ -1,5 +1,19 @@
 import React from 'react';
-import propTypes from './AttachmentPickerPropTypes';
+import CONST from '../../CONST';
+import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+
+/**
+ * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
+ * @param {String} type
+ * @returns {String|undefined} Picker will accept all file types when its undefined
+ */
+function getAcceptableFileTypes(type) {
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return;
+    }
+
+    return 'image/*';
+}
 
 /**
  * This component renders a function as a child and
@@ -27,6 +41,7 @@ class AttachmentPicker extends React.Component {
                         // Cleanup after selecting a file to start from a fresh state
                         this.fileInput.value = null;
                     }}
+                    accept={getAcceptableFileTypes(this.props.type)}
                 />
                 {this.props.children({
                     openPicker: ({onPicked}) => {
@@ -40,4 +55,5 @@ class AttachmentPicker extends React.Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
+AttachmentPicker.defaultProps = defaultProps;
 export default AttachmentPicker;

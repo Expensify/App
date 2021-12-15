@@ -1,19 +1,22 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import basePropTypes from './AttachmentPickerPropTypes';
+import RNFetchBlob from 'rn-fetch-blob';
+import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import launchCamera from './launchCamera';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...basePropTypes,
@@ -22,7 +25,7 @@ const propTypes = {
 };
 
 /**
-  * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
   * for ImagePicker configuration options
   */
 const imagePickerOptions = {
@@ -30,6 +33,20 @@ const imagePickerOptions = {
     saveToPhotos: false,
     selectionLimit: 1,
 };
+
+/**
+ * Return imagePickerOptions based on the type
+ * @param {String} type
+ * @returns {Object}
+ */
+function getImagePickerOptions(type) {
+    // mediaType property is one of the ImagePicker configuration to restrict types'
+    const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
+    return {
+        mediaType,
+        ...imagePickerOptions,
+    };
+}
 
 /**
   * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
@@ -43,15 +60,24 @@ const documentPickerOptions = {
   * send to the xhr will be handled properly.
   *
   * @param {Object} fileData
-  * @return {Object}
+  * @return {Promise}
   */
 function getDataForUpload(fileData) {
-    return {
+    const fileResult = {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
-        size: fileData.size,
+        size: fileData.fileSize || fileData.size,
     };
+
+    if (fileResult.size) {
+        return Promise.resolve(fileResult);
+    }
+
+    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        fileResult.size = stats.size;
+        return fileResult;
+    });
 }
 
 /**
@@ -70,21 +96,28 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Camera,
-                text: this.props.translate('attachmentPicker.takePhoto'),
+                icon: Expensicons.Camera,
+                textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
-                icon: Gallery,
-                text: this.props.translate('attachmentPicker.chooseFromGallery'),
+                icon: Expensicons.Gallery,
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
-            {
-                icon: Paperclip,
-                text: this.props.translate('attachmentPicker.chooseDocument'),
-                pickAttachment: () => this.showDocumentPicker(),
-            },
         ];
+
+        // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
+        // so it is excluded in this case.
+        if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+            this.menuItemData.push(
+                {
+                    icon: Expensicons.Paperclip,
+                    textTranslationKey: 'attachmentPicker.chooseDocument',
+                    pickAttachment: () => this.showDocumentPicker(),
+                },
+            );
+        }
 
         this.close = this.close.bind(this);
         this.pickAttachment = this.pickAttachment.bind(this);
@@ -95,16 +128,24 @@ class AttachmentPicker extends Component {
       * sends the selected attachment to the caller (parent component)
       *
       * @param {ImagePickerResponse|DocumentPickerResponse} attachment
+      * @returns {Promise}
       */
     pickAttachment(attachment) {
-        if (attachment) {
-            if (attachment.width === -1 || attachment.height === -1) {
-                this.showImageCorruptionAlert();
-                return;
-            }
-            const result = getDataForUpload(attachment);
-            this.completeAttachmentSelection(result);
+        if (!attachment) {
+            return;
         }
+
+        if (attachment.width === -1 || attachment.height === -1) {
+            this.showImageCorruptionAlert();
+            return;
+        }
+
+        return getDataForUpload(attachment).then((result) => {
+            this.completeAttachmentSelection(result);
+        }).catch((error) => {
+            this.showGeneralAlert(error.message);
+            throw error;
+        });
     }
 
     /**
@@ -136,7 +177,7 @@ class AttachmentPicker extends Component {
       */
     showImagePicker(imagePickerFunc) {
         return new Promise((resolve, reject) => {
-            imagePickerFunc(imagePickerOptions, (response) => {
+            imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
                 if (response.didCancel) {
                     // When the user cancelled resolve with no attachment
                     return resolve();
@@ -188,10 +229,12 @@ class AttachmentPicker extends Component {
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-            if (!RNDocumentPicker.isCancel(error)) {
-                this.showGeneralAlert(error.message);
-                throw error;
+            if (RNDocumentPicker.isCancel(error)) {
+                return;
             }
+
+            this.showGeneralAlert(error.message);
+            throw error;
         });
     }
 
@@ -199,9 +242,11 @@ class AttachmentPicker extends Component {
       * Triggers the `onPicked` callback with the selected attachment
       */
     completeAttachmentSelection() {
-        if (this.state.result) {
-            this.state.onPicked(this.state.result);
+        if (!this.state.result) {
+            return;
         }
+
+        this.state.onPicked(this.state.result);
     }
 
     /**
@@ -262,11 +307,11 @@ class AttachmentPicker extends Component {
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                             this.menuItemData.map(item => (
+                             _.map(this.menuItemData, item => (
                                  <MenuItem
-                                     key={item.text}
+                                     key={item.textTranslationKey}
                                      icon={item.icon}
-                                     title={item.text}
+                                     title={this.props.translate(item.textTranslationKey)}
                                      onPress={() => this.selectItem(item)}
                                  />
                              ))
@@ -280,7 +325,8 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.displayName = 'AttachmentPicker';
+AttachmentPicker.defaultProps = defaultProps;
+
 export default compose(
     withWindowDimensions,
     withLocalize,

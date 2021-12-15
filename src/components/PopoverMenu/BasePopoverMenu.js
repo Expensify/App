@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,8 +9,8 @@ import MenuItem from '../MenuItem';
 import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
-} from './PopoverMenuPropTypes';
-import Text from '../Text';
+} from './popoverMenuPropTypes';
+import ExpensifyText from '../ExpensifyText';
 
 const propTypes = {
     /** Callback fired when the menu is completely closed */
@@ -34,18 +35,19 @@ class BasePopoverMenu extends PureComponent {
                 onModalHide={this.props.onMenuHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
+                disableAnimation={this.props.disableAnimation}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {this.props.headerText && (
+                    {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
-                            <Text
+                            <ExpensifyText
                                 style={[styles.createMenuHeaderText, styles.ml3]}
                             >
                                 {this.props.headerText}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     )}
-                    {this.props.menuItems.map(item => (
+                    {_.map(this.props.menuItems, item => (
                         <MenuItem
                             key={item.text}
                             icon={item.icon}

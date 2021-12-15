@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The report action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Information about the network */
     network: PropTypes.shape({
@@ -22,16 +22,16 @@ const defaultProps = {
     network: {isOffline: false},
 };
 
-const ReportActionItemMessage = ({action, network}) => {
-    const isUnsent = network.isOffline && action.loading;
+const ReportActionItemMessage = (props) => {
+    const isUnsent = props.network.isOffline && props.action.loading;
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
-            {_.map(_.compact(action.message), (fragment, index) => (
+            {_.map(_.compact(props.action.message), (fragment, index) => (
                 <ReportActionItemFragment
-                    key={`actionFragment-${action.sequenceNumber}-${index}`}
+                    key={`actionFragment-${props.action.sequenceNumber}-${index}`}
                     fragment={fragment}
-                    isAttachment={action.isAttachment}
-                    loading={action.loading}
+                    isAttachment={props.action.isAttachment}
+                    loading={props.action.loading}
                 />
             ))}
         </View>

@@ -3,9 +3,7 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
-import {
-    deleteReportComment,
-} from '../../../../libs/actions/Report';
+import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -37,7 +35,9 @@ class PopoverReportActionContextMenu extends React.Component {
                 vertical: 0,
             },
         };
+        this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
+        this.onPopoverHideActionCallback = () => {};
         this.contextMenuAnchor = undefined;
         this.showContextMenu = this.showContextMenu.bind(this);
         this.hideContextMenu = this.hideContextMenu.bind(this);
@@ -46,6 +46,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteModal = this.hideDeleteModal.bind(this);
         this.showDeleteModal = this.showDeleteModal.bind(this);
+        this.runAndResetOnPopoverShow = this.runAndResetOnPopoverShow.bind(this);
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
@@ -117,7 +118,16 @@ class PopoverReportActionContextMenu extends React.Component {
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
-        this.onPopoverHide = onHide;
+
+        // Singleton behaviour of ContextMenu creates race conditions when user requests multiple contextMenus.
+        // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
+        this.instanceID = Math.random().toString(36).substr(2, 5);
+
+        // Register the onHide callback only when Popover is shown to remove the race conditions when there are mutltiple popover open requests
+        this.onPopoverShow = () => {
+            onShow();
+            this.onPopoverHide = onHide;
+        };
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
@@ -134,7 +144,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
-            }, onShow);
+            });
         });
     }
 
@@ -159,22 +169,34 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     /**
-     * After Popover hides, call the registered onPopoverHide callback and reset it
+     * After Popover shows, call the registered onPopoverShow callback and reset it
+     */
+    runAndResetOnPopoverShow() {
+        this.onPopoverShow();
+
+        // After we have called the action, reset it.
+        this.onPopoverShow = () => {};
+    }
+
+    /**
+     * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
         this.onPopoverHide();
+        this.onPopoverHideActionCallback();
 
         // After we have called the action, reset it.
         this.onPopoverHide = () => {};
+        this.onPopoverHideActionCallback = () => {};
     }
 
     /**
      * Hide the ReportActionContextMenu modal popover.
-     * @param {Function} onHideCallback Callback to be called after popover is completely hidden
+     * @param {Function} onHideActionCallback Callback to be called after popover is completely hidden
      */
-    hideContextMenu(onHideCallback) {
-        if (_.isFunction(onHideCallback)) {
-            this.onPopoverHide = onHideCallback;
+    hideContextMenu(onHideActionCallback) {
+        if (_.isFunction(onHideActionCallback)) {
+            this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
             reportID: 0,
@@ -203,7 +225,7 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     confirmDeleteAndHideModal() {
-        deleteReportComment(this.state.reportID, this.state.reportAction);
+        Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
@@ -230,9 +252,11 @@ class PopoverReportActionContextMenu extends React.Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hideContextMenu}
+                    onModalShow={this.runAndResetOnPopoverShow}
                     onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
+                    disableAnimation={false}
                     animationOutTiming={1}
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}
@@ -261,6 +285,5 @@ class PopoverReportActionContextMenu extends React.Component {
 }
 
 PopoverReportActionContextMenu.propTypes = propTypes;
-PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
 export default withLocalize(PopoverReportActionContextMenu);

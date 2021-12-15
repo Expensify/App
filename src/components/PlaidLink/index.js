@@ -1,6 +1,7 @@
 import {useCallback, useEffect} from 'react';
 import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
+import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
     const onSuccess = useCallback((publicToken, metadata) => {
@@ -11,12 +12,16 @@ const PlaidLink = (props) => {
         token: props.token,
         onSuccess,
         onExit: (exitError, metadata) => {
-            console.debug('[PlaidLink] Exit: ', {exitError, metadata});
+            Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
             props.onExit();
         },
         onEvent: (event, metadata) => {
-            console.debug('[PlaidLink] Event: ', {event, metadata});
+            Log.info('[PlaidLink] Event: ', false, {event, metadata});
         },
+
+        // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
+        // user to their respective bank platform
+        receivedRedirectUri: props.receivedRedirectURI,
     });
 
     useEffect(() => {

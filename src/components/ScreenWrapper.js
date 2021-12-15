@@ -4,11 +4,17 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withNavigation} from '@react-navigation/compat';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import styles, {getSafeAreaPadding} from '../styles/styles';
+import {withOnyx} from 'react-native-onyx';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import HeaderGap from './HeaderGap';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 import Navigation from '../libs/Navigation/Navigation';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -34,6 +40,13 @@ const propTypes = {
         // Method to attach listener to Navigation state.
         addListener: PropTypes.func.isRequired,
     }),
+
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
 };
 
 const defaultProps = {
@@ -44,20 +57,27 @@ const defaultProps = {
     navigation: {
         addListener: () => {},
     },
+    modal: {},
 };
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             didScreenTransitionEnd: false,
         };
     }
 
     componentDidMount() {
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (this.props.modal.willAlertModalBecomeVisible) {
+                return;
+            }
+
             Navigation.dismissModal();
-        }, [], true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});
@@ -78,7 +98,7 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -105,6 +125,7 @@ class ScreenWrapper extends React.Component {
                                     })
                                     : this.props.children
                             }
+                            <KeyboardShortcutsModal />
                         </View>
                     );
                 }}
@@ -115,5 +136,12 @@ class ScreenWrapper extends React.Component {
 
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
-ScreenWrapper.displayName = 'ScreenWrapper';
-export default withNavigation(ScreenWrapper);
+
+export default compose(
+    withNavigation,
+    withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
+    }),
+)(ScreenWrapper);

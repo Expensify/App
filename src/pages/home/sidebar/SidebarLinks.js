@@ -3,18 +3,20 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getSafeAreaMargins} from '../../../styles/styles';
+import lodashGet from 'lodash/get';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
-import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
@@ -31,7 +33,7 @@ const propTypes = {
     onAvatarClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
-    insets: SafeAreaInsetPropTypes.isRequired,
+    insets: safeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
     /** List of reports */
@@ -40,9 +42,6 @@ const propTypes = {
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
-
-    /** List of draft comments. We don't know the shape, since the keys include the report numbers */
-    draftComments: PropTypes.objectOf(PropTypes.string),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -82,10 +81,9 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
-    draftComments: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: getDefaultAvatar(),
+        avatar: OptionsListUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -95,6 +93,93 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    static getRecentReports(props) {
+        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+        const sidebarOptions = OptionsListUtils.getSidebarOptions(
+            props.reports,
+            props.personalDetails,
+            activeReportID,
+            props.priorityMode,
+            props.betas,
+        );
+        return sidebarOptions.recentReports;
+    }
+
+    static getUnreadReports(reportsObject) {
+        const reports = _.values(reportsObject);
+        if (reports.length === 0) {
+            return [];
+        }
+        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+        return unreadReports;
+    }
+
+    static shouldReorder(nextProps, orderedReports, currentlyViewedReportID, unreadReports) {
+        // We do not want to re-order reports in the LHN if the only change is the draft comment in the
+        // current report.
+
+        // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
+        if (nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        // Always update if LHN is empty.
+        if (orderedReports.length === 0) {
+            return true;
+        }
+
+        const didActiveReportChange = currentlyViewedReportID !== nextProps.currentlyViewedReportID;
+
+        // Always re-order the list whenever the active report is changed
+        if (didActiveReportChange) {
+            return true;
+        }
+
+        // If any reports have new unread messages, re-order the list
+        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports || {});
+        const hasNewUnreadReports = nextUnreadReports.length > 0
+            && _.some(nextUnreadReports,
+                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
+        if (hasNewUnreadReports) {
+            return true;
+        }
+
+        // Do not re-order if the active report has a draft and vice versa.
+        if (nextProps.currentlyViewedReportID) {
+            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+            return !hasActiveReportDraft;
+        }
+
+        return true;
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentlyViewedReportID: props.currentlyViewedReportID,
+            orderedReports: [],
+            unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
+        };
+    }
+
+    static getDerivedStateFromProps(nextProps, prevState) {
+        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const recentReports = SidebarLinks.getRecentReports(nextProps);
+        const orderedReports = shouldReorder
+            ? recentReports
+            : _.map(prevState.orderedReports,
+                orderedReport => _.chain(recentReports)
+                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
+                    .first()
+                    .value());
+
+        return {
+            orderedReports,
+            currentlyViewedReportID: nextProps.currentlyViewedReportID,
+            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
+        };
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -106,20 +191,10 @@ class SidebarLinks extends React.Component {
         }
 
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-
-        const {recentReports} = getSidebarOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.draftComments,
-            activeReportID,
-            this.props.priorityMode,
-            this.props.betas,
-        );
-
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: recentReports,
+            data: this.state.orderedReports || [],
             shouldShow: true,
         }];
 
@@ -149,7 +224,7 @@ class SidebarLinks extends React.Component {
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
-                            <Icon src={MagnifyingGlass} />
+                            <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
                     <TouchableOpacity
@@ -161,16 +236,17 @@ class SidebarLinks extends React.Component {
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                             isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
+                            tooltipText={this.props.myPersonalDetails.displayName}
                         />
                     </TouchableOpacity>
                 </View>
                 <OptionsList
                     contentContainerStyles={[
                         styles.sidebarListContainer,
-                        {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     sections={sections}
-                    focusedIndex={_.findIndex(recentReports, (
+                    focusedIndex={_.findIndex(this.state.orderedReports, (
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
@@ -199,9 +275,6 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
@@ -225,6 +298,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        reportsWithDraft: {
+            key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
         },
     }),
 )(SidebarLinks);

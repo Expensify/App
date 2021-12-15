@@ -1,6 +1,6 @@
 import React from 'react';
 import {createPortal} from 'react-dom';
-import {propTypes, defaultProps} from './PopoverPropTypes';
+import {propTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import withWindowDimensions from '../withWindowDimensions';
@@ -19,6 +19,8 @@ const Popover = (props) => {
                 {...props}
                 animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
                 animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
+                animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
+                animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
                 shouldCloseOnOutsideClick
             />,
             document.body,
@@ -33,6 +35,8 @@ const Popover = (props) => {
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
             animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
             animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
+            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
+            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
         />
     );
 };

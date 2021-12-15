@@ -9,6 +9,8 @@ import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
+import SafeArea from './components/SafeArea';
+import initializeiOSSafariAutoScrollback from './libs/iOSSafariAutoScrollback';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -25,6 +27,7 @@ const App = () => (
         components={[
             OnyxProvider,
             SafeAreaProvider,
+            SafeArea,
             LocaleContextProvider,
             HTMLEngineProvider,
         ]}
@@ -37,5 +40,7 @@ const App = () => (
 );
 
 App.displayName = 'App';
+
+initializeiOSSafariAutoScrollback();
 
 export default App;

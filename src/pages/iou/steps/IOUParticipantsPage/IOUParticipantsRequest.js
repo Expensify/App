@@ -2,24 +2,13 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
-
-    /** The URL of the person's avatar (there should already be a default avatar if the person doesn't have
-     * their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
-});
+import CONST from '../../../../CONST';
+import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
     /** Beta features list */
@@ -32,7 +21,7 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -53,12 +42,13 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewChatOptions(
+        } = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             '',
-            EXCLUDED_IOU_EMAILS,
+            [],
+            CONST.EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -81,7 +71,7 @@ class IOUParticipantsRequest extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
@@ -91,7 +81,7 @@ class IOUParticipantsRequest extends Component {
             indexOffset: 0,
         });
 
-        if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {
+        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
             sections.push({
                 undefined,
                 data: [this.state.userToInvite],
@@ -115,6 +105,11 @@ class IOUParticipantsRequest extends Component {
 
     render() {
         const sections = this.getSections();
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
         return (
             <OptionsSelector
                 sections={sections}
@@ -125,12 +120,13 @@ class IOUParticipantsRequest extends Component {
                         recentReports,
                         personalDetails,
                         userToInvite,
-                    } = getNewChatOptions(
+                    } = OptionsListUtils.getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
                         this.props.betas,
                         searchValue,
-                        EXCLUDED_IOU_EMAILS,
+                        [],
+                        CONST.EXPENSIFY_EMAILS,
                     );
                     this.setState({
                         searchValue,
@@ -139,15 +135,16 @@ class IOUParticipantsRequest extends Component {
                         personalDetails,
                     });
                 }}
+                headerMessage={headerMessage}
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
+                shouldDelayFocus
             />
         );
     }
 }
 
-IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
 export default compose(

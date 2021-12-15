@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
-import {fetchAccountDetails} from '../../libs/actions/Session';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensifyText from '../../components/ExpensifyText';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
@@ -14,6 +15,9 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import * as ValidationUtils from '../../libs/ValidationUtils';
+import LoginUtil from '../../libs/LoginUtil';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +37,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +48,7 @@ const defaultProps = {
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
-
+        this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -51,12 +57,65 @@ class LoginForm extends React.Component {
         };
     }
 
+    componentDidMount() {
+        if (!canFocusInputOnScreenFocus() || !this.input) {
+            return;
+        }
+        this.input.focus();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isVisible || !this.props.isVisible) {
+            return;
+        }
+        this.input.focus();
+
+        if (this.state.login) {
+            this.clearLogin();
+        }
+    }
+
+    /**
+     * Handle text input and clear formError upon text change
+     *
+     * @param {String} text
+     */
+    onTextInput(text) {
+        this.setState({
+            login: text,
+            formError: null,
+        });
+
+        if (this.props.account.error) {
+            Session.clearAccountMessages();
+        }
+    }
+
+    /**
+     * Clear Login from the state
+     */
+    clearLogin() {
+        this.setState({login: ''}, this.input.clear);
+    }
+
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
+            return;
+        }
+
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
+        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+
+        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
+            if (ValidationUtils.isNumericWithSpecialChars(this.state.login)) {
+                this.setState({formError: 'messages.errorMessageInvalidPhone'});
+            } else {
+                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+            }
             return;
         }
 
@@ -65,7 +124,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
+        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
     }
 
     render() {
@@ -73,44 +132,44 @@ class LoginForm extends React.Component {
             <>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
-                        autoCompleteType="email"
+                        autoCompleteType="username"
                         textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        nativeID="username"
+                        name="username"
+                        onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        autoFocus={canFocusInputOnScreenFocus()}
-                        translateX={-18}
                     />
                 </View>
                 {this.state.formError && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </Text>
+                    </ExpensifyText>
                 )}
 
                 {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.account.error}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 {!_.isEmpty(this.props.account.success) && (
-                    <Text style={[styles.formSuccess]}>
+                    <ExpensifyText style={[styles.formSuccess]}>
                         {this.props.account.success}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 <View style={[styles.mt5]}>
-                    <Button
+                    <ExpensifyButton
                         success
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
                 </View>
-
             </>
         );
     }
@@ -125,4 +184,5 @@ export default compose(
     }),
     withWindowDimensions,
     withLocalize,
+    withToggleVisibilityView,
 )(LoginForm);

@@ -4,7 +4,8 @@ import {Animated, View} from 'react-native';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './TooltipPropTypes';
+import {propTypes, defaultProps} from './tooltipPropTypes';
+import TooltipSense from './TooltipSense';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -36,6 +37,9 @@ class Tooltip extends PureComponent {
         this.tooltip = null;
 
         this.isComponentMounted = false;
+
+        // Whether the tooltip is first tooltip to activate the TooltipSense
+        this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
 
@@ -50,10 +54,12 @@ class Tooltip extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.windowWidth !== prevProps.windowWidth || this.props.windowHeight !== prevProps.windowHeight) {
-            this.getWrapperPosition()
-                .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
+        if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
+            return;
         }
+
+        this.getWrapperPosition()
+            .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
     }
 
     componentWillUnmount() {
@@ -68,9 +74,11 @@ class Tooltip extends PureComponent {
      * @param {Object} newState
      */
     setStateIfMounted(newState) {
-        if (this.isComponentMounted) {
-            this.setState(newState);
+        if (!this.isComponentMounted) {
+            return;
         }
+
+        this.setState(newState);
     }
 
     /**
@@ -131,12 +139,19 @@ class Tooltip extends PureComponent {
                 // We may need this check due to the reason that the animation start will fire async
                 // and hideTooltip could fire before it thus keeping the Tooltip visible
                 if (this.shouldStartShowAnimation) {
-                    Animated.timing(this.animation, {
-                        toValue: 1,
-                        duration: 140,
-                        delay: 500,
-                        useNativeDriver: false,
-                    }).start();
+                    // When TooltipSense is active, immediately show the tooltip
+                    if (TooltipSense.isActive()) {
+                        this.animation.setValue(1);
+                    } else {
+                        this.isTooltipSenseInitiator = true;
+                        Animated.timing(this.animation, {
+                            toValue: 1,
+                            duration: 140,
+                            delay: 500,
+                            useNativeDriver: false,
+                        }).start();
+                    }
+                    TooltipSense.activate();
                 }
             });
     }
@@ -147,44 +162,70 @@ class Tooltip extends PureComponent {
     hideTooltip() {
         this.animation.stopAnimation();
         this.shouldStartShowAnimation = false;
-        Animated.timing(this.animation, {
-            toValue: 0,
-            duration: 140,
-            useNativeDriver: false,
-        }).start();
+        if (TooltipSense.isActive() && !this.isTooltipSenseInitiator) {
+            this.animation.setValue(0);
+        } else {
+            // Hide the first tooltip which initiated the TooltipSense with animation
+            this.isTooltipSenseInitiator = false;
+            Animated.timing(this.animation, {
+                toValue: 0,
+                duration: 140,
+                useNativeDriver: false,
+            }).start();
+        }
+        TooltipSense.deactivate();
     }
 
     render() {
+        let child = (
+            <View
+                ref={el => this.wrapperView = el}
+                style={this.props.containerStyles}
+            >
+                {this.props.children}
+            </View>
+        );
+
+        if (this.props.absolute && React.isValidElement(this.props.children)) {
+            child = React.cloneElement(React.Children.only(this.props.children), {
+                ref: (el) => {
+                    // Keep your own reference
+                    this.wrapperView = el;
+
+                    // Call the original ref, if any
+                    const {ref} = this.props.children;
+                    if (typeof ref === 'function') {
+                        ref(el);
+                    }
+                },
+            });
+        }
         return (
             <>
                 {this.state.isRendered && (
-                <TooltipRenderedOnPageBody
-                    animation={this.animation}
-                    windowWidth={this.props.windowWidth}
-                    xOffset={this.state.xOffset}
-                    yOffset={this.state.yOffset}
-                    wrapperWidth={this.state.wrapperWidth}
-                    wrapperHeight={this.state.wrapperHeight}
-                    tooltipWidth={this.state.tooltipWidth}
-                    tooltipHeight={this.state.tooltipHeight}
-                    setTooltipRef={el => this.tooltip = el}
-                    shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
-                    shiftVertical={_.result(this.props, 'shiftVertical')}
-                    measureTooltip={this.measureTooltip}
-                    text={this.props.text}
-                />
+                    <TooltipRenderedOnPageBody
+                        animation={this.animation}
+                        windowWidth={this.props.windowWidth}
+                        xOffset={this.state.xOffset}
+                        yOffset={this.state.yOffset}
+                        wrapperWidth={this.state.wrapperWidth}
+                        wrapperHeight={this.state.wrapperHeight}
+                        tooltipWidth={this.state.tooltipWidth}
+                        tooltipHeight={this.state.tooltipHeight}
+                        setTooltipRef={el => this.tooltip = el}
+                        shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
+                        shiftVertical={_.result(this.props, 'shiftVertical')}
+                        measureTooltip={this.measureTooltip}
+                        text={this.props.text}
+                    />
                 )}
                 <Hoverable
+                    absolute={this.props.absolute}
                     containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
                 >
-                    <View
-                        ref={el => this.wrapperView = el}
-                        style={this.props.containerStyles}
-                    >
-                        {this.props.children}
-                    </View>
+                    {child}
                 </Hoverable>
             </>
         );

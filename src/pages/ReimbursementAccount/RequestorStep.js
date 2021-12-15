@@ -1,8 +1,9 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {View, ScrollView} from 'react-native';
-import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import moment from 'moment';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -10,26 +11,23 @@ import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import {
-    goToWithdrawalAccountSetupStep,
-    setupWithdrawalAccount,
-    showBankAccountErrorModal,
-} from '../../libs/actions/BankAccounts';
-import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
+import ExpensifyText from '../../components/ExpensifyText';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import Log from '../../libs/Log';
+import Growl from '../../libs/Growl';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -39,63 +37,98 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
         this.state = {
-            firstName: lodashGet(props, ['achData', 'firstName'], ''),
-            lastName: lodashGet(props, ['achData', 'lastName'], ''),
-            requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
-            requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
-            requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
-            dob: lodashGet(props, ['achData', 'dob'], ''),
-            ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
-            isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
+            firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
+            lastName: ReimbursementAccountUtils.getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
+            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
+        // Required fields not validated by `validateIdentity`
         this.requiredFields = [
             'firstName',
             'lastName',
-            'requestorAddressStreet',
-            'requestorAddressCity',
-            'requestorAddressZipCode',
-            'dob',
-            'ssnLast4',
-            'requestorAddressState',
+            'isControllingOfficer',
         ];
+
+        // Map a field to the key of the error's translation
+        this.errorTranslationKeys = {
+            firstName: 'bankAccount.error.firstName',
+            lastName: 'bankAccount.error.lastName',
+            isControllingOfficer: 'requestorStep.isControllingOfficerError',
+        };
+
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
-    onFieldChange(field, value) {
-        const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
-        };
-        const fieldName = lodashGet(renamedFields, field, field);
-        this.setState({[fieldName]: value});
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String|Boolean} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        if (inputKey === 'manualAddress') {
+            this.setState({
+                manualAddress: value,
+            });
+        } else {
+            const renamedFields = {
+                addressStreet: 'requestorAddressStreet',
+                addressCity: 'requestorAddressCity',
+                addressState: 'requestorAddressState',
+                addressZipCode: 'requestorAddressZipCode',
+            };
+            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+            const newState = {[renamedInputKey]: value};
+            this.setState(newState);
+            BankAccounts.updateReimbursementAccountDraft(newState);
+
+            // dob field has multiple validations/errors, we are handling it temporarily like this.
+            if (inputKey === 'dob') {
+                this.clearError('dobAge');
+            }
+            this.clearError(inputKey);
+        }
     }
 
     /**
      * @returns {Boolean}
      */
     validate() {
-        if (!this.state.isControllingOfficer) {
-            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
-            return false;
-        }
-
-        if (!isValidIdentity({
+        const errors = ValidationUtils.validateIdentity({
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
+            city: this.state.requestorAddressCity,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
-        })) {
+        });
+
+        _.each(this.requiredFields, (inputKey) => {
+            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
+                return;
+            }
+
+            errors[inputKey] = true;
+        });
+        if (_.size(errors)) {
+            BankAccounts.setBankAccountFormValidationErrors(errors);
+            BankAccounts.showBankAccountErrorModal();
             return false;
         }
-
         return true;
     }
 
@@ -103,26 +136,37 @@ class RequestorStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-        setupWithdrawalAccount({...this.state});
+
+        const payload = {
+            ...this.state,
+            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
+        };
+
+        BankAccounts.setupWithdrawalAccount(payload);
     }
 
     render() {
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || !this.state.isControllingOfficer;
-
         return (
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
+                    stepCounter={{step: 3, total: 5}}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
+                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {this.props.achData.useOnfido && this.props.achData.sdkToken ? (
+                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
                     <Onfido
                         sdkToken={this.props.achData.sdkToken}
                         onUserExit={() => {
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                        }}
+                        onError={(error) => {
+                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
+                            Log.hmmm('Onfido error in RequestorStep', {error});
+                            Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
                         onSuccess={(onfidoData) => {
                             this.setState({
@@ -132,93 +176,90 @@ class RequestorStep extends React.Component {
                         }}
                     />
                 ) : (
-                    <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
-                            <View style={[styles.p4]}>
-                                <Text>{this.props.translate('requestorStep.subtitle')}</Text>
-                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
-                                    <TextLink
-                                        style={[styles.textMicro]}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                                    >
-                                        {`${this.props.translate('requestorStep.learnMore')}`}
-                                    </TextLink>
-                                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
-                                    <TextLink
-                                        style={[styles.textMicro, styles.textLink]}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                                    >
-                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                                    </TextLink>
+                    <ReimbursementAccountForm
+                        onSubmit={this.submit}
+                    >
+                        <ExpensifyText>{this.props.translate('requestorStep.subtitle')}</ExpensifyText>
+                        <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                            <TextLink
+                                style={[styles.textMicro]}
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                            >
+                                {`${this.props.translate('requestorStep.learnMore')}`}
+                            </TextLink>
+                            <ExpensifyText style={[styles.textMicroSupporting]}>{' | '}</ExpensifyText>
+                            <TextLink
+                                style={[styles.textMicro, styles.textLink]}
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                            >
+                                {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                            </TextLink>
+                        </View>
+                        <IdentityForm
+                            onFieldChange={this.clearErrorAndSetValue}
+                            values={{
+                                firstName: this.state.firstName,
+                                lastName: this.state.lastName,
+                                street: this.state.requestorAddressStreet,
+                                city: this.state.requestorAddressCity,
+                                state: this.state.requestorAddressState,
+                                zipCode: this.state.requestorAddressZipCode,
+                                dob: this.state.dob,
+                                ssnLast4: this.state.ssnLast4,
+                                manualAddress: this.state.manualAddress,
+                            }}
+                            errors={this.props.reimbursementAccount.errors}
+                        />
+                        <CheckboxWithLabel
+                            isChecked={this.state.isControllingOfficer}
+                            onPress={() => {
+                                this.setState((prevState) => {
+                                    const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                    BankAccounts.updateReimbursementAccountDraft(newState);
+                                    return newState;
+                                });
+                                this.clearError('isControllingOfficer');
+                            }}
+                            LabelComponent={() => (
+                                <View style={[styles.flex1, styles.pr1]}>
+                                    <ExpensifyText>
+                                        {this.props.translate('requestorStep.isControllingOfficer')}
+                                    </ExpensifyText>
                                 </View>
-                                <IdentityForm
-                                    onFieldChange={(field, value) => this.onFieldChange(field, value)}
-                                    values={{
-                                        firstName: this.state.firstName,
-                                        lastName: this.state.lastName,
-                                        street: this.state.requestorAddressStreet,
-                                        city: this.state.requestorAddressCity,
-                                        state: this.state.requestorAddressState,
-                                        zipCode: this.state.requestorAddressZipCode,
-                                        dob: this.state.dob,
-                                        ssnLast4: this.state.ssnLast4,
-                                    }}
-                                    error={this.props.reimbursementAccount.error}
-                                />
-                                <CheckboxWithLabel
-                                    isChecked={this.state.isControllingOfficer}
-                                    onPress={() => this.setState(prevState => ({
-                                        isControllingOfficer: !prevState.isControllingOfficer,
-                                    }))}
-                                    LabelComponent={() => (
-                                        <View style={[styles.flex1, styles.pr1]}>
-                                            <Text>
-                                                {this.props.translate('requestorStep.isControllingOfficer')}
-                                            </Text>
-                                        </View>
-                                    )}
-                                    style={[styles.mt4]}
-                                />
-                                <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                                    {this.props.translate('requestorStep.financialRegulations')}
-                                </Text>
-                                <Text style={[styles.mt3, styles.textMicroSupporting]}>
-                                    {this.props.translate('requestorStep.onFidoConditions')}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        href="https://onfido.com/facial-scan-policy-and-release/"
-                                    >
-                                        {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
-                                    </TextLink>
-                                    {', '}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        href="https://onfido.com/privacy/"
-                                    >
-                                        {`${this.props.translate('common.privacyPolicy')}`}
-                                    </TextLink>
-                                    {` ${this.props.translate('common.and')} `}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        href="https://onfido.com/terms-of-service/"
-                                    >
-                                        {`${this.props.translate('common.termsOfService')}`}
-                                    </TextLink>
-                                </Text>
-                            </View>
-                        </ScrollView>
-                        <FixedFooter>
-                            <Button
-                                success
-                                onPress={this.submit}
-                                style={[styles.w100]}
-                                text={this.props.translate('common.saveAndContinue')}
-                                isDisabled={shouldDisableSubmitButton}
-                            />
-                        </FixedFooter>
-                    </>
+                            )}
+                            style={[styles.mt4]}
+                            hasError={Boolean(this.getErrors().isControllingOfficer)}
+                            errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
+                        />
+                        <ExpensifyText style={[styles.mt3, styles.textMicroSupporting]}>
+                            {this.props.translate('requestorStep.onFidoConditions')}
+                            <ExpensifyText
+                                onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
+                            >
+                                {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
+                            </ExpensifyText>
+                            {', '}
+                            <ExpensifyText
+                                onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
+                            >
+                                {`${this.props.translate('common.privacyPolicy')}`}
+                            </ExpensifyText>
+                            {` ${this.props.translate('common.and')} `}
+                            <ExpensifyText
+                                onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
+                            >
+                                {`${this.props.translate('common.termsOfService')}`}
+                            </ExpensifyText>
+                        </ExpensifyText>
+                    </ReimbursementAccountForm>
                 )}
             </>
         );
@@ -226,12 +267,15 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.displayName = 'RequestorStep';
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorStep);

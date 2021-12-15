@@ -95,14 +95,15 @@ const run = function () {
             const PRList = _.sortBy(
                 _.unique(
                     _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
-                        number,
+                        number: Number.parseInt(number, 10),
                         url: GithubUtils.getPullRequestURLFromNumber(number),
 
                         // Since this is the second argument to _.union,
                         // it will appear later in the array than any duplicate.
                         // Since it is later in the array, it will be truncated by _.unique,
-                        // and the original value of isVerified will be preserved.
+                        // and the original value of isVerified and isAccessible will be preserved.
                         isVerified: false,
+                        isAccessible: false,
                     }))),
                     false,
                     item => item.number,
@@ -124,6 +125,7 @@ const run = function () {
                 tag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
+                _.pluck(_.where(PRList, {isAccessible: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
             );

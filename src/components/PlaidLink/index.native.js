@@ -1,52 +1,33 @@
-import React from 'react';
-import {NativeEventEmitter} from 'react-native';
-import {openLink} from 'react-native-plaid-link-sdk';
+import {useEffect} from 'react';
+import {openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
+import Log from '../../libs/Log';
 import CONST from '../../CONST';
-import nativeModule from './nativeModule';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
-class PlaidLink extends React.Component {
-    constructor(props) {
-        super(props);
-        this.listener = undefined;
-    }
 
-    componentDidMount() {
-        const emitter = new NativeEventEmitter(nativeModule);
-        this.listener = emitter.addListener('onEvent', this.onEvent.bind(this));
-
+const PlaidLink = (props) => {
+    useDeepLinkRedirector();
+    usePlaidEmitter((event) => {
+        Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
+        if (event.eventName === CONST.PLAID.EVENT.ERROR) {
+            props.onError(event.metadata);
+        } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {
+            props.onExit();
+        }
+    });
+    useEffect(() => {
         openLink({
             tokenConfig: {
-                token: this.props.token,
+                token: props.token,
             },
             onSuccess: ({publicToken, metadata}) => {
-                this.props.onSuccess({publicToken, metadata});
+                props.onSuccess({publicToken, metadata});
             },
         });
-    }
+    }, []);
 
-    componentWillUnmount() {
-        if (this.listener) {
-            this.listener.remove();
-        }
-    }
-
-    /**
-     * @param {*} event
-     */
-    onEvent(event) {
-        console.debug('[PlaidLink] Handled Plaid Event: ', event);
-        if (event.eventName === CONST.PLAID.EVENT.ERROR) {
-            this.props.onError(event.metadata);
-        } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {
-            this.props.onExit();
-        }
-    }
-
-    render() {
-        return null;
-    }
-}
+    return null;
+};
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;

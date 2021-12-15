@@ -12,16 +12,19 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestInboxCall} from '../libs/actions/Inbox';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Inbox from '../libs/actions/Inbox';
+import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
+import RequestCallIcon from '../../assets/images/request-call.svg';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -60,6 +63,17 @@ const propTypes = {
             taskID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Used to track state for the request call form */
+    requestCallForm: PropTypes.shape({
+        loading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    requestCallForm: {
+        loading: false,
+    },
 };
 
 class RequestCallPage extends Component {
@@ -68,41 +82,40 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
+            firstNameError: '',
             lastName,
-            phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
-            isLoading: false,
+            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            lastNameError: '',
+            phoneNumberError: '',
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
+        this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
         this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
+        this.validateInputs = this.validateInputs.bind(this);
+        this.validatePhoneInput = this.validatePhoneInput.bind(this);
     }
 
     onSubmit() {
-        this.setState({isLoading: true});
-        if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
-            this.setState({isLoading: false});
+        if (!this.validateInputs()) {
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
-            .then((result) => {
-                this.setState({isLoading: false});
-                if (result.jsonCode === 200) {
-                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
-                    fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
-                    return;
-                }
 
-                // Phone number validation is handled by the API
-                Growl.error(result.message, 3000);
-            });
+        Inbox.requestInboxCall({
+            taskID: this.props.route.params.taskID,
+            policyID: personalPolicy.id,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            email: this.props.session.email,
+        });
     }
 
     /**
@@ -115,6 +128,18 @@ class RequestCallPage extends Component {
     getPhoneNumber(loginList) {
         const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
+
+    /**
+     * Gets proper phone number error message depending on phoneNumber input value.
+     * @returns {String}
+     */
+    getPhoneNumberError() {
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
+            return this.props.translate('messages.errorMessageInvalidPhone');
+        }
+        return '';
     }
 
     /**
@@ -149,33 +174,60 @@ class RequestCallPage extends Component {
         return {firstName, lastName};
     }
 
+    validatePhoneInput() {
+        this.setState({phoneNumberError: this.getPhoneNumberError()});
+    }
+
+    /**
+     * Checks for input errors, returns true if everything is valid, false otherwise.
+     * @returns {Boolean}
+     */
+    validateInputs() {
+        const firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
+        if (firstOrLastNameEmpty) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
+        }
+
+        const phoneNumberError = this.getPhoneNumberError();
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+
+        this.setState({
+            firstNameError,
+            lastNameError,
+            phoneNumberError,
+        });
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+    }
+
     render() {
-        const isButtonDisabled = false;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('requestCallPage.requestACall')}
+                        title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => fetchOrCreateChatReport([
+                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
                             this.props.session.email,
                             CONST.EMAIL.CONCIERGE,
                         ], true)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb4]}>
+                    <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <ExpensifyText style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</ExpensifyText>
+                            <RequestCallIcon width={160} height={100} style={styles.flex1} />
+                        </View>
+                        <ExpensifyText style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
-                        </Text>
-                        <Text style={[styles.mt4, styles.mb4]}>
-                            {this.props.translate('requestCallPage.instructions')}
-                        </Text>
+                        </ExpensifyText>
                         <FullNameInputRow
                             firstName={this.state.firstName}
+                            firstNameError={this.state.firstNameError}
                             lastName={this.state.lastName}
+                            lastNameError={this.state.lastNameError}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mt4, styles.mb4]}
+                            style={[styles.mv4]}
                         />
                         <View style={styles.mt4}>
                             <ExpensiTextInput
@@ -183,22 +235,20 @@ class RequestCallPage extends Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
-                                placeholder="+14158675309"
+                                placeholder="2109400803"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
                             />
                         </View>
-                        <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
-                            {this.props.translate('requestCallPage.availabilityText')}
-                        </Text>
                     </ScrollView>
                     <FixedFooter>
-                        <Button
+                        <ExpensifyButton
                             success
-                            isDisabled={isButtonDisabled}
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.requestCallForm.loading}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -207,8 +257,9 @@ class RequestCallPage extends Component {
     }
 }
 
-RequestCallPage.displayName = 'RequestCallPage';
 RequestCallPage.propTypes = propTypes;
+RequestCallPage.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -223,6 +274,10 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        requestCallForm: {
+            key: ONYXKEYS.REQUEST_CALL_FORM,
+            initWithStoredValues: false,
         },
     }),
 )(RequestCallPage);

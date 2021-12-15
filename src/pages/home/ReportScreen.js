@@ -8,16 +8,17 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
-
+import Permissions from '../../libs/Permissions';
+import * as ReportUtils from '../../libs/reportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardSpacer from '../../components/KeyboardSpacer';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ReportActionPropTypes from './report/ReportActionPropTypes';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -53,7 +54,10 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -67,6 +71,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    betas: [],
 };
 
 /**
@@ -115,7 +120,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        addAction(getReportID(this.props.route), text);
+        Report.addAction(getReportID(this.props.route), text);
     }
 
     /**
@@ -142,14 +147,18 @@ class ReportScreen extends React.Component {
     storeCurrentlyViewedReport() {
         const reportID = getReportID(this.props.route);
         if (_.isNaN(reportID)) {
-            handleInaccessibleReport();
+            Report.handleInaccessibleReport();
             return;
         }
-        updateCurrentlyViewedReportID(reportID);
+        Report.updateCurrentlyViewedReportID(reportID);
     }
 
     render() {
         if (!this.props.isSidebarLoaded) {
+            return null;
+        }
+
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isDefaultRoom(this.props.report)) {
             return null;
         }
 
@@ -207,5 +216,8 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(ReportScreen);

@@ -2,14 +2,14 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import Tooltip from '../../../components/Tooltip';
-import {isSingleEmoji} from '../../../libs/ValidationUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -17,7 +17,7 @@ import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
-    fragment: ReportActionFragmentPropTypes.isRequired,
+    fragment: reportActionFragmentPropTypes.isRequired,
 
     /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
@@ -46,8 +46,7 @@ const defaultProps = {
 
 class ReportActionItemFragment extends React.PureComponent {
     render() {
-        const {fragment, tooltipText} = this.props;
-        switch (fragment.type) {
+        switch (this.props.fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
                 if (this.props.isAttachment && this.props.loading) {
@@ -63,64 +62,63 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text
+                return this.props.fragment.html !== this.props.fragment.text
                     ? (
                         <RenderHTML
-                            html={fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}
+                            html={`<comment>${this.props.fragment.html + (this.props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                         />
                     ) : (
-                        <Text
+                        <ExpensifyText
                             selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
-                            style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
+                            style={EmojiUtils.isSingleEmoji(this.props.fragment.text) ? styles.singleEmojiText : undefined}
                         >
-                            {Str.htmlDecode(fragment.text)}
-                            {fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {/* Native devices do not support margin between nested text */}
-                                <Text style={styles.w1}>{' '}</Text>
-                                {this.props.translate('reportActionCompose.edited')}
-                            </Text>
+                            {Str.htmlDecode(this.props.fragment.text)}
+                            {this.props.fragment.isEdited && (
+                                <ExpensifyText
+                                    fontSize={variables.fontSizeSmall}
+                                    color={themeColors.textSupporting}
+                                >
+                                    {/* Native devices do not support margin between nested ExpensifyText */}
+                                    <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
+                                    {this.props.translate('reportActionCompose.edited')}
+                                </ExpensifyText>
                             )}
-                        </Text>
+                        </ExpensifyText>
                     );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText}>
-                        <Text
+                    <Tooltip text={this.props.tooltipText}>
+                        <ExpensifyText
                             selectable
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
-                            {Str.htmlDecode(fragment.text)}
-                        </Text>
+                            {Str.htmlDecode(this.props.fragment.text)}
+                        </ExpensifyText>
                     </Tooltip>
                 );
             case 'LINK':
-                return <Text>LINK</Text>;
+                return <ExpensifyText>LINK</ExpensifyText>;
             case 'INTEGRATION_COMMENT':
-                return <Text>REPORT_LINK</Text>;
+                return <ExpensifyText>REPORT_LINK</ExpensifyText>;
             case 'REPORT_LINK':
-                return <Text>REPORT_LINK</Text>;
+                return <ExpensifyText>REPORT_LINK</ExpensifyText>;
             case 'POLICY_LINK':
-                return <Text>POLICY_LINK</Text>;
+                return <ExpensifyText>POLICY_LINK</ExpensifyText>;
 
             // If we have a message fragment type of OLD_MESSAGE this means we have not yet converted this over to the
             // new data structure. So we simply set this message as inner html and render it like we did before.
             // This wil allow us to convert messages over to the new structure without needing to do it all at once.
             case 'OLD_MESSAGE':
-                return <Text>OLD_MESSAGE</Text>;
+                return <ExpensifyText>OLD_MESSAGE</ExpensifyText>;
             default:
-                return <Text>fragment.text</Text>;
+                return <ExpensifyText>fragment.text</ExpensifyText>;
         }
     }
 }
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
-ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default compose(
     withWindowDimensions,

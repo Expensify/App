@@ -1,18 +1,20 @@
 import _ from 'underscore';
 import React from 'react';
+import {Keyboard} from 'react-native';
 import {
     StackActions,
     DrawerActions,
-    useLinkBuilder,
-    createNavigationContainerRef,
+    getPathFromState,
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
+import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
+import linkingConfig from './linkingConfig';
+import navigationRef from './navigationRef';
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -20,17 +22,31 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = createNavigationContainerRef();
-
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
 // If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
 // so it doesn't cover the report we're trying to link to.
 let didTapNotificationBeforeReady = false;
 
 function setDidTapNotification() {
-    if (!navigationRef.isReady()) {
-        didTapNotificationBeforeReady = true;
+    if (navigationRef.isReady()) {
+        return;
     }
+
+    didTapNotificationBeforeReady = true;
+}
+
+/**
+ * @param {String} methodName
+ * @param {Object} params
+ * @returns {Boolean}
+ */
+function canNavigate(methodName, params = {}) {
+    if (navigationRef.isReady()) {
+        return true;
+    }
+
+    Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
+    return false;
 }
 
 /**
@@ -38,7 +54,12 @@ function setDidTapNotification() {
  * @private
  */
 function openDrawer() {
+    if (!canNavigate('openDrawer')) {
+        return;
+    }
+
     navigationRef.current.dispatch(DrawerActions.openDrawer());
+    Keyboard.dismiss();
 }
 
 /**
@@ -46,6 +67,10 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
+    if (!canNavigate('closeDrawer')) {
+        return;
+    }
+
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
 }
 
@@ -65,8 +90,12 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @param {Boolean} shouldOpenDrawer
  */
 function goBack(shouldOpenDrawer = true) {
+    if (!canNavigate('goBack')) {
+        return;
+    }
+
     if (!navigationRef.current.canGoBack()) {
-        console.debug('Unable to go back');
+        Log.hmmm('[Navigation] Unable to go back');
         if (shouldOpenDrawer) {
             openDrawer();
         }
@@ -77,10 +106,28 @@ function goBack(shouldOpenDrawer = true) {
 }
 
 /**
+ * We navigate to the certains screens with a custom action so that we can preserve the browser history in web. react-navigation does not handle this well
+ * and only offers a "mobile" navigation paradigm e.g. in order to add a history item onto the browser history stack one would need to use the "push" action.
+ * However, this is not performant as it would keep stacking ReportScreen instances (which are quite expensive to render).
+ * We're also looking to see if we have a participants route since those also have a reportID param, but do not have the problem described above and should not use the custom action.
+ *
+ * @param {String} route
+ * @returns {Boolean}
+ */
+function isDrawerRoute(route) {
+    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    return reportID && !isParticipantsRoute;
+}
+
+/**
  * Main navigation method for redirecting to a route.
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
+    if (!canNavigate('navigate', {route})) {
+        return;
+    }
+
     if (route === ROUTES.HOME) {
         if (isLoggedIn) {
             openDrawer();
@@ -93,11 +140,8 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    // Navigate to the ReportScreen with a custom action so that we can preserve the history. We're looking to see if we
-    // have a participants route since those should go through linkTo() as they open a different screen.
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
+    if (isDrawerRoute(route)) {
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
         return;
     }
 
@@ -107,66 +151,36 @@ function navigate(route = ROUTES.HOME) {
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
- * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [shouldOpenDrawer]
  */
 function dismissModal(shouldOpenDrawer = false) {
+    if (!canNavigate('dismissModal')) {
+        return;
+    }
+
     const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
         ? shouldOpenDrawer
         : false;
 
-    let isLeavingDrawerNavigator;
-
-    // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch((state) => {
-        // If this is a nested drawer navigator then we pop the screen and
-        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
-        if (state.type === 'drawer') {
-            isLeavingDrawerNavigator = true;
-            return StackActions.pop();
-        }
-
-        // If there are multiple routes then we can pop back to the first route
-        if (state.routes.length > 1) {
-            return StackActions.popToTop();
-        }
-
-        // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
-        // back to the screen we were on before we opened the modal.
-        return StackActions.pop(0);
-    });
-
-    if (isLeavingDrawerNavigator) {
-        return;
+    CustomActions.navigateBackToRootDrawer();
+    if (normalizedShouldOpenDrawer) {
+        openDrawer();
     }
-
-    // Navigate back to where we were before we launched the modal
-    goBack(shouldOpenDrawer);
-
-    if (!normalizedShouldOpenDrawer) {
-        return;
-    }
-
-    openDrawer();
 }
 
 /**
  * Check whether the passed route is currently Active or not.
  *
- * Building path with useLinkBuilder since navigationRef.current.getCurrentRoute().path
+ * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
  * is undefined in the first navigation.
  *
  * @param {String} routePath Path to check
  * @return {Boolean} is active
  */
 function isActiveRoute(routePath) {
-    const buildLink = useLinkBuilder();
-
     // We remove First forward slash from the URL before matching
     const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? buildLink(
-            navigationRef.current.getCurrentRoute().name,
-            navigationRef.current.getCurrentRoute().params,
-        ).substring(1)
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
         : '';
     return path === routePath;
 }
@@ -208,4 +222,8 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+};
+
+export {
+    navigationRef,
 };

@@ -36,22 +36,27 @@ Here's an example story:
 
 ```javascript
 import React from 'react';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 
-export default {
+const story = {
 	// Title field will determine how the story displays in the sidebar
-    title: 'Components/Button',
-    component: Button,
+    title: 'Components/ExpensifyButton',
+    component: ExpensifyButton,
 };
 
 // Optional `args` are passed which determine the props the example component will have
-const Template = args => <Button {...args} />;
+const Template = args => <ExpensifyButton {...args} />;
 
 // Each story must be exported with a named export
-export const Default = Template.bind({});
+const Default = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
+};
+
+export default story;
+export {
+    Default,
 };
 ```
 

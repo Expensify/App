@@ -4,6 +4,10 @@
  * https://getbootstrap.com/docs/5.0/utilities/flex/
  */
 export default {
+    flexReset: {
+        flex: undefined,
+    },
+
     flex0: {
         flex: 0,
     },
@@ -14,6 +18,10 @@ export default {
 
     flex2: {
         flex: 2,
+    },
+
+    flex3: {
+        flex: 3,
     },
 
     flex4: {
@@ -64,6 +72,10 @@ export default {
         alignSelf: 'flex-start',
     },
 
+    alignSelfEnd: {
+        alignSelf: 'flex-end',
+    },
+
     alignItemsStart: {
         alignItems: 'flex-start',
     },
@@ -78,6 +90,10 @@ export default {
 
     alignItemsBaseline: {
         alignItems: 'baseline',
+    },
+
+    alignItemsStretch: {
+        alignItems: 'stretch',
     },
 
     flexWrap: {

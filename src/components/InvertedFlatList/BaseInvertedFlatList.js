@@ -3,7 +3,7 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
-import {lastItem} from '../../libs/CollectionUtils';
+import * as CollectionUtils from '../../libs/CollectionUtils';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -71,7 +71,7 @@ class BaseInvertedFlatList extends Component {
         // If we don't have a size yet means we haven't measured this
         // item yet. However, we can still calculate the offset by looking
         // at the last size we have recorded (if any)
-        const lastMeasuredItem = lastItem(this.sizeMap);
+        const lastMeasuredItem = CollectionUtils.lastItem(this.sizeMap);
 
         return {
             // We haven't measured this so we must return the minimum row height
@@ -149,7 +149,6 @@ class BaseInvertedFlatList extends Component {
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-                bounces={false}
 
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}

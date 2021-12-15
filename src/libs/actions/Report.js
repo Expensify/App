@@ -19,13 +19,11 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
-} from '../reportUtils';
+import * as ReportUtils from '../reportUtils';
 import Timers from '../Timers';
-import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
+import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -33,10 +31,12 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
+        if (!val) {
+            return;
         }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -78,6 +78,13 @@ const lastReadSequenceNumbers = {};
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
 
+// Boolean to indicate if report data is loading from the API or not.
+let isReportDataLoading = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    callback: val => isReportDataLoading = val,
+});
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -104,7 +111,7 @@ function getUnreadActionCount(report) {
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(report.reportID, lastReadSequenceNumber);
     return Math.max(0, unreadActionCount);
 }
 
@@ -118,21 +125,26 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns the title for a default room or generates one based on the participants
+ * Returns the title for a default room, a policy room or generates one based on the participants
  *
  * @param {Object} fullReport
  * @param {String} chatType
  * @return {String}
  */
 function getChatReportName(fullReport, chatType) {
-    if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(isArchivedRoom({
+    if (ReportUtils.isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
             stateNum: fullReport.state,
             statusNum: fullReport.status,
         })
-            ? ` (${translateLocal('common.deleted')})`
+            ? ` (${Localize.translateLocal('common.deleted')})`
             : '')}`;
+    }
+
+    // For a basic policy room, return its original name
+    if (ReportUtils.isPolicyRoom({chatType})) {
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;
@@ -161,17 +173,21 @@ function getSimplifiedReportObject(report) {
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
-    // We are removing any html tags from the message html since we cannot access the text version of any comments as
-    // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-    // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lastActionMessage
-        .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '');
+    let lastMessageText = null;
+    if (report.reportActionCount > 0) {
+        // We are removing any html tags from the message html since we cannot access the text version of any comments as
+        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
+        // We convert the line-breaks in html to space ' ' before striping the tags
+        lastMessageText = lastActionMessage
+            .replace(/((<br[^>]*>)+)/gi, ' ')
+            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+    }
+
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
@@ -267,7 +283,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
     }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 
@@ -290,7 +306,7 @@ function fetchIOUReportID(debtorEmail) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            Log.info('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
         return iouReportID;
@@ -299,13 +315,13 @@ function fetchIOUReportID(debtorEmail) {
 
 /**
  * Fetches chat reports when provided a list of chat report IDs.
- * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
  * when we find an inaccessible chat
  * @param {Array} chatList
- * @param {Boolean} shouldRedirectIfInacessible
- * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
+ * @param {Boolean} shouldRedirectIfInaccessible
+ * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
@@ -313,8 +329,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
-            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
-            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+            // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
+            if (jsonCode === 404 && shouldRedirectIfInaccessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
@@ -378,15 +394,16 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
-
-            return _.map(fetchedReports, report => report.reportID);
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+            return fetchedReports;
         })
         .catch((err) => {
-            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                // eslint-disable-next-line no-use-before-define
-                handleInaccessibleReport();
+            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                return;
             }
+
+            // eslint-disable-next-line no-use-before-define
+            handleInaccessibleReport();
         });
 }
 
@@ -415,7 +432,7 @@ function setLocalLastRead(reportID, lastReadSequenceNumber) {
 
     // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
     // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
-    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber, 0);
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
 
     // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -456,7 +473,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
             if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
@@ -521,12 +538,20 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
 function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+        // Don't do anything for messages that aren't deleted.
+        if (message.html) {
+            return;
+        }
+
+        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
+        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+    });
 
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html,
+            lastMessageText: message.text || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -563,7 +588,8 @@ function updateReportWithNewAction(
         reportID,
 
         // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
@@ -587,7 +613,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
         loading: false,
     };
 
@@ -605,26 +631,26 @@ function updateReportWithNewAction(
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     if (notificationPreference === 'mute' || notificationPreference === 'daily') {
         // eslint-disable-next-line max-len
-        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (isFromCurrentUser) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
@@ -640,7 +666,7 @@ function updateReportWithNewAction(
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
-    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
@@ -702,6 +728,24 @@ function subscribeToUserEvents() {
             );
         });
 
+    // Live-update a report's actions when a 'chunked report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_CHUNK} event sent by Pusher`, false, {reportID: pushJSON.reportID},
+        );
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_CHUNK},
+            );
+        });
+
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
@@ -719,6 +763,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment chunk' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK} event sent by Pusher`, false, {
+                reportActionID: pushJSON.reportActionID,
+            },
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK},
             );
         });
 
@@ -846,7 +910,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise<Number[]>}
+ * @returns {Promise<Object[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -871,9 +935,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
 
-            // We are returning an array with the reportID here since fetchAllReports calls this method or
-            // fetchChatReportsByIDs which returns an array of reportIDs.
-            return [data.reportID];
+            // We are returning an array with a report object here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of report objects.
+            return [data];
         });
 }
 
@@ -906,14 +970,20 @@ function fetchActions(reportID, offset) {
             removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
+}
+
+/**
+ * Get the actions of a report
+ *
+ * @param {Number} reportID
+ * @param {Number} [offset]
+ */
+function fetchActionsWithLoadingState(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+    fetchActions(reportID, offset)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
 }
 
 /**
@@ -927,6 +997,7 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -936,9 +1007,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            const reportIDs = String(response.chatList)
-                .split(',')
-                .filter(_.identity);
+            const reportIDs = _.filter(String(response.chatList).split(','), _.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
@@ -947,8 +1016,16 @@ function fetchAllReports(
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
-        .then((returnedReportIDs) => {
+        .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+
+            // If at this point the user still doesn't have a Concierge report, create it for them.
+            // This means they were a participant in reports before their account was created (e.g. default rooms)
+            const hasConciergeChat = _.some(returnedReports, report => ReportUtils.isConciergeChatReport(report));
+            if (!hasConciergeChat) {
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            }
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -962,14 +1039,15 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
-                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
-                ));
+                const reportIDsWithMissingActions = _.chain(returnedReports)
+                    .map(report => report.reportID)
+                    .filter(reportID => ReportActions.isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
                 // set to avoid making too many network requests at once.
-                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
                     .map(report => report.reportID)
                     .reverse()
                     .intersection(reportIDsWithMissingActions)
@@ -977,15 +1055,15 @@ function fetchAllReports(
                     .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
-                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
                     return;
                 }
 
-                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
 
@@ -1091,7 +1169,7 @@ function addAction(reportID, text, file) {
     })
         .then((response) => {
             if (response.jsonCode === 408) {
-                Growl.error(translateLocal('reportActionCompose.fileUploadFailed'));
+                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
@@ -1100,6 +1178,15 @@ function addAction(reportID, text, file) {
             }
             updateReportWithNewAction(reportID, response.reportAction);
         });
+}
+
+/**
+ * Get the last read sequence number for a report
+ * @param {String|Number} reportID
+ * @return {Number}
+ */
+function getLastReadSequenceNumber(reportID) {
+    return lastReadSequenceNumbers[reportID];
 }
 
 /**
@@ -1124,7 +1211,9 @@ function deleteReportComment(reportID, reportAction) {
         ],
     };
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+        setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    });
 
     // Try to delete the comment by calling the API
     API.Report_EditComment({
@@ -1134,15 +1223,18 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Reverse Optimistic Response
-                reportActionsToMerge[sequenceNumber] = {
-                    ...reportAction,
-                    message: oldMessage,
-                };
-
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            // Reverse Optimistic Response
+            reportActionsToMerge[sequenceNumber] = {
+                ...reportAction,
+                message: oldMessage,
+            };
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+                setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+            });
         });
 }
 
@@ -1156,6 +1248,11 @@ function deleteReportComment(reportID, reportAction) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
+    // If report data is loading, we can't update the last read sequence number because it is obsolete
+    if (isReportDataLoading) {
+        return;
+    }
+
     // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
     // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
     // the side of caution and do nothing in this case.
@@ -1166,7 +1263,9 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
-    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
+    // Note: sequenceNumber can be 1 for the first message, so we can't use
+    // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
+    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
 
     // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
     // doing an unnecessary server call if the last read is the same one we had already
@@ -1209,6 +1308,17 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Immediate indication whether the report has a draft comment.
+ *
+ * @param {String} reportID
+ * @param {Boolean} hasDraft
+ * @returns {Promise}
+ */
+function setReportWithDraft(reportID, hasDraft) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
+}
+
+/**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
  * @param {Number} reportID
@@ -1234,7 +1344,7 @@ function handleReportChanged(report) {
     if (report && report.reportID) {
         allReports[report.reportID] = report;
 
-        if (isConciergeChatReport(report)) {
+        if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
     }
@@ -1387,8 +1497,38 @@ function navigateToConciergeChat() {
  * Handle the navigation when report is inaccessible
  */
 function handleInaccessibleReport() {
-    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
     navigateToConciergeChat();
+}
+
+/**
+ * Creates a policy room, fetches it, and navigates to it.
+ * @param {String} policyID
+ * @param {String} reportName
+ * @param {String} visibility
+ * @return {Promise}
+ */
+function createPolicyRoom(policyID, reportName, visibility) {
+    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
+    return API.CreatePolicyRoom({policyID, reportName, visibility})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Growl.error(response.message);
+                return;
+            }
+            return fetchChatReportsByIDs([response.reportID]);
+        })
+        .then(([{reportID}]) => {
+            if (!reportID) {
+                Log.error('Unable to grab policy room after creation', reportID);
+                return;
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
 
 export {
@@ -1417,4 +1557,8 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    setReportWithDraft,
+    fetchActionsWithLoadingState,
+    createPolicyRoom,
+    getLastReadSequenceNumber,
 };

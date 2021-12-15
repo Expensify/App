@@ -3,7 +3,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 
 /**
  * Breaks the text into matrix
@@ -16,7 +16,7 @@ import Text from '../Text';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return text.split('\n').map(row => _.without(row.split(/(\s)/), ''));
+    return _.map(text.split('\n'), row => _.without(row.split(/(\s)/), ''));
 }
 
 const propTypes = {
@@ -39,12 +39,12 @@ const WrappedText = (props) => {
     const textMatrix = getTextMatrix(props.children);
     return (
         <>
-            {textMatrix.map((rowText, rowIndex) => (
+            {_.map(textMatrix, (rowText, rowIndex) => (
                 <Fragment
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${rowText}-${rowIndex}`}
                 >
-                    {rowText.map((colText, colIndex) => (
+                    {_.map(rowText, (colText, colIndex) => (
 
                         // Outer View is important to vertically center the Text
                         <View
@@ -59,7 +59,7 @@ const WrappedText = (props) => {
                                     colIndex === rowText.length - 1 && styles.codeLastWordStyle,
                                 ]}
                             >
-                                <Text style={props.textStyles}>{colText}</Text>
+                                <ExpensifyText style={props.textStyles}>{colText}</ExpensifyText>
                             </View>
                         </View>
                     ))}

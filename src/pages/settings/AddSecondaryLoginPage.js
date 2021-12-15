@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
@@ -7,11 +7,11 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
-import {setSecondaryLogin} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -19,31 +19,12 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import userPropTypes from './userPropTypes';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** error associated with adding a secondary login */
-        error: PropTypes.string,
-
-        /** Whether the form is being submitted */
-        loading: PropTypes.bool,
-
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
-
-            /** Value of partner name */
-            partnerName: PropTypes.string,
-
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-
-            /** Date of when login was validated */
-            validatedDate: PropTypes.string,
-        })),
-    }),
+    user: userPropTypes,
 
     // Route object from navigation
     route: PropTypes.shape({
@@ -79,28 +60,21 @@ class AddSecondaryLoginPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.USER, {error: ''});
+        User.clearUserErrorMessage();
     }
 
     onSecondaryLoginChange(login) {
-        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
-            this.setState({login});
-        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
-            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
-            this.setState({login});
-        }
+        this.setState({login});
     }
 
     /**
      * Add a secondary login to a user's account
      */
     submitForm() {
-        setSecondaryLogin(this.state.login, this.state.password)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                }
-            });
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+        User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
 
     /**
@@ -109,16 +83,22 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(this.state.login);
+        return !this.state.password || !validationMethod(login);
     }
 
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.phoneNumberInputRef) {
-                    this.phoneNumberInputRef.focus();
+                if (!this.phoneNumberInputRef) {
+                    return;
                 }
+
+                this.phoneNumberInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>
@@ -131,11 +111,11 @@ class AddSecondaryLoginPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6]}>
+                        <ExpensifyText style={[styles.mb6]}>
                             {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
-                        </Text>
+                        </ExpensifyText>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -161,15 +141,14 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         {!_.isEmpty(this.props.user.error) && (
-                            <Text style={styles.formError}>
+                            <ExpensifyText style={styles.formError}>
                                 {this.props.user.error}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
+                        <ExpensifyButton
                             success
-                            style={[styles.mb2]}
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}
@@ -184,7 +163,6 @@ class AddSecondaryLoginPage extends Component {
 
 AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
-AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
 export default compose(
     withLocalize,

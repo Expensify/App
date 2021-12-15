@@ -19,7 +19,7 @@ This project and everyone participating in it is governed by the Expensify [Code
 At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
 
 ## Asking Questions
-If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
+If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and include a link to your Upwork profile. We'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
 
 If you are hired for an Upwork job and have any job-specific questions, please ask in the GitHub issue or pull request. This will ensure that the person addressing your question has as much context as possible.
 
@@ -27,25 +27,28 @@ If you are hired for an Upwork job and have any job-specific questions, please a
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. We hire one contributor for each Upwork job. New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+
+Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
+
+New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
 
 ## Finding Jobs
 There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
+This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view open jobs by searching for issues in GitHub with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22).
 
 #### Proposing a job that Expensify hasn’t posted
 
-In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If your solution is also merged, this $250 is *in addition to* the price you will be paid for completing the job. 
+In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 
-    1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
-    2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
-    3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify/App repo.
-    4. Make sure to fill out all the required information fields in the issue template.
-    5. Add the `AutoAssignerTriage` label to your issue.
-    6. Before starting your PR to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
-    7. Pause on this step until a member of the Expensify team responds on your issue with next steps.
+1. Check to ensure an issue does not already exist in the [New Expensify Issue list](https://github.com/Expensify/App/issues). Please use your best judgement to search for similar titles and issue descriptions.
+2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve a problem.
+3. If there is no existing GitHub issue or Upwork job, report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Include all relevant data, screenshots and examples in the post or thread.
+4. After review in #expensify-open-source, if we choose to implement your proposal, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
+5. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
+6. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
 
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
 >
@@ -56,9 +59,9 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
-#### Express interest for the job on Upwork.com
+#### Check GitHub for existing proposals from other users
 
-1. If you are interested in working on a job posted in Upwork, click **Submit a Proposal** in Upwork to express your interest to the Expensify team.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
 #### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
@@ -67,6 +70,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
     - Note: If you post a proposed solution in an issue that has not been tagged with the `External` label, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution.
+    - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet).
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you.
 
@@ -93,13 +97,15 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
-14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
-15. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
+14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use Github keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
+15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
 - Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days please let us know via the #expensify-open-source Slack channel.
+- On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. Depending on the hold length, our team will decide if a bonus will be applied to the job.    
 
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](STYLE.md). Please refer to our Style Guide before asking for a review.

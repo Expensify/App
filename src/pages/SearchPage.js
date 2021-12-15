@@ -4,14 +4,14 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Report from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
@@ -19,18 +19,7 @@ import CONST from '../CONST';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
-
-    /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
-});
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,7 +28,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -72,7 +61,7 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getSearchOptions(
+        } = OptionsListUtils.getSearchOptions(
             props.reports,
             props.personalDetails,
             '',
@@ -125,7 +114,7 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getSearchOptions(
+        } = OptionsListUtils.getSearchOptions(
             this.props.reports,
             this.props.personalDetails,
             this.state.searchValue.trim(),
@@ -155,7 +144,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            fetchOrCreateChatReport([
+            Report.fetchOrCreateChatReport([
                 this.props.session.email,
                 option.login,
             ]);
@@ -164,7 +153,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const headerMessage = getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
@@ -201,7 +190,6 @@ class SearchPage extends Component {
 }
 
 SearchPage.propTypes = propTypes;
-SearchPage.displayName = 'SearchPage';
 
 export default compose(
     withLocalize,

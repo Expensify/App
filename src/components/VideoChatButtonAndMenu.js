@@ -1,10 +1,11 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     View, Pressable, Dimensions, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
-import {Phone} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import Popover from './Popover';
 import MenuItem from './MenuItem';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
@@ -36,7 +37,7 @@ class VideoChatButtonAndMenu extends Component {
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
-        this.menuItemData = [
+        this.menuItemData = _.map([
             {
                 icon: ZoomIcon,
                 text: props.translate('videoChatButtonAndMenu.zoom'),
@@ -47,7 +48,7 @@ class VideoChatButtonAndMenu extends Component {
                 text: props.translate('videoChatButtonAndMenu.googleMeet'),
                 onPress: () => Linking.openURL(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
-        ].map(item => ({
+        ], item => ({
             ...item,
             onPress: () => {
                 item.onPress();
@@ -82,11 +83,13 @@ class VideoChatButtonAndMenu extends Component {
      * This gets called onLayout to find the cooridnates of the wrapper for the video chat button.
      */
     measureVideoChatIconPosition() {
-        if (this.videoChatIconWrapper) {
-            this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
-                videoChatIconPosition: {x, y},
-            }));
+        if (!this.videoChatIconWrapper) {
+            return;
         }
+
+        this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
+            videoChatIconPosition: {x, y},
+        }));
     }
 
     render() {
@@ -109,7 +112,7 @@ class VideoChatButtonAndMenu extends Component {
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Icon
-                                src={Phone}
+                                src={Expensicons.Phone}
                                 fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
                                     ? themeColors.heading
                                     : themeColors.icon}
@@ -127,7 +130,7 @@ class VideoChatButtonAndMenu extends Component {
                     animationIn="fadeInDown"
                     animationOut="fadeOutUp"
                 >
-                    {this.menuItemData.map(({icon, text, onPress}) => (
+                    {_.map(this.menuItemData, ({icon, text, onPress}) => (
                         <MenuItem
                             wrapperStyle={styles.mr3}
                             key={text}
@@ -144,7 +147,7 @@ class VideoChatButtonAndMenu extends Component {
 
 VideoChatButtonAndMenu.propTypes = propTypes;
 VideoChatButtonAndMenu.defaultProps = defaultProps;
-VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
+
 export default compose(
     withWindowDimensions,
     withLocalize,
