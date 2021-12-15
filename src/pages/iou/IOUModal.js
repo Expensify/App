@@ -145,10 +145,9 @@ class IOUModal extends Component {
 
     componentDidMount() {
         PersonalDetails.fetchLocalCurrency();
-        if (this.props.iou.selectedCurrencyCode) {
-            return;
+        if (!this.props.iou.selectedCurrencyCode) {
+            IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
         }
-        IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
