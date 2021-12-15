@@ -678,6 +678,7 @@ export default {
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
+            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
         },
         new: {
             newWorkspace: 'New workspace',
