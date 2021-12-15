@@ -132,7 +132,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
-            value: v,
+            value: visibilityOption,
         }));
 
         return (
