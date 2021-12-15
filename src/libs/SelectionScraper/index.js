@@ -7,7 +7,7 @@ const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
 
 /**
- * Reads html of selection. If there is no Selection API returns empty string.
+ * Reads html of selection. If browser doesn't support Selection API, returns empty string.
  * @returns {String} HTML of selection as String
  */
 const getHTMLOfSelection = () => {
@@ -17,6 +17,13 @@ const getHTMLOfSelection = () => {
         if (selection.rangeCount > 0) {
             const div = document.createElement('div');
 
+            // HTML tag of markdown comments is in data-testid attribute (em, strong, blockquote..). Our goal here is to
+            // find that nodes and replace that tag with the one inside data-testid, so ExpensiMark can parse it.
+            // Simply, we want to replace this:
+            // <span class="..." style="..." data-testid="strong">bold</span>
+            // to this:
+            // <strong>bold</strong>
+            //
             // We traverse all ranges, and get closest node with data-testid and replace its contents with contents of
             // range.
             for (let i = 0; i < selection.rangeCount; i++) {
@@ -28,6 +35,7 @@ const getHTMLOfSelection = () => {
                 if (clonedSelection.textContent) {
                     let node = null;
 
+                    // If selection starts and ends within same text node we use its parentNode.
                     if (range.commonAncestorContainer instanceof HTMLElement) {
                         node = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
                     } else {
@@ -35,7 +43,9 @@ const getHTMLOfSelection = () => {
                     }
 
                     // This means "range.commonAncestorContainer" is a text node. We simply get its parent node.
-                    if (!node) { node = range.commonAncestorContainer.parentNode; }
+                    if (!node) {
+                        node = range.commonAncestorContainer.parentNode;
+                    }
 
                     node = node.cloneNode();
                     node.appendChild(clonedSelection);
@@ -54,7 +64,7 @@ const getHTMLOfSelection = () => {
         return window.getSelection().toString();
     }
 
-    // If no Selection API returns empty string.
+    // If browser doesn't support Selection API, returns empty string.
     return '';
 };
 
@@ -71,7 +81,9 @@ const replaceNodes = (dom) => {
     // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
     // has no meaning for us.
     if (dom.attribs && dom.attribs[tagAttribute]) {
-        if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) { domName = dom.attribs[tagAttribute]; }
+        if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
+            domName = dom.attribs[tagAttribute];
+        }
     }
 
     // We need to preserve href attribute in order to copy links.
