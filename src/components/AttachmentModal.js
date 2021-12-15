@@ -11,7 +11,7 @@ import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -153,7 +153,7 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <ExpensifyButton
+                        <Button
                             success
                             style={[styles.buttonConfirm]}
                             textStyles={[styles.buttonConfirmText]}

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ExpensifyText from '../../components/ExpensifyText';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -163,7 +163,7 @@ class LoginForm extends React.Component {
                     </ExpensifyText>
                 )}
                 <View style={[styles.mt5]}>
-                    <ExpensifyButton
+                    <Button
                         success
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
