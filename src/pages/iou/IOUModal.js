@@ -291,8 +291,8 @@ class IOUModal extends Component {
                 paymentMethodType: paymentMethod,
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
-                submitterPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-                submitterPhoneNumber: this.state.participants[0].phoneNumber,
+                requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
+                requestorPhoneNumber: this.state.participants[0].phoneNumber,
                 comment: this.state.comment,
                 requestorEmail: this.state.participants[0].login,
             });

@@ -261,9 +261,9 @@ function createOption(personalDetailList, report, {
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
         login: !hasMultipleParticipants ? personalDetail.login : null,
+        reportID: report ? report.reportID : null,
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
-        reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,

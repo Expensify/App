@@ -247,8 +247,8 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
  * @param {Number} params.amount
  * @param {String} params.currency
- * @param {String} [params.submitterPhoneNumber] - used for Venmo
- * @param {String} [params.submitterPayPalMeAddress]
+ * @param {String} [params.requestorPhoneNumber] - used for Venmo
+ * @param {String} [params.requestorPayPalMeAddress]
  * @param {String} [params.comment]
  * @param {String} [params.requestorEmail]
  */
@@ -258,8 +258,8 @@ function payIOUReport({
     paymentMethodType,
     amount,
     currency,
-    submitterPhoneNumber,
-    submitterPayPalMeAddress,
+    requestorPhoneNumber,
+    requestorPayPalMeAddress,
     comment,
     requestorEmail,
 }) {
@@ -267,7 +267,7 @@ function payIOUReport({
 
     // If we're sending a payment, check the paymentMethodType is valid
     // We will also create a report on the fly, so we need to pass the report details
-    const isSendingMoney = (Object.values(CONST.IOU.PAYMENT_TYPE).includes(paymentMethodType));
+    const isSendingMoney = (_.values(CONST.IOU.PAYMENT_TYPE)).includes(paymentMethodType);
     const newIOUReportDetails = isSendingMoney ? JSON.stringify({
         amount,
         currency,
@@ -283,10 +283,10 @@ function payIOUReport({
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
     }
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
     }
 
     asyncOpenURL(payIOUPromise
