@@ -109,8 +109,9 @@ class IOUModal extends Component {
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
-        this.confirm = this.confirm.bind(this);
+        this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
+        this.sendMoney = this.sendMoney.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
@@ -122,7 +123,6 @@ class IOUModal extends Component {
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
         this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
             previousStepIndex: 0,
@@ -235,7 +235,7 @@ class IOUModal extends Component {
     /**
      * Update participants whenever user selects the payment recipient
      *
-     * @param {Object} participants
+     * @param {Array} participants
      */
     addParticipants(participants) {
         this.setState({
@@ -271,16 +271,15 @@ class IOUModal extends Component {
     }
 
     /**
-     * Create the IOU transaction
+     * Checks if user has a GOLD wallet, then creates a paid IOU report on the fly
      *
-     * @param {Array} [splits]
      * @param {String} paymentMethod
      */
-    confirm(splits, paymentMethod) {
-        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+    sendMoney(paymentMethod) {
+        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         // If the user is trying to send money, then they need to upgrade to a GOLD wallet
-        if (this.isSendRequest && !this.hasGoldWallet) {
+        if (this.isSendRequest && !hasGoldWallet) {
             Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
             return;
         }
@@ -297,8 +296,16 @@ class IOUModal extends Component {
                 comment: this.state.comment,
                 requestorEmail: this.state.participants[0].login,
             });
-            return;
         }
+    }
+
+    /**
+     * Create the IOU transaction
+     *
+     * @param {Array} [splits]
+     */
+    createTransaction(splits) {
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -422,7 +429,8 @@ class IOUModal extends Component {
                                             direction={this.getDirection()}
                                         >
                                             <IOUConfirmPage
-                                                onConfirm={this.confirm}
+                                                onConfirm={this.createTransaction}
+                                                onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={this.state.participants}
                                                 iouAmount={this.state.amount}

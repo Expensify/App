@@ -24,6 +24,9 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
+    /** Callback to to parent model to send money */
+    onSendMoney: PropTypes.func.isRequired,
+
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
@@ -149,7 +152,7 @@ class IOUConfirmationList extends Component {
     onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onConfirm([], value);
+            this.props.onSendMoney(value);
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());

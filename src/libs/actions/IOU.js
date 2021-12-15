@@ -264,19 +264,20 @@ function payIOUReport({
     requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-    const isSendingMoney = reportID === 0 && paymentMethodType;
 
-    // If we're sending a payment then we need to create a new report on the fly
-    const newIOUReportDetails = isSendingMoney ? {
+    // If we're sending a payment, check the paymentMethodType is valid
+    // We will also create a report on the fly, so we need to pass the report details
+    const isSendingMoney = (Object.values(CONST.IOU.PAYMENT_TYPE).includes(paymentMethodType));
+    const newIOUReportDetails = isSendingMoney ? JSON.stringify({
         amount,
         currency,
         requestorEmail,
         comment,
         idempotencyKey: Str.guid(),
-    } : {};
+    }) : JSON.stringify({});
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID, newIOUReportDetails: JSON.stringify(newIOUReportDetails)})
-        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails: JSON.stringify(newIOUReportDetails)});
+        ? API.PayWithWallet({reportID, newIOUReportDetails})
+        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
     // Build the url for the user's platform of choice if they have
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
@@ -314,6 +315,9 @@ function payIOUReport({
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
+
+            // Usually if we are just creating an IOU, we stay on the confirmation page
+            // For sending money, however, we want to return the user to their chat
             if (isSendingMoney) {
                 Navigation.navigate(ROUTES.REPORT);
             }

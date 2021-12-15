@@ -7,6 +7,9 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
+    /** Callback to to parent model to send money */
+    onSendMoney: PropTypes.func.isRequired,
+
     /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
@@ -60,6 +63,7 @@ const IOUConfirmPage = props => (
         onUpdateComment={props.onUpdateComment}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}
+        onSendMoney={props.onSendMoney}
         iouType={props.iouType}
         localCurrencyCode={props.localCurrencyCode}
         isGroupSplit={props.isGroupSplit}
