@@ -79,12 +79,14 @@ class BaseExpensiTextInput extends Component {
         if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
+        this.props.clearInputErrors(this.props.name);
     }
 
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
+        this.props.validate(this.props.name);
     }
 
     /**
@@ -95,6 +97,7 @@ class BaseExpensiTextInput extends Component {
      */
     setValue(value) {
         this.value = value;
+        this.props.saveDraft({[this.props.name]: value});
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
     }
@@ -156,7 +159,7 @@ class BaseExpensiTextInput extends Component {
                             style={[
                                 styles.expensiTextInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
-                                (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+                                (this.props.hasError || this.props.errorText || this.props.error) && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (
@@ -209,9 +212,9 @@ class BaseExpensiTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {!_.isEmpty(this.props.errorText) && (
+                {!_.isEmpty(this.props.errorText || this.props.error) && (
                     <InlineErrorText>
-                        {this.props.errorText}
+                        {this.props.errorText || this.props.error}
                     </InlineErrorText>
                 )}
             </View>

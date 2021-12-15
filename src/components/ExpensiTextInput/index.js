@@ -12,6 +12,7 @@ const ExpensiTextInput = forwardRef((props, ref) => (
     />
 ));
 
+ExpensiTextInput.EXPENSIFORM = true;
 ExpensiTextInput.propTypes = propTypes;
 ExpensiTextInput.defaultProps = defaultProps;
 ExpensiTextInput.displayName = 'ExpensiTextInput';

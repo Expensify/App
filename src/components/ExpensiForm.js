@@ -40,9 +40,6 @@ class ExpensiForm extends React.Component {
     getFormValues() {
         const formData = {};
         _.each(_.keys(this.inputRefs.current), (key) => {
-            if (key && key !== 'undefined') {
-                return;
-            }
             formData[key] = this.inputRefs.current[key].value;
         });
         return formData;
@@ -67,7 +64,12 @@ class ExpensiForm extends React.Component {
         // We check if we are trying to validate a single field or the entire form
         const errors = this.props.validate(values);
         if (field) {
-            this.setState({errors: errors[field]});
+            this.setState(prevState => ({
+                errors: {
+                    ...prevState.errors,
+                    [field]: errors[field]
+                }
+            }));
         } else {
             this.setState({errors});
         }
