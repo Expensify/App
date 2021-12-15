@@ -13,7 +13,6 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import ExpensifyText from '../../../components/ExpensifyText';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as paymentPropTypes from './paymentPropTypes';
@@ -48,16 +47,7 @@ class PaymentsPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            shouldShowAddPaymentMenu: false,
-            anchorPositionTop: 0,
-            anchorPositionLeft: 0,
-        };
-
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
-        this.addPaymentMethodPressed = this.addPaymentMethodPressed.bind(this);
-        this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
-        this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
         this.transferBalance = this.transferBalance.bind(this);
     }
 
@@ -75,55 +65,6 @@ class PaymentsPage extends React.Component {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-    }
-
-    /**
-     * Display the add payment method menu
-     *
-     * @param {Object} nativeEvent
-     */
-    addPaymentMethodPressed(nativeEvent) {
-        const position = getClickedElementLocation(nativeEvent);
-        this.setState({
-            shouldShowAddPaymentMenu: true,
-            anchorPositionTop: position.bottom,
-
-            // We want the position to be 20px to the right of the left border
-            anchorPositionLeft: position.left + 20,
-        });
-    }
-
-    /**
-     * Navigate to the appropriate payment type addition screen
-     *
-     * @param {String} paymentType
-     */
-    addPaymentMethodTypePressed(paymentType) {
-        this.hideAddPaymentMenu();
-
-        if (paymentType === CONST.PAYMENT_METHODS.PAYPAL) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            return;
-        }
-
-        if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
-            return;
-        }
-
-        if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
-            return;
-        }
-
-        throw new Error('Invalid payment method type selected');
-    }
-
-    /**
-     * Hide the add payment modal
-     */
-    hideAddPaymentMenu() {
-        this.setState({shouldShowAddPaymentMenu: false});
     }
 
     /**
@@ -164,21 +105,10 @@ class PaymentsPage extends React.Component {
                         </ExpensifyText>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
-                            addPaymentMethodPressed={this.addPaymentMethodPressed}
-                            style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
-                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
+                        <AddPaymentMethodMenu />
                     </ScrollView>
-                    <AddPaymentMethodMenu
-                        isVisible={this.state.shouldShowAddPaymentMenu}
-                        onClose={this.hideAddPaymentMenu}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                        onItemSelected={method => this.addPaymentMethodTypePressed(method)}
-                    />
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
                         onConfirm={PaymentMethods.cancelWalletTransfer}

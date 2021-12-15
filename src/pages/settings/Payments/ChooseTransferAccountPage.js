@@ -14,6 +14,7 @@ import compose from '../../../libs/compose';
 import * as paymentPropTypes from './paymentPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import CONST from '../../../CONST';
+import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 
 const propTypes = {
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
@@ -68,14 +69,13 @@ class ChooseTransferAccountPage extends React.Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    <View style={[styles.flex1, styles.pv5]}>
+                    <View style={[styles.pv5]}>
                         <PaymentMethodList
                             onPress={this.selectAccountAndNavigateBack}
-                            addPaymentMethodPressed={this.navigateToAddPaymentMethod}
                             enableSelection
-                            filterType={this.props.walletTransfer.filterPaymentMethodType}
                             selectedAccountID={this.props.walletTransfer.selectedAccountID}
                         />
+                        <AddPaymentMethodMenu filterType={this.props.walletTransfer.filterPaymentMethodType} />
                     </View>
                 </KeyboardAvoidingView>
             </ScreenWrapper>

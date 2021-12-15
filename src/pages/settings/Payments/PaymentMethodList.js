@@ -5,13 +5,11 @@ import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import PaymentUtils from '../../../libs/PaymentUtils';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
@@ -20,15 +18,6 @@ const MENU_ITEM = 'menuItem';
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
-
-    /** Add payment method type menu item pressed */
-    addPaymentMethodPressed: PropTypes.func.isRequired,
-
-    /** Are we loading payments from the server? */
-    isLoadingPayments: PropTypes.bool,
-
-    /** Is the payment options menu open / active? */
-    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -64,11 +53,9 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
-    isLoadingPayments: false,
     enableSelection: false,
     selectedAccountID: '',
     filterType: '',
-    isAddPaymentMenuActive: false,
 };
 
 class PaymentMethodList extends Component {
@@ -103,24 +90,6 @@ class PaymentMethodList extends Component {
             });
         }
 
-        let addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addPaymentMethod');
-        switch (this.props.filterType) {
-            case CONST.PAYMENT_METHODS.BANK_ACCOUNT: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addBankAccount'); break;
-            case CONST.PAYMENT_METHODS.DEBIT_CARD: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addDebitCard'); break;
-            default: break;
-        }
-
-        paymentMethods.push({
-            type: MENU_ITEM,
-            title: addPaymentMethodButtonTitle,
-            icon: Expensicons.Plus,
-            onPress: e => this.props.addPaymentMethodPressed(e),
-            key: 'addPaymentMethodButton',
-            disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
-        });
-
         return paymentMethods;
     }
 
@@ -142,7 +111,7 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
-                    shouldShowSelectedState={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
+                    shouldShowSelectedState={this.props.enableSelection}
                     isSelected={this.props.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
