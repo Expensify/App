@@ -5,10 +5,10 @@ on:
     branches: [staging, production]
 
 jobs:
-  validate:
+  validateActor:
     runs-on: ubuntu-latest
     outputs:
-      isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMERGE_PR }}
+      IS_VALID: ${{ fromJSON(steps.isAuthorDeployer.outputs.isTeamMember) || fromJSON(steps.isMergerDeployer.outputs.isTeamMember) || steps.getMergedPullRequest.outputs.author == 'OSBotify' }}
 
     steps:
       - name: Get merged pull request
@@ -18,14 +18,26 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if merged pull request was an automatic version bump PR
-        id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}"
+      - name: Check if PR author is a deployer
+        id: isAuthorDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ steps.getMergedPullRequest.outputs.author }}
+          team: mobile-deployers
+
+      - name: Check if PR merger is a deployer
+        id: isMergerDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
 
   deployStaging:
     runs-on: ubuntu-latest
-    needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/staging' }}
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_VALID) && github.ref == 'refs/heads/staging' }}
 
     steps:
       - name: Checkout staging branch
@@ -33,7 +45,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-      
+
       - name: Decrypt Botify GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
@@ -58,15 +70,15 @@ jobs:
 
   deployProduction:
     runs-on: ubuntu-latest
-    needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/production' }}
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_VALID) && github.ref == 'refs/heads/production' }}
 
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-      
+
       - name: Decrypt Botify GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
