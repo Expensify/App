@@ -1111,8 +1111,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     optionAlternateTextCompact: {
