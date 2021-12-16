@@ -153,7 +153,6 @@ const HeaderView = (props) => {
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
-                                            styles.mt1,
                                         ]}
                                         numberOfLines={1}
                                     >

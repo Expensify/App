@@ -641,7 +641,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
-        height: '100%',
         paddingTop: 23,
         paddingBottom: 8,
         paddingHorizontal: 11,
@@ -807,11 +806,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
     },
 
     signInPageInner: {
@@ -1117,8 +1111,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     optionAlternateTextCompact: {
@@ -1126,12 +1120,6 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
-    },
-
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
     },
 
     appContent: {
@@ -1311,10 +1299,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1917,6 +1902,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        padding: 0,
     }, 0),
 
     iouPreviewBox: {

@@ -90,6 +90,8 @@ export default {
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
+        join: 'Join',
+        decline: 'Decline',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -194,7 +196,6 @@ export default {
         viewDetails: 'View details',
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
-        decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
         settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
@@ -677,6 +678,7 @@ export default {
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
+            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -807,6 +809,10 @@ export default {
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        visibilityOptions: {
+            restricted: 'Restricted',
+            private: 'Private',
+        },
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
@@ -817,5 +823,9 @@ export default {
             search: 'Open search dialog',
             newGroup: 'New group screen',
         },
+    },
+    guides: {
+        screenShare: 'Screen share',
+        screenShareRequest: 'Expensify is inviting you to a screen share',
     },
 };

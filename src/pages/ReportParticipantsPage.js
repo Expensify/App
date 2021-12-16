@@ -91,7 +91,7 @@ const ReportParticipantsPage = (props) => {
                     styles.containerWithSpaceBetween,
                 ]}
             >
-                {participants.length
+                {Boolean(participants.length)
                     && (
                     <OptionsList
                         sections={[{
