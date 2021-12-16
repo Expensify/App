@@ -161,7 +161,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         />
                     </View>
                     <ExpensiPicker
-                        value={CONST.REPORT.VISIBILITY.RESTRICTED}
+                        value={this.state.visibility}
                         label={this.props.translate('newRoomPage.visibility')}
                         items={visibilityOptions}
                         onChange={visibility => this.setState({visibility})}
