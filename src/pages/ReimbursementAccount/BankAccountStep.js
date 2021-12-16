@@ -29,6 +29,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
 import ExpensiForm from '../../components/ExpensiForm';
+import ExpensifyButton from '../../components/ExpensifyButton';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -81,24 +82,24 @@ class BankAccountStep extends React.Component {
 
         // These are taken from BankCountry.js in Web-Secure
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.accountNumber.trim())) {
-            errors.accountNumber = true;
+            errors.accountNumber = 'reimbursementAccount.errors.accountNumber';
         }
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
             errors.routingNumber = 'reimbursementAccount.errors.routingNumber';
         }
-        if (!values.hasAcceptedTerms) {
-            errors.hasAcceptedTerms = true;
-        }
+        // if (!values.hasAcceptedTerms) {
+        //     errors.hasAcceptedTerms = true;
+        // }
 
-        BankAccounts.setBankAccountFormValidationErrors(errors);
+        // BankAccounts.setBankAccountFormValidationErrors(errors);
         return errors;
     }
 
-    addManualAccount(values) {
-        if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
-            return;
-        }
+    addManualAccount(values, setLoading) {
+        // if (!this.validate()) {
+        //     BankAccounts.showBankAccountErrorModal();
+        //     return;
+        // }
 
         BankAccounts.setupWithdrawalAccount({
             ...values,
@@ -108,7 +109,7 @@ class BankAccountStep extends React.Component {
             country: CONST.COUNTRY.US,
             currency: CONST.CURRENCY.USD,
             fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
-        });
+        }, setLoading);
     }
 
     /**
@@ -235,8 +236,10 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ExpensiForm
                         name={ONYXKEYS.REIMBURSEMENT_ACCOUNT}    
-                        defaultValues={this.props.reimbursementAccount.draft}
+                        defaultValues={this.props.reimbursementAccountDraft.draft}
                         validate={this.validate}
+                        onSubmit={this.addManualAccount}
+                        style={[styles.flex1, styles.mh5]}
                     >
                         <ExpensifyText style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
@@ -281,6 +284,14 @@ class BankAccountStep extends React.Component {
                             )}
                             // hasError={this.getErrors().hasAcceptedTerms}
                         />
+                        <ExpensifyButton
+                            success
+                            pressOnEnter
+                            text={"Save & continue"}
+                            // onPress={props.onSubmit}
+                            // isDisabled={props.isDisabled}
+                            // isLoading={props.isLoading}
+                        />
                     </ExpensiForm>
                 )}
             </View>
@@ -298,7 +309,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}_draft`,
         },
         user: {
             key: ONYXKEYS.USER,

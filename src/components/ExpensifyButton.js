@@ -110,7 +110,8 @@ class ExpensifyButton extends Component {
             if (this.props.isDisabled || this.props.isLoading) {
                 return;
             }
-            this.props.onPress();
+            // this.props.onPress();
+            this.props.onSubmit();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
@@ -169,7 +170,7 @@ class ExpensifyButton extends Component {
     render() {
         return (
             <Pressable
-                onPress={this.props.onPress}
+                onPress={this.props.onSubmit}
                 onLongPress={this.props.onLongPress}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
@@ -205,6 +206,7 @@ class ExpensifyButton extends Component {
     }
 }
 
+ExpensifyButton.EXPENSIFORM = true;
 ExpensifyButton.propTypes = propTypes;
 ExpensifyButton.defaultProps = defaultProps;
 

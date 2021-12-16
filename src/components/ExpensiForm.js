@@ -2,6 +2,8 @@ import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import * as FormAction from '../libs/actions/ExpensiForm';
+import {ScrollView, View} from 'react-native';
+import styles from '../styles/styles';
 
 const propTypes = {
     name: PropTypes.string.isRequired,
@@ -9,6 +11,8 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     defaultValues: PropTypes.object,
+    // eslint-disable-next-line react/forbid-prop-types
+    serverErrors: PropTypes.object,
 
     validate: PropTypes.func.isRequired,
     saveDraft: PropTypes.bool,
@@ -16,6 +20,7 @@ const propTypes = {
 
 const defaultProps = {
     defaultValues: {},
+    serverErrors: {},
     saveDraft: true,
 };
 
@@ -24,8 +29,10 @@ class ExpensiForm extends React.Component {
         super(props);
 
         this.state = {
+            isLoading: false,
             defaultValues: this.props.defaultValues,
             errors: {},
+            serverErrors: {},
         };
         this.inputRefs = React.createRef();
         this.inputRefs.current = {};
@@ -35,6 +42,8 @@ class ExpensiForm extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.validate = this.validate.bind(this);
         this.clearInputErrors = this.clearInputErrors.bind(this);
+        this.setLoading = this.setLoading.bind(this);
+        this.setServerError = this.setServerError.bind(this);
     }
 
     getFormValues() {
@@ -45,21 +54,18 @@ class ExpensiForm extends React.Component {
         return formData;
     }
 
-    // TODO: Skip saving draft for sensitive inputs, e.g. passwords
-    // Should be called onChange
     saveDraft(draft) {
         if (!this.props.saveDraft) {
             return;
         }
-        FormAction.saveFormDraft(this.props.name, {draft});
+        FormAction.saveFormDraft(`${this.props.name}_draft`, {draft});
     }
 
-    // Should be called onBlur and onSubmit
     validate(field) {
         const values = this.getFormValues();
         // validate takes in form values and returns errors object in the format
-        // how do we handle multiple errors in this case???
         // {username: 'form.errors.required', name: 'form.errors.tooShort', ...}
+        // how do we handle multiple errors in this case???
 
         // We check if we are trying to validate a single field or the entire form
         const errors = this.props.validate(values);
@@ -73,6 +79,7 @@ class ExpensiForm extends React.Component {
         } else {
             this.setState({errors});
         }
+        return errors;
     }
 
     // Should be called onFocus
@@ -85,17 +92,21 @@ class ExpensiForm extends React.Component {
         }));
     }
 
-    onSubmit(submit) {
+    setLoading(value) {
+        this.setState({isLoading: value})
+    }
+
+    setServerError(value) {
+        this.setState({serverError: value});
+    }
+
+    onSubmit() {
         const values = this.getFormValues();
-        this.validate(values);
-        if (!_.isEmpty(this.state.errors)) {
+        const errors = this.validate();
+        if (!_.isEmpty(errors)) {
             return;
         }
-        FormAction.setLoading(this.props.name, true);
-
-        submit(values).then(() => {
-            FormAction.setLoading(this.props.name, false);
-        });
+        this.props.onSubmit(values, {setLoading: this.setLoading, setServerError: this.setServerError})
     }
 
     render() {
@@ -129,13 +140,23 @@ class ExpensiForm extends React.Component {
                     onSubmit: this.onSubmit,
                     defaultValue: this.state.defaultValues[child.props.name],
                     error: this.state.errors[child.props.name],
+                    isLoading: this.state.isLoading,
                 });
             })
         );
 
         return (
             <>
-                {childrenWrapperWithProps(this.props.children)}
+                <ScrollView
+                    style={[styles.w100, styles.flex1]}
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {/* Form elements */}
+                    <View style={[this.props.style]}>
+                        {childrenWrapperWithProps(this.props.children)}
+                    </View>
+                </ScrollView>
             </>
         );
     }
