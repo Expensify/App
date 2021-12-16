@@ -32,7 +32,7 @@ const propTypes = {
         /** Success message to display when necessary */
         success: PropTypes.string,
 
-        /** Whether or not a sign on form is loading (being submitted) */
+        /** Whether a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
