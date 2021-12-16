@@ -136,7 +136,9 @@ class ACHContractStep extends React.Component {
             const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
             beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
-            BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
+            if (inputKey !== 'manualAddress') {
+                BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
+            }
             return {beneficialOwners};
         });
 
