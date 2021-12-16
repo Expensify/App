@@ -144,7 +144,7 @@ export default function withLocalize(WrappedComponent) {
     ));
 
     WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
-
+    WithLocalize.EXPENSIFORM = WrappedComponent.EXPENSIFORM;
     return WithLocalize;
 }
 

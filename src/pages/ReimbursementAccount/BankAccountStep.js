@@ -37,6 +37,8 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
+    reimbursementAccountDraft: PropTypes.object,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
@@ -49,6 +51,7 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    reimbursementAccountDraft: {},
 };
 
 class BankAccountStep extends React.Component {
@@ -96,7 +99,7 @@ class BankAccountStep extends React.Component {
         return errors;
     }
 
-    addManualAccount(values, setLoading) {
+    addManualAccount(values, {setLoading}) {
         // if (!this.validate()) {
         //     BankAccounts.showBankAccountErrorModal();
         //     return;
@@ -237,7 +240,7 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ExpensiForm
                         name={ONYXKEYS.REIMBURSEMENT_ACCOUNT}    
-                        defaultValues={this.props.reimbursementAccountDraft.draft}
+                        defaultValues={this.props.reimbursementAccountDraft}
                         validate={this.validate}
                         onSubmit={this.addManualAccount}
                         style={[styles.flex1, styles.mh5]}

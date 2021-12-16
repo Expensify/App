@@ -90,9 +90,9 @@ const FormAlertWithSubmitButton = (props) => {
             </View>
         );
     }
-    console.log(props)
+
     return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
+        <View style={[styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
             {props.serverErrors && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
