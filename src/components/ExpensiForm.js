@@ -77,7 +77,7 @@ class ExpensiForm extends React.Component {
                 }
             }));
         } else {
-            this.setState({errors});
+            this.setState({serverErrors: 'There were errors submitting the form', errors});
         }
         return errors;
     }
@@ -116,19 +116,21 @@ class ExpensiForm extends React.Component {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
-
+                console.log('here 1', child?.type?.displayName)
                 // Depth first traversal of the render tree as the form element is likely to be the last node
                 if (child.props.children) {
                     child = React.cloneElement(child, {
                         children: childrenWrapperWithProps(child.props.children),
                     });
                 }
-
+                console.log('here 2', child?.type?.displayName)
                 // We check if the component has the EXPENSIFORM static property enabled,
                 // as we don't want to pass form props to non form components, e.g. View, Text, etc
+                console.log(child.type)
                 if (!child.type.EXPENSIFORM) {
                     return child;
                 }
+                console.log('here 3', child?.type?.displayName)
 
                 // We clone the child passing down all form props
                 const inputRef = node => this.inputRefs.current[child.props.name] = node;
@@ -140,6 +142,7 @@ class ExpensiForm extends React.Component {
                     onSubmit: this.onSubmit,
                     defaultValue: this.state.defaultValues[child.props.name],
                     error: this.state.errors[child.props.name],
+                    serverError: this.state.serverError,
                     isLoading: this.state.isLoading,
                 });
             })

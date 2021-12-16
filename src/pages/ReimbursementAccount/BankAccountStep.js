@@ -30,6 +30,7 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 
 import ExpensiForm from '../../components/ExpensiForm';
 import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensiFormSubmit from '../../components/ExpensiFormSubmit';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -284,10 +285,10 @@ class BankAccountStep extends React.Component {
                             )}
                             // hasError={this.getErrors().hasAcceptedTerms}
                         />
-                        <ExpensifyButton
+                        <ExpensiFormSubmit
                             success
                             pressOnEnter
-                            text={"Save & continue"}
+                            buttonText={"Save & continue"}
                             // onPress={props.onSubmit}
                             // isDisabled={props.isDisabled}
                             // isLoading={props.isLoading}
