@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 const SelectCircle = props => (
-    <View style={[styles.selectCircle, styles.alignSelfCenter]}>
+    <View style={[styles.selectCircle]}>
         {props.isChecked && (
             <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
         )}
