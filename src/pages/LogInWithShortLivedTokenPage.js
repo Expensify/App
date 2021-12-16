@@ -75,7 +75,7 @@ class LogInWithShortLivedTokenPage extends Component {
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
-        // We have two routes, "/" and "transition". We want to dismiss the trasition route, remove it rom the history
+        // We have two routes in our history, "/" and "transition". We want to dismiss the trasition route, remove it from the history
         // or else a user could be routed back to `/transition` when they close the modal.
         // Or in some cases, the home screen gets stuck in `/transition` and there is an endless spinner in the background
         CustomActions.navigateBackToRootDrawer();
