@@ -680,7 +680,7 @@ export default {
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
-            growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados.',
+            growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -810,7 +810,7 @@ export default {
         roomAlreadyExists: 'Ya existe una sala con este nombre',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo',
+        growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
