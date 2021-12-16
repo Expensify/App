@@ -29,6 +29,8 @@ export default {
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
+    SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
+    SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
     SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/payments/add-bank-account',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',

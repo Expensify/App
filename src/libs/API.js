@@ -1111,6 +1111,21 @@ function UpdatePolicy(parameters) {
 }
 
 /**
+ * Transfer Wallet balance and takes either the bankAccoundID or fundID
+ * @param {Object} parameters
+ * @param {String} [parameters.bankAccountID]
+ * @param {String} [parameters.fundID]
+ * @returns {Promise}
+ */
+function TransferWalletBalance(parameters) {
+    const commandName = 'TransferWalletBalance';
+    if (!parameters.bankAccountID && !parameters.fundID) {
+        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
+    }
+    return Network.post(commandName, parameters);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {String} parameters.reportName
@@ -1186,4 +1201,5 @@ export {
     Policy_Employees_Remove,
     PreferredLocale_Update,
     Policy_Delete,
+    TransferWalletBalance,
 };
