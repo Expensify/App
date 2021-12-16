@@ -99,7 +99,7 @@ class BankAccountStep extends React.Component {
         return errors;
     }
 
-    addManualAccount(values, {setLoading}) {
+    addManualAccount(values, formFunctions) {
         // if (!this.validate()) {
         //     BankAccounts.showBankAccountErrorModal();
         //     return;
@@ -113,7 +113,7 @@ class BankAccountStep extends React.Component {
             country: CONST.COUNTRY.US,
             currency: CONST.CURRENCY.USD,
             fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
-        }, setLoading);
+        }, formFunctions);
     }
 
     /**

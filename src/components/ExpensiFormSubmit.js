@@ -55,7 +55,8 @@ const FormAlertWithSubmitButton = (props) => {
     function getAlertPrompt() {
         let error = '';
 
-        if (!_.isEmpty(props.message)) {
+        // TODO: Check html messages from server errors
+        if (!_.isEmpty(props.serverError.message)) {
             if (props.isMessageHtml) {
                 error = (
                     <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
@@ -73,7 +74,7 @@ const FormAlertWithSubmitButton = (props) => {
                     </ExpensifyText>
                     <TextLink
                         style={styles.label}
-                        onPress={props.onFixTheErrorsLinkPressed}
+                        onPress={() => props.serverError.firstErrorToFix.focus()}
                     >
                         {props.translate('common.fixTheErrors')}
                     </TextLink>
@@ -93,7 +94,7 @@ const FormAlertWithSubmitButton = (props) => {
 
     return (
         <View style={[styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
-            {props.serverErrors && (
+            {!_.isEmpty(props.serverError) && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
                     {getAlertPrompt()}

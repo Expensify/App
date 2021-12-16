@@ -12,7 +12,10 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     defaultValues: PropTypes.object,
     // eslint-disable-next-line react/forbid-prop-types
-    serverErrors: PropTypes.object,
+    serverError: PropTypes.shape({
+        firstErrorToFix: PropTypes.ref,
+        message: PropTypes.string,
+    }),
 
     validate: PropTypes.func.isRequired,
     saveDraft: PropTypes.bool,
@@ -20,7 +23,10 @@ const propTypes = {
 
 const defaultProps = {
     defaultValues: {},
-    serverErrors: {},
+    serverError: {
+        firstErrorToFix: null,
+        message: '',
+    },
     saveDraft: true,
 };
 
@@ -32,7 +38,7 @@ class ExpensiForm extends React.Component {
             isLoading: false,
             defaultValues: this.props.defaultValues,
             errors: {},
-            serverErrors: {},
+            serverError: {},
         };
         this.inputRefs = React.createRef();
         this.inputRefs.current = {};
@@ -69,15 +75,22 @@ class ExpensiForm extends React.Component {
 
         // We check if we are trying to validate a single field or the entire form
         const errors = this.props.validate(values);
-        if (field) {
-            this.setState(prevState => ({
-                errors: {
-                    ...prevState.errors,
-                    [field]: errors[field]
-                }
-            }));
-        } else {
-            this.setState({serverErrors: 'There were errors submitting the form', errors});
+        if (!_.isEmpty(errors)) {
+            if (field) {
+                this.setState(prevState => ({
+                    errors: {
+                        ...prevState.errors,
+                        [field]: errors[field]
+                    }
+                }));
+            } else {
+                this.setState({
+                    serverError: {
+                        firstErrorToFix: this.inputRefs.current[_.keys(errors)[0]]
+                    },
+                    errors,
+                });
+            }
         }
         return errors;
     }
@@ -132,6 +145,7 @@ class ExpensiForm extends React.Component {
 
 
                 // We clone the child passing down all form props
+                // We should only pass refs to class components!
                 const inputRef = node => this.inputRefs.current[child.props.name] = node;
                 return React.cloneElement(child, {
                     ref: inputRef,

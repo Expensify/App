@@ -285,9 +285,9 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
  * @param {Boolean} [params.certifyTrueInformation]
  * @param {Array} [params.beneficialOwners]
  */
-function setupWithdrawalAccount(params, setLoading) {
+function setupWithdrawalAccount(params, formFunctions) {
     // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
-    setLoading(true);
+    formFunctions.setLoading(true);
     const updatedACHData = mergeParamsWithLocalACHData(params);
     API.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
@@ -320,11 +320,11 @@ function setupWithdrawalAccount(params, setLoading) {
             // Go to next step
             navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
             // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-            setLoading(false);
+            formFunctions.setLoading(false);
         })
         .catch((response) => {
             // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
-            setLoading(false);
+            formFunctions.addressZipCodesetLoading(false);
             console.error(response.stack);
             errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
         });
