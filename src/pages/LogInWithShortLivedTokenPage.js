@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
@@ -80,6 +81,13 @@ class LogInWithShortLivedTokenPage extends Component {
         // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
         // if they cancel out of the new workspace modal.
         Navigation.dismissModal();
+
+        // New workspace creation is handled in AuthScreens which creates a workspace and navigates to it
+        // We do not need to navigate to /workspace/new
+        if (exitTo === ROUTES.WORKSPACE_NEW) {
+            return;
+        }
+
         Navigation.navigate(exitTo);
     }
 
