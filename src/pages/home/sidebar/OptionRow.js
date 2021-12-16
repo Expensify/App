@@ -14,13 +14,13 @@ import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ExpensifyText from '../../../components/ExpensifyText';
+import SelectCircle from '../../../components/SelectCircle';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -203,13 +203,7 @@ const OptionRow = (props) => {
                                     </ExpensifyText>
                                 </View>
                             ) : null}
-                            {props.showSelectedState && (
-                                <View style={[styles.selectCircle]}>
-                                    {props.isSelected && (
-                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                    )}
-                                </View>
-                            )}
+                            {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
                     </View>
                     {!props.hideAdditionalOptionStates && (
