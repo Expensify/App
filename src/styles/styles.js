@@ -1902,6 +1902,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        padding: 0,
     }, 0),
 
     iouPreviewBox: {
