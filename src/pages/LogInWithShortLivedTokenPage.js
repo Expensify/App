@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import CustomActions from '../libs/Navigation/CustomActions';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -74,13 +75,10 @@ class LogInWithShortLivedTokenPage extends Component {
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
-        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-        // of the workspace modal, then they will be routed back to
-        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-        // if they cancel out of the new workspace modal.
-        Navigation.dismissModal();
+        // We have two routes, "/" and "transition". We want to dismiss the trasition route, remove it rom the history
+        // or else a user could be routed back to `/transition` when they close the modal.
+        // Or in some cases, the home screen gets stuck in `/transition` and there is an endless spinner in the background
+        CustomActions.navigateBackToRootDrawer();
 
         // New workspace creation is handled in AuthScreens which creates a workspace and navigates to it
         // We do not need to navigate to /workspace/new
