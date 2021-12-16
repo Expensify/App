@@ -243,6 +243,7 @@ class ACHContractStep extends React.Component {
                                             zipCode: owner.zipCode || '',
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
+                                            manualAddress: owner.manualAddress,
                                         }}
                                         errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
                                     />
