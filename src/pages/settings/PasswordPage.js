@@ -49,12 +49,10 @@ class PasswordPage extends Component {
         this.state = {
             currentPassword: '',
             newPassword: '',
-            confirmNewPassword: '',
             errors: {
                 currentPassword: false,
                 newPassword: false,
                 confirmNewPassword: false,
-                confirmPasswordMatch: false,
                 newPasswordSameAsOld: false,
             },
         };
@@ -69,7 +67,6 @@ class PasswordPage extends Component {
             currentPassword: 'passwordPage.errors.currentPassword',
             confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
             newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
-            confirmPasswordMatch: 'setPasswordPage.passwordsDontMatch',
             newPassword: 'passwordPage.errors.newPassword',
         };
     }
@@ -125,16 +122,8 @@ class PasswordPage extends Component {
             errors.newPassword = true;
         }
 
-        if (!this.state.confirmNewPassword) {
-            errors.confirmNewPassword = true;
-        }
-
         if (this.state.currentPassword && this.state.newPassword && _.isEqual(this.state.currentPassword, this.state.newPassword)) {
             errors.newPasswordSameAsOld = true;
-        }
-
-        if (ValidationUtils.isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
-            errors.confirmPasswordMatch = true;
         }
 
         this.setState({errors});
@@ -199,6 +188,7 @@ class PasswordPage extends Component {
                                     ? this.getErrorText('newPasswordSameAsOld')
                                     : this.getErrorText('newPassword')}
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
+                                onSubmitEditing={this.submit}
                             />
                             {
 
@@ -213,19 +203,6 @@ class PasswordPage extends Component {
                                 </ExpensifyText>
                                 )
                             }
-                        </View>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.confirmNewPassword}
-                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text, ['confirmPasswordMatch'])}
-                                hasError={this.state.errors.confirmNewPassword || this.state.errors.confirmPasswordMatch}
-                                errorText={this.getErrorText(this.state.errors.confirmNewPassword ? 'confirmNewPassword' : 'confirmPasswordMatch')}
-                                onSubmitEditing={this.validateAndSubmitForm}
-                            />
                         </View>
                         {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
                             <ExpensifyText style={styles.formError}>
