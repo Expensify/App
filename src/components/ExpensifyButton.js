@@ -96,6 +96,7 @@ class ExpensifyButton extends Component {
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         this.renderContent = this.renderContent.bind(this);
+        this.onPress = this.onPress.bind(this);
     }
 
     componentDidMount() {
@@ -167,10 +168,18 @@ class ExpensifyButton extends Component {
         return textComponent;
     }
 
+    onPress() {
+        if (this.props.onSubmit) {
+            this.props.onSubmit();
+        } else {
+            this.props.onPress();
+        }
+    }
+
     render() {
         return (
             <Pressable
-                onPress={this.props.onSubmit}
+                onPress={this.onPress}
                 onLongPress={this.props.onLongPress}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
