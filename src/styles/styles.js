@@ -2018,7 +2018,7 @@ const styles = {
     },
 
     defaultDeletePopover: {
-        width: variables.sideBarWidth - 54,
+        width: variables.sideBarWidth - 68,
     },
 
     cardOverlay: {
