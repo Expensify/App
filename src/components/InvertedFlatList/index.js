@@ -2,15 +2,20 @@ import React, {
     forwardRef,
 } from 'react';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
     innerRef: PropTypes.shape({
         current: PropTypes.instanceOf(FlatList),
     }).isRequired,
+
+    /** Any additional styles to apply */
+    // eslint-disable-next-line react/forbid-prop-types
+    contentContainerStyle: PropTypes.any,
 };
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
@@ -61,12 +66,16 @@ class InvertedFlatList extends React.Component {
                 {...this.props}
                 ref={el => this.list = el}
                 shouldMeasureItems
+                contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
             />
         );
     }
 }
 
 InvertedFlatList.propTypes = propTypes;
+InvertedFlatList.defaultProps = {
+    contentContainerStyle: {},
+};
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
