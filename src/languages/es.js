@@ -810,6 +810,10 @@ export default {
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
+        visibilityOptions: {
+            restricted: 'Restringida',
+            private: 'Privada',
+        },
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',

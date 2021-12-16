@@ -808,6 +808,10 @@ export default {
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        visibilityOptions: {
+            restricted: 'Restricted',
+            private: 'Private',
+        },
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
