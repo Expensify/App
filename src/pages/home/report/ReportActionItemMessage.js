@@ -9,6 +9,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import ExpensifyText from '../../../components/ExpensifyText';
 import * as Localize from '../../../libs/Localize';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     /** The report action */
@@ -33,13 +34,13 @@ const ReportActionItemMessage = (props) => {
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {isDeleted
-                ? <ExpensifyText>{`[${Localize.translateLocal('common.deletedCommentMessage')}]`}</ExpensifyText>
+                ? <ExpensifyText color={themeColors.textSupporting}>{`[${Localize.translateLocal('common.deletedCommentMessage')}]`}</ExpensifyText>
                 : _.map(_.compact(props.action.message), (fragment, index) => (
                     <ReportActionItemFragment
-                        key={`actionFragment-${props.action.sequenceNumber}-${index}`}
-                        fragment={fragment}
-                        isAttachment={props.action.isAttachment}
-                        loading={props.action.loading}
+                            key={`actionFragment-${props.action.sequenceNumber}-${index}`}
+                            fragment={fragment}
+                            isAttachment={props.action.isAttachment}
+                            loading={props.action.loading}
                     />
                 ))}
         </View>
