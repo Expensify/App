@@ -88,14 +88,23 @@ class ReportActionItem extends Component {
     }
 
     /**
+     * Check if the message is deleted
+     * @returns {boolean}
+     */
+    isDeleted() {
+        // A deleted comment has either an empty array or an object with html field with empty string as value
+        return lodashGet(this.props.action, 'message[0].html', '') === '';
+    }
+
+    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
+        // Block menu on the message being Edited or is already deleted
+        if (this.props.draftMessage || this.isDeleted()) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -180,7 +189,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-
+                                    && !this.isDeleted()
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
