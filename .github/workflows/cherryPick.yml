@@ -157,8 +157,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
-      - name: Auto-assign PR if there are merge conflicts
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+      - name: Check if ShortVersionString is up to date
+        id: isShortVersionStringUpdated
+        uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
+
+      - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -184,6 +188,17 @@ jobs:
             This pull request has merge conflicts and can not be automatically merged. :disappointed:
             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
             **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving.
+
+      - name: If PR has a bundle version mismatch, comment with the instructions for assignee
+        if: ${{ !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          body: |
+            The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
+            Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
+            **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers.
 
       - name: Check for an auto approve
         # Important: only auto-approve if there was no merge conflict!
