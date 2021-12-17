@@ -46,7 +46,7 @@ Any array of styles associated with a single type of React element that has at l
 - If a reusable style has 3 or more modifiers it should be refactored into a component with props to modify the styles e.g.
 
 ```jsx
-<ExpensifyButton title="Submit" success large />
+<Button title="Submit" success large />
 ```
 
 ## Inline Styles
