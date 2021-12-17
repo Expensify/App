@@ -7,9 +7,10 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import ExpensifyText from '../../../components/ExpensifyText';
-import * as Localize from '../../../libs/Localize';
 import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/reportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The report action */
@@ -20,6 +21,9 @@ const propTypes = {
         /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
+
+    /** localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -33,7 +37,7 @@ const ReportActionItemMessage = (props) => {
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {isDeleted
-                ? <ExpensifyText color={themeColors.textSupporting}>{`[${Localize.translateLocal('common.deletedCommentMessage')}]`}</ExpensifyText>
+                ? <ExpensifyText color={themeColors.textSupporting}>{`[${props.translate('common.deletedCommentMessage')}]`}</ExpensifyText>
                 : _.map(_.compact(props.action.message), (fragment, index) => (
                     <ReportActionItemFragment
                             key={`actionFragment-${props.action.sequenceNumber}-${index}`}
@@ -50,4 +54,4 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withNetwork()(ReportActionItemMessage);
+export default compose(withNetwork(), withLocalize)(ReportActionItemMessage);
