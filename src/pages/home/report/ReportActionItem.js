@@ -23,6 +23,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -88,15 +89,6 @@ class ReportActionItem extends Component {
     }
 
     /**
-     * Check if the message is deleted
-     * @returns {boolean}
-     */
-    isDeleted() {
-        // A deleted comment has either an empty array or an object with html field with empty string as value
-        return lodashGet(this.props.action, 'message[0].html', '') === '';
-    }
-
-    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
@@ -104,7 +96,7 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited or is already deleted
-        if (this.props.draftMessage || this.isDeleted()) {
+        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -189,7 +181,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-                                    && !this.isDeleted()
+                                    && !ReportUtils.isDeletedAction(this.props.action)
                                 }
                                 draftMessage={this.props.draftMessage}
                             />

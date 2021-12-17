@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
@@ -10,6 +9,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import ExpensifyText from '../../../components/ExpensifyText';
 import * as Localize from '../../../libs/Localize';
 import themeColors from '../../../styles/themes/default';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /** The report action */
@@ -28,9 +28,8 @@ const defaultProps = {
 
 const ReportActionItemMessage = (props) => {
     const isUnsent = props.network.isOffline && props.action.loading;
+    const isDeleted = ReportUtils.isDeletedAction(props.action);
 
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    const isDeleted = lodashGet(props.action, 'message[0].html', '') === '';
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {isDeleted
