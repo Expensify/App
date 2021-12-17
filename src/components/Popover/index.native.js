@@ -17,7 +17,8 @@ const Popover = (props) => {
     const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition', 'disableAnimation']);
     return (
         <Modal
-            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            type={props.fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            popoverAnchorPosition={props.fromSidebarMediumScreen ? props.anchorPosition : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
 

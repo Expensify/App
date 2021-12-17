@@ -81,6 +81,15 @@ describe('isPullRequestMergeable', () => {
         });
     });
 
+    test('Pull request mergeability never resolves', () => {
+        mockGetPullRequest
+            .mockResolvedValue({data: {mergeable: null}});
+        return run().then(() => {
+            expect(mockGetPullRequest).toHaveBeenCalledTimes(30);
+            expect(mockSetOutput).toHaveBeenCalledWith('IS_MERGEABLE', false);
+        });
+    });
+
     test('Github API error', () => {
         mockGetPullRequest.mockRejectedValue(new Error('Some github error'));
         return run().then(() => {

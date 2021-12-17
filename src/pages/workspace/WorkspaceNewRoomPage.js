@@ -129,6 +129,12 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
         const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
+
+        const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
+            label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+            value: visibilityOption,
+        }));
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -155,12 +161,9 @@ class WorkspaceNewRoomPage extends React.Component {
                         />
                     </View>
                     <ExpensiPicker
-                        value={CONST.REPORT.VISIBILITY.RESTRICTED}
+                        value={this.state.visibility}
                         label={this.props.translate('newRoomPage.visibility')}
-                        items={[
-                            {label: 'Restricted', value: CONST.REPORT.VISIBILITY.RESTRICTED},
-                            {label: 'Private', value: CONST.REPORT.VISIBILITY.PRIVATE},
-                        ]}
+                        items={visibilityOptions}
                         onChange={visibility => this.setState({visibility})}
                     />
                 </View>
