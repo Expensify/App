@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -647,7 +648,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
-        height: '100%',
         paddingTop: 23,
         paddingBottom: 8,
         paddingHorizontal: 11,
@@ -681,6 +681,42 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    textInputWithPrefix: {
+        container: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            textAlignVertical: 'center',
+        },
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 10,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
     },
 
     expensiPickerContainer: {
@@ -779,11 +815,6 @@ const styles = {
         marginBottom: 24,
     },
 
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
-    },
-
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -818,8 +849,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -1086,12 +1126,7 @@ const styles = {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
-    },
-
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
+        ...optionAlternateTextPlatformStyles,
     },
 
     appContent: {
@@ -1271,10 +1306,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1989,7 +2021,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
@@ -2156,6 +2188,23 @@ const styles = {
         bottom: 0,
     },
 
+    shortTermsBorder: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+    },
+
+    shortTermsHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
+    shortTermsLargeHorizontalRule: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -2169,7 +2218,7 @@ const styles = {
     shortTermsBoldHeadingSection: {
         paddingRight: 12,
         paddingLeft: 12,
-        marginTop: 16,
+        marginTop: 12,
     },
 
     longTermsRow: {
