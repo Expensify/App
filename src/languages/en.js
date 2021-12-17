@@ -678,6 +678,7 @@ export default {
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
+            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -808,6 +809,10 @@ export default {
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        visibilityOptions: {
+            restricted: 'Restricted',
+            private: 'Private',
+        },
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
