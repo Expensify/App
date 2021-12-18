@@ -82,11 +82,29 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
+/**
+ * Trigger event to show keyboard shortcuts
+ * @param {BrowserWindow} browserWindow
+ */
+const showKeyboardShortcutsModal = (browserWindow) => {
+    if (!browserWindow.isVisible()) {
+        return;
+    }
+    browserWindow.webContents.send('show-keyboard-shortcuts-modal');
+};
+
+
 // Defines the system-level menu item for manually triggering an update after
 const updateAppMenuItem = new MenuItem({
     label: 'Update New Expensify',
     enabled: false,
     click: quitAndInstallWithUpdate,
+});
+
+// Defines the system-level menu item for opening keyboard shortcuts modal
+const keyboardShortcutsMenu = new MenuItem({
+    label: 'View Keyboard Shortcuts',
+    enabled: true,
 });
 
 // Actual auto-update listeners
@@ -138,6 +156,10 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
+            keyboardShortcutsMenu.click = () => {
+                showKeyboardShortcutsModal(browserWindow);
+            };
+
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
             systemMenu.insert(4, new MenuItem({
@@ -158,6 +180,8 @@ const mainWindow = (() => {
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
+            appMenu.submenu.insert(2, keyboardShortcutsMenu);
+
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
