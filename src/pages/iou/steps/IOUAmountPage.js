@@ -220,6 +220,7 @@ class IOUAmountPage extends React.Component {
                         placeholder="0"
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         showSoftInputOnFocus={false}
+                        inputMode="none"
                     />
 
                 </View>
