@@ -78,7 +78,7 @@ const defaultProps = {
     iouReport: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
-    onPreviewPressed: null,
+    onPreviewPressed: () => {},
     containerStyles: [],
 };
 

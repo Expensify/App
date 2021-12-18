@@ -1914,7 +1914,6 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
-        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -2047,10 +2046,6 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
-    },
-
-    cursorDefault: {
-        cursor: 'default',
     },
 
     cursorDisabled: {
