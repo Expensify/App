@@ -3,6 +3,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
+import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import ExpensifyText from '../../components/ExpensifyText';
@@ -27,6 +28,13 @@ const AboutPage = (props) => {
             icon: Expensicons.Link,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+            },
+        },
+        {
+            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+            icon: Expensicons.Keyboard,
+            action: () => {
+                KeyboardShortcuts.showKeyboardShortcutModal();
             },
         },
         {

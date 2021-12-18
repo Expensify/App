@@ -64,6 +64,7 @@ import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
+import Keyboard from '../../../assets/images/keyboard.svg';
 
 export {
     Android,
@@ -132,4 +133,5 @@ export {
     Wallet,
     Workspace,
     ThreeDots,
+    Keyboard,
 };
