@@ -190,7 +190,6 @@ class IOUAmountPage extends React.Component {
         this.setState({amount: this.stripCommaFromAmount(amount)});
     }
 
-
     render() {
         return (
             <>
@@ -210,7 +209,6 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </ExpensifyText>
                     </TouchableOpacity>
-
                     <TextInputAutoWidth
                         inputStyle={styles.iouAmountTextInput}
                         textStyle={styles.iouAmountText}
@@ -222,7 +220,6 @@ class IOUAmountPage extends React.Component {
                         showSoftInputOnFocus={false}
                         inputmode="none"
                     />
-
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth
