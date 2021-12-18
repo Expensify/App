@@ -104,7 +104,7 @@ const updateAppMenuItem = new MenuItem({
 // Defines the system-level menu item for opening keyboard shortcuts modal
 const keyboardShortcutsMenu = new MenuItem({
     label: 'View Keyboard Shortcuts',
-    enabled: true,
+    accelerator: 'CmdOrCtrl+?',
 });
 
 // Actual auto-update listeners
