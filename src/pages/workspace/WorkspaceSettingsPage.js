@@ -118,6 +118,11 @@ class WorkspaceSettingsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
+        // Disables button if none of the form values have changed or workspace name empty
+        const isButtonDisabled = (this.state.name.trim() === ''
+            || (this.props.policy.name === this.state.name.trim()
+            && this.props.policy.outputCurrency === this.state.currency));
+
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.common.settings')}
@@ -126,6 +131,7 @@ class WorkspaceSettingsPage extends React.Component {
                     <FixedFooter style={[styles.w100]}>
                         <Button
                             success
+                            isDisabled={isButtonDisabled}
                             isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
                             onPress={this.submit}
