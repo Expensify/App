@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import withLocalize, {
     withLocalizePropTypes,
 } from '../../components/withLocalize';
@@ -103,7 +103,7 @@ class NewPasswordForm extends React.Component {
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
-                    <ExpensifyText
+                    <Text
                         style={[
                             styles.textLabelSupporting,
                             styles.mt1,
@@ -111,7 +111,7 @@ class NewPasswordForm extends React.Component {
                         ]}
                     >
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
-                    </ExpensifyText>
+                    </Text>
                 </View>
                 <View style={styles.mb6}>
                     <ExpensiTextInput
