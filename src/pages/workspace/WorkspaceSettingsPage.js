@@ -119,9 +119,9 @@ class WorkspaceSettingsPage extends React.Component {
         }
 
         // Disables button if none of the form values have changed or workspace name empty
-        const isButtonDisabled = (this.state.name.trim() === ''
+        const isButtonDisabled = this.state.name.trim() === ''
             || (this.props.policy.name === this.state.name.trim()
-            && this.props.policy.outputCurrency === this.state.currency));
+            && this.props.policy.outputCurrency === this.state.currency);
 
         return (
             <WorkspacePageWithSections
