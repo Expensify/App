@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Picker from './Picker';
+import NativePicker from './NativePicker';
 import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
@@ -53,7 +53,7 @@ class Picker extends PureComponent {
                     {this.props.label && (
                         <ExpensifyText style={[styles.PickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
                     )}
-                    <Picker
+                    <NativePicker
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
