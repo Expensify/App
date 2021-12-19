@@ -22,7 +22,7 @@ const propTypes = {
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
 
-    /** Customize the ExpensiTextInput container */
+    /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** input style */

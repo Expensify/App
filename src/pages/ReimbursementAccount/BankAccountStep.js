@@ -17,7 +17,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
 import ExpensifyText from '../../components/ExpensifyText';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -267,7 +267,7 @@ class BankAccountStep extends React.Component {
                             style={[styles.exampleCheckImage, styles.mb5]}
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
@@ -275,7 +275,7 @@ class BankAccountStep extends React.Component {
                             disabled={shouldDisableInputs}
                             errorText={this.getErrorText('routingNumber')}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}

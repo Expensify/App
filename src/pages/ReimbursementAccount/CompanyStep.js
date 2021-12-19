@@ -11,7 +11,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensifyText from '../../components/ExpensifyText';
 import DatePicker from '../../components/DatePicker';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
@@ -218,7 +218,7 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                 >
                     <ExpensifyText>{this.props.translate('companyStep.subtitle')}</ExpensifyText>
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
@@ -245,7 +245,7 @@ class CompanyStep extends React.Component {
                     )}
                     {this.state.manualAddress && (
                         <>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.companyAddress')}
                                 containerStyles={[styles.mt4]}
                                 onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
@@ -255,7 +255,7 @@ class CompanyStep extends React.Component {
                             <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</ExpensifyText>
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex2, styles.mr2]}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         label={this.props.translate('common.city')}
                                         onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
                                         value={this.state.addressCity}
@@ -270,7 +270,7 @@ class CompanyStep extends React.Component {
                                     />
                                 </View>
                             </View>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.zip')}
                                 containerStyles={[styles.mt4]}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -281,7 +281,7 @@ class CompanyStep extends React.Component {
                         </>
                     )}
 
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -291,14 +291,14 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('website', value)}
                         value={this.state.website}
                         errorText={this.getErrorText('website')}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}

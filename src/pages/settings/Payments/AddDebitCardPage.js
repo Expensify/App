@@ -18,7 +18,7 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -188,13 +188,13 @@ class DebitCardPage extends Component {
                         ref={el => this.form = el}
                     >
                         <View style={[styles.mh5, styles.mb5]}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addDebitCardPage.nameOnCard')}
                                 onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard', nameOnCard)}
                                 value={this.state.nameOnCard}
                                 errorText={this.getErrorText('nameOnCard')}
                             />
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addDebitCardPage.debitCardNumber')}
                                 containerStyles={[styles.mt4]}
                                 onChangeText={cardNumber => this.clearErrorAndSetValue('cardNumber', cardNumber)}
@@ -204,7 +204,7 @@ class DebitCardPage extends Component {
                             />
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex1, styles.mr2]}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                         onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
@@ -214,7 +214,7 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         label={this.props.translate('addDebitCardPage.cvv')}
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}

@@ -7,7 +7,7 @@ import withLocalize, {
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
@@ -94,7 +94,7 @@ class NewPasswordForm extends React.Component {
         return (
             <>
                 <View style={styles.mb6}>
-                    <ExpensiTextInput
+                    <TextInput
                         label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                         secureTextEntry
                         autoCompleteType="password"
@@ -114,7 +114,7 @@ class NewPasswordForm extends React.Component {
                     </ExpensifyText>
                 </View>
                 <View style={styles.mb6}>
-                    <ExpensiTextInput
+                    <TextInput
                         label={`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
                         secureTextEntry
                         autoCompleteType="password"

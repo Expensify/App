@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import {
     propTypes as fieldPropTypes,
     defaultProps as defaultFieldPropTypes,
-} from '../ExpensiTextInput/baseExpensiTextInputPropTypes';
+} from '../TextInput/baseTextInputPropTypes';
 
 const propTypes = {
     ...fieldPropTypes,

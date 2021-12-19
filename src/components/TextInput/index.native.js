@@ -1,10 +1,10 @@
 import React, {forwardRef} from 'react';
 import styles from '../../styles/styles';
-import BaseExpensiTextInput from './BaseExpensiTextInput';
-import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
+import BaseTextInput from './BaseTextInput';
+import {propTypes, defaultProps} from './baseTextInputPropTypes';
 
-const ExpensiTextInput = forwardRef((props, ref) => (
-    <BaseExpensiTextInput
+const TextInput = forwardRef((props, ref) => (
+    <BaseTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
 
@@ -12,12 +12,12 @@ const ExpensiTextInput = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
-        inputStyle={[styles.expensiTextInput]}
+        inputStyle={[styles.TextInput]}
     />
 ));
 
-ExpensiTextInput.propTypes = propTypes;
-ExpensiTextInput.defaultProps = defaultProps;
-ExpensiTextInput.displayName = 'ExpensiTextInput';
+TextInput.propTypes = propTypes;
+TextInput.defaultProps = defaultProps;
+TextInput.displayName = 'TextInput';
 
-export default ExpensiTextInput;
+export default TextInput;
