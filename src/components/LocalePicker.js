@@ -9,7 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
 import * as Localize from '../libs/Localize';
-import ExpensiPicker from './ExpensiPicker';
+import Picker from './Picker';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -47,7 +47,7 @@ const LocalePicker = (props) => {
     }
 
     return (
-        <ExpensiPicker
+        <Picker
             label={props.size === 'normal' ? props.translate('preferencesPage.language') : null}
             onChange={(locale) => {
                 if (locale === props.preferredLocale) {

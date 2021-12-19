@@ -12,9 +12,9 @@ const pickerStylesWeb = () => {
 };
 
 const pickerStyles = (disabled, error, focused) => ({
-    ...styles.expensiPicker(disabled, error, focused),
+    ...styles.Picker(disabled, error, focused),
     inputWeb: {
-        ...styles.expensiPicker(disabled, error, focused).inputWeb,
+        ...styles.Picker(disabled, error, focused).inputWeb,
         ...pickerStylesWeb(),
     },
 });

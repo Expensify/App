@@ -23,7 +23,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import ExpensifyText from '../components/ExpensifyText';
-import ExpensiPicker from '../components/ExpensiPicker';
+import Picker from '../components/Picker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -166,7 +166,7 @@ class ReportDetailsPage extends Component {
                                 </View>
                                 <View>
                                     <View style={[styles.mb5]}>
-                                        <ExpensiPicker
+                                        <Picker
                                             // eslint-disable-next-line max-len
                                             label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
                                             onChange={(notificationPreference) => {

@@ -19,7 +19,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 
 const propTypes = {
@@ -83,7 +83,7 @@ const PreferencesPage = (props) => {
                         </View>
                     </View>
                     <View style={[styles.mb2, styles.w100]}>
-                        <ExpensiPicker
+                        <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)

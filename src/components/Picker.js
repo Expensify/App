@@ -20,7 +20,7 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Customize the ExpensiPicker container */
+    /** Customize the Picker container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
@@ -32,7 +32,7 @@ const defaultProps = {
     containerStyles: [],
 };
 
-class ExpensiPicker extends PureComponent {
+class Picker extends PureComponent {
     constructor() {
         super();
         this.state = {
@@ -46,12 +46,12 @@ class ExpensiPicker extends PureComponent {
             <>
                 <View
                     style={[
-                        styles.expensiPickerContainer,
+                        styles.PickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
                     ]}
                 >
                     {this.props.label && (
-                        <ExpensifyText style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
+                        <ExpensifyText style={[styles.PickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
                     )}
                     <Picker
                         onOpen={() => this.setState({isOpen: true})}
@@ -73,7 +73,7 @@ class ExpensiPicker extends PureComponent {
     }
 }
 
-ExpensiPicker.propTypes = propTypes;
-ExpensiPicker.defaultProps = defaultProps;
+Picker.propTypes = propTypes;
+Picker.defaultProps = defaultProps;
 
-export default ExpensiPicker;
+export default Picker;
