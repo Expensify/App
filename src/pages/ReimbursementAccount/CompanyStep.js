@@ -235,7 +235,7 @@ class CompanyStep extends React.Component {
                                 onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                 errorText={this.getErrorText('addressStreet')}
                             />
-                             <ExpensifyText
+                            <ExpensifyText
                                 style={[styles.textMicroSupporting, styles.pt2]}
                             >
                                 {this.props.translate('common.cantFindAddress')}
