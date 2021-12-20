@@ -232,12 +232,17 @@ class DebitCardPage extends Component {
                                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
-                                    <TextLink
-                                        style={[styles.textMicro]}
-                                        onPress={() => this.setState({manualAddress: true})}
+                                    <ExpensifyText
+                                        style={[styles.textMicroSupporting, styles.pt1]}
                                     >
-                                        Can&apos;t find your address? Enter it manually
-                                    </TextLink>
+                                        {this.props.translate('addDebitCardPage.cantFindAddress')}
+                                        <TextLink
+                                            style={[styles.textMicro]}
+                                            onPress={() => this.setState({manualAddress: true})}
+                                        >
+                                            {this.props.translate('addDebitCardPage.enterManually')}
+                                        </TextLink>
+                                    </ExpensifyText>
                                 </>
                             )}
                             {this.state.manualAddress && (

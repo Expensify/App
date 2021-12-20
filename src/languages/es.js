@@ -317,6 +317,8 @@ export default {
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Ingresar manualmente',
         error: {
             invalidName: 'Por favor ingrese un nombre válido',
             addressZipCode: 'Por favor ingrese un código postal válido',
