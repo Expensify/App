@@ -1,7 +1,14 @@
 import lodashGet from 'lodash/get';
-import lodashUnset from 'lodash/unset';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import * as BankAccounts from './actions/BankAccounts';
+import FormHelper from './FormHelper';
+
+const formHelper = new FormHelper({
+    errorPath: 'reimbursementAccount.errors',
+    setErrors: BankAccounts.setBankAccountFormValidationErrors,
+});
+
+const getErrors = formHelper.getErrors;
+const clearError = formHelper.clearError;
 
 /**
  * Get the default state for input fields in the VBA flow
@@ -15,31 +22,6 @@ import * as BankAccounts from './actions/BankAccounts';
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
     return lodashGet(props, ['reimbursementAccountDraft', fieldName])
         || lodashGet(props, ['achData', fieldName], defaultValue);
-}
-
-/**
- * @param {Object} props
- * @returns {Object}
- */
-function getErrors(props) {
-    return lodashGet(props, ['reimbursementAccount', 'errors'], {});
-}
-
-/**
- * @param {Object} props
- * @param {String} path
- */
-function clearError(props, path) {
-    const errors = getErrors(props);
-    if (!lodashGet(errors, path, false)) {
-        // No error found for this path
-        return;
-    }
-
-    // Clear the existing errors
-    const newErrors = lodashCloneDeep(errors);
-    lodashUnset(newErrors, path);
-    BankAccounts.setBankAccountFormValidationErrors(newErrors);
 }
 
 /**
