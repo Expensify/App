@@ -222,6 +222,7 @@ class WorkspaceInitialPage extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
+                    danger
                     title={this.props.translate('workspace.common.delete')}
                     isVisible={this.state.isDeleteModalOpen}
                     onConfirm={this.confirmDeleteAndHideModal}

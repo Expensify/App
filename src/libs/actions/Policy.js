@@ -149,7 +149,7 @@ function deletePolicy(policyID) {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
                 Growl.error(errorMessage, 5000);
                 return;
             }
@@ -202,7 +202,10 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(() => navigateToPolicy(newPolicyID));
+        .then(() => {
+            Navigation.dismissModal();
+            navigateToPolicy(newPolicyID);
+        });
 }
 
 /**

@@ -18,7 +18,7 @@ import ExpensifyText from '../../../components/ExpensifyText';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
@@ -271,7 +271,7 @@ class ProfilePage extends Component {
                         />
                     </ScrollView>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             isDisabled={isButtonDisabled}
                             onPress={this.updatePersonalDetails}

@@ -11,7 +11,7 @@ import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -104,7 +104,7 @@ class LoginField extends Component {
                                 : this.props.login.partnerUserID}
                         </ExpensifyText>
                         {!this.props.login.validatedDate && (
-                            <ExpensifyButton
+                            <Button
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
