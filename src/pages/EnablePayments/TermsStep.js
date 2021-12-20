@@ -72,7 +72,7 @@ class TermsStep extends React.Component {
                         LabelComponent={() => (
                             <ExpensifyText>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')}`}
-                                <TextLink href="https://use.expensify.com/fees">
+                                <TextLink href="https://use.expensify.com/esignagreement">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
                             </ExpensifyText>
