@@ -36,7 +36,21 @@ const getHTMLOfSelection = () => {
                 if (clonedSelection.textContent) {
                     let node = null;
 
-                    // If selection starts and ends within same text node we use its parentNode.
+                    // If selection starts and ends within same text node we use its parentNode. This is because we can't
+                    // use closest function on a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
+                    // We are selecting closest node because nodes with data-testid can be one of the parents of the actual node.
+                    // Assuming we selected only "block" part of following html:
+                    // <div className="..." style="..." data-testid="pre">
+                    //     <div dir="auto" class="..." style="...">
+                    //         this is block code
+                    //     </div>
+                    // </div>
+                    // commonAncestorContainer: #text "this is block code"
+                    // commonAncestorContainer.parentNode:
+                    //     <div dir="auto" class="..." style="...">
+                    //         this is block code
+                    //     </div>
+                    // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
                     if (range.commonAncestorContainer instanceof HTMLElement) {
                         node = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
                     } else {
