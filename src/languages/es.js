@@ -259,6 +259,7 @@ export default {
         aboutPage: {
             description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
+            viewKeyboardShortcuts: 'Ver atajos de teclado',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reporta un error',
