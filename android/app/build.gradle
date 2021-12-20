@@ -231,7 +231,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation platform("com.google.firebase:firebase-bom:29.0.3")
     implementation "com.google.firebase:firebase-perf"
 
     // GIF support
