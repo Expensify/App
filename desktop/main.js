@@ -93,7 +93,6 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send('show-keyboard-shortcuts-modal');
 };
 
-
 // Defines the system-level menu item for manually triggering an update after
 const updateAppMenuItem = new MenuItem({
     label: 'Update New Expensify',

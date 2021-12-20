@@ -1,17 +1,17 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-let isShortcutsModelOpen;
+let isShortcutsModalOpen;
 Onyx.connect({
     key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
-    callback: flag => isShortcutsModelOpen = flag,
+    callback: flag => isShortcutsModalOpen = flag,
 });
 
 /**
  * Set keyboard shortcuts flag to show modal
  */
 function showKeyboardShortcutModal() {
-    if (isShortcutsModelOpen) {
+    if (isShortcutsModalOpen) {
         return;
     }
     Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, true);
@@ -21,6 +21,9 @@ function showKeyboardShortcutModal() {
  * Unset keyboard shortcuts flag to hide modal
  */
 function hideKeyboardShortcutModal() {
+    if (!isShortcutsModalOpen) {
+        return;
+    }
     Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, false);
 }
 

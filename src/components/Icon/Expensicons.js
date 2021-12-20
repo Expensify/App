@@ -97,6 +97,7 @@ export {
     Hashtag,
     Info,
     Invoice,
+    Keyboard,
     Link,
     LinkCopy,
     Lock,
@@ -125,6 +126,7 @@ export {
     Send,
     SignOut,
     Sync,
+    ThreeDots,
     Trashcan,
     UpArrow,
     Upload,
@@ -132,6 +134,4 @@ export {
     Venmo,
     Wallet,
     Workspace,
-    ThreeDots,
-    Keyboard,
 };
