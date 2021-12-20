@@ -54,4 +54,7 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default compose(withNetwork(), withLocalize)(ReportActionItemMessage);
+export default compose(
+    withNetwork(),
+    withLocalize,
+)(ReportActionItemMessage);
