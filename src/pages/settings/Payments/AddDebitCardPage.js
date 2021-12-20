@@ -220,7 +220,6 @@ class DebitCardPage extends Component {
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}
                                         maxLength="4"
-                                        pattern="\d*"
                                         errorText={this.getErrorText('securityCode')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     />
