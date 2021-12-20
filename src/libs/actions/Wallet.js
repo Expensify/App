@@ -5,7 +5,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
-import Growl from '../Growl';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
