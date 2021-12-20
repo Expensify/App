@@ -8,7 +8,7 @@ const TextInput = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
-        inputStyle={[styles.textInput, styles.textInputDesktop]}
+        inputStyle={[styles.baseTextInput, styles.textInputDesktop]}
     />
 ));
 

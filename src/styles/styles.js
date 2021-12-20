@@ -636,7 +636,7 @@ const styles = {
         ],
     }),
 
-    textInput: {
+    baseTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
