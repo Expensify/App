@@ -95,7 +95,7 @@ class TermsStep extends React.Component {
 
                                 <ExpensifyText>{`${this.props.translate('common.and')} `}</ExpensifyText>
 
-                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                <TextLink href="https://use.expensify.com/walletagreement">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
                                 </TextLink>
                             </>
