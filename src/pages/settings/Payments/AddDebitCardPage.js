@@ -233,14 +233,14 @@ class DebitCardPage extends Component {
                                         errorText={this.getErrorText('addressStreet')}
                                     />
                                     <ExpensifyText
-                                        style={[styles.textMicroSupporting, styles.pt1]}
+                                        style={[styles.textMicroSupporting, styles.pt2]}
                                     >
-                                        {this.props.translate('addDebitCardPage.cantFindAddress')}
+                                        {this.props.translate('common.cantFindAddress')}
                                         <TextLink
                                             style={[styles.textMicro]}
                                             onPress={() => this.setState({manualAddress: true})}
                                         >
-                                            {this.props.translate('addDebitCardPage.enterManually')}
+                                            {this.props.translate('common.enterManually')}
                                         </TextLink>
                                     </ExpensifyText>
                                 </>

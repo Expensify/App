@@ -92,6 +92,8 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -317,8 +319,6 @@ export default {
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
-        cantFindAddress: 'Can\'t find your address? ',
-        enterManually: 'Enter it manually',
         error: {
             invalidName: 'Please enter a valid name',
             addressZipCode: 'Please enter a valid zip code',
