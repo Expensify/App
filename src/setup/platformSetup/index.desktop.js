@@ -16,9 +16,7 @@ export default function () {
     });
 
     // Trigger action to show keyboard shortcuts
-    ipcRenderer.on('show-keyboard-shortcuts-modal', () => {
-        KeyboardShortcuts.showKeyboardShortcutModal();
-    });
+    ipcRenderer.on('show-keyboard-shortcuts-modal', KeyboardShortcuts.showKeyboardShortcutModal);
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();

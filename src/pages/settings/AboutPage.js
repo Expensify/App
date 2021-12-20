@@ -33,9 +33,7 @@ const AboutPage = (props) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
             icon: Expensicons.Keyboard,
-            action: () => {
-                KeyboardShortcuts.showKeyboardShortcutModal();
-            },
+            action: KeyboardShortcuts.showKeyboardShortcutModal,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
