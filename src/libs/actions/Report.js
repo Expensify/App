@@ -125,7 +125,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns the title for a default room or generates one based on the participants
+ * Returns the title for a default room, a policy room or generates one based on the participants
  *
  * @param {Object} fullReport
  * @param {String} chatType
@@ -140,6 +140,11 @@ function getChatReportName(fullReport, chatType) {
         })
             ? ` (${Localize.translateLocal('common.deleted')})`
             : '')}`;
+    }
+
+    // For a basic policy room, return its original name
+    if (ReportUtils.isPolicyRoom({chatType})) {
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;
@@ -533,7 +538,15 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
 function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+        // Don't do anything for messages that aren't deleted.
+        if (message.html) {
+            return;
+        }
+
+        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
+        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+    });
 
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {

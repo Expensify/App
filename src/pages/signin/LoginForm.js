@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ExpensifyText from '../../components/ExpensifyText';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -102,16 +102,17 @@ class LoginForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.state.login.trim()) {
+        const login = this.state.login.trim();
+        if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 
-        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(login);
         const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
 
-        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
-            if (ValidationUtils.isNumericWithSpecialChars(this.state.login)) {
+        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+            if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
                 this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
@@ -124,7 +125,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
+        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {
@@ -163,7 +164,7 @@ class LoginForm extends React.Component {
                     </ExpensifyText>
                 )}
                 <View style={[styles.mt5]}>
-                    <ExpensifyButton
+                    <Button
                         success
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}

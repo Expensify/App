@@ -35,7 +35,7 @@ const defaultProps = {
 };
 
 
-class WelcomePage extends React.Component {
+class WelcomeForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -142,8 +142,8 @@ class WelcomePage extends React.Component {
     }
 }
 
-WelcomePage.propTypes = propTypes;
-WelcomePage.defaultProps = defaultProps;
+WelcomeForm.propTypes = propTypes;
+WelcomeForm.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -152,4 +152,4 @@ export default compose(
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
-)(WelcomePage);
+)(WelcomeForm);

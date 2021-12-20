@@ -90,6 +90,8 @@ export default {
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
+        join: 'Join',
+        decline: 'Decline',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -194,7 +196,6 @@ export default {
         viewDetails: 'View details',
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
-        decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
         settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
@@ -258,6 +259,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
+            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -677,6 +679,7 @@ export default {
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
+            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -807,7 +810,10 @@ export default {
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
-
+        visibilityOptions: {
+            restricted: 'Restricted',
+            private: 'Private',
+        },
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
@@ -823,5 +829,9 @@ export default {
         title: 'Welcome',
         subtitle: 'Welcome to Expensify! Tell us a little bit about yourself before getting started',
         getStarted: 'Get Started',
+    },
+    guides: {
+        screenShare: 'Screen share',
+        screenShareRequest: 'Expensify is inviting you to a screen share',
     },
 };
