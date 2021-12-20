@@ -11,6 +11,9 @@ const growlRef = React.createRef();
  * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
+    if (!growlRef.current) {
+        return;
+    }
     growlRef.current.show(bodyText, type, duration);
 }
 
