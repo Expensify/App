@@ -71,8 +71,7 @@ class TermsStep extends React.Component {
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
                             <ExpensifyText>
-                                {`${this.props.translate('termsStep.haveReadAndAgree')} `}
-
+                                {`${this.props.translate('termsStep.haveReadAndAgree')}`}
                                 <TextLink href="https://use.expensify.com/fees">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
