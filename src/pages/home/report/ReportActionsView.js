@@ -189,6 +189,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
+            return true;
+        }
+
         return false;
     }
 
@@ -558,7 +562,10 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldShowReportRecipientLocalTime && styles.pt0,
+                    ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}

@@ -85,8 +85,9 @@ const HeaderView = (props) => {
             };
         },
     );
+    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
     const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom
+    const title = isDefaultChatRoom || isPolicyRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -145,7 +146,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom}
+                                    shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
                                 />
                                 {isDefaultChatRoom && (
                                     <ExpensifyText
