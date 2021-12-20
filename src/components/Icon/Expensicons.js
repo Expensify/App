@@ -28,6 +28,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
+import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
@@ -56,6 +57,7 @@ import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
+import ThreeDots from '../../../assets/images/three-dots.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import UpArrow from '../../../assets/images/arrow-up.svg';
 import Upload from '../../../assets/images/upload.svg';
@@ -63,8 +65,6 @@ import Users from '../../../assets/images/users.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
-import ThreeDots from '../../../assets/images/three-dots.svg';
-import Keyboard from '../../../assets/images/keyboard.svg';
 
 export {
     Android,
