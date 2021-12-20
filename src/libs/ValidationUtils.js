@@ -138,6 +138,10 @@ function isValidDebitCard(string) {
     return validateCardNumber(string);
 }
 
+function isValidCardName(name) {
+    return CONST.REGEX.ALPHABETIC_CHARS.test(name);
+}
+
 /**
  * @param {String} code
  * @returns {Boolean}
@@ -300,6 +304,7 @@ export {
     meetsAgeRequirements,
     isValidAddress,
     isValidDate,
+    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
