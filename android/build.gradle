@@ -12,7 +12,6 @@ buildscript {
         kotlinVersion = '1.4.21'
     }
     repositories {
-        mavenCentral()
         google()
         jcenter()
     }
@@ -29,7 +28,6 @@ buildscript {
 
 allprojects {
     repositories {
-        mavenCentral()
         mavenLocal()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
