@@ -563,10 +563,10 @@ export default {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
                 + 'saldo cuenta bancaria o tarjeta de débito',
-            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
+            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su billetera Expensify '
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
-            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
+            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su billetera Expensify a '
                 + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
                 + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',
