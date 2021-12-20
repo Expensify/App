@@ -52,9 +52,24 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} [fullPolicyOrPolicySummary.avatarURL]
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
+ * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
+    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
+    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
+    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
+    const customUnitSimplified = customUnit && {
+        id: customUnit.customUnitID,
+        name: customUnit.name,
+        value: customUnitValue,
+        rate: {
+            id: customUnitRate.customUnitRateID,
+            name: customUnitRate.name,
+            currency: customUnitRate.currency,
+            value: Number(customUnitRate.rate),
+        },
+    };
     return {
         id: fullPolicyOrPolicySummary.id,
         name: fullPolicyOrPolicySummary.name,
@@ -67,6 +82,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
+        customUnit: customUnitSimplified,
     };
 }
 
@@ -400,6 +416,67 @@ function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
+/**
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function setCustomUnit(policyID, values) {
+    const payload = {
+        policyID: policyID.toString(),
+        customUnit: JSON.stringify(values),
+        lastModified: null,
+    };
+    API.Policy_CustomUnit_Update(payload)
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error();
+            }
+
+            const localCustomUnit = {
+                id: values.customUnitID,
+                name: values.name,
+                value: values.attributes.unit,
+            };
+            updateLocalPolicyValues(policyID, {customUnit: localCustomUnit});
+        }).catch(() => {
+            // Show the user feedback
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
+        });
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} customUnitID
+ * @param {Object} values
+ */
+function setCustomUnitRate(policyID, customUnitID, values) {
+    const payload = {
+        policyID: policyID.toString(),
+        customUnitID: customUnitID.toString(),
+        customUnitRate: JSON.stringify(values),
+        lastModified: null,
+    };
+
+    API.Policy_CustomUnitRate_Update(payload)
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error();
+            }
+
+            const localCustomUnitRate = {
+                id: values.customUnitRateID,
+                name: values.name,
+                value: Number(values.rate),
+            };
+            updateLocalPolicyValues(policyID, {customUnit: {rate: localCustomUnitRate}});
+        }).catch(() => {
+            // Show the user feedback
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
+        });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -414,4 +491,6 @@ export {
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
+    setCustomUnit,
+    setCustomUnitRate,
 };

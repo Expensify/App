@@ -13,6 +13,7 @@ import MoneyMousePink from '../../../assets/images/product-illustrations/money-m
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
+import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
 
 export {
     BankArrowPink,
@@ -30,4 +31,5 @@ export {
     ReceiptYellow,
     RocketOrange,
     TadaYellow,
+    GpsTrackOrange,
 };
