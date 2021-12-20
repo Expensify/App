@@ -149,7 +149,6 @@ function activateWallet(currentStep, parameters) {
                         return;
                     }
 
-                    Growl.success('All set, your wallet has been activated!');
                     PaymentMethods.continueSetup();
                 });
             if (currentStep === CONST.WALLET.STEP.ONFIDO) {

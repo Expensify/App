@@ -11,12 +11,17 @@ import * as CardUtils from '../CardUtils';
 let setupAction;
 
 /**
+ * Sets an action that we should do after successfully adding a payment method or passing the KYC checks.
+ *
  * @param {Function} action
  */
 function setSetupAction(action) {
     setupAction = action;
 }
 
+/**
+ * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
+ */
 function continueSetup() {
     if (!setupAction) {
         Navigation.goBack();
