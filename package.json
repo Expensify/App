@@ -57,6 +57,7 @@
     "@react-navigation/stack": "6.0.10",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dom-serializer": "^0.2.2",
+    "domhandler": "^4.3.0",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.3.5",

@@ -1,6 +1,7 @@
 import render from 'dom-serializer';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {parseDocument} from 'htmlparser2';
+import {Element} from 'domhandler';
 import _ from 'underscore';
 
 const elementsWillBeSkipped = ['html', 'body'];
@@ -50,11 +51,6 @@ const getHTMLOfSelection = () => {
                     node = node.cloneNode();
                     node.appendChild(clonedSelection);
                     div.appendChild(node);
-
-                    // We should not add new line after last range.
-                    if (i < selection.rangeCount - 1) {
-                        div.appendChild(document.createElement('br'));
-                    }
                 }
             }
 
@@ -83,6 +79,11 @@ const replaceNodes = (dom) => {
     if (dom.attribs && dom.attribs[tagAttribute]) {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
+        }
+
+        // Adding a new line after each comment here, because adding after each range is not working for chrome.
+        if (dom.attribs[tagAttribute] === 'comment') {
+            dom.children.push(new Element('br', {}));
         }
     }
 
