@@ -138,6 +138,11 @@ function isValidDebitCard(string) {
     return validateCardNumber(string);
 }
 
+/**
+ *
+ * @param {String} nameOnCard
+ * @returns {Boolean}
+ */
 function isValidCardName(nameOnCard) {
     if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
         return false;
