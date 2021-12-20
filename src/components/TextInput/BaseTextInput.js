@@ -154,7 +154,7 @@ class BaseTextInput extends Component {
                     <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                         <View
                             style={[
-                                styles.TextInputContainer,
+                                styles.textInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
                                 (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                             ]}
@@ -163,7 +163,7 @@ class BaseTextInput extends Component {
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                    {this.props.multiline && <View style={styles.TextInputLabelBackground} pointerEvents="none" />}
+                                    {this.props.multiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
                                     <TextInputLabel
                                         label={this.props.label}
                                         labelTranslateY={this.state.labelTranslateY}
@@ -172,7 +172,7 @@ class BaseTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <View style={[styles.TextInputAndIconContainer]}>
+                            <View style={[styles.textInputAndIconContainer]}>
                                 <TextInputWithName
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }

@@ -593,7 +593,7 @@ const styles = {
         height: variables.componentSizeLarge,
     },
 
-    TextInputContainer: {
+    textInputContainer: {
         flex: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
@@ -604,7 +604,7 @@ const styles = {
         overflow: 'hidden',
     },
 
-    TextInputLabel: {
+    textInputLabel: {
         position: 'absolute',
         left: 11,
         top: 0,
@@ -614,7 +614,7 @@ const styles = {
         width: '100%',
     },
 
-    TextInputLabelBackground: {
+    textInputLabelBackground: {
         position: 'absolute',
         top: 0,
         width: '100%',
@@ -624,11 +624,11 @@ const styles = {
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
-    TextInputLabelDesktop: {
+    textInputLabelDesktop: {
         transformOrigin: 'left center',
     },
 
-    TextInputLabelTransformation: (translateY, translateX, scale) => ({
+    textInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
             {translateX},
@@ -636,7 +636,7 @@ const styles = {
         ],
     }),
 
-    TextInput: {
+    textInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
@@ -648,12 +648,12 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    TextInputAndIconContainer: {
+    textInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
     },
 
-    TextInputDesktop: addOutlineWidth({}, 0),
+    textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
         paddingRight: 11,

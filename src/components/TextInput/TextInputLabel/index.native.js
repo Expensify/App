@@ -19,8 +19,8 @@ class TextInputLabel extends PureComponent {
                     this.setState({width: nativeEvent.layout.width});
                 }}
                 style={[
-                    styles.TextInputLabel,
-                    styles.TextInputLabelTransformation(
+                    styles.textInputLabel,
+                    styles.textInputLabelTransformation(
                         this.props.labelTranslateY,
                         this.props.labelScale.interpolate({
                             inputRange: [styleConst.ACTIVE_LABEL_SCALE, styleConst.INACTIVE_LABEL_SCALE],
