@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
@@ -10,10 +11,20 @@ import ONYXKEYS from '../ONYXKEYS';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 
 const propTypes = {
+    /** Route for the Add Bank Account screen for a given navigation stack */
+    addBankAccountRoute: PropTypes.string.isRequired,
+
+    /** Route for the Add Debit Card screen for a given navigation stack */
+    addDebitCardRoute: PropTypes.string.isRequired,
+
+    /** Route for the KYC enable payments screen for a given navigation stack */
+    enablePaymentsRoute: PropTypes.string.isRequired,
+
     ...userWalletPropTypes,
 };
 
 const defaultProps = {
+    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
 
@@ -44,6 +55,13 @@ class KYCWall extends React.Component {
         PaymentMethods.setSetupAction(null);
     }
 
+    /**
+     * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
+     * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
+     * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
+     *
+     * @param {Event} event
+     */
     triggerKYCFlow(event) {
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
@@ -63,7 +81,7 @@ class KYCWall extends React.Component {
             return;
         }
 
-        this.props.onSuccessfulKYC(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+        this.props.onSuccessfulKYC();
     }
 
     render() {
