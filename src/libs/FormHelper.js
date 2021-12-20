@@ -6,6 +6,8 @@ class FormHelper {
     constructor({errorPath, setErrors}) {
         this.errorPath = errorPath;
         this.setErrors = setErrors;
+        this.getErrors = this.getErrors.bind(this);
+        this.clearError = this.clearError.bind(this);
     }
 
     /**

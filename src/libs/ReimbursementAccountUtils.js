@@ -7,8 +7,8 @@ const formHelper = new FormHelper({
     setErrors: BankAccounts.setBankAccountFormValidationErrors,
 });
 
-const getErrors = formHelper.getErrors;
-const clearError = formHelper.clearError;
+const getErrors = props => formHelper.getErrors(props);
+const clearError = (props, path) => formHelper.clearError(props, path);
 
 /**
  * Get the default state for input fields in the VBA flow
