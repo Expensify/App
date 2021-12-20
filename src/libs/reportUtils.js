@@ -202,8 +202,8 @@ function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, rep
 
 /**
  * Check if the comment is deleted
- * @param {Array<Object>} action
- * @returns {boolean}
+ * @param {Object} action
+ * @returns {Boolean}
  */
 function isDeletedAction(action) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
