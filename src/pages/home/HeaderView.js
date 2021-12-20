@@ -85,8 +85,9 @@ const HeaderView = (props) => {
             };
         },
     );
+    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
     const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom
+    const title = isDefaultChatRoom || isPolicyRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -122,7 +123,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (ReportUtils.isDefaultRoom(props.report)) {
+                                if (isDefaultChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -145,7 +146,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom}
+                                    shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
                                 />
                                 {isDefaultChatRoom && (
                                     <ExpensifyText
@@ -153,7 +154,6 @@ const HeaderView = (props) => {
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
-                                            styles.mt1,
                                         ]}
                                         numberOfLines={1}
                                     >

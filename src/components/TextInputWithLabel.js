@@ -1,11 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {View, TextInput} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ExpensifyText from './ExpensifyText';
 import TextLink from './TextLink';
+import TextInputWithPrefix from './TextInputWithPrefix';
 
 const propTypes = {
     /** Label text */
@@ -13,6 +13,12 @@ const propTypes = {
 
     /** Text to show if there is an error */
     errorText: PropTypes.string,
+
+    /** Prefix character prepended to the text input */
+    prefixCharacter: PropTypes.string,
+
+    /** Placeholder to display when the text input is empty */
+    placeholder: PropTypes.string,
 
     /** Styles for the outermost container for this component. */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -25,15 +31,21 @@ const propTypes = {
 
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
+
+    /** Callback to execute when the text input is modified */
+    onChangeText: PropTypes.func,
 };
 
 const defaultProps = {
     label: '',
     errorText: '',
+    prefixCharacter: '',
     containerStyles: [],
     helpLinkText: '',
     helpLinkURL: '',
     disabled: false,
+    placeholder: '',
+    onChangeText: () => {},
 };
 
 const TextInputWithLabel = props => (
@@ -54,16 +66,8 @@ const TextInputWithLabel = props => (
                 </TextLink>
             )}
         </View>
-        <TextInput
-            style={[
-                styles.textInput,
-                styles.mb1,
-                props.disabled ? styles.inputDisabled : undefined,
-                props.errorText ? styles.errorOutline : undefined,
-            ]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, ['label', 'errorText'])}
-        />
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+        <TextInputWithPrefix {...(_.omit(props, 'helpLinkText', 'helpLinkURL', 'containerStyles', 'label'))} />
         {props.errorText !== '' && (
             <ExpensifyText style={[styles.formError]}>{props.errorText}</ExpensifyText>
         )}

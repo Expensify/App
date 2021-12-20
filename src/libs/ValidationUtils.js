@@ -316,4 +316,5 @@ export {
     isValidLengthForFirstOrLastName,
     isValidPaypalUsername,
     isValidRoutingNumber,
+    isValidSSNLastFour,
 };

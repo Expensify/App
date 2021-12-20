@@ -16,6 +16,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
+import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
@@ -36,6 +37,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
 import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 
@@ -183,6 +185,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsSecurityPage,
+        name: 'Settings_Security',
+    },
+    {
         Component: SettingsAboutPage,
         name: 'Settings_About',
     },
@@ -245,6 +251,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: WorkspaceInvitePage,
         name: 'Workspace_Invite',
+    },
+    {
+        Component: WorkspaceNewRoomPage,
+        name: 'Workspace_NewRoom',
     },
     {
         Component: ReimbursementAccountPage,
