@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Picker from './Picker';
+import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
 
@@ -18,6 +19,9 @@ const propTypes = {
 
     /** Error text to display */
     errorText: PropTypes.string,
+
+    /** Customize the ExpensiPicker container */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -25,6 +29,7 @@ const defaultProps = {
     isDisabled: false,
     hasError: false,
     errorText: '',
+    containerStyles: [],
 };
 
 class ExpensiPicker extends PureComponent {
@@ -42,18 +47,18 @@ class ExpensiPicker extends PureComponent {
                 <View
                     style={[
                         styles.expensiPickerContainer,
-                        this.state.isOpen && styles.borderColorFocus,
                         this.props.isDisabled && styles.inputDisabled,
-                        this.props.hasError && styles.borderColorDanger,
                     ]}
                 >
                     {this.props.label && (
-                        <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{this.props.label}</Text>
+                        <ExpensifyText style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
                     )}
                     <Picker
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
+                        focused={this.state.isOpen}
+                        hasError={this.props.hasError}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />

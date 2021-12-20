@@ -6,21 +6,13 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import Text from '../../components/Text';
-import {signOut} from '../../libs/actions/Session';
+import ExpensifyText from '../../components/ExpensifyText';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import {
-    Building,
-    Gear,
-    Info,
-    Lock,
-    Profile,
-    SignOut,
-    Wallet,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
@@ -95,7 +87,7 @@ const defaultProps = {
 const defaultMenuItems = [
     {
         translationKey: 'common.profile',
-        icon: Profile,
+        icon: Expensicons.Profile,
         action: () => {
             DateUtils.updateTimezone();
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
@@ -103,28 +95,28 @@ const defaultMenuItems = [
     },
     {
         translationKey: 'common.preferences',
-        icon: Gear,
+        icon: Expensicons.Gear,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        translationKey: 'initialSettingsPage.changePassword',
-        icon: Lock,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
+        translationKey: 'initialSettingsPage.security',
+        icon: Expensicons.Lock,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
     },
     {
         translationKey: 'common.payments',
-        icon: Wallet,
+        icon: Expensicons.Wallet,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
     },
     {
         translationKey: 'initialSettingsPage.about',
-        icon: Info,
+        icon: Expensicons.Info,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
     },
     {
         translationKey: 'initialSettingsPage.signOut',
-        icon: SignOut,
-        action: signOut,
+        icon: Expensicons.SignOut,
+        action: Session.signOut,
     },
 ];
 
@@ -146,7 +138,7 @@ const InitialSettingsPage = (props) => {
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
-            icon: policy.avatarURL ? policy.avatarURL : Building,
+            icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
@@ -177,19 +169,19 @@ const InitialSettingsPage = (props) => {
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
-                            <Text style={[styles.displayName]} numberOfLines={1}>
+                            <ExpensifyText style={[styles.displayName]} numberOfLines={1}>
                                 {props.myPersonalDetails.displayName
                                     ? props.myPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
-                            </Text>
+                            </ExpensifyText>
                         </Pressable>
                         {props.myPersonalDetails.displayName && (
-                            <Text
+                            <ExpensifyText
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(props.session.email)}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </View>
                     {_.map(menuItems, (item, index) => {

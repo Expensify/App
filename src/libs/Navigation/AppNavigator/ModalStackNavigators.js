@@ -16,6 +16,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
+import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
@@ -37,6 +38,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
@@ -163,6 +165,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsSecurityPage,
+        name: 'Settings_Security',
+    },
+    {
         Component: SettingsAboutPage,
         name: 'Settings_About',
     },
@@ -181,6 +187,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsAddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
+    },
+    {
+        Component: AddPersonalBankAccountPage,
+        name: 'Settings_Add_Bank_Account',
     },
     {
         Component: WorkspaceInitialPage,
@@ -221,6 +231,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: WorkspaceInvitePage,
         name: 'Workspace_Invite',
+    },
+    {
+        Component: WorkspaceNewRoomPage,
+        name: 'Workspace_NewRoom',
     },
     {
         Component: ReimbursementAccountPage,

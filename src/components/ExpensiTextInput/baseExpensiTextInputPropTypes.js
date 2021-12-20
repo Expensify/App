@@ -4,6 +4,9 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
+    /** Name attribute for the input */
+    name: PropTypes.string,
+
     /** Input value */
     value: PropTypes.string,
 
@@ -22,14 +25,8 @@ const propTypes = {
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** label translate x */
-    translateX: PropTypes.number,
-
     /** input style */
     inputStyle: PropTypes.arrayOf(PropTypes.object),
-
-    /** should ignore labels translate x? */
-    ignoreLabelTranslateX: PropTypes.bool,
 
     forceActiveLabel: PropTypes.bool,
 
@@ -39,13 +36,12 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
+    name: '',
     errorText: '',
     placeholder: '',
     hasError: false,
     containerStyles: [],
-    translateX: -22,
     inputStyle: [],
-    ignoreLabelTranslateX: false,
     autoFocus: false,
 
     /**

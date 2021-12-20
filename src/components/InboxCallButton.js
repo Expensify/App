@@ -5,8 +5,8 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
-import Button from './Button';
-import {Phone} from './Icon/Expensicons';
+import ExpensifyButton from './ExpensifyButton';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -24,13 +24,13 @@ const InboxCallButton = props => (
         text={props.translate('requestCallPage.callButtonTooltip')}
         containerStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
     >
-        <Button
+        <ExpensifyButton
             onPress={() => {
                 Navigation.navigate(ROUTES.getRequestCallRoute(props.taskID));
             }}
             text={props.translate('requestCallPage.callButton')}
             small
-            icon={Phone}
+            icon={Expensicons.Phone}
         />
     </Tooltip>
 );

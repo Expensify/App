@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
-// eslint-disable-next-line import/no-cycle
 import Log from '../Log';
 
 let socket;
@@ -114,16 +113,14 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
+        let data;
+        try {
+            data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
+        } catch (err) {
+            Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
+            return;
+        }
         if (!isChunked) {
-            let data;
-
-            try {
-                data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
-            } catch (err) {
-                Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
-                return;
-            }
-
             eventCallback(data);
             return;
         }
@@ -133,16 +130,16 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
         // assigned to.
 
         // If we haven't seen this eventID yet, initialize it into our rolling list of packets.
-        if (!chunkedDataEvents[eventData.id]) {
-            chunkedDataEvents[eventData.id] = {chunks: [], receivedFinal: false};
+        if (!chunkedDataEvents[data.id]) {
+            chunkedDataEvents[data.id] = {chunks: [], receivedFinal: false};
         }
 
         // Add it to the rolling list.
-        const chunkedEvent = chunkedDataEvents[eventData.id];
-        chunkedEvent.chunks[eventData.index] = eventData.chunk;
+        const chunkedEvent = chunkedDataEvents[data.id];
+        chunkedEvent.chunks[data.index] = data.chunk;
 
         // If this is the last packet, mark that we've hit the end.
-        if (eventData.final) {
+        if (data.final) {
             chunkedEvent.receivedFinal = true;
         }
 
@@ -159,7 +156,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
                 });
             }
 
-            delete chunkedDataEvents[eventData.id];
+            delete chunkedDataEvents[data.id];
         }
     };
 

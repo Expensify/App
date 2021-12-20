@@ -13,7 +13,7 @@
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
-* [Structure of the app](#structure-of-the-app)
+* [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
@@ -124,7 +124,7 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 ---
 
-# App structure and conventions
+# App Structure and Conventions
 
 ## Onyx
 This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
@@ -373,13 +373,13 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 - Otherwise:
   - Create a new version by triggering the [`createNewVersion` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/createNewVersion.yml)
   - Use the [`updateProtectedBranch` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/updateProtectedBranch.yml) to update the `staging` branch.
-- Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked
+- Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked.
 
 ### deploy
 The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/deploy.yml) is really quite simple. It runs when code is pushed to the `staging` or `production` branches, and:
 
 - If `staging` was updated, it creates a tag matching the new version, and pushes tags.
-- If `production` was updated, it creates a GitHub Release for the new version
+- If `production` was updated, it creates a GitHub Release for the new version.
 
 ### platformDeploy
 The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
