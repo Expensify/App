@@ -1,7 +1,7 @@
 import React from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 
-import styles from '../../styles/styles';
+import styles from '../../../styles/styles';
 import * as pickerPropTypes from './pickerPropTypes';
 import pickerStyles from './pickerStyles';
 
