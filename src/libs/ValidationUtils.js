@@ -138,8 +138,12 @@ function isValidDebitCard(string) {
     return validateCardNumber(string);
 }
 
-function isValidCardName(name) {
-    return CONST.REGEX.ALPHABETIC_CHARS.test(name);
+function isValidCardName(nameOnCard) {
+    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
+        return false;
+    }
+
+    return !_.isEmpty(nameOnCard.trim());
 }
 
 /**

@@ -114,7 +114,7 @@ class DebitCardPage extends Component {
      */
     validate() {
         const errors = {};
-        if (_.isEmpty(this.state.nameOnCard.trim())) {
+        if (!ValidationUtils.isValidCardName(this.state.nameOnCard)) {
             errors.nameOnCard = true;
         }
 
