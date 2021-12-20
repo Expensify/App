@@ -12,12 +12,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import AddPaymentMethodMenu from './AddPaymentMethodMenu';
-import Navigation from '../libs/Navigation/Navigation';
-import getClickedElementLocation from '../libs/getClickedElementLocation';
-import * as PaymentUtils from '../libs/PaymentUtils';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
+import KYCWall from './KYCWall';
 
 const propTypes = {
     /** Settlement currency type */
@@ -29,7 +24,6 @@ const propTypes = {
     /** Associated phone login for the person we are sending money to */
     recipientPhoneNumber: PropTypes.string,
 
-    ...userWalletPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -37,16 +31,11 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     recipientPhoneNumber: '',
     shouldShowPaypal: false,
-
-    // eslint-disable-next-line react/default-props-match-prop-types
-    userWallet: {},
 };
 
 class SettlementButton extends React.Component {
     constructor(props) {
         super(props);
-
-        this.payWithExpensify = this.payWithExpensify.bind(this);
 
         const buttonOptions = [];
 
@@ -77,9 +66,6 @@ class SettlementButton extends React.Component {
 
         this.state = {
             buttonOptions,
-            shouldShowAddPaymentMenu: false,
-            anchorPositionTop: 0,
-            anchorPositionLeft: 0,
         };
     }
 
@@ -94,7 +80,6 @@ class SettlementButton extends React.Component {
 
         this.checkVenmoAvailabilityPromise.cancel();
         this.checkVenmoAvailabilityPromise = null;
-        PaymentMethods.setSetupAction(null);
     }
 
     /**
@@ -133,65 +118,30 @@ class SettlementButton extends React.Component {
             });
     }
 
-    payWithExpensify(event) {
-        // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
-            const position = getClickedElementLocation(event.nativeEvent);
-            this.setState({
-                shouldShowAddPaymentMenu: true,
-                anchorPositionTop: position.bottom - 226,
-                anchorPositionLeft: position.right - 356,
-            });
-            return;
-        }
-
-        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-        if (!hasGoldWallet) {
-            Navigation.navigate(this.props.enablePaymentsRoute);
-            return;
-        }
-
-        this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-    }
-
     render() {
         return (
-            <>
-                <AddPaymentMethodMenu
-                    isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
-                    anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
-                    }}
-                    shouldShowPaypal={false}
-                    onItemSelected={(item) => {
-                        this.setState({shouldShowAddPaymentMenu: false});
-                        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                            Navigation.navigate(this.props.addBankAccountRoute);
-                        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                            Navigation.navigate(this.props.addDebitCardRoute);
-                        }
-                    }}
-                />
-                <ButtonWithMenu
-                    isDisabled={this.props.isDisabled}
-                    isLoading={this.props.isLoading}
-                    onPress={(event, iouPaymentType) => {
-                        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                            // We are setting a callback here so that we can "continue" the original action the user wants to take
-                            // after they add a payment method and successfully go through KYC checks.
-                            PaymentMethods.setSetupAction(this.payWithExpensify);
-                            this.payWithExpensify(event);
-                            return;
-                        }
+            <KYCWall
+                onSuccessfulKYC={() => this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)}
+                enablePaymentsRoute={this.props.enablePaymentsRoute}
+                addBankAccountRoute={this.props.addBankAccountRoute}
+                addDebitCardRoute={this.props.addDebitCardRoute}
+            >
+                {triggerKYCFlow => (
+                    <ButtonWithMenu
+                        isDisabled={this.props.isDisabled}
+                        isLoading={this.props.isLoading}
+                        onPress={(event, iouPaymentType) => {
+                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                                triggerKYCFlow(event);
+                                return;
+                            }
 
-                        this.props.onPress(iouPaymentType);
-                    }}
-                    options={this.state.buttonOptions}
-                />
-            </>
+                            this.props.onPress(iouPaymentType);
+                        }}
+                        options={this.state.buttonOptions}
+                    />
+                )}
+            </KYCWall>
         );
     }
 }
@@ -205,15 +155,6 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
     }),
 )(SettlementButton);
