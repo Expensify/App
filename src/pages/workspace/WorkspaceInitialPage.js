@@ -135,11 +135,17 @@ class WorkspaceInitialPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     shouldShowThreeDotsButton
-                    threeDotsMenuItems={[{
-                        icon: Expensicons.Trashcan,
-                        text: this.props.translate('workspace.common.delete'),
-                        onSelected: () => this.setState({isDeleteModalOpen: true}),
-                    }]}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Plus,
+                            text: this.props.translate('workspace.new.newWorkspace'),
+                            onSelected: () => PolicyActions.createAndNavigate(),
+                        }, {
+                            icon: Expensicons.Trashcan,
+                            text: this.props.translate('workspace.common.delete'),
+                            onSelected: () => this.setState({isDeleteModalOpen: true}),
+                        },
+                    ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
                 />
                 <ScrollView
@@ -216,7 +222,6 @@ class WorkspaceInitialPage extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    danger
                     title={this.props.translate('workspace.common.delete')}
                     isVisible={this.state.isDeleteModalOpen}
                     onConfirm={this.confirmDeleteAndHideModal}
