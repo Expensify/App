@@ -52,7 +52,6 @@ class PasswordPage extends Component {
             errors: {
                 currentPassword: false,
                 newPassword: false,
-                confirmNewPassword: false,
                 newPasswordSameAsOld: false,
             },
         };
@@ -65,7 +64,6 @@ class PasswordPage extends Component {
 
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
-            confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
             newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
             newPassword: 'passwordPage.errors.newPassword',
         };
