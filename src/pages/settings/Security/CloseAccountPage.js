@@ -42,7 +42,7 @@ class CloseAccountPage extends Component {
      * Attempt to close the user's account
      */
     submitForm() {
-        User.closeAccount({message: this.state.reasonForLeaving});
+        User.closeAccount(this.state.reasonForLeaving);
     }
 
     render() {
