@@ -159,6 +159,7 @@ class BankAccountStep extends React.Component {
             isSavings: params.account.isSavings,
             bankName: params.bankName,
             addressName: params.account.addressName,
+            mask: params.account.mask,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
             country: CONST.COUNTRY.US,

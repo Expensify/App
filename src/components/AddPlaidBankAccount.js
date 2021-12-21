@@ -61,6 +61,9 @@ const propTypes = {
 
             /** Routing number for the account */
             routingNumber: PropTypes.string,
+
+            /** last 4 digits of the account number */
+            mask: PropTypes.string,
         })),
     }),
 
