@@ -27,7 +27,6 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             : null;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
-            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             title: bankAccount.addressName,
             description: formattedBankAccountNumber,
             methodID: bankAccount.bankAccountID,
@@ -43,7 +42,6 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             : null;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
-            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
             title: card.addressName,
             description: formattedCardNumber,
             methodID: card.cardNumber,
@@ -55,7 +53,6 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
 
     if (payPalMeUsername) {
         combinedPaymentMethods.push({
-            type: CONST.PAYMENT_METHODS.PAYPAL,
             title: 'PayPal.me',
             methodID: CONST.PAYMENT_METHODS.PAYPAL,
             description: payPalMeUsername,

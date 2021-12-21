@@ -184,11 +184,11 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         Component: TransferBalancePage,
-        name: 'Settings_Transfer_Balance',
+        name: 'Settings_Payments_Transfer_Balance',
     },
     {
         Component: ChooseTransferAccountPage,
-        name: 'Settings_Choose_Transfer_Account',
+        name: 'Settings_Payments_Choose_Transfer_Account',
     },
     {
         Component: SettingsAddPayPalMePage,

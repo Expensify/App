@@ -52,11 +52,11 @@ export default {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,
                     },
-                    Settings_Transfer_Balance: {
+                    Settings_Payments_Transfer_Balance: {
                         path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
                         exact: true,
                     },
-                    Settings_Choose_Transfer_Account: {
+                    Settings_Payments_Choose_Transfer_Account: {
                         path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
                         exact: true,
                     },
