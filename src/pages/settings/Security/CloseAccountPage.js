@@ -8,7 +8,7 @@ import * as User from '../../../libs/actions/User';
 import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import ExpensifyText from '../../../components/ExpensifyText';
 import FixedFooter from '../../../components/FixedFooter';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
@@ -80,7 +80,7 @@ class CloseAccountPage extends Component {
                         />
                     </ScrollView>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             style={[styles.mb5]}
                             text={this.props.translate('closeAccountPage.okayGotIt')}
