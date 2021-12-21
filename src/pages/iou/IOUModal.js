@@ -122,7 +122,6 @@ class IOUModal extends Component {
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
-        this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
 
         this.state = {
             previousStepIndex: 0,
@@ -193,6 +192,7 @@ class IOUModal extends Component {
      */
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
+        const isSendingMoney = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             const formattedAmount = this.props.numberFormat(
                 this.state.amount, {
@@ -200,7 +200,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.isSendRequest) {
+            if (isSendingMoney) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -212,7 +212,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.isSendRequest) {
+            if (isSendingMoney) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -279,24 +279,22 @@ class IOUModal extends Component {
         const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         // If the user is trying to send money, then they need to upgrade to a GOLD wallet
-        if (this.isSendRequest && !hasGoldWallet) {
+        if (!hasGoldWallet) {
             Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
             return;
         }
 
-        if (this.isSendRequest) {
-            IOU.payIOUReport({
-                chatReportID: this.props.route.params.reportID,
-                reportID: 0,
-                paymentMethodType: paymentMethod,
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-                requestorPhoneNumber: this.state.participants[0].phoneNumber,
-                comment: this.state.comment,
-                requestorEmail: this.state.participants[0].login,
-            });
-        }
+        IOU.sendMoney({
+            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
+            reportID: 0,
+            paymentMethodType: paymentMethod,
+            amount: Math.round(this.state.amount * 100),
+            currency: this.props.iou.selectedCurrencyCode,
+            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
+            requestorPhoneNumber: this.state.participants[0].phoneNumber,
+            comment: this.state.comment,
+            requestorEmail: this.state.participants[0].login,
+        });
     }
 
     /**

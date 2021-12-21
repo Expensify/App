@@ -245,39 +245,21 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {Number} params.chatReportID
  * @param {Number} params.reportID
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
- * @param {Number} params.amount
- * @param {String} params.currency
  * @param {String} [params.requestorPhoneNumber] - used for Venmo
  * @param {String} [params.requestorPayPalMeAddress]
- * @param {String} [params.comment]
- * @param {String} [params.requestorEmail]
  */
 function payIOUReport({
     chatReportID,
     reportID,
     paymentMethodType,
-    amount,
-    currency,
     requestorPhoneNumber,
     requestorPayPalMeAddress,
-    comment,
-    requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
 
-    // If we're sending a payment, check the paymentMethodType is valid
-    // We will also create a report on the fly, so we need to pass the report details
-    const isSendingMoney = (_.values(CONST.IOU.PAYMENT_TYPE)).includes(paymentMethodType);
-    const newIOUReportDetails = isSendingMoney ? JSON.stringify({
-        amount,
-        currency,
-        requestorEmail,
-        comment,
-        idempotencyKey: Str.guid(),
-    }) : JSON.stringify({});
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID, newIOUReportDetails})
-        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
+        ? API.PayWithWallet({reportID})
+        : API.PayIOU({reportID, paymentMethodType});
 
     // Build the url for the user's platform of choice if they have
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
@@ -325,11 +307,90 @@ function payIOUReport({
     url);
 }
 
+/**
+ * Sends money by creating and paying for an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
+ *
+ * @param {Object} params
+ * @param {Number} params.chatReportID
+ * @param {Number} params.reportID
+ * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} [params.requestorPhoneNumber] - used for Venmo
+ * @param {String} [params.requestorPayPalMeAddress]
+ * @param {String} [params.comment]
+ * @param {String} [params.requestorEmail]
+ */
+function sendMoney({
+    chatReportID,
+    reportID,
+    paymentMethodType,
+    amount,
+    currency,
+    requestorPhoneNumber,
+    requestorPayPalMeAddress,
+    comment,
+    requestorEmail,
+}) {
+    const newIOUReportDetails = JSON.stringify({
+        amount,
+        currency,
+        requestorEmail,
+        comment,
+        idempotencyKey: Str.guid(),
+    });
+
+    const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
+        ? API.PayWithWallet({reportID, newIOUReportDetails})
+        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
+
+    // Build the url for the user's platform of choice if they have
+    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    let url;
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
+    }
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
+    }
+
+    asyncOpenURL(payIOUPromise
+            .then((response) => {
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
+
+                const chatReportStuff = response.reports[chatReportID];
+                const iouReportStuff = response.reports[reportID];
+                Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            })
+            .catch((error) => {
+                switch (error.message) {
+                    // eslint-disable-next-line max-len
+                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                        break;
+                    case 'This report doesn\'t have reimbursable expenses.':
+                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
+                        break;
+                    default:
+                        Growl.error(error.message, 5000);
+                }
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+            })
+            .finally(() => {
+                Onyx.merge(ONYXKEYS.IOU, {loading: false});
+                Navigation.navigate(ROUTES.REPORT);
+            }),
+        url);
+}
+
 export {
     createIOUTransaction,
     createIOUSplit,
     createIOUSplitGroup,
     rejectTransaction,
     payIOUReport,
+    sendMoney,
     setIOUSelectedCurrency,
 };
