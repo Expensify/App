@@ -92,6 +92,7 @@ export default {
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
         decline: 'Rechazar',
+        transferBalance: 'Transferencia de saldo',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -333,9 +334,27 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        allSet: 'Todo listo!',
+        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
+        gotIt: 'Gracias!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
+        instant: 'Instante',
+        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        ach: '1-3 días laborales',
+        achSummary: 'Sin cargo',
+        whichAccount: '¿Que cuenta?',
+        fee: 'Tarifa',
+        failedTransfer: 'No se pudo transferir el saldo',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Elegir cuenta',
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
+        addDebitCard: 'Agregar tarjeta de débito',
+        addBankAccount: 'Agregar cuenta de banco',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
