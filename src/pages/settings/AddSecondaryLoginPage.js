@@ -11,7 +11,7 @@ import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -147,7 +147,7 @@ class AddSecondaryLoginPage extends Component {
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}

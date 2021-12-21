@@ -11,7 +11,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -234,7 +234,7 @@ class PasswordPage extends Component {
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}

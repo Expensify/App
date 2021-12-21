@@ -259,6 +259,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
+            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -562,10 +563,10 @@ export default {
             sendingFundsTitle: 'Sending funds to another account holder',
             sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
                 + 'bank account, or debit card.',
-            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Wallet '
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
-            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Wallet to '
                 + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '

@@ -16,7 +16,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import ExpensifyText from '../../components/ExpensifyText';
 import ROUTES from '../../ROUTES';
@@ -272,13 +272,13 @@ class WorkspaceMembersPage extends React.Component {
                 />
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
-                        <ExpensifyButton
+                        <Button
                             small
                             success
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                         />
-                        <ExpensifyButton
+                        <Button
                             small
                             danger
                             style={[styles.ml2]}
