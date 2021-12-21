@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -19,8 +19,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
-import MenuItem from '../../../components/MenuItem';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -50,7 +48,6 @@ class PaymentsPage extends React.Component {
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
         this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
         this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
-        this.transferBalance = this.transferBalance.bind(this);
     }
 
     componentDidMount() {
@@ -113,13 +110,6 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
-    /**
-     * Transfer wallet balance
-     */
-    transferBalance() {
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
-    }
-
     render() {
         return (
             <ScreenWrapper>
@@ -131,19 +121,9 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1}>
-                        {Permissions.canUseWallet(this.props.betas) && (
-                            <>
-                                <View style={[styles.mv5]}>
-                                    <CurrentWalletBalance />
-                                </View>
-                                <MenuItem
-                                    title={this.props.translate('common.transferBalance')}
-                                    icon={Expensicons.Transfer}
-                                    onPress={this.transferBalance}
-                                    shouldShowRightIcon
-                                />
-                            </>
-                        )}
+                        {
+                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
+                        }
                         <ExpensifyText
                             style={[styles.ph5, styles.formLabel]}
                         >
