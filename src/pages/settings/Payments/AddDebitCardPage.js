@@ -24,6 +24,7 @@ import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitBu
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
+import StatePicker from '../../../components/StatePicker';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -223,13 +224,64 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <AddressSearch
-                                label={this.props.translate('addDebitCardPage.billingAddress')}
-                                containerStyles={[styles.mt4]}
-                                value={this.state.addressStreet}
-                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
-                                errorText={this.getErrorText('addressStreet')}
-                            />
+                            {!this.state.manualAddress && (
+                                <>
+                                    <AddressSearch
+                                        label={this.props.translate('addDebitCardPage.billingAddress')}
+                                        containerStyles={[styles.mt4]}
+                                        value={this.state.addressStreet}
+                                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                        errorText={this.getErrorText('addressStreet')}
+                                    />
+                                    <ExpensifyText
+                                        style={[styles.textMicroSupporting, styles.pt2]}
+                                    >
+                                        {this.props.translate('common.cantFindAddress')}
+                                        <TextLink
+                                            style={[styles.textMicro]}
+                                            onPress={() => this.setState({manualAddress: true})}
+                                        >
+                                            {this.props.translate('common.enterManually')}
+                                        </TextLink>
+                                    </ExpensifyText>
+                                </>
+                            )}
+                            {this.state.manualAddress && (
+                                <>
+                                    <ExpensiTextInput
+                                        label={this.props.translate('addDebitCardPage.billingAddress')}
+                                        containerStyles={[styles.mt4]}
+                                        onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
+                                        value={this.state.addressStreet}
+                                        errorText={this.getErrorText('addressStreet')}
+                                    />
+                                    <View style={[styles.flexRow, styles.mt4]}>
+                                        <View style={[styles.flex2, styles.mr2]}>
+                                            <ExpensiTextInput
+                                                label={this.props.translate('common.city')}
+                                                onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
+                                                value={this.state.addressCity}
+                                                errorText={this.getErrorText('addressCity')}
+                                            />
+                                        </View>
+                                        <View style={[styles.flex1]}>
+                                            <StatePicker
+                                                onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                                value={this.state.addressState}
+                                                hasError={Boolean(this.getErrorText('addressState'))}
+                                            />
+                                        </View>
+                                    </View>
+                                    <ExpensiTextInput
+                                        label={this.props.translate('common.zip')}
+                                        containerStyles={[styles.mt4]}
+                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                                        value={this.state.addressZipCode}
+                                        errorText={this.getErrorText('addressZipCode')}
+                                    />
+                                </>
+                            )}
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {

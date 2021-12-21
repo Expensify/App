@@ -92,6 +92,8 @@ export default {
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
         decline: 'Rechazar',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Ingresar manualmente',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
