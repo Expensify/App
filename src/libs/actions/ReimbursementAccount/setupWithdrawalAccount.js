@@ -103,10 +103,10 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
         errors.showBankAccountErrorModal(error, isErrorHTML);
     }
 
-    // Go to next step
-    navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
+    const nextStep = response.jsonCode === 200 && !error ? getNextStep(updatedACHData) : updatedACHData.currentStep;
+    navigation.goToWithdrawalAccountSetupStep(nextStep, {
         ...responseACHData,
-        subStep: hasAccountOrRoutingError(response),
+        subStep: hasAccountOrRoutingError(response) ? CONST.BANK_ACCOUNT.SUBSTEP.MANUAL : responseACHData.subStep,
     });
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 }
