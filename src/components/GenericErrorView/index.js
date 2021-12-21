@@ -28,9 +28,9 @@ const GenericErrorView = (props) => {
 
     return (
         <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
-            <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <View style={[styles.flexColumn, styles.flexColumn, styles.alignItemsStart]}>
-                    <View style={[styles.mb5]}>
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={styles.alignItemsStart}>
+                    <View style={styles.mb5}>
                         <Icon
                             src={Expensicons.Bug}
                             height={variables.componentSizeNormal}
@@ -38,12 +38,12 @@ const GenericErrorView = (props) => {
                             fill={defaultTheme.iconSuccessFill}
                         />
                     </View>
-                    <View style={[styles.mb5]}>
+                    <View style={styles.mb5}>
                         <ExpensifyText style={[styles.headerText, styles.textXXLarge]}>
                             {props.translate('genericErrorView.title')}
                         </ExpensifyText>
                     </View>
-                    <View style={[styles.mb5]}>
+                    <View style={styles.mb5}>
                         <ErrorBodyText />
                         <ExpensifyText>
                             {props.translate('genericErrorView.body.helpTextConcierge')}
@@ -62,7 +62,7 @@ const GenericErrorView = (props) => {
                     </View>
                 </View>
             </View>
-            <View styles={[styles.alignSelfEnd]}>
+            <View styles={styles.alignSelfEnd}>
                 <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                     <LogoWordmark height={30} width={80} />
                 </View>
