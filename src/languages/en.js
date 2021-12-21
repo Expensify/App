@@ -93,6 +93,8 @@ export default {
         join: 'Join',
         decline: 'Decline',
         transferBalance: 'Transfer Balance',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',

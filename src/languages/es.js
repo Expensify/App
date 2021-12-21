@@ -93,6 +93,8 @@ export default {
         join: 'Unirse',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Ingresar manualmente',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
