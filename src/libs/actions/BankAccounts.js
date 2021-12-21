@@ -7,6 +7,8 @@ import * as ReimbursementAccount from './ReimbursementAccount';
 import Navigation from '../Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PaymentMethods from './PaymentMethods';
+import Growl from '../Growl';
+import {translateLocal} from '../Localize';
 
 export {
     setupWithdrawalAccount,
@@ -80,6 +82,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
             if (response.jsonCode === 200) {
                 PaymentMethods.getPaymentMethods()
                     .then(() => {
+                        Growl.success(translateLocal('bankAccounts.createdSuccessfully'));
                         Navigation.goBack();
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                     });
@@ -88,6 +91,8 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
 
             if (response.message === 'Incorrect Expensify password entered') {
                 ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
+            } else {
+                Growl.error(translateLocal('bankAccounts.errorCreating'));
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })

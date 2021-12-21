@@ -113,6 +113,10 @@ export default {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
+    bankAccounts: {
+        createdSuccessfully: '',
+        errorCreating: '',
+    },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',

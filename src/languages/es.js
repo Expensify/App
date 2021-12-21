@@ -113,6 +113,10 @@ export default {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
+    bankAccounts: {
+        createdSuccessfully: '',
+        errorCreating: '',
+    },
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',
         whoWasThere: '¿QUIÉN ASISTIÓ?',

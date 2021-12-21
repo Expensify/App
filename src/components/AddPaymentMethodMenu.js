@@ -11,10 +11,18 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
 const propTypes = {
+    /** Should we show the payment method menu? */
     isVisible: PropTypes.bool.isRequired,
+
+    /** Callback to execute when the menu closes */
     onClose: PropTypes.func.isRequired,
+
+    /** Specific position for the menu */
     anchorPosition: PropTypes.shape({
+        /** How far from the top of the screen */
         top: PropTypes.number,
+
+        /** How far from the left of the screen */
         left: PropTypes.number,
     }),
 
