@@ -22,7 +22,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
         }
 
         const formattedBankAccountNumber = bankAccount.accountNumber
-            ? `${Localize.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
+            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
             }`
             : null;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
@@ -39,7 +39,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
 
     _.each(cardList, (card) => {
         const formattedCardNumber = card.cardNumber
-            ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+            ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
             : null;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
@@ -58,16 +58,9 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             type: CONST.PAYMENT_METHODS.PAYPAL,
             title: 'PayPal.me',
             methodID: CONST.PAYMENT_METHODS.PAYPAL,
-            description: this.props.payPalMeUsername,
+            description: payPalMeUsername,
             icon: Expensicons.PayPal,
             key: 'payPalMePaymentMethod',
-        });
-    }
-
-    // If we have not added any payment methods, show a default empty state
-    if (_.isEmpty(combinedPaymentMethods)) {
-        combinedPaymentMethods.push({
-            text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
         });
     }
 
