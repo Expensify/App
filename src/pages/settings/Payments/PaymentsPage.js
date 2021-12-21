@@ -12,7 +12,6 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import Text from '../../../components/Text';
 import {deleteBankAccount} from '../../../libs/actions/BankAccounts';
 import {
     deleteDebitCard,
@@ -264,9 +263,9 @@ class PaymentsPage extends React.Component {
                                 }}
                                 style={[styles.button, styles.mv2, styles.alignSelfCenter, styles.defaultOrDeleteButton]}
                             >
-                                <Text style={[styles.buttonText]}>
+                                <ExpensifyText style={[styles.buttonText]}>
                                     Make Default Payment Method
-                                </Text>
+                                </ExpensifyText>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -283,9 +282,9 @@ class PaymentsPage extends React.Component {
                                     styles.defaultOrDeleteButton,
                                 ]}
                             >
-                                <Text style={[styles.buttonText]}>
+                                <ExpensifyText style={[styles.buttonText]}>
                                     {this.props.translate('common.delete')}
-                                </Text>
+                                </ExpensifyText>
                             </TouchableOpacity>
                         </View>
                     </Popover>
