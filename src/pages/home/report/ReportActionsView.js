@@ -3,21 +3,26 @@ import {
     View,
     Keyboard,
     AppState,
+    // eslint-disable-next-line no-unused-vars
     ActivityIndicator,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {RecyclerListView, DataProvider} from 'recyclerlistview';
+import FullWidthLayoutProvider from './FullWidthLayoutProvider';
 import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
+// eslint-disable-next-line no-unused-vars
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
+// eslint-disable-next-line no-unused-vars
 import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -101,6 +106,7 @@ class ReportActionsView extends React.Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
+        this.flagReportActionForRerender = this.flagReportActionForRerender.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
@@ -108,11 +114,6 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = [];
 
         this.didLayout = false;
-
-        this.state = {
-            isMarkerActive: false,
-            localUnreadActionCount: this.props.report.unreadActionCount,
-        };
 
         this.currentScrollOffset = 0;
         this.updateSortedReportActions(props.reportActions);
@@ -124,6 +125,62 @@ class ReportActionsView extends React.Component {
         this.toggleMarker = this.toggleMarker.bind(this);
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+
+        // A set of report actions that need to be re-rendered
+        // TODO: need to put this in a context so that it can be accessed from BaseHTMLEngineProvider.
+        //  this also means that we need to use unique client-generated ReportActionIDs instead of sequenceNumber because the context is global (above ReportActionsView)
+        this.reportActionsNeedingRerender = new Set();
+
+        this.state = {
+            isMarkerActive: false,
+            localUnreadActionCount: this.props.report.unreadActionCount,
+
+            // TODO: Should we use ReportActionID instead? Need to have client-generated reportActionID first
+            dataProvider: new DataProvider(
+                (before, after) => {
+                    // FIXME: There is no difference in the reportAction when an image loads from the network and the thumbnail resizes. Partial solution in `reportActionsNeedingRerender`
+
+                    const reportActionBefore = before.action;
+                    const reportActionAfter = after.action;
+
+                    // TODO: Figure out all the cases where this can change and optimize this comparison
+                    if (!_.isEqual(reportActionBefore, reportActionAfter)) {
+                        return true;
+                    }
+
+                    if (this.reportActionsNeedingRerender.has(reportActionAfter.sequenceNumber)) {
+                        this.reportActionsNeedingRerender.delete(reportActionAfter.sequenceNumber);
+                        return true;
+                    }
+
+                    return false;
+                },
+            ).cloneWithRows(this.sortedReportActions),
+        };
+
+        const layoutWidth = props.isSmallScreenWidth ? props.windowWidth : props.windowWidth - variables.sideBarWidth;
+        this.layoutProvider = new FullWidthLayoutProvider(
+            i => this.state.dataProvider.getDataForIndex(i).action.actionName,
+            (actionName, dimension) => {
+                // TODO: smarter deterministic estimates for height
+                //  particularly, attachments should default to thumbnail height
+                switch (actionName) {
+                    case CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT:
+                    case CONST.REPORT.ACTIONS.TYPE.IOU:
+                        // eslint-disable-next-line no-param-reassign
+                        dimension.width = layoutWidth;
+                        // eslint-disable-next-line no-param-reassign
+                        dimension.height = 32;
+                        break;
+                    default:
+                        // Unsupported ReportAction type – do not render it
+                        // eslint-disable-next-line no-param-reassign
+                        dimension.width = 0;
+                        // eslint-disable-next-line no-param-reassign
+                        dimension.height = 0;
+                }
+            },
+        );
     }
 
     componentDidMount() {
@@ -471,6 +528,13 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * @param {Object} reportAction
+     */
+    flagReportActionForRerender(reportAction) {
+        this.reportActionsNeedingRerender.add(reportAction);
+    }
+
+    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -495,16 +559,17 @@ class ReportActionsView extends React.Component {
      *
      * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
      *
-     * @param {Object} args
-     * @param {Object} args.item
-     * @param {Number} args.index
+     * @param {String} type
+     * @param {Object} item
      *
      * @returns {React.Component}
      */
-    renderItem({
-        item,
-        index,
-    }) {
+    renderItem(type, item) {
+        if (!_.contains(_.values(CONST.REPORT.ACTIONS.TYPE), type)) {
+            return null;
+        }
+
+        const index = item.action.sequenceNumber;
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
@@ -515,6 +580,7 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                flagForRerender={this.flagReportActionForRerender}
                 index={index}
             />
         );
@@ -546,7 +612,9 @@ class ReportActionsView extends React.Component {
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
+        // eslint-disable-next-line no-unused-vars
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+        // eslint-disable-next-line no-unused-vars
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         return (
@@ -557,7 +625,7 @@ class ReportActionsView extends React.Component {
                     onClick={this.scrollToListBottom}
                     onClose={this.hideMarker}
                 />
-                <InvertedFlatList
+                {/* <InvertedFlatList
                     ref={ReportScrollManager.flatListRef}
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
@@ -578,6 +646,13 @@ class ReportActionsView extends React.Component {
                     onLayout={this.recordTimeToMeasureItemLayout}
                     onScroll={this.trackScroll}
                     extraData={extraData}
+                />
+                */}
+                <RecyclerListView
+                    layoutProvider={this.layoutProvider}
+                    dataProvider={this.state.dataProvider}
+                    rowRenderer={this.renderItem}
+                    forceNonDeterministicRendering
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
             </>

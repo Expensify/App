@@ -49,6 +49,9 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** Call this function to explicitly flag that a re-layout of this report action by the parent is required */
+    // flagForRerender: PropTypes.func.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -149,7 +152,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
-                        <View>
+                        <>
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
@@ -184,7 +187,7 @@ class ReportActionItem extends Component {
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
-                        </View>
+                        </>
                     )}
                 </Hoverable>
             </PressableWithSecondaryInteraction>

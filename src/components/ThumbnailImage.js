@@ -11,16 +11,20 @@ const propTypes = {
     /** Source URL for the preview image */
     previewSourceURL: PropTypes.string.isRequired,
 
+    /** Do the urls require an authToken? */
+    isAuthTokenRequired: PropTypes.bool.isRequired,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Do the urls require an authToken? */
-    isAuthTokenRequired: PropTypes.bool.isRequired,
+    /** Function to call if thumbnail resizes after measuring image. Receives {width, height} arguments. */
+    onResize: PropTypes.func,
 };
 
 const defaultProps = {
     style: {},
+    onResize: () => {},
 };
 
 class ThumbnailImage extends PureComponent {
@@ -42,7 +46,13 @@ class ThumbnailImage extends PureComponent {
         const thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const scaleFactor = width / thumbnailScreenWidth;
         const imageHeight = height / scaleFactor;
-        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
+        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight},
+            () => {
+                this.props.onResize({
+                    width: this.state.thumbnailWidth,
+                    height: this.state.thumbnailHeight,
+                });
+            });
     }
 
     render() {
