@@ -92,6 +92,8 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
