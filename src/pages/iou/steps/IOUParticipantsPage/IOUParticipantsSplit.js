@@ -11,7 +11,7 @@ import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import ExpensifyButton from '../../../../components/ExpensifyButton';
+import Button from '../../../../components/Button';
 import ExpensifyText from '../../../../components/ExpensifyText';
 import FixedFooter from '../../../../components/FixedFooter';
 import personalDetailsPropType from '../../../personalDetailsPropType';
@@ -239,7 +239,7 @@ class IOUParticipantsSplit extends Component {
                                 {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
                             </ExpensifyText>
                         )}
-                        <ExpensifyButton
+                        <Button
                             success
                             style={[styles.w100]}
                             onPress={this.finalizeParticipants}

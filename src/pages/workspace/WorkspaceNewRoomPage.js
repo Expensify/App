@@ -14,7 +14,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as Report from '../../libs/actions/Report';
 import Permissions from '../../libs/Permissions';
@@ -168,7 +168,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     />
                 </View>
                 <FixedFooter>
-                    <ExpensifyButton
+                    <Button
                         isLoading={this.props.isLoadingCreatePolicyRoom}
                         isDisabled={shouldDisableSubmit}
                         success
