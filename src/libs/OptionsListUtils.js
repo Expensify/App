@@ -686,6 +686,7 @@ function getSidebarOptions(
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
+            prioritizePinnedReports: true,
             hideReadReports: true,
             sortByAlphaAsc: true,
         };
