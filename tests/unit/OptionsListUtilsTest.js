@@ -619,8 +619,7 @@ describe('OptionsListUtils', () => {
         () => Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value
-                const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS_WITH_MORE_PINS, 0, CONST.PRIORITY_MODE.GSD);
-                //const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINNED, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
+                const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
                 // report that has no lastMessageTimestamp and the chat with Thor who's message is read
