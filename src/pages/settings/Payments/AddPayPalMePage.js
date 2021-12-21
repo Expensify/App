@@ -14,7 +14,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
@@ -100,7 +100,7 @@ class AddPayPalMePage extends React.Component {
                         </View>
                     </View>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             onPress={this.setPayPalMeUsername}
                             pressOnEnter

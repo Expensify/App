@@ -12,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import ExpensifyButton from '../components/ExpensifyButton';
+import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
@@ -243,7 +243,7 @@ class RequestCallPage extends Component {
                         </View>
                     </ScrollView>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}

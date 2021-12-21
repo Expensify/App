@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
@@ -54,7 +54,7 @@ class BigNumberPad extends React.Component {
                             // avoid unccessary space before the first column.
                             const marginLeft = columnIndex > 0 ? styles.ml3 : {};
                             return (
-                                <ExpensifyButton
+                                <Button
                                     key={column}
                                     style={[styles.flex1, marginLeft]}
                                     text={column}

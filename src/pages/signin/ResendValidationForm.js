@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ExpensifyText from '../../components/ExpensifyText';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -136,7 +136,7 @@ class ResendValidationForm extends React.Component {
                             {this.props.translate('common.back')}
                         </ExpensifyText>
                     </TouchableOpacity>
-                    <ExpensifyButton
+                    <Button
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
