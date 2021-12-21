@@ -88,6 +88,7 @@ export default {
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
     WORKSPACE_BANK_ACCOUNT: 'workspace/:policyID/bank-account',
+    WORKSPACE_NEW_ROOM: 'workspace/new-room',
     getWorkspaceInitialRoute: policyID => `workspace/${policyID}`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     getWorkspaceSettingsRoute: policyID => `workspace/${policyID}/settings`,

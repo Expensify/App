@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Picker from './Picker';
+import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
 
@@ -19,6 +19,9 @@ const propTypes = {
 
     /** Error text to display */
     errorText: PropTypes.string,
+
+    /** Customize the ExpensiPicker container */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -26,6 +29,7 @@ const defaultProps = {
     isDisabled: false,
     hasError: false,
     errorText: '',
+    containerStyles: [],
 };
 
 class ExpensiPicker extends PureComponent {
@@ -47,7 +51,7 @@ class ExpensiPicker extends PureComponent {
                     ]}
                 >
                     {this.props.label && (
-                        <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{this.props.label}</Text>
+                        <ExpensifyText style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
                     )}
                     <Picker
                         onOpen={() => this.setState({isOpen: true})}

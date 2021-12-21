@@ -148,6 +148,7 @@ class SidebarScreen extends Component {
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
                             onItemSelected={this.onCreateMenuItemSelected}
+                            fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
                                     icon: Expensicons.ChatBubble,
@@ -159,6 +160,13 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUseDefaultRooms(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.Hashtag,
+                                        text: this.props.translate('sidebarScreen.newRoom'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                    },
+                                ] : []),
                                 ...(Permissions.canUseIOUSend(this.props.betas) ? [
                                     {
                                         icon: Expensicons.Send,

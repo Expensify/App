@@ -219,6 +219,7 @@ const CONST = {
             POLICY_ANNOUNCE: 'policyAnnounce',
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
+            POLICY_ROOM: 'policyRoom',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -230,7 +231,12 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        VISIBILITY: {
+            RESTRICTED: 'restricted',
+            PRIVATE: 'private',
+        },
         MAX_PREVIEW_AVATARS: 4,
+        MAX_ROOM_NAME_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {

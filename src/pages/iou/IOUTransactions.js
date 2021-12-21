@@ -92,7 +92,7 @@ class IOUTransactions extends Component {
                             canBeRejected={canBeRejected}
                             rejectButtonLabelText={isCurrentUserTransactionCreator
                                 ? this.props.translate('common.cancel')
-                                : this.props.translate('iou.decline')}
+                                : this.props.translate('common.decline')}
                         />
                     );
                 })}

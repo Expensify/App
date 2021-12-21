@@ -39,6 +39,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
@@ -235,6 +236,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: WorkspaceInvitePage,
         name: 'Workspace_Invite',
+    },
+    {
+        Component: WorkspaceNewRoomPage,
+        name: 'Workspace_NewRoom',
     },
     {
         Component: ReimbursementAccountPage,

@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -640,7 +641,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
-        height: '100%',
         paddingTop: 23,
         paddingBottom: 8,
         paddingHorizontal: 11,
@@ -674,6 +674,42 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    textInputWithPrefix: {
+        container: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            textAlignVertical: 'center',
+        },
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 10,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
     },
 
     expensiPickerContainer: {
@@ -770,11 +806,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
     },
 
     signInPageInner: {
@@ -1080,20 +1111,15 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     optionAlternateTextCompact: {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
-    },
-
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
+        ...optionAlternateTextPlatformStyles,
     },
 
     appContent: {
@@ -1273,10 +1299,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1879,6 +1902,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        padding: 0,
     }, 0),
 
     iouPreviewBox: {

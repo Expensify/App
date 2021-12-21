@@ -90,6 +90,8 @@ export default {
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
         bankAccount: 'Cuenta bancaria',
+        join: 'Unirse',
+        decline: 'Rechazar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -177,6 +179,7 @@ export default {
         fabAction: 'Nuevo chat',
         newChat: 'Nuevo chat',
         newGroup: 'Nuevo grupo',
+        newRoom: 'Nueva sala de chat',
         headerChat: 'Chats',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
@@ -193,7 +196,6 @@ export default {
         viewDetails: 'Ver detalles',
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
-        decline: 'Rechazar',
         settlePaypalMe: 'Pagar con PayPal.me',
         settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
@@ -257,6 +259,7 @@ export default {
         aboutPage: {
             description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
+            viewKeyboardShortcuts: 'Ver atajos de teclado',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reporta un error',
@@ -569,10 +572,10 @@ export default {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
                 + 'saldo cuenta bancaria o tarjeta de débito',
-            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
+            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su billetera Expensify '
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
-            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
+            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su billetera Expensify a '
                 + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
                 + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',
@@ -687,6 +690,7 @@ export default {
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
+            growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -806,6 +810,22 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
+    newRoomPage: {
+        newRoom: 'Nueva sala de chat',
+        roomName: 'Nombre de la sala',
+        visibility: 'Visibilidad',
+        restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala a través de "Buscar"',
+        privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
+        createRoom: 'Crea una sala de chat',
+        roomAlreadyExists: 'Ya existe una sala con este nombre',
+        social: 'social',
+        selectAWorkspace: 'Seleccionar un espacio de trabajo',
+        growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
+        visibilityOptions: {
+            restricted: 'Restringida',
+            private: 'Privada',
+        },
+    },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
@@ -815,5 +835,9 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
         },
+    },
+    guides: {
+        screenShare: 'Compartir pantalla',
+        screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
 };
