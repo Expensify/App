@@ -81,9 +81,9 @@ class CloseAccountPage extends Component {
                     </ScrollView>
                     <FixedFooter>
                         <Button
-                            success
+                            danger
                             style={[styles.mb5]}
-                            text={this.props.translate('closeAccountPage.okayGotIt')}
+                            text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={this.submitForm}
                             isDisabled={this.props.accountPhoneOrEmail !== this.state.phoneOrEmail}
