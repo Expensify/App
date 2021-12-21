@@ -1,21 +1,18 @@
-/* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TouchableOpacity, Linking} from 'react-native';
+import {TouchableOpacity} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
     defaultHTMLElementModels,
-    TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
+import AnchorRenderer from './HTMLRenderers/AnchorRenderer';
 import Config from '../../CONFIG';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import fontFamily from '../../styles/fontFamily';
-import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
 import InlineCodeBlock from '../InlineCodeBlock';
 import AttachmentModal from '../AttachmentModal';
 import ThumbnailImage from '../ThumbnailImage';
@@ -23,8 +20,6 @@ import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import ExpensifyText from '../ExpensifyText';
 import withLocalize from '../withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -65,84 +60,6 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
         return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
     }
     return contentWidth;
-}
-
-/**
- * Check if there is an ancestor node with name 'comment'.
- * Finding node with name 'comment' flags that we are rendering a comment.
- * @param {TNode} tnode
- * @returns {Boolean}
- */
-function isInsideComment(tnode) {
-    let currentNode = tnode;
-    while (currentNode.parent) {
-        if (currentNode.domNode.name === 'comment') {
-            return true;
-        }
-        currentNode = currentNode.parent;
-    }
-    return false;
-}
-
-function AnchorRenderer(props) {
-    const htmlAttribs = props.tnode.attributes;
-
-    // An auth token is needed to download Expensify chat attachments
-    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = lodashGet(props.tnode, 'domNode.children[0].data', '');
-    const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
-    const attrHref = htmlAttribs.href || '';
-    const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
-        || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
-
-    // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
-    // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (internalExpensifyPath) {
-        return (
-            <ExpensifyText
-                style={styles.link}
-                onPress={() => Navigation.navigate(internalExpensifyPath)}
-            >
-                <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
-        );
-    }
-
-    if (!isInsideComment(props.tnode)) {
-        // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
-        // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as ExpensifyText for now because TextLink breaks the alignment in Android.
-        return (
-            <ExpensifyText
-                style={styles.link}
-                onPress={() => {
-                    Linking.openURL(attrHref);
-                }}
-            >
-                <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
-        );
-    }
-
-    return (
-        <AnchorForCommentsOnly
-            href={attrHref}
-            isAuthTokenRequired={isAttachment}
-
-            // Unless otherwise specified open all links in
-            // a new window. On Desktop this means that we will
-            // skip the default Save As... download prompt
-            // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            target={htmlAttribs.target || '_blank'}
-            rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={{...props.style, ...parentStyle}}
-            key={props.key}
-            fileName={fileName}
-        >
-            <TNodeChildrenRenderer tnode={props.tnode} />
-        </AnchorForCommentsOnly>
-    );
 }
 
 function CodeRenderer(props) {
