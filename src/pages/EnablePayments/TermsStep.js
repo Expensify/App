@@ -6,7 +6,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
@@ -71,9 +71,8 @@ class TermsStep extends React.Component {
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
                             <ExpensifyText>
-                                {`${this.props.translate('termsStep.haveReadAndAgree')} `}
-
-                                <TextLink href="https://use.expensify.com/fees">
+                                {`${this.props.translate('termsStep.haveReadAndAgree')}`}
+                                <TextLink href="https://use.expensify.com/esignagreement">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
                             </ExpensifyText>
@@ -95,7 +94,7 @@ class TermsStep extends React.Component {
 
                                 <ExpensifyText>{`${this.props.translate('common.and')} `}</ExpensifyText>
 
-                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                <TextLink href="https://use.expensify.com/walletagreement">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
                                 </TextLink>
                             </>
@@ -106,7 +105,7 @@ class TermsStep extends React.Component {
                             {this.props.translate('termsStep.termsMustBeAccepted')}
                         </ExpensifyText>
                     )}
-                    <ExpensifyButton
+                    <Button
                         success
                         style={styles.mb4}
                         text={this.props.translate('termsStep.enablePayments')}
