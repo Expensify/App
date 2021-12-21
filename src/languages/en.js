@@ -832,8 +832,9 @@ export default {
     genericErrorView: {
         title: 'Uh-oh, something went wrong!',
         body: {
-            helpTextMobile: 'Please try closing and reopening the app or switching to web.',
-            helpTextConcierge: 'If the problem persists, reach out to concierge@expensify.com.',
+            helpTextMobile: 'Please try closing and reopening the app or switching to ',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'If the problem persists, reach out to ',
         },
         refresh: 'Refresh',
     },

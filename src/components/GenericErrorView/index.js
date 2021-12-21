@@ -9,6 +9,9 @@ import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
+import ErrorBodyText from './ErrorBodyText';
+import TextLink from '../TextLink';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,12 +40,13 @@ const GenericErrorView = (props) => {
                         </ExpensifyText>
                     </View>
                     <View style={[styles.mb5]}>
-                        <ExpensifyText>
-                            {props.translate('genericErrorView.body.helpTextMobile')}
-                        </ExpensifyText>
-
+                        <ErrorBodyText />
                         <ExpensifyText>
                             {props.translate('genericErrorView.body.helpTextConcierge')}
+                            <TextLink href={CONST.EMAIL.CONCIERGE} style={[styles.link]}>
+                                {CONST.EMAIL.CONCIERGE}
+                            </TextLink>
+
                         </ExpensifyText>
                     </View>
                     <View style={styles.flexWrap}>
