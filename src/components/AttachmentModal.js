@@ -35,6 +35,9 @@ const propTypes = {
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Optional original filename when uploading */
+    originalFileName: PropTypes.string,
+
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
@@ -50,6 +53,7 @@ const defaultProps = {
     isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
+    originalFileName: null,
     isAuthTokenRequired: false,
     onModalHide: () => {},
 };
@@ -144,6 +148,7 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        subtitle={this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '')}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
