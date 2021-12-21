@@ -192,7 +192,7 @@ class AddPlaidBankAccount extends React.Component {
         const accounts = this.getAccounts();
         const token = this.getPlaidLinkToken();
         const options = _.map(accounts, (account, index) => ({
-            value: index, label: `${account.addressName} ${account.accountNumber}`,
+            value: index, label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
 

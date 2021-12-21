@@ -43,53 +43,6 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
 }
 
 /**
- * @param {Object} achData
- * @returns {Object}
- */
-function getOnfidoTokenAndStatusFromACHData(achData) {
-    const onfidoResponse = lodashGet(
-        achData,
-        CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
-    );
-
-    return {
-        sdkToken: lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN),
-        status: onfidoResponse.status,
-    };
-}
-
-/**
- * @param {Object} achData
- * @returns {Boolean}
- */
-function needsToDoOnfido(achData) {
-    const {sdkToken, status} = getOnfidoTokenAndStatusFromACHData(achData);
-    if (!sdkToken || achData.isOnfidoSetupComplete || status === CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * @param {Object} requestorResponse
- * @returns {Array}
- */
-function getRequestorQuestions(requestorResponse) {
-    const questions = lodashGet(requestorResponse, CONST.BANK_ACCOUNT.QUESTIONS.QUESTION) || [];
-    if (!_.isEmpty(questions)) {
-        return questions;
-    }
-
-    const differentiatorQuestion = lodashGet(
-        requestorResponse,
-        CONST.BANK_ACCOUNT.QUESTIONS.DIFFERENTIATOR_QUESTION,
-    );
-
-    return differentiatorQuestion ? [differentiatorQuestion] : [];
-}
-
-/**
  * @param {Object} response
  * @returns {Boolean}
  */
@@ -193,42 +146,6 @@ function mergeParamsWithLocalACHData(data) {
 }
 
 /**
- * @param {Object} achData
- * @param {String} nextStep
- */
-function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
-    const requestorResponse = lodashGet(
-        achData,
-        CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
-    );
-
-    if (achData.useOnfido) {
-        if (needsToDoOnfido(achData)) {
-            navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
-                ...achData,
-                sdkToken: getOnfidoTokenAndStatusFromACHData(achData).sdkToken,
-            });
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-            return;
-        }
-    } else if (requestorResponse) {
-        // Don't go to next step if Requestor Step needs to ask some questions
-        const questions = getRequestorQuestions(requestorResponse);
-        if (!_.isEmpty(questions)) {
-            navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
-                ...achData,
-                questions,
-            });
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-            return;
-        }
-    }
-
-    navigation.goToWithdrawalAccountSetupStep(nextStep, achData);
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-}
-
-/**
  * Create or update the bank account in db with the updated data.
  *
  * This action is called by several steps in the Verified Bank Account flow and is coupled tightly with SetupWithdrawalAccount in Auth
@@ -306,8 +223,18 @@ function setupWithdrawalAccount(params) {
                 setFreePlanVerifiedBankAccountID(responseACHData.bankAccountID);
             }
 
-            if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-                checkDataAndMaybeStayOnRequestorStep(responseACHData, getNextStep(updatedACHData));
+            const nextStep = getNextStep(updatedACHData);
+
+            // Some steps require several substeps based on some data.
+            // This logic is done php side: when we need to display a specific step with specific data, php add them in the response in nextStepValues
+            // Example 1: When forcing manual step after adding Chase bank account via Plaid, so we can ask for the real numbers instead of the plaid substitutes
+            // Example 2: When on the requestor step, showing Onfido view after submitting the identity and retrieving the sdkToken
+            if (_.has(responseACHData, 'nextStepValues')) {
+                navigation.goToWithdrawalAccountSetupStep(_.get(responseACHData.nextStepValues, 'currentStep') || nextStep, {
+                    ...responseACHData,
+                    ...responseACHData.nextStepValues,
+                });
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 return;
             }
 
@@ -317,7 +244,7 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
+            navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
