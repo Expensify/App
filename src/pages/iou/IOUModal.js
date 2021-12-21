@@ -161,8 +161,7 @@ class IOUModal extends Component {
             this.setState({currentStepIndex: 0});
         }
 
-        if (prevProps.iou.selectedCurrencyCode
-            !== this.props.iou.selectedCurrencyCode) {
+        if (prevProps.iou.selectedCurrencyCode !== this.props.iou.selectedCurrencyCode) {
             IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
         }
     }

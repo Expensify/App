@@ -123,7 +123,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (ReportUtils.isDefaultRoom(props.report)) {
+                                if (isDefaultChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -154,7 +154,6 @@ const HeaderView = (props) => {
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
-                                            styles.mt1,
                                         ]}
                                         numberOfLines={1}
                                     >
