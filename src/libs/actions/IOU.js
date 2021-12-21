@@ -356,34 +356,34 @@ function sendMoney({
     }
 
     asyncOpenURL(payIOUPromise
-            .then((response) => {
-                if (response.jsonCode !== 200) {
-                    throw new Error(response.message);
-                }
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
 
-                const chatReportStuff = response.reports[chatReportID];
-                const iouReportStuff = response.reports[reportID];
-                Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-            })
-            .catch((error) => {
-                switch (error.message) {
-                    // eslint-disable-next-line max-len
-                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                        break;
-                    case 'This report doesn\'t have reimbursable expenses.':
-                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                        break;
-                    default:
-                        Growl.error(error.message, 5000);
-                }
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-            })
-            .finally(() => {
-                Onyx.merge(ONYXKEYS.IOU, {loading: false});
-                Navigation.navigate(ROUTES.REPORT);
-            }),
-        url);
+            const chatReportStuff = response.reports[chatReportID];
+            const iouReportStuff = response.reports[reportID];
+            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+        })
+        .catch((error) => {
+            switch (error.message) {
+                // eslint-disable-next-line max-len
+                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    break;
+                case 'This report doesn\'t have reimbursable expenses.':
+                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
+                    break;
+                default:
+                    Growl.error(error.message, 5000);
+            }
+            Onyx.merge(ONYXKEYS.IOU, {error: true});
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+            Navigation.navigate(ROUTES.REPORT);
+        }),
+    url);
 }
 
 export {
