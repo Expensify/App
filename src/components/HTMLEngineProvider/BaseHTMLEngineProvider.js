@@ -234,7 +234,6 @@ function ImgRenderer(props) {
 
     return (
         <AttachmentModal
-            title="Attachment"
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
