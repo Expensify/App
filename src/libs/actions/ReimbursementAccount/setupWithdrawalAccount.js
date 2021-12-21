@@ -226,7 +226,7 @@ function setupWithdrawalAccount(params) {
             const nextStep = getNextStep(updatedACHData);
 
             // Some steps require several substeps based on some data.
-            // This logic is done php side: when we need to display a specific step with specific data, php add them in the response in nextStepValues
+            // This logic is done php side: when we need to display a specific step with specific data, php adds them in the response in nextStepValues
             // Example 1: When forcing manual step after adding Chase bank account via Plaid, so we can ask for the real numbers instead of the plaid substitutes
             // Example 2: When on the requestor step, showing Onfido view after submitting the identity and retrieving the sdkToken
             if (_.has(responseACHData, 'nextStepValues')) {
