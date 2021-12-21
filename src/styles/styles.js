@@ -2344,6 +2344,10 @@ const styles = {
         backgroundColor: colors.black,
         flex: 1,
     },
+
+    errorPageContainer: {
+        backgroundColor: themeColors.componentBG,
+    },
 };
 
 export default styles;

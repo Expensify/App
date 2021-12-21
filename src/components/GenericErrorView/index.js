@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
-
+import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';
 import TextLink from '../TextLink';
@@ -23,11 +23,11 @@ const propTypes = {
 
 const GenericErrorView = (props) => {
     const refreshPage = () => {
-
+        Navigation.navigate(Navigation.getCurrentRoute());
     };
 
     return (
-        <View style={[styles.flex1, styles.m5]}>
+        <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
             <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.flexColumn, styles.flexColumn, styles.alignItemsStart]}>
                     <View style={[styles.mb5]}>
@@ -50,7 +50,6 @@ const GenericErrorView = (props) => {
                             <TextLink href={CONST.EMAIL.CONCIERGE} style={[styles.link]}>
                                 {CONST.EMAIL.CONCIERGE}
                             </TextLink>
-
                         </ExpensifyText>
                     </View>
                     <View style={styles.flexWrap}>

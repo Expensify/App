@@ -220,6 +220,10 @@ export default {
         paddingVertical: 20,
     },
 
+    pv10: {
+        paddingVertical: 40,
+    },
+
     ph0: {
         paddingHorizontal: 0,
     },
