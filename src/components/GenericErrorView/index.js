@@ -7,7 +7,10 @@ import ExpensifyText from '../ExpensifyText';
 import Button from '../Button';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+
 import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';
 import TextLink from '../TextLink';
@@ -15,6 +18,7 @@ import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const GenericErrorView = (props) => {
@@ -52,6 +56,7 @@ const GenericErrorView = (props) => {
                     <View style={styles.flexWrap}>
                         <Button
                             success
+                            small={props.isSmallScreenWidth}
                             onPress={refreshPage}
                             text={props.translate('genericErrorView.refresh')}
                         />
@@ -69,4 +74,7 @@ const GenericErrorView = (props) => {
 
 GenericErrorView.propTypes = propTypes;
 
-export default withLocalize(GenericErrorView);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(GenericErrorView);
