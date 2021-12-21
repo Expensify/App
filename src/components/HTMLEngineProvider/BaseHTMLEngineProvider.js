@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {useMemo} from 'react';
 import {TouchableOpacity} from 'react-native';
 import {
@@ -9,15 +8,12 @@ import {
 import PropTypes from 'prop-types';
 import AnchorRenderer from './HTMLRenderers/AnchorRenderer';
 import CodeRenderer from './HTMLRenderers/CodeRenderer';
+import EditedRenderer from './HTMLRenderers/EditedRenderer';
 import Config from '../../CONFIG';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
 import AttachmentModal from '../AttachmentModal';
 import ThumbnailImage from '../ThumbnailImage';
-import variables from '../../styles/variables';
-import themeColors from '../../styles/themes/default';
-import ExpensifyText from '../ExpensifyText';
-import withLocalize from '../withLocalize';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -58,22 +54,6 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
         return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
     }
     return contentWidth;
-}
-
-function EditedRenderer(props) {
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
-    return (
-        <ExpensifyText
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...defaultRendererProps}
-            fontSize={variables.fontSizeSmall}
-            color={themeColors.textSupporting}
-        >
-            {/* Native devices do not support margin between nested text */}
-            <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
-            {props.translate('reportActionCompose.edited')}
-        </ExpensifyText>
-    );
 }
 
 function ImgRenderer(props) {
@@ -154,7 +134,7 @@ const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
-    edited: withLocalize(EditedRenderer),
+    edited: EditedRenderer,
 };
 
 const renderersProps = {
