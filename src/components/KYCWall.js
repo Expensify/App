@@ -9,6 +9,7 @@ import * as PaymentUtils from '../libs/PaymentUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import ONYXKEYS from '../ONYXKEYS';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -31,12 +32,11 @@ const defaultProps = {
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originall intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
-
 class KYCWall extends React.Component {
     constructor(props) {
         super(props);
 
-        this.triggerKYCFlow = this.triggerKYCFlow.bind(this);
+        this.continue = this.continue.bind(this);
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -46,13 +46,11 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
-        // We are setting a callback here so that we can "continue" the original action the user wants to take
-        // after they add a payment method and successfully go through KYC checks.
-        PaymentMethods.setSetupAction(this.triggerKYCFlow);
+        PaymentMethods.kycWallRef.current = this;
     }
 
     componentWillUnmount() {
-        PaymentMethods.setSetupAction(null);
+        PaymentMethods.kycWallRef.current = null;
     }
 
     /**
@@ -62,9 +60,10 @@ class KYCWall extends React.Component {
      *
      * @param {Event} event
      */
-    triggerKYCFlow(event) {
+    continue(event) {
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+            Log.info('[KYC Wallet] User does not have valid payment method');
             const position = getClickedElementLocation(event.nativeEvent);
             this.setState({
                 shouldShowAddPaymentMenu: true,
@@ -77,10 +76,12 @@ class KYCWall extends React.Component {
         // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
         const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
         if (!hasGoldWallet) {
+            Log.info('[KYC Wallet] User does not have gold wallet');
             Navigation.navigate(this.props.enablePaymentsRoute);
             return;
         }
 
+        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks');
         this.props.onSuccessfulKYC();
     }
 
@@ -104,7 +105,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.children(this.triggerKYCFlow)}
+                {this.props.children(this.continue)}
             </>
         );
     }

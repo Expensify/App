@@ -1,3 +1,4 @@
+import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -8,29 +9,23 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 
-let setupAction;
-
 /**
- * Sets an action that we should do after successfully adding a payment method or passing the KYC checks.
- *
- * @param {Function} action
+ * Sets up a ref to an instance of the KYC Wall component.
  */
-function setSetupAction(action) {
-    setupAction = action;
-}
+const kycWallRef = createRef();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
 function continueSetup() {
-    if (!setupAction) {
+    if (!kycWallRef.current || !kycWallRef.current.continue) {
         Navigation.goBack();
         return;
     }
 
     // Close the view on success and continue with setup
     Navigation.goBack();
-    setupAction();
+    kycWallRef.current.continue();
 }
 
 /**
@@ -122,7 +117,7 @@ function clearDebitCardFormErrorAndSubmit() {
 export {
     getPaymentMethods,
     addBillingCard,
-    setSetupAction,
+    kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
 };
