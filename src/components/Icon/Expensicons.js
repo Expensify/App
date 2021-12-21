@@ -4,6 +4,7 @@ import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
 import Bill from '../../../assets/images/bill.svg';
+import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
@@ -57,6 +58,7 @@ import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
+import Transfer from '../../../assets/images/transfer.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import UpArrow from '../../../assets/images/arrow-up.svg';
@@ -73,6 +75,7 @@ export {
     BackArrow,
     Bank,
     Bill,
+    Bolt,
     Briefcase,
     Building,
     Bug,
@@ -126,6 +129,7 @@ export {
     Send,
     SignOut,
     Sync,
+    Transfer,
     ThreeDots,
     Trashcan,
     UpArrow,
