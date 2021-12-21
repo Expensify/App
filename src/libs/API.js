@@ -955,7 +955,7 @@ function BankAccount_SetupWithdrawal(parameters) {
         'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
         'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
 
         // data from company step:
