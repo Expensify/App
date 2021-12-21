@@ -829,4 +829,12 @@ export default {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
+    genericErrorView: {
+        title: 'Uh-oh, something went wrong!',
+        body: {
+            helpTextMobile: 'Please try closing and reopening the app or switching to web.',
+            helpTextConcierge: 'If the problem persists, reach out to concierge@expensify.com.',
+        },
+        refresh: 'Refresh',
+    },
 };

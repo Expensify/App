@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import BootSplash from '../../libs/BootSplash';
+import GenericErrorView from '../GenericErrorView';
 
 const propTypes = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */
@@ -43,7 +44,7 @@ class BaseErrorBoundary extends React.Component {
     render() {
         if (this.state.hasError) {
             // For the moment we've decided not to render any fallback UI
-            return null;
+            return <GenericErrorView />;
         }
 
         return this.props.children;
