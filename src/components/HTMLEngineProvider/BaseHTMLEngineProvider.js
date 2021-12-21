@@ -5,10 +5,7 @@ import {
     defaultHTMLElementModels,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
-import AnchorRenderer from './HTMLRenderers/AnchorRenderer';
-import CodeRenderer from './HTMLRenderers/CodeRenderer';
-import EditedRenderer from './HTMLRenderers/EditedRenderer';
-import ImageRenderer from './HTMLRenderers/ImageRenderer';
+import htmlRenderers from './HTMLRenderers';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
 
@@ -67,23 +64,6 @@ const customHTMLElementModels = {
     }),
 };
 
-// Define the custom renderer components
-const renderers = {
-    a: AnchorRenderer,
-    code: CodeRenderer,
-    img: ImageRenderer,
-    edited: EditedRenderer,
-};
-
-const renderersProps = {
-    img: {
-        initialDimensions: {
-            width: MAX_IMG_DIMENSIONS,
-            height: MAX_IMG_DIMENSIONS,
-        },
-    },
-};
-
 const defaultViewProps = {style: {alignItems: 'flex-start'}};
 
 // We are using the explicit composite architecture for performance gains.
@@ -107,8 +87,7 @@ const BaseHTMLEngineProvider = (props) => {
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
-                renderers={renderers}
-                renderersProps={renderersProps}
+                renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             >
                 {props.children}
