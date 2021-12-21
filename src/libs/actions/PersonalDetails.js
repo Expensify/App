@@ -288,7 +288,7 @@ function fetchLocalCurrency() {
         })
         .then(getCurrencyList)
         .then(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: 'USD'});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {

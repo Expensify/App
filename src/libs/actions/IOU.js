@@ -245,6 +245,8 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {Number} params.chatReportID
  * @param {Number} params.reportID
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
+ * @param {Number} params.amount
+ * @param {String} params.currency
  * @param {String} [params.requestorPhoneNumber] - used for Venmo
  * @param {String} [params.requestorPayPalMeAddress]
  */
@@ -252,6 +254,8 @@ function payIOUReport({
     chatReportID,
     reportID,
     paymentMethodType,
+    amount,
+    currency,
     requestorPhoneNumber,
     requestorPayPalMeAddress,
 }) {
@@ -297,18 +301,13 @@ function payIOUReport({
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
-
-            // Usually if we are just creating an IOU, we stay on the confirmation page
-            // For sending money, however, we want to return the user to their chat
-            if (isSendingMoney) {
-                Navigation.navigate(ROUTES.REPORT);
-            }
         }),
     url);
 }
 
 /**
  * Sends money by creating and paying for an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
+ * Returns the user to their chat report after sending money.
  *
  * @param {Object} params
  * @param {Number} params.chatReportID
@@ -332,6 +331,8 @@ function sendMoney({
     comment,
     requestorEmail,
 }) {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
