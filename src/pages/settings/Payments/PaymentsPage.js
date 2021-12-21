@@ -34,9 +34,6 @@ import ConfirmPopover from '../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
 
-const PAYPAL = 'payPalMe';
-const DEBIT_CARD = 'debitCard';
-
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -104,7 +101,7 @@ class PaymentsPage extends React.Component {
                     title: account.addressName,
                     icon: Bank,
                 };
-            } else {
+            } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account.cardName,
                     icon: CreditCard,
