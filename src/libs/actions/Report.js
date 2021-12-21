@@ -579,8 +579,6 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
@@ -597,7 +595,7 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastMessageText = ReportUtils.getReportActionMessageText(reportAction);
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 
@@ -613,7 +611,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportActionAttachment(reportAction),
         loading: false,
     };
 

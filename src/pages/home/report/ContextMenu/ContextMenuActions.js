@@ -50,9 +50,7 @@ export default [
             const message = _.last(lodashGet(reportAction, 'message', null));
             const html = lodashGet(message, 'html', '');
             const text = Str.htmlDecode(selection || lodashGet(message, 'text', ''));
-            const isAttachment = _.has(reportAction, 'isAttachment')
-                ? reportAction.isAttachment
-                : ReportUtils.isReportMessageAttachment(text);
+            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 Clipboard.setString(text);
             } else {

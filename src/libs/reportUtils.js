@@ -23,13 +23,28 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Get the newest version of a report action's message.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getReportActionMessageText(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'text'], '');
+}
+
+/**
  * Check whether a report action is Attachment is not.
  *
- * @param {Object} reportMessageText report action's message as text
+ * @param {Object} reportAction
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText) {
-    return reportMessageText === '[Attachment]';
+function isReportActionAttachment(reportAction) {
+    if (lodashGet(reportAction, 'isAttachment', false)) {
+        return true;
+    }
+
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && getReportActionMessageText(reportAction) === '[Attachment]';
 }
 
 /**
@@ -60,7 +75,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportActionAttachment(reportAction);
 }
 
 /**
@@ -202,7 +217,8 @@ function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, rep
 
 export {
     getReportParticipantsTitle,
-    isReportMessageAttachment,
+    getReportActionMessageText,
+    isReportActionAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
