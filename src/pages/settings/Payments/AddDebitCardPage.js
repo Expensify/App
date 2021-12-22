@@ -115,7 +115,7 @@ class DebitCardPage extends Component {
      */
     validate() {
         const errors = {};
-        if (_.isEmpty(this.state.nameOnCard.trim())) {
+        if (!ValidationUtils.isValidCardName(this.state.nameOnCard)) {
             errors.nameOnCard = true;
         }
 
@@ -210,6 +210,7 @@ class DebitCardPage extends Component {
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                         onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                         value={this.state.expirationDate}
+                                        maxLength="7"
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                     />
@@ -219,6 +220,7 @@ class DebitCardPage extends Component {
                                         label={this.props.translate('addDebitCardPage.cvv')}
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}
+                                        maxLength="4"
                                         errorText={this.getErrorText('securityCode')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     />
