@@ -12,15 +12,9 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import {deleteBankAccount} from '../../../libs/actions/BankAccounts';
-import {
-    deleteDebitCard,
-    deletePayPalMe,
-    getPaymentMethods,
-    setWalletLinkedAccount,
-} from '../../../libs/actions/PaymentMethods';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Popover from '../../../components/Popover';
-import {PayPal, Bank, CreditCard} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import ExpensifyText from '../../../components/ExpensifyText';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -92,18 +86,18 @@ class PaymentsPage extends React.Component {
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
                 formattedSelectedPaymentMethod = {
                     title: 'PayPal.me',
-                    icon: PayPal,
+                    icon: Expensicons.PayPal,
                 };
                 Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
             } else if (accountType === 'bankAccount') {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
-                    icon: Bank,
+                    icon: Expensicons.Bank,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account.cardName,
-                    icon: CreditCard,
+                    icon: Expensicons.CreditCard,
                 };
             }
             this.setState({
@@ -178,19 +172,19 @@ class PaymentsPage extends React.Component {
 
     makeDefaultPaymentMethod(password) {
         if (this.state.selectedPaymentMethodType === 'bankAccount') {
-            setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
+            PaymentMethods.setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-            setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
         }
     }
 
     deletePaymentMethod() {
         if (this.state.selectedPaymentMethodType === 'payPalMe') {
-            deletePayPalMe();
+            PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
-            deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
+            BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-            deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 
@@ -246,7 +240,7 @@ class PaymentsPage extends React.Component {
                             {this.props.isSmallScreenWidth && (
                                 <MenuItem
                                     title={this.state.formattedSelectedPaymentMethod.title}
-                                    icon={Bank}
+                                    icon={Expensicons.Bank}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     onPress={() => {}}
                                 />
