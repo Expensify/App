@@ -192,10 +192,8 @@ class DebitCardPage extends Component {
     render() {
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
-        const validAccount = this.props.account.accountExists
-        && this.props.account.validated
-        && !this.props.account.forgotPassword;
-        const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
+        const showMagicSigninLinkMessage = this.props.account.forgotPassword;
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -264,8 +262,12 @@ class DebitCardPage extends Component {
                                     autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                                     secureTextEntry
                                 />
-                                {!showResendValidationLinkForm
+                                {showMagicSigninLinkMessage
                                     ? (
+                                        <ExpensifyText style={[styles.pt2, styles.textLabelSupporting]}>
+                                            {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login})}
+                                        </ExpensifyText>
+                                    ) : (
                                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                                             <TouchableOpacity
                                                 style={[styles.mt2]}
@@ -276,10 +278,6 @@ class DebitCardPage extends Component {
                                                 </ExpensifyText>
                                             </TouchableOpacity>
                                         </View>
-                                    ) : (
-                                        <ExpensifyText style={[styles.pt2, styles.textLabelSupporting]}>
-                                            {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login})}
-                                        </ExpensifyText>
                                     )}
                             </View>
                             <CheckboxWithLabel
