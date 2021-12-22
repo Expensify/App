@@ -21,18 +21,26 @@ import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
+import * as paymentPropTypes from './paymentPropTypes';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    /** Wallet balance transfer props */
+    walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    walletTransfer: {
+        completed: false,
+    },
     betas: [],
     isLoadingPaymentMethods: true,
 };
@@ -164,6 +172,19 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                    />
+                    <ConfirmModal
+                        title={this.props.translate('paymentsPage.allSet')}
+                        onConfirm={PaymentMethods.cancelWalletTransfer}
+                        isVisible={this.props.walletTransfer.completed}
+                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
+                            amount: this.props.numberFormat(
+                                this.props.walletTransfer.transferAmount,
+                                {style: 'currency', currency: 'USD'},
+                            ),
+                        })}
+                        confirmText={this.props.translate('paymentsPage.gotIt')}
+                        shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
