@@ -3,7 +3,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
@@ -13,8 +12,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import getBankIcon from '../../../components/Icon/BankIcons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
 
@@ -82,63 +81,12 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        const combinedPaymentMethods = [];
-
-        _.each(this.props.bankAccountList, (bankAccount) => {
-            // Add all bank accounts besides the wallet
-            if (bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
-                return;
-            }
-            const formattedBankAccountNumber = bankAccount.accountNumber
-                ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                    bankAccount.accountNumber.slice(-4)
-                }`
-                : null;
-            const isDefault = this.props.userWallet.walletLinkedAccountType === 'bankAccount' && this.props.userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
-            const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
-            combinedPaymentMethods.push({
-                type: MENU_ITEM,
-                title: bankAccount.addressName,
-
-                // eslint-disable-next-line
-                description: formattedBankAccountNumber,
-                icon,
-                iconSize,
-                onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
-                key: `bankAccount-${bankAccount.bankAccountID}`,
-                isDefault,
-            });
-        });
-
-        _.each(this.props.cardList, (card) => {
-            const formattedCardNumber = card.cardNumber
-                ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
-                : null;
-            const isDefault = this.props.userWallet.walletLinkedAccountType === 'debitCard' && this.props.userWallet.walletLinkedAccountID === card.fundID;
-            const {icon, iconSize} = getBankIcon(card.bank, true);
-            combinedPaymentMethods.push({
-                type: MENU_ITEM,
-                title: card.addressName,
-                // eslint-disable-next-line
-                description: formattedCardNumber,
-                icon,
-                iconSize,
-                onPress: e => this.props.onPress(e, 'card', card),
-                key: `card-${card.cardNumber}`,
-                isDefault,
-            });
-        });
-
-        if (this.props.payPalMeUsername) {
-            combinedPaymentMethods.push({
-                type: MENU_ITEM,
-                title: 'PayPal.me',
-                description: this.props.payPalMeUsername,
-                icon: Expensicons.PayPal,
-                onPress: e => this.props.onPress(e, 'payPalMe'),
-                key: 'payPalMePaymentMethod',
-            });
-        }
+        let combinedPaymentMethods = PaymentUtils.getPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.wallet);
+        combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
+            ...paymentMethod,
+            type: MENU_ITEM,
+            onPress: e => this.props.onPress(e, paymentMethod.methodID),
+        }));
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {

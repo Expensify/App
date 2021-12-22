@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ExpensifyText from '../../components/ExpensifyText';
 import themeColors from '../../styles/themes/default';
 import * as Session from '../../libs/actions/Session';
@@ -160,7 +160,7 @@ class PasswordForm extends React.Component {
                     </ExpensifyText>
                 )}
                 <View>
-                    <ExpensifyButton
+                    <Button
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}

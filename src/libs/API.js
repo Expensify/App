@@ -1148,6 +1148,21 @@ function CreatePolicyRoom(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Transfer Wallet balance and takes either the bankAccoundID or fundID
+ * @param {Object} parameters
+ * @param {String} [parameters.bankAccountID]
+ * @param {String} [parameters.fundID]
+ * @returns {Promise}
+ */
+function Wallet_TransferBalance(parameters) {
+    const commandName = 'TransferWalletBalance';
+    if (!parameters.bankAccountID && !parameters.fundID) {
+        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
+    }
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1207,6 +1222,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
+    Wallet_TransferBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

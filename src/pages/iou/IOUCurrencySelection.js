@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
 
@@ -75,7 +75,7 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
+            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.props.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -218,7 +218,7 @@ class IOUCurrencySelection extends Component {
                         </View>
                     </View>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             isDisabled={!this.props.iou.selectedCurrencyCode}
                             style={[styles.w100]}

@@ -92,6 +92,9 @@ export default {
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
         decline: 'Rechazar',
+        transferBalance: 'Transferencia de saldo',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Ingresar manualmente',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -259,6 +262,7 @@ export default {
         aboutPage: {
             description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
+            viewKeyboardShortcuts: 'Ver atajos de teclado',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reporta un error',
@@ -290,10 +294,8 @@ export default {
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
-        confirmNewPassword: 'Confirma la nueva contraseña',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
-            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
@@ -334,9 +336,27 @@ export default {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultSuccess: 'TODO',
         setDefaultFailure: 'TODO',
+        allSet: 'Todo listo!',
+        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
+        gotIt: 'Gracias!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
+        instant: 'Instante',
+        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        ach: '1-3 días laborales',
+        achSummary: 'Sin cargo',
+        whichAccount: '¿Que cuenta?',
+        fee: 'Tarifa',
+        failedTransfer: 'No se pudo transferir el saldo',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Elegir cuenta',
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
+        addDebitCard: 'Agregar tarjeta de débito',
+        addBankAccount: 'Agregar cuenta de banco',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
@@ -426,9 +446,7 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
-        confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
-        passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
@@ -564,10 +582,10 @@ export default {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
                 + 'saldo cuenta bancaria o tarjeta de débito',
-            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
+            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su billetera Expensify '
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
-            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
+            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su billetera Expensify a '
                 + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
                 + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',

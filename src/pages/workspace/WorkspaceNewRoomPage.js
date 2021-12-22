@@ -14,7 +14,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as Report from '../../libs/actions/Report';
 import Permissions from '../../libs/Permissions';
@@ -161,14 +161,14 @@ class WorkspaceNewRoomPage extends React.Component {
                         />
                     </View>
                     <ExpensiPicker
-                        value={CONST.REPORT.VISIBILITY.RESTRICTED}
+                        value={this.state.visibility}
                         label={this.props.translate('newRoomPage.visibility')}
                         items={visibilityOptions}
                         onChange={visibility => this.setState({visibility})}
                     />
                 </View>
                 <FixedFooter>
-                    <ExpensifyButton
+                    <Button
                         isLoading={this.props.isLoadingCreatePolicyRoom}
                         isDisabled={shouldDisableSubmit}
                         success

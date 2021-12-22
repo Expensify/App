@@ -11,7 +11,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -32,7 +32,7 @@ const propTypes = {
         /** Success message to display when necessary */
         success: PropTypes.string,
 
-        /** Whether or not a sign on form is loading (being submitted) */
+        /** Whether a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
@@ -49,12 +49,9 @@ class PasswordPage extends Component {
         this.state = {
             currentPassword: '',
             newPassword: '',
-            confirmNewPassword: '',
             errors: {
                 currentPassword: false,
                 newPassword: false,
-                confirmNewPassword: false,
-                confirmPasswordMatch: false,
                 newPasswordSameAsOld: false,
             },
         };
@@ -67,9 +64,7 @@ class PasswordPage extends Component {
 
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
-            confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
             newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
-            confirmPasswordMatch: 'setPasswordPage.passwordsDontMatch',
             newPassword: 'passwordPage.errors.newPassword',
         };
     }
@@ -125,16 +120,8 @@ class PasswordPage extends Component {
             errors.newPassword = true;
         }
 
-        if (!this.state.confirmNewPassword) {
-            errors.confirmNewPassword = true;
-        }
-
         if (this.state.currentPassword && this.state.newPassword && _.isEqual(this.state.currentPassword, this.state.newPassword)) {
             errors.newPasswordSameAsOld = true;
-        }
-
-        if (ValidationUtils.isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
-            errors.confirmPasswordMatch = true;
         }
 
         this.setState({errors});
@@ -199,6 +186,7 @@ class PasswordPage extends Component {
                                     ? this.getErrorText('newPasswordSameAsOld')
                                     : this.getErrorText('newPassword')}
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
+                                onSubmitEditing={this.submit}
                             />
                             {
 
@@ -214,19 +202,6 @@ class PasswordPage extends Component {
                                 )
                             }
                         </View>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.confirmNewPassword}
-                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text, ['confirmPasswordMatch'])}
-                                hasError={this.state.errors.confirmNewPassword || this.state.errors.confirmPasswordMatch}
-                                errorText={this.getErrorText(this.state.errors.confirmNewPassword ? 'confirmNewPassword' : 'confirmPasswordMatch')}
-                                onSubmitEditing={this.validateAndSubmitForm}
-                            />
-                        </View>
                         {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
                             <ExpensifyText style={styles.formError}>
                                 {this.props.account.error}
@@ -234,7 +209,7 @@ class PasswordPage extends Component {
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
