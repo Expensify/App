@@ -18,11 +18,11 @@ function deleteDebitCard(fundID) {
                 Growl.show('Debit Card successfully deleted!', CONST.GROWL.ERROR, 3000);
                 Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
             } else {
-                Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
             }
         })
         .catch(() => {
-            Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         });
 }
 
