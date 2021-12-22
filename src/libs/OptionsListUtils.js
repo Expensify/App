@@ -680,13 +680,11 @@ function getSidebarOptions(
     betas,
 ) {
     let sideBarOptions = {
-        prioritizePinnedReports: true,
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
-            prioritizePinnedReports: true,
             hideReadReports: true,
             sortByAlphaAsc: true,
         };
@@ -699,6 +697,7 @@ function getSidebarOptions(
         maxRecentReportsToShow: 0, // Unlimited
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        prioritizePinnedReports: true,
         ...sideBarOptions,
     });
 }
