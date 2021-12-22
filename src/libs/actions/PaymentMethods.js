@@ -8,6 +8,7 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
+import Log from '../Log';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -95,8 +96,70 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
+/**
+ * Call the API to transfer wallet balance.
+ * @param {Object} paymentMethod
+ * @param {String} paymentMethod.id
+ * @param {'bankAccount'|'debitCard'} paymentMethod.type
+ * @returns {Promise}
+ */
+function transferWalletBalance(paymentMethod) {
+    const parameters = {
+        [paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? 'bankAccountID' : 'fundID']: paymentMethod.id,
+    };
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
+
+    return API.TransferWalletBalance(parameters)
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true, loading: false});
+            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        }).catch((error) => {
+            Log.alert(`[Payments] Failed to transfer wallet balance: ${error.message}`);
+            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
+        });
+}
+
+/**
+ * Set the necessary data for wallet transfer
+ * @param {Number} currentBalance
+ * @param {Number} selectedAccountID
+ */
+function saveWalletTransferAmountAndAccount(currentBalance, selectedAccountID) {
+    Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
+        transferAmount: currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE,
+        selectedAccountID,
+        filterPaymentMethodType: null,
+        loading: false,
+        completed: false,
+    });
+}
+
+/**
+ * Update selected accountID and other data for wallet transfer
+ * @param {Object} data
+ */
+function updateWalletTransferData(data) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, data);
+}
+
+/**
+ * Cancel the wallet transfer
+ */
+function cancelWalletTransfer() {
+    Onyx.set(ONYXKEYS.WALLET_TRANSFER, null);
+}
+
 export {
     getPaymentMethods,
     addBillingCard,
     clearDebitCardFormErrorAndSubmit,
+    transferWalletBalance,
+    saveWalletTransferAmountAndAccount,
+    updateWalletTransferData,
+    cancelWalletTransfer,
 };
