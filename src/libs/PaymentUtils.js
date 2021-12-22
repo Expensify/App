@@ -10,9 +10,10 @@ import * as Localize from './Localize';
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername='']
+ * @param {Object} userWallet
  * @returns {Array<PaymentMethod>}
  */
-function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
+function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -25,7 +26,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
             }`
             : null;
-        const isDefault = this.props.userWallet.walletLinkedAccountType === 'bankAccount' && this.props.userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
+        const isDefault = userWallet.walletLinkedAccountType === 'bankAccount' && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             title: bankAccount.addressName,
@@ -34,6 +35,8 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             icon,
             iconSize,
             key: `bankAccount-${bankAccount.bankAccountID}`,
+            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            accountData: bankAccount,
             isDefault,
         });
     });
@@ -42,7 +45,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
         const formattedCardNumber = card.cardNumber
             ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
             : null;
-        const isDefault = this.props.userWallet.walletLinkedAccountType === 'debitCard' && this.props.userWallet.walletLinkedAccountID === card.fundID;
+        const isDefault = userWallet.walletLinkedAccountType === 'debitCard' && userWallet.walletLinkedAccountID === card.fundID;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
             title: card.addressName,
@@ -51,6 +54,8 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             icon,
             iconSize,
             key: `card-${card.cardNumber}`,
+            accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
+            accountData: card,
             isDefault,
         });
     });
@@ -62,6 +67,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
             description: payPalMeUsername,
             icon: Expensicons.PayPal,
             key: 'payPalMePaymentMethod',
+            accountType: CONST.PAYMENT_METHODS.PAYPAL,
         });
     }
 

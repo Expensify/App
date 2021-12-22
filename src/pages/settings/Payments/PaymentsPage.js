@@ -80,6 +80,7 @@ class PaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
+        debugger;
         const position = getClickedElementLocation(nativeEvent);
         if (accountType) {
             let formattedSelectedPaymentMethod;
