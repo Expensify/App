@@ -132,8 +132,8 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = imgHeight > imgWidth ? 0 : `${Math.max((containerHeight - (imgHeight * zoomScale)) / 2, 0)}px`;
-    const scaledLeft = imgWidth > imgHeight ? 0 : `${Math.max((containerWidth - (imgWidth * zoomScale)) / 2, 0)}px`;
+    const scaledTop = `${Math.max((containerHeight - (imgHeight * zoomScale)) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerWidth - (imgWidth * zoomScale)) / 2, 0)}px`;
     return {
         height: `${imgHeight * zoomScale}px`,
         width: `${imgWidth * zoomScale}px`,

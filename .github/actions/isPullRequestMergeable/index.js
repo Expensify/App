@@ -13,10 +13,12 @@ const core = __nccwpck_require__(2186);
 const GithubUtils = __nccwpck_require__(7999);
 const promiseWhile = __nccwpck_require__(4502);
 
+const MAX_RETRIES = 30;
+const THROTTLE_DURATION = process.env.NODE_ENV === 'test' ? 5 : 5000;
+
 const run = function () {
     const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));
 
-    const MAX_RETRIES = 30;
     let retryCount = 0;
     let isMergeable = false;
     let mergeabilityResolved = false;
@@ -30,11 +32,11 @@ const run = function () {
         })
             .then(({data}) => {
                 if (_.isNull(data.mergeable)) {
+                    console.log('Pull request mergeability is not yet resolved...');
+                    retryCount++;
                     return;
                 }
 
-                console.log('Pull request mergeability is not yet resolved...');
-                retryCount++;
                 mergeabilityResolved = true;
                 isMergeable = data.mergeable;
             })
@@ -42,10 +44,14 @@ const run = function () {
                 mergeabilityResolved = true;
                 console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
                 core.setFailed(githubError);
-            }), 5000),
+            }), THROTTLE_DURATION),
     )
         .then(() => {
-            console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+            if (retryCount >= MAX_RETRIES) {
+                console.error('Maximum retries reached, mergeability is undetermined, defaulting to false');
+            } else {
+                console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+            }
             core.setOutput('IS_MERGEABLE', isMergeable);
         });
 };

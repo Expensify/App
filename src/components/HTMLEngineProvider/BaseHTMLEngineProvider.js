@@ -216,6 +216,7 @@ function ImgRenderer(props) {
     //           control and thus require no authToken to verify access.
     //
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const originalFileName = htmlAttribs['data-name'];
     let previewSource = htmlAttribs.src;
     let source = isAttachment
         ? htmlAttribs['data-expensify-source']
@@ -233,9 +234,9 @@ function ImgRenderer(props) {
 
     return (
         <AttachmentModal
-            title="Attachment"
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
+            originalFileName={originalFileName}
         >
             {({show}) => (
                 <TouchableOpacity

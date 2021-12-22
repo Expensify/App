@@ -13,6 +13,7 @@ import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
+import SelectCircle from './SelectCircle';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -21,6 +22,7 @@ const propTypes = {
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
+    shouldShowSelectedState: false,
     wrapperStyle: [],
     success: false,
     icon: undefined,
@@ -32,6 +34,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
+    isSelected: false,
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
@@ -124,6 +127,7 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
+                    {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                 </View>
             </>
         )}
