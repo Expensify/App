@@ -8,6 +8,9 @@ function hide(config) {
 
     return RNBootSplash
         .hide(config)
+        .then(() => {
+            Log.info('[BootSplash] hiding succeeded', false);
+        })
         .catch((error) => {
             Log.alert('[BootSplash] hiding failed', {message: error.message, error}, false);
         });
