@@ -10,7 +10,7 @@ import * as Localize from './Localize';
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername='']
- * @returns {Array<PaymentMethod>}
+ * @returns {Array<Object>}
  */
 function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     const combinedPaymentMethods = [];
