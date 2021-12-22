@@ -11,17 +11,23 @@ import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
 import * as Report from '../../libs/actions/Report';
 import * as Link from '../../libs/actions/Link';
+import getPlatform from '../../libs/getPlatform/index.website';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const AboutPage = (props) => {
+    const shouldShowKeyboardShortcutsMenu = !props.isSmallScreenWidth && [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].indexOf(getPlatform()) > -1;
+
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -30,11 +36,13 @@ const AboutPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
         },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-            icon: Expensicons.Keyboard,
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
-        },
+        ...(shouldShowKeyboardShortcutsMenu ? [
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+                icon: Expensicons.Keyboard,
+                action: KeyboardShortcuts.showKeyboardShortcutModal,
+            },
+        ] : []),
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Expensicons.Eye,
@@ -146,4 +154,7 @@ const AboutPage = (props) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default withLocalize(AboutPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(AboutPage);
