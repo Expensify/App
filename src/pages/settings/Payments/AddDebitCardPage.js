@@ -2,11 +2,13 @@ import React, {Component} from 'react';
 import {
     View,
     ScrollView,
+    TouchableOpacity,
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -24,6 +26,8 @@ import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitBu
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
+import * as ComponentUtils from '../../../libs/ComponentUtils';
+import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -32,6 +36,12 @@ const propTypes = {
 
         /** Whether or not the form is submitting */
         submitting: PropTypes.bool,
+    }),
+
+    /** The credentials of the person entering the password */
+    credentials: PropTypes.shape({
+        login: PropTypes.string,
+        password: PropTypes.string,
     }),
 
     /* Onyx Props */
@@ -43,6 +53,7 @@ const defaultProps = {
         error: '',
         submitting: false,
     },
+    credentials: {},
 };
 
 class DebitCardPage extends Component {
@@ -58,6 +69,7 @@ class DebitCardPage extends Component {
             addressState: '',
             addressZipCode: '',
             acceptedTerms: false,
+            password: '',
             errors: {},
             shouldShowAlertPrompt: false,
         };
@@ -70,6 +82,7 @@ class DebitCardPage extends Component {
             'addressStreet',
             'addressState',
             'addressZipCode',
+            'password',
             'acceptedTerms',
         ];
 
@@ -83,6 +96,7 @@ class DebitCardPage extends Component {
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            password: 'addDebitCardPage.error.password',
         };
 
         this.submit = this.submit.bind(this);
@@ -136,6 +150,10 @@ class DebitCardPage extends Component {
             errors.addressStreet = true;
         }
 
+        if (_.isEmpty(this.state.password.trim())) {
+            errors.password = true;
+        }
+
         if (!this.state.acceptedTerms) {
             errors.acceptedTerms = true;
         }
@@ -172,6 +190,12 @@ class DebitCardPage extends Component {
     }
 
     render() {
+        const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
+        const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
+        const validAccount = this.props.account.accountExists
+        && this.props.account.validated
+        && !this.props.account.forgotPassword;
+        const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -230,6 +254,34 @@ class DebitCardPage extends Component {
                                 onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                 errorText={this.getErrorText('addressStreet')}
                             />
+                            <View style={[styles.mt4]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                    onChangeText={password => this.clearErrorAndSetValue('password', password)}
+                                    value={this.state.password}
+                                    errorText={this.getErrorText('password')}
+                                    textContentType="password"
+                                    autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                                    secureTextEntry
+                                />
+                                {!showResendValidationLinkForm
+                                    ? (
+                                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                                            <TouchableOpacity
+                                                style={[styles.mt2]}
+                                                onPress={Session.resetPassword}
+                                            >
+                                                <ExpensifyText style={[styles.link, styles.textMicro]}>
+                                                    {this.props.translate('addDebitCardPage.forgotPassword')}
+                                                </ExpensifyText>
+                                            </TouchableOpacity>
+                                        </View>
+                                    ) : (
+                                        <ExpensifyText style={[styles.pt2, styles.textLabelSupporting]}>
+                                            {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login})}
+                                        </ExpensifyText>
+                                    )}
+                            </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {
@@ -285,6 +337,8 @@ export default compose(
         addDebitCardForm: {
             key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
         },
+        account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
     withLocalize,
 )(DebitCardPage);
