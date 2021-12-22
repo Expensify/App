@@ -123,6 +123,8 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+        WEB: 'web',
+        DESKTOP: 'desktop',
     },
     KEYBOARD_SHORTCUT_MODIFIERS: {
         CTRL: {

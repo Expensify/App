@@ -1,27 +1,32 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import ExpensifyText from '../../components/ExpensifyText';
-import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import MenuItem from '../../components/MenuItem';
-import Logo from '../../../assets/images/new-expensify.svg';
-import {version} from '../../../package.json';
-import * as Report from '../../libs/actions/Report';
-import * as Link from '../../libs/actions/Link';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/styles';
+import ExpensifyText from '../../../components/ExpensifyText';
+import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import MenuItem from '../../../components/MenuItem';
+import Logo from '../../../../assets/images/new-expensify.svg';
+import {version} from '../../../../package.json';
+import * as Report from '../../../libs/actions/Report';
+import * as Link from '../../../libs/actions/Link';
+import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const AboutPage = (props) => {
+    const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
+
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -30,11 +35,7 @@ const AboutPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
         },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-            icon: Expensicons.Keyboard,
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
-        },
+        ...platformSpecificMenuItems,
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Expensicons.Eye,
@@ -146,4 +147,7 @@ const AboutPage = (props) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default withLocalize(AboutPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(AboutPage);
