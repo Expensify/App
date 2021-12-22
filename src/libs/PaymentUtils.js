@@ -26,7 +26,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', use
             ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
             }`
             : null;
-        const isDefault = userWallet.walletLinkedAccountType === 'bankAccount' && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             title: bankAccount.addressName,
@@ -45,7 +45,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', use
         const formattedCardNumber = card.cardNumber
             ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
             : null;
-        const isDefault = userWallet.walletLinkedAccountType === 'debitCard' && userWallet.walletLinkedAccountID === card.fundID;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.DEBIT_CARD && userWallet.walletLinkedAccountID === card.fundID;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
             title: card.addressName,
