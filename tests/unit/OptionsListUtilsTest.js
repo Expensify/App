@@ -628,8 +628,6 @@ describe('OptionsListUtils', () => {
                 // That no personalDetails are shown
                 expect(results.personalDetails.length).toBe(0);
 
-
-                //------------------- Pinned report---------
                 // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
                 // D report name (Alphabetically first among pinned reports)  
                 expect(results.recentReports[0].login).toBe('d_email@email.com');
