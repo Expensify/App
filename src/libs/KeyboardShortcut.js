@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import getOperatingSystem from '../getOperatingSystem';
-import CONST from '../../CONST';
+import getOperatingSystem from './getOperatingSystem';
+import CONST from '../CONST';
 
 const events = {};
 const keyboardShortcutMap = {};
