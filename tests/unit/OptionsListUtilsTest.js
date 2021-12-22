@@ -640,7 +640,6 @@ describe('OptionsListUtils', () => {
                 // Z report name (Alphabetically third among pinned reports) 
                 expect(results.recentReports[2].login).toBe('z_email@email.com');
 
-                //------------ Unpinned reports ------------
                 // Unpinned report name ordered alphabetically after pinned reports
                 //Black Panther report name has unread message
                 expect(results.recentReports[3].login).toBe('tchalla@expensify.com');
