@@ -831,6 +831,7 @@ export default {
         title: 'Bienvenido',
         subtitle: '¡Bienvenido a Expensify! Cuéntanos un poco sobre ti antes de empezar.',
         getStarted: 'Empezar',
+        skip: 'Saltar',
     },
     guides: {
         screenShare: 'Compartir pantalla',

@@ -829,6 +829,7 @@ export default {
         title: 'Welcome',
         subtitle: 'Welcome to Expensify! Tell us a little bit about yourself before getting started',
         getStarted: 'Get Started',
+        skip: 'Skip',
     },
     guides: {
         screenShare: 'Screen share',

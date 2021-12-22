@@ -20,6 +20,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import ExpensifyText from '../components/ExpensifyText';
+import WelcomeForm from './WelcomeForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,6 +73,7 @@ class SetPasswordPage extends Component {
         this.state = {
             password: '',
             isFormValid: false,
+            showWelcomeForm: true,
         };
     }
 
@@ -85,8 +87,44 @@ class SetPasswordPage extends Component {
             return;
         }
 
+        this.setState({showWelcomeForm: true});
         Session.validateEmail(accountID, validateCode, this.state.password);
     }
+
+    skipWelcomeForm() {
+        console.log('Skip called');
+    }
+
+    renderPasswordForm(error) {
+        return (
+            <>
+                <View style={[styles.mb4]}>
+                    <NewPasswordForm
+                        password={this.state.password}
+                        updatePassword={password => this.setState({password})}
+                        updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                        onSubmitEditing={this.validateAndSubmitForm}
+                    />
+                </View>
+                <View>
+                    <Button
+                        success
+                        style={[styles.mb2]}
+                        text={this.props.translate('setPasswordPage.setPassword')}
+                        isLoading={this.props.account.loading}
+                        onPress={this.validateAndSubmitForm}
+                        isDisabled={!this.state.isFormValid}
+                    />
+                </View>
+                {!_.isEmpty(error) && (
+                <ExpensifyText style={[styles.formError]}>
+                    {error}
+                </ExpensifyText>
+                )}
+            </>
+        );
+    }
+
 
     render() {
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
@@ -95,31 +133,13 @@ class SetPasswordPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     shouldShowWelcomeText
-                    welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
+                    welcomeText={this.props.translate(this.state.showWelcomeForm ? 'welcomeScreen.subtitle' : 'setPasswordPage.passwordFormTitle')}
                 >
-                    <View style={[styles.mb4]}>
-                        <NewPasswordForm
-                            password={this.state.password}
-                            updatePassword={password => this.setState({password})}
-                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                        />
-                    </View>
-                    <View>
-                        <Button
-                            success
-                            style={[styles.mb2]}
-                            text={this.props.translate('setPasswordPage.setPassword')}
-                            isLoading={this.props.account.loading}
-                            onPress={this.validateAndSubmitForm}
-                            isDisabled={!this.state.isFormValid}
-                        />
-                    </View>
-                    {!_.isEmpty(error) && (
-                        <ExpensifyText style={[styles.formError]}>
-                            {error}
-                        </ExpensifyText>
-                    )}
+                    {
+                  this.state.showWelcomeForm
+                      ? <WelcomeForm skipWelcomeForm={this.skipWelcomeForm} password={this.state.password} />
+                      : this.renderPasswordForm(error)
+                }
                 </SignInPageLayout>
             </SafeAreaView>
         );
