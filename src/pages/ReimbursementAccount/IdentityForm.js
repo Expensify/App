@@ -178,7 +178,7 @@ const IdentityForm = (props) => {
                         onChangeText={(fieldName, value) => props.onFieldChange(fieldName, value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                     />
-                    <ExpensifyText
+                    <Text
                         style={[styles.textMicroSupporting, styles.pt2]}
                     >
                         {props.translate('common.cantFindAddress')}
@@ -188,7 +188,7 @@ const IdentityForm = (props) => {
                         >
                             {props.translate('common.enterManually')}
                         </TextLink>
-                    </ExpensifyText>
+                    </Text>
                 </>
             )}
         </View>

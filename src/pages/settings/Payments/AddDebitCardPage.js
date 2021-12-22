@@ -235,7 +235,7 @@ class DebitCardPage extends Component {
                                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
-                                    <ExpensifyText
+                                    <Text
                                         style={[styles.textMicroSupporting, styles.pt2]}
                                     >
                                         {this.props.translate('common.cantFindAddress')}
@@ -245,7 +245,7 @@ class DebitCardPage extends Component {
                                         >
                                             {this.props.translate('common.enterManually')}
                                         </TextLink>
-                                    </ExpensifyText>
+                                    </Text>
                                 </>
                             )}
                             {this.state.manualAddress && (
