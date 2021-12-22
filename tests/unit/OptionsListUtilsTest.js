@@ -634,13 +634,13 @@ describe('OptionsListUtils', () => {
                 // and regardless having IOU debt or not
                 // ordered by alphabetical order. 
                 // D report name (Alphabetically first among pinned tabs) 
-                expect(results.recentReports[0].login).toBe('d_email@email');
+                expect(results.recentReports[0].login).toBe('d_email@email.com');
         
                 // Mister Fantastic report name (Alphabetically second among pinned tabs) 
                 expect(results.recentReports[1].login).toBe('reedrichards@expensify.com');
 
                 // Z report name (Alphabetically third among pinned tabs) 
-                expect(results.recentReports[2].login).toBe('z_email@email');
+                expect(results.recentReports[2].login).toBe('z_email@email.com');
 
                 //------------ Unpinned reports ------------
                 // Unpinned report name ordered alphabetically after pinned report
