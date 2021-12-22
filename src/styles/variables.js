@@ -28,6 +28,7 @@ export default {
     iconSizeSmall: 16,
     iconSizeNormal: 20,
     iconSizeLarge: 24,
+    iconSizeXLarge: 28,
     iconSizeExtraLarge: 40,
     emojiSize: 20,
     iouAmountTextSize: 40,
