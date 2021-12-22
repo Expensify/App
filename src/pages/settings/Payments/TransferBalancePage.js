@@ -44,7 +44,9 @@ const defaultProps = {
     userWallet: {},
     bankAccountList: [],
     cardList: [],
-    walletTransfer: {},
+    walletTransfer: {
+        transferAmount: 0,
+    },
 };
 
 class TransferBalancePage extends React.Component {
