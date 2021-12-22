@@ -89,7 +89,7 @@ It’s possible that you found a bug or enhancement that we haven’t posted to 
     ```
 9. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
 10. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
-11. Provide daily updates until reaching completion of your PR.
+11. Daily updates on weekdays are expected. If there is a plan for no updates for a while we expect the courtesy to be informed about the duration there will be no work so that we may plan accordingly. Any issue without an update for 1 week with no explanation why there is no progress will be considered abandoned and will likely be closed or reassigned, and the original contract will be terminated.
 
 #### Submit your pull request for final review
 12. When you are ready to submit your pull request for final review, make sure the following checks pass:
