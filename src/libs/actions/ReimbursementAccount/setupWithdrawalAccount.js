@@ -231,6 +231,7 @@ function setupWithdrawalAccount(params) {
             // Example 2: When on the requestor step, showing Onfido view after submitting the identity and retrieving the sdkToken
             if (_.has(responseACHData, 'nextStepValues')) {
                 navigation.goToWithdrawalAccountSetupStep(_.get(responseACHData.nextStepValues, 'currentStep') || nextStep, {
+                    ...updatedACHData,
                     ...responseACHData,
                     ...responseACHData.nextStepValues,
                 });
@@ -244,7 +245,8 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
+            // Note: php sometimes returns code 200 with no achData, just to indicate that we should keep whatever the JS values are.
+            navigation.goToWithdrawalAccountSetupStep(nextStep, {...updatedACHData, ...responseACHData});
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
