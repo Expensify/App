@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {useMemo} from 'react';
 import {
     TRenderEngineProvider,
@@ -6,6 +7,7 @@ import {
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
+import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
 
@@ -19,36 +21,6 @@ const defaultProps = {
     textSelectable: false,
     children: null,
 };
-
-const MAX_IMG_DIMENSIONS = 512;
-
-const EXTRA_FONTS = [
-    fontFamily.GTA,
-    fontFamily.GTA_BOLD,
-    fontFamily.GTA_ITALIC,
-    fontFamily.MONOSPACE,
-    fontFamily.MONOSPACE_ITALIC,
-    fontFamily.MONOSPACE_BOLD,
-    fontFamily.MONOSPACE_BOLD_ITALIC,
-    fontFamily.SYSTEM,
-];
-
-/**
- * Compute embedded maximum width from the available screen width. This function
- * is used by the HTML component in the default renderer for img tags to scale
- * down images that would otherwise overflow horizontally.
- *
- * @param {string} tagName - The name of the tag for which max width should be constrained.
- * @param {number} contentWidth - The content width provided to the HTML
- * component.
- * @returns {number} The minimum between contentWidth and MAX_IMG_DIMENSIONS
- */
-function computeEmbeddedMaxWidth(tagName, contentWidth) {
-    if (tagName === 'img') {
-        return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
-    }
-    return contentWidth;
-}
 
 // Declare nonstandard tags and their content model here
 const customHTMLElementModels = {
@@ -82,13 +54,13 @@ const BaseHTMLEngineProvider = (props) => {
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing={false}
-            systemFonts={EXTRA_FONTS}
+            systemFonts={_.values(fontFamily)}
         >
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
-                computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
+                computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
             >
                 {props.children}
             </RenderHTMLConfigProvider>

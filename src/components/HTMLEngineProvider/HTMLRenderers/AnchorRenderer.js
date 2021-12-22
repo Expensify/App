@@ -5,7 +5,7 @@ import {
 } from 'react-native-render-html';
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as HTMLEngineUtils from '../HTMLEngineUtils';
+import * as HTMLEngineUtils from '../htmlEngineUtils';
 import ExpensifyText from '../../ExpensifyText';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
