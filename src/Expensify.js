@@ -85,6 +85,7 @@ class Expensify extends PureComponent {
         ActiveClientManager.init();
         this.setNavigationReady = this.setNavigationReady.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
+        this.appStateChangeListener = null;
         this.state = {
             isNavigationReady: false,
             isOnyxMigrated: false,
@@ -110,7 +111,7 @@ class Expensify extends PureComponent {
                 this.setState({isOnyxMigrated: true});
             });
 
-        AppState.addEventListener('change', this.initializeClient);
+        this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
     }
 
     componentDidUpdate(prevProps) {
@@ -134,7 +135,8 @@ class Expensify extends PureComponent {
     }
 
     componentWillUnmount() {
-        AppState.removeEventListener('change', this.initializeClient);
+        if (!this.appStateChangeListener) { return; }
+        this.appStateChangeListener.remove();
     }
 
     setNavigationReady() {
