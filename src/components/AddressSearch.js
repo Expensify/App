@@ -90,7 +90,6 @@ const AddressSearch = (props) => {
             fetchDetails
             suppressDefaultStyles
             enablePoweredByContainer={false}
-            placeholder=""
             onPress={(data, details) => {
                 saveLocationDetails(details);
 
