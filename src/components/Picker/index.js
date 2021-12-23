@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import BasePicker from './BasePicker';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
 
@@ -51,7 +51,7 @@ class Picker extends PureComponent {
                     ]}
                 >
                     {this.props.label && (
-                        <ExpensifyText style={[styles.pickerLabel, styles.textLabelSupporting]}>{this.props.label}</ExpensifyText>
+                        <Text style={[styles.pickerLabel, styles.textLabelSupporting]}>{this.props.label}</Text>
                     )}
                     <BasePicker
                         onOpen={() => this.setState({isOpen: true})}

@@ -7,7 +7,7 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -68,51 +68,51 @@ class ReportActionItemFragment extends React.PureComponent {
                             html={`<comment>${this.props.fragment.html + (this.props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                         />
                     ) : (
-                        <ExpensifyText
+                        <Text
                             selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
                             style={EmojiUtils.isSingleEmoji(this.props.fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(this.props.fragment.text)}
                             {this.props.fragment.isEdited && (
-                                <ExpensifyText
+                                <Text
                                     fontSize={variables.fontSizeSmall}
                                     color={themeColors.textSupporting}
                                 >
-                                    {/* Native devices do not support margin between nested ExpensifyText */}
-                                    <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
+                                    {/* Native devices do not support margin between nested Text */}
+                                    <Text style={styles.w1}>{' '}</Text>
                                     {this.props.translate('reportActionCompose.edited')}
-                                </ExpensifyText>
+                                </Text>
                             )}
-                        </ExpensifyText>
+                        </Text>
                     );
             case 'TEXT':
                 return (
                     <Tooltip text={this.props.tooltipText}>
-                        <ExpensifyText
+                        <Text
                             selectable
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
                             {Str.htmlDecode(this.props.fragment.text)}
-                        </ExpensifyText>
+                        </Text>
                     </Tooltip>
                 );
             case 'LINK':
-                return <ExpensifyText>LINK</ExpensifyText>;
+                return <Text>LINK</Text>;
             case 'INTEGRATION_COMMENT':
-                return <ExpensifyText>REPORT_LINK</ExpensifyText>;
+                return <Text>REPORT_LINK</Text>;
             case 'REPORT_LINK':
-                return <ExpensifyText>REPORT_LINK</ExpensifyText>;
+                return <Text>REPORT_LINK</Text>;
             case 'POLICY_LINK':
-                return <ExpensifyText>POLICY_LINK</ExpensifyText>;
+                return <Text>POLICY_LINK</Text>;
 
             // If we have a message fragment type of OLD_MESSAGE this means we have not yet converted this over to the
             // new data structure. So we simply set this message as inner html and render it like we did before.
             // This wil allow us to convert messages over to the new structure without needing to do it all at once.
             case 'OLD_MESSAGE':
-                return <ExpensifyText>OLD_MESSAGE</ExpensifyText>;
+                return <Text>OLD_MESSAGE</Text>;
             default:
-                return <ExpensifyText>fragment.text</ExpensifyText>;
+                return <Text>fragment.text</Text>;
         }
     }
 }

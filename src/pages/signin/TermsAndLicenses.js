@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
@@ -19,9 +19,9 @@ const TermsAndLicenses = props => (
                 styles.alignItemsCenter,
             ]}
         >
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase1')}
-            </ExpensifyText>
+            </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.TERMS_URL}
@@ -30,9 +30,9 @@ const TermsAndLicenses = props => (
                 {props.translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase3')}
-            </ExpensifyText>
+            </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.PRIVACY_URL}
@@ -40,14 +40,14 @@ const TermsAndLicenses = props => (
                 {' '}
                 {props.translate('termsOfUse.phrase4')}
             </TextLink>
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</ExpensifyText>
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase5')}
                 {' '}
-            </ExpensifyText>
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            </Text>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase6')}
-            </ExpensifyText>
+            </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.LICENSES_URL}
@@ -55,7 +55,7 @@ const TermsAndLicenses = props => (
                 {' '}
                 {props.translate('termsOfUse.phrase7')}
             </TextLink>
-            <ExpensifyText style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</ExpensifyText>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
         </View>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
             <LogoWordmark height={30} width={80} />

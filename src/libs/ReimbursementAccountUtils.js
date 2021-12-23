@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -27,19 +28,28 @@ function getErrors(props) {
 
 /**
  * @param {Object} props
- * @param {String} path
+ * @param {String[]} paths
  */
-function clearError(props, path) {
+function clearErrors(props, paths) {
     const errors = getErrors(props);
-    if (!lodashGet(errors, path, false)) {
+    const pathsWithErrors = _.filter(paths, path => lodashGet(errors, path, false));
+    if (_.size(pathsWithErrors) === 0) {
         // No error found for this path
         return;
     }
 
     // Clear the existing errors
     const newErrors = lodashCloneDeep(errors);
-    lodashUnset(newErrors, path);
+    _.forEach(pathsWithErrors, path => lodashUnset(newErrors, path));
     BankAccounts.setBankAccountFormValidationErrors(newErrors);
+}
+
+/**
+ * @param {Object} props
+ * @param {String} path
+ */
+function clearError(props, path) {
+    clearErrors(props, [path]);
 }
 
 /**
@@ -57,5 +67,6 @@ export {
     getDefaultStateForField,
     getErrors,
     clearError,
+    clearErrors,
     getErrorText,
 };
