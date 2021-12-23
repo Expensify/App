@@ -20,7 +20,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -320,11 +320,11 @@ class WorkspaceInvitePage extends React.Component {
                             >
                                 {({hovered, pressed}) => (
                                     <View style={[styles.flexRow]}>
-                                        <ExpensifyText
+                                        <Text
                                             style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
                                         >
                                             {this.props.translate('common.privacyPolicy')}
-                                        </ExpensifyText>
+                                        </Text>
                                     </View>
                                 )}
                             </Pressable>
