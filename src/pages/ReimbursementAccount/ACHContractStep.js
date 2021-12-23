@@ -236,12 +236,8 @@ class ACHContractStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(inputKeyOrValues, value) => {
-                                            if (_.isString(inputKeyOrValues)) {
-                                                this.clearErrorAndSetBeneficialOwnerValue(index, inputKeyOrValues, value);
-                                            } else {
-                                                this.clearErrorAndSetBeneficialOwnerValues(index, inputKeyOrValues);
-                                            }
+                                        onFieldChange={(values) => {
+                                            this.clearErrorAndSetBeneficialOwnerValues(index, values);
                                         }}
                                         values={{
                                             firstName: owner.firstName || '',

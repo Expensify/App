@@ -38,6 +38,7 @@ class RequestorStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
+        this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
 
         this.state = {
             firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
@@ -206,14 +207,7 @@ class RequestorStep extends React.Component {
                             </TextLink>
                         </View>
                         <IdentityForm
-                            onFieldChange={(inputKeyOrUpdatesBatch, value) => {
-                                if (_.isString(inputKeyOrUpdatesBatch)) {
-                                    this.clearErrorAndSetValue(inputKeyOrUpdatesBatch, value);
-                                } else {
-                                    // While we have batched updates to handle clearing errors properly
-                                    this.clearErrorsAndSetValues(inputKeyOrUpdatesBatch);
-                                }
-                            }}
+                            onFieldChange={this.clearErrorsAndSetValues}
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,

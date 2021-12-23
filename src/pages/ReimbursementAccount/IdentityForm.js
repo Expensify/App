@@ -15,7 +15,7 @@ const propTypes = {
     /** Style for wrapping View */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** Callback fired when a field changes. Passes args as fieldName, val */
+    /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func.isRequired,
 
     /** Form values */
@@ -79,7 +79,7 @@ const IdentityForm = (props) => {
                     <ExpensiTextInput
                         label={`${props.translate('common.firstName')}`}
                         value={props.values.firstName}
-                        onChangeText={value => props.onFieldChange('firstName', value)}
+                        onChangeText={value => props.onFieldChange({firstName: value})}
                         errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
                     />
                 </View>
@@ -87,7 +87,7 @@ const IdentityForm = (props) => {
                     <ExpensiTextInput
                         label={`${props.translate('common.lastName')}`}
                         value={props.values.lastName}
-                        onChangeText={value => props.onFieldChange('lastName', value)}
+                        onChangeText={value => props.onFieldChange({lastName: value})}
                         errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
                     />
                 </View>
@@ -97,7 +97,7 @@ const IdentityForm = (props) => {
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
                 value={props.values.dob}
-                onChange={value => props.onFieldChange('dob', value)}
+                onChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
             />
             <ExpensiTextInput
@@ -105,7 +105,7 @@ const IdentityForm = (props) => {
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={props.values.ssnLast4}
-                onChangeText={value => props.onFieldChange('ssnLast4', value)}
+                onChangeText={value => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
@@ -122,14 +122,14 @@ const IdentityForm = (props) => {
                     <ExpensiTextInput
                         label={props.translate('common.city')}
                         value={props.values.city}
-                        onChangeText={value => props.onFieldChange('city', value)}
+                        onChangeText={value => props.onFieldChange({city: value})}
                         errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                     />
                 </View>
                 <View style={[styles.flex1]}>
                     <StatePicker
                         value={props.values.state}
-                        onChange={value => props.onFieldChange('state', value)}
+                        onChange={value => props.onFieldChange({state: value})}
                         errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                         hasError={Boolean(props.errors.state)}
                     />
@@ -140,7 +140,7 @@ const IdentityForm = (props) => {
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={props.values.zipCode}
-                onChangeText={value => props.onFieldChange('zipCode', value)}
+                onChangeText={value => props.onFieldChange({zipCode: value})}
                 errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
             />
