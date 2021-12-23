@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -42,10 +42,10 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
 
-    // We use `skippedFirstOnChangeText` to work around a feature of the library:
+    // We use `skippedFirstOnChangeTextRef` to work around a feature of the library:
     // The library is calling onChangeText with '' at the start and we don't need this
     // https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
-    const [skippedFirstOnChangeText, setSkippedFirstOnChangeText] = useState(false);
+    const skippedFirstOnChangeTextRef = useRef(false);
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -114,10 +114,10 @@ const AddressSearch = (props) => {
                 errorText: props.errorText,
                 value: props.value,
                 onChangeText: (text) => {
-                    if (skippedFirstOnChangeText) {
+                    if (skippedFirstOnChangeTextRef.current) {
                         props.onChange({addressStreet: text});
                     } else {
-                        setSkippedFirstOnChangeText(true);
+                        skippedFirstOnChangeTextRef.current = true;
                     }
 
                     // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
