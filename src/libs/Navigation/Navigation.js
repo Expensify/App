@@ -186,16 +186,6 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * Returns the current route of the navigation stack
- * @returns {String}
- */
-function getCurrentRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
-        : '';
-}
-
-/**
  * Alternative to the `Navigation.dismissModal()` function that we can use inside
  * the render function of other components to avoid breaking React rules about side-effects.
  *
@@ -232,7 +222,6 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
-    getCurrentRoute,
 };
 
 export {

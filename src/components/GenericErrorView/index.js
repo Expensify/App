@@ -47,7 +47,7 @@ const GenericErrorView = (props) => {
                         <ErrorBodyText />
                         <ExpensifyText>
                             {props.translate('genericErrorView.body.helpTextConcierge')}
-                            <TextLink href={CONST.EMAIL.CONCIERGE} style={[styles.link]}>
+                            <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
                                 {CONST.EMAIL.CONCIERGE}
                             </TextLink>
                         </ExpensifyText>
