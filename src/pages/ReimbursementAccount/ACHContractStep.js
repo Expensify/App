@@ -61,7 +61,7 @@ class ACHContractStep extends React.Component {
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.clearErrors = values => ReimbursementAccountUtils.clearErrors(this.props, values);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
     }
 
@@ -122,9 +122,7 @@ class ACHContractStep extends React.Component {
     clearErrorAndSetBeneficialOwnerValues(ownerIndex, values) {
         this.setState((prevState) => {
             const beneficialOwners = [...prevState.beneficialOwners];
-            _.each(values, (value, inputKey) => {
-                beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
-            });
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], ...values};
             BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
@@ -137,17 +135,6 @@ class ACHContractStep extends React.Component {
             inputKeys.push('dobAge');
         }
         this.clearErrors(_.map(inputKeys, inputKey => `beneficialOwnersErrors.${ownerIndex}.${inputKey}`));
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {Integer} ownerIndex
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
-        this.clearErrorAndSetBeneficialOwnerValues(ownerIndex, {[inputKey]: value});
     }
 
     submit() {
@@ -236,9 +223,7 @@ class ACHContractStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(values) => {
-                                            this.clearErrorAndSetBeneficialOwnerValues(index, values);
-                                        }}
+                                        onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
