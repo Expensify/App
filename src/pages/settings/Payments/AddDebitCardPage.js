@@ -13,7 +13,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
-import ExpensifyText from '../../../components/ExpensifyText';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -29,6 +28,7 @@ import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import * as Session from '../../../libs/actions/Session';
 import StatePicker from '../../../components/StatePicker';
+import ExpensifyText from '../../../components/ExpensifyText';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
