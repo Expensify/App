@@ -62,7 +62,7 @@ const ConfirmPopover = props => (
     >
         <View
             style={[
-                styles.m2,
+                styles.m5,
                 styles.alignItemsCenter,
                 !props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
             ]}
@@ -78,7 +78,7 @@ const ConfirmPopover = props => (
                 danger={props.danger}
                 style={[
                     styles.button,
-                    styles.mv2,
+                    styles.mt2,
                     styles.defaultOrDeleteButton,
                     props.danger ? styles.buttonDanger : styles.buttonSuccess,
                     styles.alignSelfCenter,
@@ -94,7 +94,7 @@ const ConfirmPopover = props => (
                 <TouchableOpacity
                     style={[
                         styles.button,
-                        styles.mv2,
+                        styles.mt4,
                         styles.defaultOrDeleteButton,
                         styles.alignSelfCenter,
                     ]}

@@ -80,7 +80,6 @@ class PaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        debugger;
         const position = getClickedElementLocation(nativeEvent);
         if (accountType) {
             let formattedSelectedPaymentMethod;
@@ -107,8 +106,8 @@ class PaymentsPage extends React.Component {
                 selectedPaymentMethodType: accountType,
                 anchorPositionTop: position.bottom,
 
-                // We want the position to be 20px to the right of the left border
-                anchorPositionLeft: position.left + 20,
+                // We want the position to be 13px to the right of the left border
+                anchorPositionLeft: position.left + 13,
                 formattedSelectedPaymentMethod,
             });
         } else {
@@ -116,8 +115,8 @@ class PaymentsPage extends React.Component {
                 shouldShowAddPaymentMenu: true,
                 anchorPositionTop: position.bottom,
 
-                // We want the position to be 20px to the right of the left border
-                anchorPositionLeft: position.left + 20,
+                // We want the position to be 13px to the right of the left border
+                anchorPositionLeft: position.left + 13,
             });
         }
     }
