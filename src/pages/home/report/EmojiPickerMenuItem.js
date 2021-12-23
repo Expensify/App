@@ -5,7 +5,7 @@ import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import getButtonState from '../../../libs/getButtonState';
 import Hoverable from '../../../components/Hoverable';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -34,9 +34,9 @@ const EmojiPickerMenuItem = props => (
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
-            <ExpensifyText style={[styles.emojiText]}>
+            <Text style={[styles.emojiText]}>
                 {props.emoji}
-            </ExpensifyText>
+            </Text>
         </Hoverable>
     </Pressable>
 

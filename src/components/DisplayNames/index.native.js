@@ -1,12 +1,12 @@
 import React from 'react';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 const DisplayNames = props => (
-    <ExpensifyText style={props.textStyles} numberOfLines={props.numberOfLines}>
+    <Text style={props.textStyles} numberOfLines={props.numberOfLines}>
         {props.fullTitle}
-    </ExpensifyText>
+    </Text>
 );
 
 DisplayNames.propTypes = propTypes;

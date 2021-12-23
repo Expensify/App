@@ -21,6 +21,7 @@ class ImageView extends PureComponent {
         this.canUseTouchScreen = canUseTouchScreen();
         this.state = {
             containerHeight: 0,
+            containerWidth: 0,
             isZoomed: false,
             isDragging: false,
             isMouseDown: false,
@@ -85,9 +86,16 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        this.setState({
-            imgWidth: width, imgHeight: height, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
-        });
+        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
+        this.setState(prevState => ({
+            imgWidth: width,
+            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            imgHeight: height,
+            imageLeft: imgLeft,
+            imageTop: imgTop,
+            imageRight: imgRight,
+            imageBottom: imgBottom,
+        }));
     }
 
     /**
@@ -169,6 +177,7 @@ class ImageView extends PureComponent {
                     const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
                     this.setState({
                         containerHeight: height,
+                        containerWidth: width,
                         zoomScale: scale,
                     });
                 }}
@@ -181,9 +190,10 @@ class ImageView extends PureComponent {
             >
                 <Pressable
                     style={{
-                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight),
+                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
+                            this.state.containerHeight, this.state.containerWidth),
                         ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                        ...this.state.isZoomed ? styles.pRelative : styles.pAbsolute,
+                        ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}
                     onPressIn={(e) => {

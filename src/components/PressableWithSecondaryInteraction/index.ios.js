@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import {Pressable, Text as RNText} from 'react-native';
+import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import Text from '../Text';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -12,7 +13,7 @@ import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSeco
  */
 const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? RNText : Pressable;
+    const Node = props.inline ? Text : Pressable;
     return (
         <Node
             ref={props.forwardedRef}

@@ -7,6 +7,7 @@ const SVGImage = props => (
     <Image
         style={StyleUtils.getWidthAndHeightStyle(props.width, props.height)}
         source={props.src}
+        resizeMode={props.resizeMode}
     />
 );
 

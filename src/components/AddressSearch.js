@@ -30,9 +30,10 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     value: '',
-    containerStyles: null,
+    containerStyles: [],
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
