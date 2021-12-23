@@ -26,7 +26,6 @@ function getErrors(props) {
     return lodashGet(props, ['reimbursementAccount', 'errors'], {});
 }
 
-
 /**
  * @param {Object} props
  * @param {String[]} paths
