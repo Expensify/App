@@ -249,6 +249,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        characterLimit: limit => `Exceeds the max length of ${limit} characters`,
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',

@@ -74,6 +74,7 @@ class ProfilePage extends Component {
             lastName: props.myPersonalDetails.lastName,
             lastNameError: '',
             pronouns: props.myPersonalDetails.pronouns,
+            pronounError: '',
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -159,13 +160,14 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
-
+        const errors = PersonalDetails.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
+        const [firstNameError, lastNameError, pronounError] = errors;
         this.setState({
             firstNameError,
             lastNameError,
+            pronounError,
         });
-        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return _.isEmpty(errors.join());
     }
 
     render() {
@@ -241,6 +243,7 @@ class ProfilePage extends Component {
                                         value={this.state.pronouns}
                                         onChangeText={pronouns => this.setState({pronouns})}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                        errorText={this.state.pronounError}
                                     />
                                 </View>
                             )}

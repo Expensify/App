@@ -189,7 +189,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const [firstNameError, lastNameError] = PersonalDetails.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName]);
 
         this.setState({
             firstNameError,

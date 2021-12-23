@@ -12,7 +12,6 @@ import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as ValidationUtils from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -66,18 +65,15 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns object with first and last name errors. If either are valid,
+ * Returns object with character limit errors. If any are valid,
  * those errors get returned as empty strings.
  *
- * @param {String} firstName
- * @param {String} lastName
- * @returns {Object}
+ * @param {Number} limit
+ * @param {Object[]} toBeValidated
+ * @returns {Object[]}
  */
-function getFirstAndLastNameErrors(firstName, lastName) {
-    return {
-        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : Localize.translateLocal('personalDetails.error.firstNameLength'),
-        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : Localize.translateLocal('personalDetails.error.lastNameLength'),
-    };
+function getCharacterLimitErrors(limit, toBeValidated) {
+    return _.map(toBeValidated, x => (x.length <= limit ? '' : Localize.translateLocal('profilePage.characterLimit', [50])));
 }
 
 /**
@@ -345,7 +341,7 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getFirstAndLastNameErrors,
+    getCharacterLimitErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
