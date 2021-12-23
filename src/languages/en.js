@@ -419,12 +419,6 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
-    personalDetails: {
-        error: {
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-        },
-    },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
