@@ -232,7 +232,7 @@ function setupWithdrawalAccount(params) {
             if (_.has(responseACHData, 'nextStepValues')) {
                 navigation.goToWithdrawalAccountSetupStep(_.get(responseACHData.nextStepValues, 'currentStep') || nextStep, {
                     ...updatedACHData,
-                    ...responseACHData,
+                    ...(_.omit(responseACHData, 'nextStepValues')),
                     ...responseACHData.nextStepValues,
                 });
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
