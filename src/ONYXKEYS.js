@@ -172,4 +172,7 @@ export default {
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
+
+    // Validating Email?
+    USER_SIGN_UP: 'userSignUp',
 };

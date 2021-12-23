@@ -293,7 +293,7 @@ function resetPassword() {
  *
  * @param {String} password
  * @param {String} validateCode
- * @param {String} accountID
+ * @param {Number} accountID
  */
 function setPassword(password, validateCode, accountID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
@@ -386,50 +386,49 @@ function clearAccountMessages() {
 /**
  * @param {String} authToken
  * @param {String} password
+ * @param {String} login
  */
-function changePasswordAndSignIn(authToken, password) {
+function changePasswordAndSignIn(authToken, password, login) {
     API.ChangePassword({
         authToken,
         password,
     })
         .then((responsePassword) => {
+            Onyx.merge(ONYXKEYS.SESSION, {authToken: undefined});
             if (responsePassword.jsonCode === 200) {
                 signIn(password);
                 return;
             }
-
+            API.ResendValidateCode(login);
             Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
         });
 }
 
 /**
- * @param {String} accountID
+ * @param {Number} accountID
  * @param {String} validateCode
- * @param {String} password
+ * @param {String} login
+ * @param {String} authToken
  */
-function validateEmail(accountID, validateCode, password) {
+function validateEmail(accountID, validateCode, login, authToken) {
+    Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidatingEmail: true});
     API.ValidateEmail({
         accountID,
         validateCode,
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                changePasswordAndSignIn(responseValidate.authToken, password);
+                Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: responseValidate.authToken});
                 return;
             }
-
-            if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
-                // If the email is already validated, set the password using the validate code
-                setPassword(
-                    password,
-                    validateCode,
-                    accountID,
-                );
+            if (responseValidate.jsonCode === 666 && authToken) {
                 return;
             }
-
-            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.accountNotValidated'});
-        });
+            if (responseValidate.jsonCode === 666) {
+                API.ResendValidateCode(login);
+            }
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
+        }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidatingEmail: false}));
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -507,4 +506,5 @@ export {
     authenticatePusher,
     reauthenticatePusher,
     setShouldShowComposeInput,
+    changePasswordAndSignIn,
 };
