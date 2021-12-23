@@ -87,14 +87,6 @@ class CompanyStep extends React.Component {
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
 
-        // AddressSearch uses different keys for these fields
-        this.renamedFields = {
-            street: 'addressStreet',
-            state: 'addressState',
-            city: 'addressCity',
-            zipCode: 'addressZipCode',
-        };
-
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
@@ -226,9 +218,15 @@ class CompanyStep extends React.Component {
                             state: this.getErrors().addressState,
                         }}
                         onFieldChange={(values) => {
+                            const renamedFields = {
+                                street: 'addressStreet',
+                                state: 'addressState',
+                                city: 'addressCity',
+                                zipCode: 'addressZipCode',
+                            };
                             const renamedValues = {};
                             _.each(values, (value, inputKey) => {
-                                const renamedInputKey = lodashGet(this.renamedFields, inputKey, inputKey);
+                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
                                 renamedValues[renamedInputKey] = value;
                             });
                             this.setValue(renamedValues);
