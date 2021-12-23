@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
@@ -75,9 +75,9 @@ const SignInPageContent = props => (
                     />
                 </View>
                 {props.shouldShowWelcomeText && (
-                    <ExpensifyText style={[styles.mv5, styles.textLabel, styles.h3]}>
+                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
                         {props.welcomeText}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 {props.children}
             </LoginKeyboardAvoidingView>

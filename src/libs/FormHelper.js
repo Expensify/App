@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -8,6 +9,7 @@ class FormHelper {
         this.setErrors = setErrors;
         this.getErrors = this.getErrors.bind(this);
         this.clearError = this.clearError.bind(this);
+        this.clearErrors = this.clearErrors.bind(this);
     }
 
     /**
@@ -20,19 +22,28 @@ class FormHelper {
 
     /**
      * @param {Object} props
-     * @param {String} path
+     * @param {String[]} paths
      */
-    clearError(props, path) {
+    clearErrors(props, paths) {
         const errors = this.getErrors(props);
-        if (!lodashGet(errors, path, false)) {
+        const pathsWithErrors = _.filter(paths, path => lodashGet(errors, path, false));
+        if (_.size(pathsWithErrors) === 0) {
             // No error found for this path
             return;
         }
 
         // Clear the existing errors
         const newErrors = lodashCloneDeep(errors);
-        lodashUnset(newErrors, path);
+        _.forEach(pathsWithErrors, path => lodashUnset(newErrors, path));
         this.setErrors(newErrors);
+    }
+
+    /**
+     * @param {Object} props
+     * @param {String} path
+     */
+    clearError(props, path) {
+        this.clearErrors(props, [path]);
     }
 }
 

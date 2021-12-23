@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -69,31 +69,31 @@ const ReportWelcomeText = (props) => {
     const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
 
     return (
-        <ExpensifyText style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
-            <ExpensifyText>
+        <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
+            <Text>
                 {!props.shouldIncludeParticipants
                     ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
                     : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
-            </ExpensifyText>
-            {!props.shouldIncludeParticipants && <ExpensifyText style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</ExpensifyText>}
-            {!props.shouldIncludeParticipants && <ExpensifyText>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</ExpensifyText>}
+            </Text>
+            {!props.shouldIncludeParticipants && <Text style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</Text>}
+            {!props.shouldIncludeParticipants && <Text>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</Text>}
             {props.shouldIncludeParticipants
             && (
                 <>
                     {_.map(chatUsers, ({displayName, pronouns}, index) => (
-                        <ExpensifyText key={displayName}>
-                            <ExpensifyText style={[styles.textStrong]}>
+                        <Text key={displayName}>
+                            <Text style={[styles.textStrong]}>
                                 {displayName}
-                            </ExpensifyText>
-                            {!_.isEmpty(pronouns) && <ExpensifyText>{` (${pronouns})`}</ExpensifyText>}
-                            {(index === chatUsers.length - 1) && <ExpensifyText>.</ExpensifyText>}
-                            {(index === chatUsers.length - 2) && <ExpensifyText>{` ${props.translate('common.and')} `}</ExpensifyText>}
-                            {(index < chatUsers.length - 2) && <ExpensifyText>, </ExpensifyText>}
-                        </ExpensifyText>
+                            </Text>
+                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                            {(index === chatUsers.length - 1) && <Text>.</Text>}
+                            {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                            {(index < chatUsers.length - 2) && <Text>, </Text>}
+                        </Text>
                     ))}
                 </>
             )}
-        </ExpensifyText>
+        </Text>
     );
 };
 

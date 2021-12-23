@@ -17,7 +17,7 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 
 const propTypes = {
@@ -184,17 +184,17 @@ class IOUAmountPage extends React.Component {
                         ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
-                        <ExpensifyText style={styles.iouAmountText}>
+                        <Text style={styles.iouAmountText}>
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
                         ? (
-                            <ExpensifyText
+                            <Text
                                 style={styles.iouAmountText}
                             >
                                 {this.state.amount}
-                            </ExpensifyText>
+                            </Text>
                         ) : (
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}

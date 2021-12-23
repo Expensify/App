@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -35,7 +35,7 @@ const WorkspaceCardVBAWithECardView = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <ExpensifyText>{props.translate('workspace.card.VBAWithECardCopy')}</ExpensifyText>
+            <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
         </View>
 
         <UnorderedList

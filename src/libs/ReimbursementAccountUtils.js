@@ -9,6 +9,7 @@ const formHelper = new FormHelper({
 
 const getErrors = props => formHelper.getErrors(props);
 const clearError = (props, path) => formHelper.clearError(props, path);
+const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
 
 /**
  * Get the default state for input fields in the VBA flow
@@ -39,5 +40,6 @@ export {
     getDefaultStateForField,
     getErrors,
     clearError,
+    clearErrors,
     getErrorText,
 };

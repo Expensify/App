@@ -6,7 +6,7 @@ import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
@@ -92,9 +92,9 @@ class GrowlNotification extends Component {
                     <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
-                                <ExpensifyText style={styles.growlNotificationText}>
+                                <Text style={styles.growlNotificationText}>
                                     {this.state.bodyText}
-                                </ExpensifyText>
+                                </Text>
                                 <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
                             </View>
                         </TouchableWithoutFeedback>

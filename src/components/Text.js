@@ -37,7 +37,7 @@ const defaultProps = {
     style: {},
 };
 
-const ExpensifyText = React.forwardRef(({
+const Text = React.forwardRef(({
     color,
     fontSize,
     textAlign,
@@ -69,8 +69,8 @@ const ExpensifyText = React.forwardRef(({
     );
 });
 
-ExpensifyText.propTypes = propTypes;
-ExpensifyText.defaultProps = defaultProps;
-ExpensifyText.displayName = 'ExpensifyText';
+Text.propTypes = propTypes;
+Text.defaultProps = defaultProps;
+Text.displayName = 'Text';
 
-export default ExpensifyText;
+export default Text;
