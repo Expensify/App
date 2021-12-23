@@ -37,7 +37,6 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
 
         this.state = {
@@ -99,16 +98,6 @@ class RequestorStep extends React.Component {
             inputKeys.push('dobAge');
         }
         this.clearErrors(inputKeys);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String|Boolean} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.clearErrorsAndSetValues({[inputKey]: value});
     }
 
     /**
