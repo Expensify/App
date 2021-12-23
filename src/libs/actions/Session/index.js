@@ -319,10 +319,10 @@ function setPassword(password, validateCode, accountID) {
 
             const login = lodashGet(response, 'data.email', null);
             Onyx.merge(ONYXKEYS.ACCOUNT, {
-                validated: true, accountExists: true, validateCodeExpired: true, error: Localize.translateLocal('setPasswordPage.accountNotValidated'),
+                validated: true, accountExists: true, validateCodeExpired: true, error: null,
             });
 
-            // This login is set with email received from the API so that the resend link can work if the user has hit a direct URL
+            // The login might not be set if the user hits a url in a new session. We set it here to ensure calls to resendValidationLink() will succeed.
             if (login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
             }
