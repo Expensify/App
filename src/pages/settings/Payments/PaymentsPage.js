@@ -255,7 +255,7 @@ class PaymentsPage extends React.Component {
                                         passwordFormCallback: this.makeDefaultPaymentMethod,
                                     });
                                 }}
-                                style={[styles.button, styles.mv2, styles.alignSelfCenter, styles.defaultOrDeleteButton]}
+                                style={[styles.button, styles.alignSelfCenter, styles.defaultOrDeleteButton]}
                             >
                                 <ExpensifyText style={[styles.buttonText]}>
                                     Make Default Payment Method
@@ -271,7 +271,7 @@ class PaymentsPage extends React.Component {
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
-                                    styles.mv2,
+                                    styles.mt4,
                                     styles.alignSelfCenter,
                                     styles.defaultOrDeleteButton,
                                 ]}
