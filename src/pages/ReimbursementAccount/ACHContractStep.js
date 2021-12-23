@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -189,18 +189,18 @@ class ACHContractStep extends React.Component {
                 <ReimbursementAccountForm
                     onSubmit={this.submit}
                 >
-                    <ExpensifyText style={[styles.mb5]}>
-                        <ExpensifyText>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</ExpensifyText>
-                    </ExpensifyText>
+                    <Text style={[styles.mb5]}>
+                        <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
+                    </Text>
                     <CheckboxWithLabel
                         style={[styles.mb2]}
                         isChecked={this.state.ownsMoreThan25Percent}
                         onPress={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
-                            <ExpensifyText>
+                            <Text>
                                 {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
-                                <ExpensifyText style={[styles.textStrong]}>{this.props.companyName}</ExpensifyText>
-                            </ExpensifyText>
+                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                            </Text>
                         )}
                     />
                     <CheckboxWithLabel
@@ -220,19 +220,19 @@ class ACHContractStep extends React.Component {
                             });
                         }}
                         LabelComponent={() => (
-                            <ExpensifyText>
+                            <Text>
                                 {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
-                                <ExpensifyText style={[styles.textStrong]}>{this.props.companyName}</ExpensifyText>
-                            </ExpensifyText>
+                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                            </Text>
                         )}
                     />
                     {this.state.hasOtherBeneficialOwners && (
                         <View style={[styles.mb2]}>
                             {_.map(this.state.beneficialOwners, (owner, index) => (
                                 <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
-                                    <ExpensifyText style={[styles.textStrong, styles.mb2]}>
+                                    <Text style={[styles.textStrong, styles.mb2]}>
                                         {this.props.translate('beneficialOwnersStep.additionalOwner')}
-                                    </ExpensifyText>
+                                    </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
                                         onFieldChange={(inputKey, value) => this.clearErrorAndSetBeneficialOwnerValue(index, inputKey, value)}
@@ -259,21 +259,21 @@ class ACHContractStep extends React.Component {
                             {this.canAddMoreBeneficialOwners() && (
                                 <TextLink onPress={this.addBeneficialOwner}>
                                     {this.props.translate('beneficialOwnersStep.addAnotherIndividual')}
-                                    <ExpensifyText style={[styles.textStrong, styles.link]}>{this.props.companyName}</ExpensifyText>
+                                    <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
                                 </TextLink>
                             )}
                         </View>
                     )}
-                    <ExpensifyText style={[styles.mv5]}>
+                    <Text style={[styles.mv5]}>
                         {this.props.translate('beneficialOwnersStep.agreement')}
-                    </ExpensifyText>
+                    </Text>
                     <CheckboxWithLabel
                         style={[styles.mt4]}
                         isChecked={this.state.acceptTermsAndConditions}
                         onPress={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
                             <View style={[styles.flexRow]}>
-                                <ExpensifyText>{this.props.translate('common.iAcceptThe')}</ExpensifyText>
+                                <Text>{this.props.translate('common.iAcceptThe')}</Text>
                                 <TextLink href="https://use.expensify.com/achterms">
                                     {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
                                 </TextLink>
@@ -287,7 +287,7 @@ class ACHContractStep extends React.Component {
                         isChecked={this.state.certifyTrueInformation}
                         onPress={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
-                            <ExpensifyText>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</ExpensifyText>
+                            <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                         errorText={this.getErrorText('certifyTrueInformation')}
                         hasError={this.getErrors().certifyTrueInformation}

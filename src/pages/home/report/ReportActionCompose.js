@@ -41,7 +41,7 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
@@ -725,9 +725,9 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <ExpensifyText style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                                 {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}

@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import OptionRow from '../home/sidebar/OptionRow';
 import themeColors from '../../styles/themes/default';
 import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles';
@@ -208,9 +208,9 @@ class IOUCurrencySelection extends Component {
                                     )}
                                     renderSectionHeader={({section: {title}}) => (
                                         <View>
-                                            <ExpensifyText style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                                                 {title}
-                                            </ExpensifyText>
+                                            </Text>
                                         </View>
                                     )}
                                 />

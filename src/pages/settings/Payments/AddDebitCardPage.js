@@ -13,6 +13,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -28,7 +29,6 @@ import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import * as Session from '../../../libs/actions/Session';
 import StatePicker from '../../../components/StatePicker';
-import ExpensifyText from '../../../components/ExpensifyText';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -257,7 +257,7 @@ class DebitCardPage extends Component {
                                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
-                                    <ExpensifyText
+                                    <Text
                                         style={[styles.textMicroSupporting, styles.pt2]}
                                     >
                                         {this.props.translate('common.cantFindAddress')}
@@ -267,7 +267,7 @@ class DebitCardPage extends Component {
                                         >
                                             {this.props.translate('common.enterManually')}
                                         </TextLink>
-                                    </ExpensifyText>
+                                    </Text>
                                 </>
                             )}
                             {this.state.manualAddress && (
@@ -318,18 +318,18 @@ class DebitCardPage extends Component {
                                 />
                                 {showMagicSigninLinkMessage
                                     ? (
-                                        <ExpensifyText style={[styles.pt2, styles.textLabelSupporting]}>
+                                        <Text style={[styles.pt2, styles.textLabelSupporting]}>
                                             {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login})}
-                                        </ExpensifyText>
+                                        </Text>
                                     ) : (
                                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                                             <TouchableOpacity
                                                 style={[styles.mt2]}
                                                 onPress={Session.resetPassword}
                                             >
-                                                <ExpensifyText style={[styles.link, styles.textMicro]}>
+                                                <Text style={[styles.link, styles.textMicro]}>
                                                     {this.props.translate('addDebitCardPage.forgotPassword')}
-                                                </ExpensifyText>
+                                                </Text>
                                             </TouchableOpacity>
                                         </View>
                                     )}
@@ -347,7 +347,7 @@ class DebitCardPage extends Component {
                                 }}
                                 LabelComponent={() => (
                                     <>
-                                        <ExpensifyText>{`${this.props.translate('common.iAcceptThe')}`}</ExpensifyText>
+                                        <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                         </TextLink>
@@ -360,9 +360,9 @@ class DebitCardPage extends Component {
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (
                             <View style={[styles.mh5, styles.mb5]}>
-                                <ExpensifyText style={[styles.formError]}>
+                                <Text style={[styles.formError]}>
                                     {this.props.addDebitCardForm.error}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         )}
                         <FormAlertWithSubmitButton

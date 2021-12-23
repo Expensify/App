@@ -8,7 +8,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
@@ -157,9 +157,9 @@ class PasswordPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <ExpensifyText style={[styles.mb6]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
-                        </ExpensifyText>
+                        </Text>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
                                 label={`${this.props.translate('passwordPage.currentPassword')}*`}
@@ -191,21 +191,21 @@ class PasswordPage extends Component {
                             {
 
                                 shouldShowNewPasswordPrompt && (
-                                <ExpensifyText
+                                <Text
                                     style={[
                                         styles.textLabelSupporting,
                                         styles.mt1,
                                     ]}
                                 >
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
-                                </ExpensifyText>
+                                </Text>
                                 )
                             }
                         </View>
                         {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
-                            <ExpensifyText style={styles.formError}>
+                            <Text style={styles.formError}>
                                 {this.props.account.error}
-                            </ExpensifyText>
+                            </Text>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
