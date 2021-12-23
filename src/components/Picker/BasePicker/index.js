@@ -2,14 +2,14 @@ import React from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 
 import styles from '../../../styles/styles';
-import * as pickerPropTypes from './pickerPropTypes';
-import pickerStyles from './pickerStyles';
+import * as basePickerPropTypes from './basePickerPropTypes';
+import basePickerStyles from './basePickerStyles';
 
-const Picker = props => (
+const BasePicker = props => (
     <RNPickerSelect
         onValueChange={props.onChange}
         items={props.items}
-        style={props.size === 'normal' ? pickerStyles(props.disabled, props.hasError, props.focused) : styles.pickerSmall}
+        style={props.size === 'normal' ? basePickerStyles(props.disabled, props.hasError, props.focused) : styles.pickerSmall}
         useNativeAndroidPickerStyle={false}
         placeholder={props.placeholder}
         value={props.value}
@@ -26,8 +26,8 @@ const Picker = props => (
 );
 
 
-Picker.propTypes = pickerPropTypes.propTypes;
-Picker.defaultProps = pickerPropTypes.defaultProps;
-Picker.displayName = 'Picker';
+BasePicker.propTypes = basePickerPropTypes.propTypes;
+BasePicker.defaultProps = basePickerPropTypes.defaultProps;
+BasePicker.displayName = 'BasePicker';
 
-export default Picker;
+export default BasePicker;
