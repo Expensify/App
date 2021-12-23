@@ -2166,11 +2166,6 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-
-    defaultOrDeleteButton: {
-        width: '100%',
-    },
-
     defaultDeletePopover: {
         width: variables.sideBarWidth - 68,
     },

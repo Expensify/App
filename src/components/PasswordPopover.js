@@ -98,7 +98,7 @@ class PasswordPopover extends Component {
                         style={[
                             styles.button,
                             styles.mt3,
-                            styles.defaultOrDeleteButton,
+                            styles.w100,
                         ]}
                     >
                         <ExpensifyText style={[styles.buttonText]}>
