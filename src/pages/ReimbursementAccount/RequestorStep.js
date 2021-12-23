@@ -37,7 +37,7 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
+        this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
 
         this.state = {
             firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
@@ -55,8 +55,6 @@ class RequestorStep extends React.Component {
 
         // Required fields not validated by `validateIdentity`
         this.requiredFields = [
-            'firstName',
-            'lastName',
             'isControllingOfficer',
         ];
 
@@ -68,38 +66,38 @@ class RequestorStep extends React.Component {
         };
 
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     * Clear the errors associated to keys in values if found and store the new values in the state.
      *
-     * @param {String} inputKey
-     * @param {String|Boolean} value
+     * @param {Object} values
      */
-    clearErrorAndSetValue(inputKey, value) {
-        if (inputKey === 'manualAddress') {
-            this.setState({
-                manualAddress: value,
-            });
-        } else {
-            const renamedFields = {
-                addressStreet: 'requestorAddressStreet',
-                addressCity: 'requestorAddressCity',
-                addressState: 'requestorAddressState',
-                addressZipCode: 'requestorAddressZipCode',
-            };
+    clearErrorsAndSetValues(values) {
+        const renamedFields = {
+            street: 'requestorAddressStreet',
+            city: 'requestorAddressCity',
+            state: 'requestorAddressState',
+            zipCode: 'requestorAddressZipCode',
+        };
+        const newState = {};
+        _.each(values, (value, inputKey) => {
             const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-            const newState = {[renamedInputKey]: value};
-            this.setState(newState);
-            BankAccounts.updateReimbursementAccountDraft(newState);
+            newState[renamedInputKey] = value;
+        });
+        this.setState(newState);
+        BankAccounts.updateReimbursementAccountDraft(newState);
 
-            // dob field has multiple validations/errors, we are handling it temporarily like this.
-            if (inputKey === 'dob') {
-                this.clearError('dobAge');
-            }
-            this.clearError(inputKey);
+        // Prepare inputKeys for clearing errors
+        const inputKeys = _.keys(values);
+
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
+        if (_.contains(inputKeys, 'dob')) {
+            inputKeys.push('dobAge');
         }
+        this.clearErrors(inputKeys);
     }
 
     /**
@@ -198,17 +196,16 @@ class RequestorStep extends React.Component {
                             </TextLink>
                         </View>
                         <IdentityForm
-                            onFieldChange={this.clearErrorAndSetValue}
+                            onFieldChange={this.clearErrorsAndSetValues}
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
                                 street: this.state.requestorAddressStreet,
-                                city: this.state.requestorAddressCity,
                                 state: this.state.requestorAddressState,
+                                city: this.state.requestorAddressCity,
                                 zipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
-                                manualAddress: this.state.manualAddress,
                             }}
                             errors={this.props.reimbursementAccount.errors}
                         />
