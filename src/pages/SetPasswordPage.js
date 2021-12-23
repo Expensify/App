@@ -93,7 +93,6 @@ class SetPasswordPage extends Component {
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-
         Session.validateEmail(accountID, validateCode, this.props.credentials.login, this.props.userSignUp.authToken);
     }
 

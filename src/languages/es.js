@@ -449,7 +449,7 @@ export default {
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
-        setPasswordLinkInvalid: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
+        setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
     },
     stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {

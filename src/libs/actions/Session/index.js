@@ -399,7 +399,7 @@ function changePasswordAndSignIn(authToken, password, login) {
                 signIn(password);
                 return;
             }
-            API.ResendValidateCode(login);
+            API.ResendValidateCode({email: login});
             Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
         });
 }
@@ -425,7 +425,7 @@ function validateEmail(accountID, validateCode, login, authToken) {
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                API.ResendValidateCode(login);
+                API.ResendValidateCode({email: login});
             }
             Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
         }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidatingEmail: false}));
