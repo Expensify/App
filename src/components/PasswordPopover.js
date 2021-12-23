@@ -28,16 +28,12 @@ const propTypes = {
     /** The text that should be displayed in the submit button */
     submitButtonText: PropTypes.string,
 
-    /** Is the reason for the password dangerous. This will change the button style to red */
-    isDangerousAction: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     onSubmit: () => {},
     submitButtonText: '',
-    isDangerousAction: false,
 };
 
 class PasswordPopover extends Component {
@@ -73,14 +69,12 @@ class PasswordPopover extends Component {
             >
                 <View
                     style={[
-                        styles.m2,
+                        styles.m5,
                         !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
                     ]}
                 >
                     <ExpensifyText
                         style={[
-                            styles.h1,
-                            styles.mv2,
                             styles.alignSelfCenter,
                         ]}
                     >
@@ -91,6 +85,7 @@ class PasswordPopover extends Component {
                             styles.textInput,
                             styles.border,
                             styles.w100,
+                            styles.mt3,
                         ]}
                         onChangeText={password => this.setState({password})}
                         ref={el => this.passwordInput = el}
@@ -102,9 +97,8 @@ class PasswordPopover extends Component {
                         onPress={() => this.props.onSubmit(this.state.password)}
                         style={[
                             styles.button,
-                            styles.mv2,
+                            styles.mt3,
                             styles.defaultOrDeleteButton,
-                            this.props.isDangerousAction && styles.buttonDanger,
                         ]}
                     >
                         <ExpensifyText style={[styles.buttonText]}>

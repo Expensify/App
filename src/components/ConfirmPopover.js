@@ -74,7 +74,6 @@ const ConfirmPopover = props => (
                 {props.title}
             </ExpensifyText>
             <TouchableOpacity
-                danger={props.danger}
                 style={[
                     styles.button,
                     styles.mt2,
@@ -84,7 +83,7 @@ const ConfirmPopover = props => (
                 ]}
                 onPress={props.onConfirm}
             >
-                <ExpensifyText style={[styles.buttonText]}>
+                <ExpensifyText style={[styles.buttonText, props.danger && styles.textWhite]}>
                     {props.confirmText || props.translate('common.yes')}
                 </ExpensifyText>
             </TouchableOpacity>

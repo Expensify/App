@@ -251,7 +251,6 @@ class PaymentsPage extends React.Component {
                                         shouldShowPasswordPrompt: true,
                                         shouldShowDefaultDeleteMenu: false,
                                         passwordButtonText: 'Make Default Payment Method',
-                                        isDangerousAction: false,
                                         passwordFormCallback: this.makeDefaultPaymentMethod,
                                     });
                                 }}
@@ -276,7 +275,7 @@ class PaymentsPage extends React.Component {
                                     styles.defaultOrDeleteButton,
                                 ]}
                             >
-                                <ExpensifyText style={[styles.buttonText]}>
+                                <ExpensifyText style={[styles.buttonText, styles.textWhite]}>
                                     {this.props.translate('common.delete')}
                                 </ExpensifyText>
                             </TouchableOpacity>
@@ -291,7 +290,7 @@ class PaymentsPage extends React.Component {
                         }}
                         onSubmit={this.callPasswordCallbackAndHidePopover}
                         submitButtonText={this.state.passwordButtonText}
-                        isDangerousAction={this.state.isDangerousAction}
+                        isDangerousAction
                     />
                     <ConfirmPopover
                         isVisible={this.state.shouldShowConfirmPopover}
