@@ -71,16 +71,7 @@ class ACHContractStep extends React.Component {
     validate() {
         let beneficialOwnersErrors = [];
         if (this.state.hasOtherBeneficialOwners) {
-            beneficialOwnersErrors = _.map(this.state.beneficialOwners, beneficialOwner => ValidationUtils.validateIdentity({
-                firstName: beneficialOwner.firstName,
-                lastName: beneficialOwner.lastName,
-                addressStreet: beneficialOwner.street,
-                addressState: beneficialOwner.state,
-                addressCity: beneficialOwner.city,
-                addressZipCode: beneficialOwner.zipCode,
-                dob: beneficialOwner.dob,
-                ssnLast4: beneficialOwner.ssnLast4,
-            }));
+            beneficialOwnersErrors = _.map(this.state.beneficialOwners, ValidationUtils.validateIdentity);
         }
 
         const errors = {};
@@ -130,16 +121,9 @@ class ACHContractStep extends React.Component {
      */
     clearErrorAndSetBeneficialOwnerValues(ownerIndex, values) {
         this.setState((prevState) => {
-            const renamedFields = {
-                addressStreet: 'street',
-                addressCity: 'city',
-                addressState: 'state',
-                addressZipCode: 'zipCode',
-            };
             const beneficialOwners = [...prevState.beneficialOwners];
             _.each(values, (value, inputKey) => {
-                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
+                beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
             });
             BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
@@ -262,13 +246,12 @@ class ACHContractStep extends React.Component {
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
-                                            addressStreet: owner.street || '',
-                                            addressState: owner.state || '',
-                                            addressCity: owner.city || '',
-                                            addressZipCode: owner.zipCode || '',
+                                            street: owner.street || '',
+                                            city: owner.city || '',
+                                            state: owner.state || '',
+                                            zipCode: owner.zipCode || '',
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
-                                            manualAddress: owner.manualAddress,
                                         }}
                                         errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
                                     />

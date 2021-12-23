@@ -56,28 +56,28 @@ const AddressSearch = (props) => {
         // Gather the values from the Google details
         const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
         const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
-        const addressStreet = `${streetNumber} ${streetName}`.trim();
-        let addressCity = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
-        if (!addressCity) {
-            addressCity = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
-            Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: addressCity});
+        const street = `${streetNumber} ${streetName}`.trim();
+        let city = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
+        if (!city) {
+            city = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
+            Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
         }
-        const addressZipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
-        const addressState = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+        const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
+        const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
         const values = {};
-        if (addressStreet && addressStreet.length > props.value.length) {
+        if (street && street.length > props.value.length) {
             // Don't replace if the user has typed something longer. I.e. maybe the user entered the Apt #
-            values.addressStreet = addressStreet;
+            values.street = street;
         }
-        if (addressCity) {
-            values.addressCity = addressCity;
+        if (city) {
+            values.city = city;
         }
-        if (addressZipCode) {
-            values.addressZipCode = addressZipCode;
+        if (zipCode) {
+            values.zipCode = zipCode;
         }
-        if (addressState) {
-            values.addressState = addressState;
+        if (state) {
+            values.state = state;
         }
         if (_.size(values) === 0) {
             return;
@@ -114,7 +114,7 @@ const AddressSearch = (props) => {
                 value: props.value,
                 onChangeText: (text) => {
                     if (skippedFirstOnChangeTextRef.current) {
-                        props.onChange({addressStreet: text});
+                        props.onChange({street: text});
                     } else {
                         skippedFirstOnChangeTextRef.current = true;
                     }

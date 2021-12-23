@@ -77,10 +77,10 @@ class RequestorStep extends React.Component {
      */
     clearErrorsAndSetValues(values) {
         const renamedFields = {
-            addressStreet: 'requestorAddressStreet',
-            addressCity: 'requestorAddressCity',
-            addressState: 'requestorAddressState',
-            addressZipCode: 'requestorAddressZipCode',
+            street: 'requestorAddressStreet',
+            city: 'requestorAddressCity',
+            state: 'requestorAddressState',
+            zipCode: 'requestorAddressZipCode',
         };
         const newState = {};
         _.each(values, (value, inputKey) => {
@@ -117,10 +117,10 @@ class RequestorStep extends React.Component {
         const errors = ValidationUtils.validateIdentity({
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            addressStreet: this.state.requestorAddressStreet,
-            addressState: this.state.requestorAddressState,
-            addressCity: this.state.requestorAddressCity,
-            addressZipCode: this.state.requestorAddressZipCode,
+            street: this.state.requestorAddressStreet,
+            state: this.state.requestorAddressState,
+            city: this.state.requestorAddressCity,
+            zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
         });
@@ -217,10 +217,10 @@ class RequestorStep extends React.Component {
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
-                                addressStreet: this.state.requestorAddressStreet,
-                                addressState: this.state.requestorAddressState,
-                                addressCity: this.state.requestorAddressCity,
-                                addressZipCode: this.state.requestorAddressZipCode,
+                                street: this.state.requestorAddressStreet,
+                                state: this.state.requestorAddressState,
+                                city: this.state.requestorAddressCity,
+                                zipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
                             }}

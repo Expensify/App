@@ -237,11 +237,17 @@ class DebitCardPage extends Component {
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
                                 onChange={(values) => {
-                                    _.each(values, (value, key) => {
-                                        if (key === 'addressCity') {
+                                    const renamedFields = {
+                                        street: 'addressStreet',
+                                        state: 'addressState',
+                                        zipCode: 'addressZipCode',
+                                    };
+                                    _.each(values, (value, inputKey) => {
+                                        if (inputKey === 'city') {
                                             return;
                                         }
-                                        this.clearErrorAndSetValue(key, value);
+                                        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                        this.clearErrorAndSetValue(renamedInputKey, value);
                                     });
                                 }}
                                 errorText={this.getErrorText('addressStreet')}
