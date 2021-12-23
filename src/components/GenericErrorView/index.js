@@ -10,11 +10,11 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';
 import TextLink from '../TextLink';
 import CONST from '../../CONST';
+import AppRestart from '../../libs/AppRestart';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -23,11 +23,12 @@ const propTypes = {
 
 const GenericErrorView = (props) => {
     const refreshPage = () => {
-        Navigation.navigate(Navigation.getCurrentRoute());
+        AppRestart.reloadApp();
     };
 
     return (
         <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
+
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={styles.alignItemsStart}>
                     <View style={styles.mb5}>
