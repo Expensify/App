@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import Header from './Header';
 import styles from '../styles/styles';
 import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -67,13 +66,13 @@ const ConfirmPopover = props => (
                 !props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
             ]}
         >
-            <Header
+            <ExpensifyText
                 style={[
-                    styles.mv2,
                     styles.alignSelfCenter,
                 ]}
-                title={props.title}
-            />
+            >
+                {props.title}
+            </ExpensifyText>
             <TouchableOpacity
                 danger={props.danger}
                 style={[
