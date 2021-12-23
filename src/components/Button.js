@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
@@ -31,6 +31,15 @@ const propTypes = {
 
     /** A function that is called when the button is clicked on */
     onPress: PropTypes.func,
+
+    /** A function that is called when the button is long pressed */
+    onLongPress: PropTypes.func,
+
+    /** A function that is called when the button is pressed */
+    onPressIn: PropTypes.func,
+
+    /** A function that is called when the button is released */
+    onPressOut: PropTypes.func,
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
@@ -68,6 +77,9 @@ const defaultProps = {
     small: false,
     large: false,
     onPress: () => {},
+    onLongPress: () => {},
+    onPressIn: () => {},
+    onPressOut: () => {},
     pressOnEnter: false,
     style: [],
     textStyles: [],
@@ -78,7 +90,7 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
 };
 
-class ExpensifyButton extends Component {
+class Button extends Component {
     constructor(props) {
         super(props);
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
@@ -121,7 +133,7 @@ class ExpensifyButton extends Component {
         }
 
         const textComponent = (
-            <ExpensifyText
+            <Text
                 selectable={false}
                 style={[
                     styles.buttonText,
@@ -133,7 +145,7 @@ class ExpensifyButton extends Component {
                 ]}
             >
                 {this.props.text}
-            </ExpensifyText>
+            </Text>
         );
 
         if (this.props.icon) {
@@ -158,6 +170,9 @@ class ExpensifyButton extends Component {
         return (
             <Pressable
                 onPress={this.props.onPress}
+                onLongPress={this.props.onLongPress}
+                onPressIn={this.props.onPressIn}
+                onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? styles.cursorDisabled : {},
@@ -190,7 +205,7 @@ class ExpensifyButton extends Component {
     }
 }
 
-ExpensifyButton.propTypes = propTypes;
-ExpensifyButton.defaultProps = defaultProps;
+Button.propTypes = propTypes;
+Button.defaultProps = defaultProps;
 
-export default ExpensifyButton;
+export default Button;

@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 
 
 const propTypes = {
@@ -140,7 +140,7 @@ const IdentityForm = (props) => {
                         onChangeText={value => props.onFieldChange('addressStreet', value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.address') : ''}
                     />
-                    <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</ExpensifyText>
+                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
                             <ExpensiTextInput
@@ -178,12 +178,17 @@ const IdentityForm = (props) => {
                         onChangeText={(fieldName, value) => props.onFieldChange(fieldName, value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                     />
-                    <TextLink
-                        style={[styles.textMicro]}
-                        onPress={() => props.onFieldChange('manualAddress', true)}
+                    <Text
+                        style={[styles.textMicroSupporting, styles.pt2]}
                     >
-                        Can&apos;t find your address? Enter it manually
-                    </TextLink>
+                        {props.translate('common.cantFindAddress')}
+                        <TextLink
+                            style={[styles.textMicro]}
+                            onPress={() => props.onFieldChange('manualAddress', true)}
+                        >
+                            {props.translate('common.enterManually')}
+                        </TextLink>
+                    </Text>
                 </>
             )}
         </View>

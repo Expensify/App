@@ -14,13 +14,13 @@ import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
+import SelectCircle from '../../../components/SelectCircle';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -92,7 +92,7 @@ const OptionRow = (props) => {
         : [styles.optionDisplayName, ...textUnreadStyle];
     const alternateTextStyle = props.mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.mt1];
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
     const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
@@ -188,28 +188,22 @@ const OptionRow = (props) => {
                                     shouldUseFullTitle={props.option.isDefaultChatRoom}
                                 />
                                 {props.option.alternateText ? (
-                                    <ExpensifyText
+                                    <Text
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
                                         {props.option.alternateText}
-                                    </ExpensifyText>
+                                    </Text>
                                 ) : null}
                             </View>
                             {props.option.descriptiveText ? (
                                 <View style={[styles.flexWrap]}>
-                                    <ExpensifyText style={[styles.textLabel]}>
+                                    <Text style={[styles.textLabel]}>
                                         {props.option.descriptiveText}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
-                            {props.showSelectedState && (
-                                <View style={[styles.selectCircle]}>
-                                    {props.isSelected && (
-                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                    )}
-                                </View>
-                            )}
+                            {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
                     </View>
                     {!props.hideAdditionalOptionStates && (

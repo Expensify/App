@@ -88,29 +88,57 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} imgHeight
  * @param {Number} zoomScale
  * @param {Number} containerHeight
+ * @param {Number} containerWidth
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
             width: isZoomed ? '250%' : '100%',
         };
     }
+    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
+    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
+
+    // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
+        // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
+        if (zoomScale > 1) {
+            return {
+                height: `${imgHeight * zoomScale}px`,
+                width: `${imgWidth * zoomScale}px`,
+            };
+        }
+
+        // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${(imgHeight * zoomScale)}px`,
-            width: `${(imgWidth * zoomScale)}px`,
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
+            top,
+            left,
         };
     }
 
-    const top = `${(containerHeight - imgHeight) / 2}px`;
-    const left = `calc(50% - ${imgWidth / 2}px)`;
+    // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
+    if (zoomScale > 1) {
+        return {
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
+            top,
+            left,
+        };
+    }
+
+    // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
+    // top, left offset should be different when displaying long or wide image.
+    const scaledTop = `${Math.max((containerHeight - (imgHeight * zoomScale)) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerWidth - (imgWidth * zoomScale)) / 2, 0)}px`;
     return {
-        height: `${imgHeight}px`,
-        width: `${imgWidth}px`,
-        top,
-        left,
+        height: `${imgHeight * zoomScale}px`,
+        width: `${imgWidth * zoomScale}px`,
+        top: scaledTop,
+        left: scaledLeft,
     };
 }
 

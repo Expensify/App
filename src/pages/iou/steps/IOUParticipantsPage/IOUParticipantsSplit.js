@@ -11,8 +11,8 @@ import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import ExpensifyButton from '../../../../components/ExpensifyButton';
-import ExpensifyText from '../../../../components/ExpensifyText';
+import Button from '../../../../components/Button';
+import Text from '../../../../components/Text';
 import FixedFooter from '../../../../components/FixedFooter';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
@@ -196,9 +196,9 @@ class IOUParticipantsSplit extends Component {
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
-                    <ExpensifyText style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                    <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
                         {this.props.translate('common.to')}
-                    </ExpensifyText>
+                    </Text>
                     <OptionsSelector
                         canSelectMultipleOptions
                         sections={sections}
@@ -235,11 +235,11 @@ class IOUParticipantsSplit extends Component {
                 {lodashGet(this.props, 'participants', []).length > 0 && (
                     <FixedFooter>
                         {maxParticipantsReached && (
-                            <ExpensifyText style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
                                 {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
-                            </ExpensifyText>
+                            </Text>
                         )}
-                        <ExpensifyButton
+                        <Button
                             success
                             style={[styles.w100]}
                             onPress={this.finalizeParticipants}

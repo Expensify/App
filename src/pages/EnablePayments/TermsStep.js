@@ -6,17 +6,16 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -71,13 +70,12 @@ class TermsStep extends React.Component {
                         isChecked={this.state.hasAcceptedDisclosure}
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
-                            <ExpensifyText>
-                                {`${this.props.translate('termsStep.haveReadAndAgree')} `}
-
-                                <TextLink href="https://use.expensify.com/fees">
+                            <Text>
+                                {`${this.props.translate('termsStep.haveReadAndAgree')}`}
+                                <TextLink href="https://use.expensify.com/esignagreement">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
-                            </ExpensifyText>
+                            </Text>
                         )}
                     />
                     <CheckboxWithLabel
@@ -86,31 +84,30 @@ class TermsStep extends React.Component {
                         onPress={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <>
-                                <ExpensifyText>
+                                <Text>
                                     {`${this.props.translate('termsStep.agreeToThe')} `}
-                                </ExpensifyText>
+                                </Text>
 
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {`${this.props.translate('common.privacyPolicy')} `}
                                 </TextLink>
 
-                                <ExpensifyText>{`${this.props.translate('common.and')} `}</ExpensifyText>
+                                <Text>{`${this.props.translate('common.and')} `}</Text>
 
-                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                <TextLink href="https://use.expensify.com/walletagreement">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
                                 </TextLink>
                             </>
                         )}
                     />
-                </ScrollView>
-                {this.state.error && (
-                    <ExpensifyText style={[styles.formError, styles.mb2]}>
-                        {this.props.translate('termsStep.termsMustBeAccepted')}
-                    </ExpensifyText>
-                )}
-                <FixedFooter>
-                    <ExpensifyButton
+                    {this.state.error && (
+                        <Text style={[styles.formError, styles.mb2]}>
+                            {this.props.translate('termsStep.termsMustBeAccepted')}
+                        </Text>
+                    )}
+                    <Button
                         success
+                        style={styles.mb4}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {
@@ -127,7 +124,7 @@ class TermsStep extends React.Component {
                             });
                         }}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }
