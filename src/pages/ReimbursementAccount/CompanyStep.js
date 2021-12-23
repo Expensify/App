@@ -24,7 +24,7 @@ import ExpensiPicker from '../../components/ExpensiPicker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import AddressSearch from '../../components/AddressSearch';
+import AddressForm from './AddressForm';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -78,10 +78,6 @@ class CompanyStep extends React.Component {
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
-            addressStreet: 'bankAccount.error.addressStreet',
-            addressCity: 'bankAccount.error.addressCity',
-            addressState: 'bankAccount.error.addressState',
-            addressZipCode: 'bankAccount.error.zipCode',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
@@ -216,46 +212,28 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
-                    <AddressSearch
-                        label={this.props.translate('common.companyAddress')}
-                        containerStyles={[styles.mt4]}
-                        value={this.state.addressStreet}
-                        onChange={(values) => {
-                            const keysToClear = [];
+                    <AddressForm
+                        values={{
+                            street: this.state.addressStreet,
+                            city: this.state.addressCity,
+                            zipCode: this.state.addressZipCode,
+                            state: this.state.addressState,
+                        }}
+                        errors={{
+                            street: this.getErrors().addressStreet,
+                            city: this.getErrors().addressCity,
+                            zipCode: this.getErrors().addressZipCode,
+                            state: this.getErrors().addressState,
+                        }}
+                        onFieldChange={(values) => {
+                            const renamedValues = {};
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(this.renamedFields, inputKey, inputKey);
-                                this.setValue({[renamedInputKey]: value});
-                                keysToClear.push(renamedInputKey);
+                                renamedValues[renamedInputKey] = value;
                             });
-                            this.clearErrors(keysToClear);
+                            this.setValue(renamedValues);
+                            this.clearErrors(_.keys(renamedValues));
                         }}
-                        errorText={this.getErrorText('addressStreet')}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.city')}
-                                onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
-                                value={this.state.addressCity}
-                                errorText={this.getErrorText('addressCity')}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                onChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                value={this.state.addressState}
-                                hasError={this.getErrors().addressState}
-                            />
-                        </View>
-                    </View>
-                    <ExpensiTextInput
-                        label={this.props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                        value={this.state.addressZipCode}
-                        errorText={this.getErrorText('addressZipCode')}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
