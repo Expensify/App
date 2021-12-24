@@ -19,7 +19,6 @@ import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
@@ -160,9 +159,8 @@ class RequestorStep extends React.Component {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
                             BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
-                        onError={(error) => {
+                        onError={() => {
                             // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                            Log.hmmm('Onfido error in RequestorStep', {error});
                             Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
