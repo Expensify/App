@@ -93,7 +93,8 @@ class Onfido extends React.Component {
             },
             onError: (error) => {
                 const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
-                Log.hmmm('Onfido error', {errorType: error.type, errorMessage});
+                const errorType = lodashGet(error, 'type');
+                Log.hmmm('Onfido error', {errorType, errorMessage});
                 this.props.onError(errorMessage);
             },
             onUserExit: (userExitCode) => {
