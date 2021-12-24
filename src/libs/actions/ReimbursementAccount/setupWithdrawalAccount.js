@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Log from '../../Log';
 import BankAccount from '../../models/BankAccount';
 import * as Plaid from '../Plaid';
 import CONST from '../../../CONST';
@@ -245,8 +246,12 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            // Note: php sometimes returns code 200 with no achData, just to indicate that we should keep whatever the JS values are.
-            navigation.goToWithdrawalAccountSetupStep(nextStep, {...updatedACHData, ...responseACHData});
+            if (_.isEmpty(responseACHData)) {
+                Log.info('[SetupWithdrawalAccount] No achData in response. Navigating to next step based on currently stored values.', 0, {nextStep});
+                navigation.goToWithdrawalAccountSetupStep(nextStep, updatedACHData);
+            } else {
+                navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
+            }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
