@@ -10,7 +10,7 @@ import {
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Log from "../../libs/Log";
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...withLocalizePropTypes,
