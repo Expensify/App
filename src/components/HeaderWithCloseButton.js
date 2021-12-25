@@ -9,7 +9,6 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
-import InboxCallButton from './InboxCallButton';
 import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 
 const propTypes = {
@@ -138,7 +137,19 @@ const HeaderWithCloseButton = props => (
                     )
                 }
 
-                {props.shouldShowGetAssistanceButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
+                {props.shouldShowGetAssistanceButton
+                && (
+                <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
+                    <TouchableOpacity
+                        onPress={() => alert(props.inboxCallTaskID)}
+                        style={[styles.touchableButtonImage, styles.mr0]}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
+                    >
+                        <Icon src={Expensicons.Exclamation} />
+                    </TouchableOpacity>
+                </Tooltip>
+                )}
 
                 {props.shouldShowThreeDotsButton && (
                     <ThreeDotsMenu
