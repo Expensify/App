@@ -22,8 +22,6 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    localCurrencyCode: PropTypes.string,
-
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
@@ -52,7 +50,6 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    localCurrencyCode: CONST.CURRENCY.USD,
 };
 
 const IOUConfirmPage = props => (
@@ -65,7 +62,6 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
-        localCurrencyCode={props.localCurrencyCode}
         isGroupSplit={props.isGroupSplit}
     />
 );

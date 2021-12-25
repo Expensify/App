@@ -390,7 +390,7 @@ class IOUConfirmationList extends Component {
                             onPress={this.onPress}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
-                            currency={this.props.localCurrencyCode}
+                            currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
                         <ButtonWithMenu
