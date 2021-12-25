@@ -7,7 +7,7 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to to parent model to send money */
+    /** Callback to to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
     /** Callback to update comment from IOUModal */
