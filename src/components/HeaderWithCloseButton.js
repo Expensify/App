@@ -40,8 +40,8 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
-    /** Whether we should show a inbox call button */
-    shouldShowInboxCallButton: PropTypes.bool,
+    /** Whether we should show a get assistance (question mark) button */
+    shouldShowGetAssistanceButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
@@ -85,7 +85,7 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
-    shouldShowInboxCallButton: false,
+    shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
@@ -138,7 +138,7 @@ const HeaderWithCloseButton = props => (
                     )
                 }
 
-                {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
+                {props.shouldShowGetAssistanceButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
                 {props.shouldShowThreeDotsButton && (
                     <ThreeDotsMenu
