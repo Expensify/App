@@ -804,6 +804,14 @@ export default {
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
+    getAssistancePage: {
+        title: 'Obtenga ayuda',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¡Tenemos respuestas! Elija entre las siguientes opciones de asistencia:',
+        chatWithConcierge: 'Chatear con el conserje',
+        requestSetupCall: 'Solicitar una llamada de configuración',
+        questionMarkButtonTooltip: 'Obtenga ayuda de nuestro equipo',
+    },
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',

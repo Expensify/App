@@ -802,6 +802,14 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
+    getAssistancePage: {
+        title: 'Get assistance',
+        subtitle: 'Have questions, or need help?',
+        description: 'We have answers! Choose from the support options below:',
+        chatWithConcierge: 'Chat with Concierge',
+        requestSetupCall: 'Request a setup call',
+        questionMarkButtonTooltip: 'Get assistance from our team',
+    },
     requestCallPage: {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
