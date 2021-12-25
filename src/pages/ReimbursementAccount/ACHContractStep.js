@@ -172,6 +172,7 @@ class ACHContractStep extends React.Component {
                     stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                 />
                 <ReimbursementAccountForm

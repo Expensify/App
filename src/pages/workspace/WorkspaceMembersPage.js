@@ -258,6 +258,7 @@ class WorkspaceMembersPage extends React.Component {
                     title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                 />
                 <ConfirmModal

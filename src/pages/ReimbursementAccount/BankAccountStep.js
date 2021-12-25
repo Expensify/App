@@ -188,6 +188,7 @@ class BankAccountStep extends React.Component {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                 />
                 {!subStep && (

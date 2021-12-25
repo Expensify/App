@@ -92,6 +92,7 @@ class WorkspaceBankAccountPage extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                 />
                 <ScrollView style={styles.flex1}>

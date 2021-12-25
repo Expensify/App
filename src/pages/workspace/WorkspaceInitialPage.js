@@ -135,6 +135,7 @@ class WorkspaceInitialPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     shouldShowThreeDotsButton
+                    shouldShowGetAssistanceButton
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Plus,

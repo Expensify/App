@@ -247,6 +247,7 @@ class WorkspaceInvitePage extends React.Component {
                                 this.clearErrors();
                                 Navigation.dismissModal();
                             }}
+                            shouldShowGetAssistanceButton
                             shouldShowBackButton
                             onBackButtonPress={() => Navigation.goBack()}
                         />

@@ -167,6 +167,7 @@ class ValidationStep extends React.Component {
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />

@@ -68,6 +68,7 @@ class WorkspacePageWithSections extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.headerText}
+                    shouldShowGetAssistanceButton
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
