@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -249,6 +248,8 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} params.currency
  * @param {String} [params.requestorPhoneNumber] - used for Venmo
  * @param {String} [params.requestorPayPalMeAddress]
+ * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
+ * @param {Boolean} [params.shouldRedirectToChatReport]
  */
 function payIOUReport({
     chatReportID,
@@ -258,88 +259,10 @@ function payIOUReport({
     currency,
     requestorPhoneNumber,
     requestorPayPalMeAddress,
+    newIOUReportDetails,
+    shouldRedirectToChatReport = false,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-
-    const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID})
-        : API.PayIOU({reportID, paymentMethodType});
-
-    // Build the url for the user's platform of choice if they have
-    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
-    let url;
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
-    }
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
-    }
-
-    asyncOpenURL(payIOUPromise
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .catch((error) => {
-            switch (error.message) {
-                // eslint-disable-next-line max-len
-                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                    break;
-                case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                    break;
-                default:
-                    Growl.error(error.message, 5000);
-            }
-            Onyx.merge(ONYXKEYS.IOU, {error: true});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false});
-        }),
-    url);
-}
-
-/**
- * Sends money by creating and paying for an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
- * Returns the user to their chat report after sending money.
- *
- * @param {Object} params
- * @param {Number} params.chatReportID
- * @param {Number} params.reportID
- * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} [params.requestorPhoneNumber] - used for Venmo
- * @param {String} [params.requestorPayPalMeAddress]
- * @param {String} [params.comment]
- * @param {String} [params.requestorEmail]
- */
-function sendMoney({
-    chatReportID,
-    reportID,
-    paymentMethodType,
-    amount,
-    currency,
-    requestorPhoneNumber,
-    requestorPayPalMeAddress,
-    comment,
-    requestorEmail,
-}) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-
-    const newIOUReportDetails = JSON.stringify({
-        amount,
-        currency,
-        requestorEmail,
-        comment,
-        idempotencyKey: Str.guid(),
-    });
 
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails})
@@ -381,7 +304,10 @@ function sendMoney({
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
-            Navigation.navigate(ROUTES.REPORT);
+
+            if (shouldRedirectToChatReport) {
+                Navigation.navigate(ROUTES.REPORT);
+            }
         }),
     url);
 }
@@ -392,6 +318,5 @@ export {
     createIOUSplitGroup,
     rejectTransaction,
     payIOUReport,
-    sendMoney,
     setIOUSelectedCurrency,
 };

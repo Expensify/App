@@ -271,11 +271,11 @@ class IOUModal extends Component {
     }
 
     /**
-     * Checks if user has a GOLD wallet, then creates a paid IOU report on the fly
+     * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
      *
-     * @param {String} paymentMethod
+     * @param {String} paymentMethodType
      */
-    sendMoney(paymentMethod) {
+    sendMoney(paymentMethodType) {
         const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         // If the user is trying to send money, then they need to upgrade to a GOLD wallet
@@ -284,16 +284,29 @@ class IOUModal extends Component {
             return;
         }
 
-        IOU.sendMoney({
+        const amount = Math.round(this.state.amount * 100);
+        const currency = this.props.iou.selectedCurrencyCode;
+        const comment = this.state.comment;
+
+        const newIOUReportDetails = JSON.stringify({
+            amount,
+            currency,
+            requestorEmail: this.state.participants[0].login,
+            comment,
+            idempotencyKey: Str.guid(),
+        });
+
+        IOU.payIOUReport({
             chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
             reportID: 0,
-            paymentMethodType: paymentMethod,
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
+            paymentMethodType,
+            amount,
+            currency,
             requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
             requestorPhoneNumber: this.state.participants[0].phoneNumber,
-            comment: this.state.comment,
-            requestorEmail: this.state.participants[0].login,
+            comment,
+            newIOUReportDetails,
+            shouldRedirectToChatReport: true,
         });
     }
 
