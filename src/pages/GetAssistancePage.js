@@ -11,6 +11,7 @@ import styles from '../styles/styles';
 import Text from '../components/Text';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import * as Expensicons from '../components/Icon/Expensicons';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -47,7 +48,7 @@ class GetAssistancePage extends Component {
                             key="chatWithConcierge"
                             title={this.props.translate('getAssistancePage.chatWithConcierge')}
                             icon={Expensicons.ChatBubble}
-                            onPress={() => alert('chat')}
+                            onPress={() => Report.navigateToConciergeChat()}
                             shouldShowRightIcon
                         />
                         <MenuItem
