@@ -125,6 +125,9 @@ export default {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
+                    GetAssistance: {
+                        path: ROUTES.GET_ASSISTANCE,
+                    },
                 },
             },
             Report_Details: {

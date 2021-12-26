@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import styles from '../styles/styles';
 import Header from './Header';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -141,7 +143,7 @@ const HeaderWithCloseButton = props => (
                 && (
                 <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                     <TouchableOpacity
-                        onPress={() => alert(props.inboxCallTaskID)}
+                        onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE)}
                         style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
