@@ -12,6 +12,7 @@ import Text from '../components/Text';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Report from '../libs/actions/Report';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -55,7 +56,7 @@ class GetAssistancePage extends Component {
                             key="requestSetupCall"
                             title={this.props.translate('getAssistancePage.requestSetupCall')}
                             icon={Expensicons.Phone}
-                            onPress={() => alert('phone')}
+                            onPress={() => Navigation.navigate(ROUTES.getRequestCallRoute('test'))}
                             shouldShowRightIcon
                         />
                     </ScrollView>
