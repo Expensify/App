@@ -17,7 +17,6 @@ import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
-import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
@@ -206,10 +205,7 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
-                            this.props.session.email,
-                            CONST.EMAIL.CONCIERGE,
-                        ], true)}
+                        onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
