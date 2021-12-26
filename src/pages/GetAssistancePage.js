@@ -20,6 +20,8 @@ class GetAssistancePage extends Component {
                     <HeaderWithCloseButton
                         title={"Get assistance"}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
