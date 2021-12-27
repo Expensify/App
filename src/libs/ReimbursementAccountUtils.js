@@ -1,7 +1,15 @@
 import lodashGet from 'lodash/get';
-import lodashUnset from 'lodash/unset';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import * as BankAccounts from './actions/BankAccounts';
+import FormHelper from './FormHelper';
+
+const formHelper = new FormHelper({
+    errorPath: 'reimbursementAccount.errors',
+    setErrors: BankAccounts.setBankAccountFormValidationErrors,
+});
+
+const getErrors = props => formHelper.getErrors(props);
+const clearError = (props, path) => formHelper.clearError(props, path);
+const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
 
 /**
  * Get the default state for input fields in the VBA flow
@@ -19,31 +27,6 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
 
 /**
  * @param {Object} props
- * @returns {Object}
- */
-function getErrors(props) {
-    return lodashGet(props, ['reimbursementAccount', 'errors'], {});
-}
-
-/**
- * @param {Object} props
- * @param {String} path
- */
-function clearError(props, path) {
-    const errors = getErrors(props);
-    if (!lodashGet(errors, path, false)) {
-        // No error found for this path
-        return;
-    }
-
-    // Clear the existing errors
-    const newErrors = lodashCloneDeep(errors);
-    lodashUnset(newErrors, path);
-    BankAccounts.setBankAccountFormValidationErrors(newErrors);
-}
-
-/**
- * @param {Object} props
  * @param {Object} errorTranslationKeys
  * @param {String} inputKey
  * @returns {String}
@@ -57,5 +40,6 @@ export {
     getDefaultStateForField,
     getErrors,
     clearError,
+    clearErrors,
     getErrorText,
 };
