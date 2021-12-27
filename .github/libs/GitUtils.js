@@ -12,7 +12,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     const command = `git log --merges --format='{"commit": "%H", "subject": "%s"},' ${fromRef}^...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
-    const result = execSync(command).toString();
+    const result = execSync(command).toString().trim();
     const json = `[${result}]`.replace('},]', '}]');
     return JSON.parse(json);
 }
