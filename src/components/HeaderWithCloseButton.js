@@ -73,6 +73,9 @@ const propTypes = {
         total: PropTypes.number,
     }),
 
+    /** The policy ID of the workspace this header is being shown in, if applicable */
+    policyID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -97,6 +100,7 @@ const defaultProps = {
         top: 0,
         left: 0,
     },
+    policyID: '',
 };
 
 const HeaderWithCloseButton = props => (
@@ -143,7 +147,7 @@ const HeaderWithCloseButton = props => (
                 && (
                 <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                     <TouchableOpacity
-                        onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE)}
+                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceGetAssistanceRoute(props.policyID))}
                         style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
