@@ -805,12 +805,12 @@ export default {
         },
     },
     getAssistancePage: {
-        title: 'Obtenga ayuda',
+        title: 'Obtener ayuda',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¡Tenemos respuestas! Elija entre las siguientes opciones de asistencia:',
-        chatWithConcierge: 'Chatear con el conserje',
-        requestSetupCall: 'Solicitar una llamada de configuración',
-        questionMarkButtonTooltip: 'Obtenga ayuda de nuestro equipo',
+        chatWithConcierge: 'Chatear con Concierge',
+        requestSetupCall: 'Llámame por teléfono',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
