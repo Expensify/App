@@ -167,7 +167,7 @@ class ProfilePage extends Component {
             lastNameError,
             pronounError,
         });
-        return _.isEmpty(errors);
+        return _.isEmpty(errors.join(''));
     }
 
     render() {
