@@ -6,7 +6,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
@@ -113,9 +113,9 @@ class WorkspaceBankAccountPage extends React.Component {
                             },
                         ]}
                     >
-                        <ExpensifyText>
+                        <Text>
                             {this.props.translate('workspace.bankAccount.youreAlmostDone')}
-                        </ExpensifyText>
+                        </Text>
                     </WorkspaceSection>
                 </ScrollView>
                 <WorkspaceResetBankAccountModal />

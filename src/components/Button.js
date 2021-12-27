@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
@@ -90,7 +90,7 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
 };
 
-class ExpensifyButton extends Component {
+class Button extends Component {
     constructor(props) {
         super(props);
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
@@ -133,7 +133,7 @@ class ExpensifyButton extends Component {
         }
 
         const textComponent = (
-            <ExpensifyText
+            <Text
                 selectable={false}
                 style={[
                     styles.buttonText,
@@ -145,7 +145,7 @@ class ExpensifyButton extends Component {
                 ]}
             >
                 {this.props.text}
-            </ExpensifyText>
+            </Text>
         );
 
         if (this.props.icon) {
@@ -205,7 +205,7 @@ class ExpensifyButton extends Component {
     }
 }
 
-ExpensifyButton.propTypes = propTypes;
-ExpensifyButton.defaultProps = defaultProps;
+Button.propTypes = propTypes;
+Button.defaultProps = defaultProps;
 
-export default ExpensifyButton;
+export default Button;
