@@ -79,7 +79,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.handleAppStateChange = this.handleAppStateChange.bind(this);
+        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -90,7 +90,7 @@ class IOUAmountPage extends React.Component {
         this.focusTextInput();
         this.unsubscribeAppStateSubscription = AppState.addEventListener(
             'change',
-            this.handleAppStateChange,
+            this.dismissKeyboardWhenBackgrounded,
         );
     }
 
@@ -109,7 +109,7 @@ class IOUAmountPage extends React.Component {
         this.unsubscribeAppStateSubscription();
     }
 
-    handleAppStateChange(nextAppState) {
+    dismissKeyboardWhenBackgrounded(nextAppState) {
         if (!nextAppState.match(/inactive|background/)) {
             return;
         }
