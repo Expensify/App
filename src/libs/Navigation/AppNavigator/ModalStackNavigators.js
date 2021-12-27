@@ -254,7 +254,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         Component: GetAssistancePage,
-        name: 'GetAssistance',
+        name: 'Workspace_GetAssistance',
     },
 ]);
 
