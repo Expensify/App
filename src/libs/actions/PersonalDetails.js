@@ -73,7 +73,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {Object[]}
  */
 function getCharacterLimitErrors(limit, toBeValidated) {
-    return _.map(toBeValidated, x => (x.length <= limit ? '' : Localize.translateLocal('profilePage.characterLimit', [50])));
+    return _.map(toBeValidated, x => (x.length <= limit ? '' : Localize.translateLocal('personalDetails.error.characterLimit', {limit})));
 }
 
 /**

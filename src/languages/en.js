@@ -249,7 +249,6 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
-        characterLimit: limit => `Exceeds the max length of ${limit} characters`,
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -417,6 +416,13 @@ export default {
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
+        },
+    },
+    personalDetails: {
+        error: {
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
