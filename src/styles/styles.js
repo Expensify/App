@@ -2340,6 +2340,11 @@ const styles = {
         backgroundColor: colors.black,
         flex: 1,
     },
+    passwordTextHint: {
+        lineHeight: 18,
+        marginBottom: 4,
+        marginTop: 4,
+    },
 };
 
 export default styles;
