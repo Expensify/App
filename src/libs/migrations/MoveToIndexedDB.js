@@ -14,7 +14,7 @@ function shouldMigrate() {
     }
 
     const session = window.localStorage.getItem(ONYXKEYS.SESSION);
-    if (!session) {
+    if (!session || !session.includes('authToken')) {
         Log.info('[Migrate Onyx] Skipped migration MoveToIndexedDB (Not applicable to logged out users)');
         return false;
     }
