@@ -178,12 +178,17 @@ const IdentityForm = (props) => {
                         onChangeText={(fieldName, value) => props.onFieldChange(fieldName, value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                     />
-                    <TextLink
-                        style={[styles.textMicro]}
-                        onPress={() => props.onFieldChange('manualAddress', true)}
+                    <ExpensifyText
+                        style={[styles.textMicroSupporting, styles.pt2]}
                     >
-                        Can&apos;t find your address? Enter it manually
-                    </TextLink>
+                        {props.translate('common.cantFindAddress')}
+                        <TextLink
+                            style={[styles.textMicro]}
+                            onPress={() => props.onFieldChange('manualAddress', true)}
+                        >
+                            {props.translate('common.enterManually')}
+                        </TextLink>
+                    </ExpensifyText>
                 </>
             )}
         </View>

@@ -235,12 +235,17 @@ class CompanyStep extends React.Component {
                                 onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                 errorText={this.getErrorText('addressStreet')}
                             />
-                            <TextLink
-                                style={[styles.textMicro]}
-                                onPress={() => this.setState({manualAddress: true})}
+                            <ExpensifyText
+                                style={[styles.textMicroSupporting, styles.pt2]}
                             >
-                                Can&apos;t find your address? Enter it manually
-                            </TextLink>
+                                {this.props.translate('common.cantFindAddress')}
+                                <TextLink
+                                    style={[styles.textMicro]}
+                                    onPress={() => this.setState({manualAddress: true})}
+                                >
+                                    {this.props.translate('common.enterManually')}
+                                </TextLink>
+                            </ExpensifyText>
                         </>
                     )}
                     {this.state.manualAddress && (
