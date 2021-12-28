@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import styles from '../styles/styles';
-import ExpensifyText from '../components/ExpensifyText';
+import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -101,51 +101,51 @@ const DetailsPage = (props) => {
                                 source={details.avatar}
                             />
                             {details.displayName && (
-                                <ExpensifyText style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                </ExpensifyText>
+                                </Text>
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate(isSMSLogin
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
-                                    </ExpensifyText>
+                                    </Text>
                                     <CommunicationsLink
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
                                         <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                            <ExpensifyText numberOfLines={1}>
+                                            <Text numberOfLines={1}>
                                                 {isSMSLogin
                                                     ? props.toLocalPhone(getPhoneNumber(details))
                                                     : details.login}
-                                            </ExpensifyText>
+                                            </Text>
                                         </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
                             {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('profilePage.preferredPronouns')}
-                                    </ExpensifyText>
-                                    <ExpensifyText numberOfLines={1}>
+                                    </Text>
+                                    <Text numberOfLines={1}>
                                         {pronouns}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('detailsPage.localTime')}
-                                    </ExpensifyText>
-                                    <ExpensifyText numberOfLines={1}>
+                                    </Text>
+                                    <Text numberOfLines={1}>
                                         {timezone.format('LT')}
                                         {' '}
                                         {currentTime}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
                         </View>

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -63,10 +63,10 @@ class KeyboardShortcutsModal extends React.Component {
                 key={shortcut.displayName}
             >
                 <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
-                    <ExpensifyText>{shortcut.displayName}</ExpensifyText>
+                    <Text>{shortcut.displayName}</Text>
                 </View>
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                    <ExpensifyText>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</ExpensifyText>
+                    <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
                 </View>
             </View>
         );
@@ -85,7 +85,7 @@ class KeyboardShortcutsModal extends React.Component {
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
                 <View style={[styles.p5, styles.pt0]}>
-                    <ExpensifyText style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</ExpensifyText>
+                    <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
                             {_.map(shortcuts, (shortcut, index) => {

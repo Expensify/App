@@ -16,7 +16,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Popover from '../../../components/Popover';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -202,11 +202,11 @@ class PaymentsPage extends React.Component {
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
-                        <ExpensifyText
+                        <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </ExpensifyText>
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
