@@ -318,9 +318,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             const login = lodashGet(response, 'data.email', null);
-            Onyx.merge(ONYXKEYS.ACCOUNT, {
-                validated: true, accountExists: true, validateCodeExpired: true, error: null,
-            });
+            Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
 
             // The login might not be set if the user hits a url in a new session. We set it here to ensure calls to resendValidationLink() will succeed.
             if (login) {

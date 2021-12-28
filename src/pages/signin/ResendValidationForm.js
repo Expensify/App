@@ -88,7 +88,7 @@ class ResendValidationForm extends React.Component {
 
     render() {
         const isNewAccount = !this.props.account.accountExists;
-        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
+        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated && !this.props.account.validateCodeExpired;
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
