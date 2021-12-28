@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import './index.css';
 import lodashGet from 'lodash/get';
 import React from 'react';
@@ -9,6 +10,7 @@ import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -83,13 +85,29 @@ class Onfido extends React.Component {
             ],
             smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
             showCountrySelection: false,
-            onComplete: this.props.onSuccess,
+            onComplete: (data) => {
+                if (_.isEmpty(data)) {
+                    Log.warn('Onfido completed with no data');
+                }
+                this.props.onSuccess(data);
+            },
             onError: (error) => {
                 const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+                const errorType = lodashGet(error, 'type');
+                Log.hmmm('Onfido error', {errorType, errorMessage});
                 this.props.onError(errorMessage);
             },
-            onUserExit: this.props.onUserExit,
-            onModalRequestClose: () => {},
+            onUserExit: (userExitCode) => {
+                Log.hmmm('Onfido user exits the flow', {userExitCode});
+                this.props.onUserExit(userExitCode);
+            },
+            onModalRequestClose: () => {
+                Log.hmmm('Onfido user closed the modal');
+            },
+        });
+
+        window.addEventListener('userAnalyticsEvent', (event) => {
+            Log.hmmm('Receiving Onfido analytic event', event.detail);
         });
     }
 
