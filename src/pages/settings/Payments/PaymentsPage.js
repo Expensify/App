@@ -246,6 +246,7 @@ class PaymentsPage extends React.Component {
                                     icon={Expensicons.Bank}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     onPress={() => {}}
+                                    wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
                                 />
                             )}
                             <TouchableOpacity
