@@ -6,7 +6,7 @@ import {
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
-import ExpensifyText from '../../ExpensifyText';
+import Text from '../../Text';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -27,26 +27,26 @@ const AnchorRenderer = (props) => {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalExpensifyPath) {
         return (
-            <ExpensifyText
+            <Text
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
+            </Text>
         );
     }
 
     if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as ExpensifyText for now because TextLink breaks the alignment in Android.
+        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
-            <ExpensifyText
+            <Text
                 style={styles.link}
                 onPress={() => Linking.openURL(attrHref)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
+            </Text>
         );
     }
 
