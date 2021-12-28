@@ -69,7 +69,9 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_WALLET, {walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? 'bankAccount' : 'debitCard'});
+                Onyx.merge(ONYXKEYS.USER_WALLET, {
+                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                });
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
             } else {
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
