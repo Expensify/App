@@ -124,6 +124,8 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
+        this.dimensionsEventListener = null;
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -172,7 +174,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     componentDidUpdate(prevProps) {
@@ -195,7 +197,11 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
+
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     onSelectionChange(e) {

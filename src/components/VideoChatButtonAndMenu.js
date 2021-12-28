@@ -34,6 +34,8 @@ class VideoChatButtonAndMenu extends Component {
     constructor(props) {
         super(props);
 
+        this.dimensionsEventListener = null;
+
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
@@ -63,11 +65,14 @@ class VideoChatButtonAndMenu extends Component {
     }
 
     componentDidMount() {
-        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     /**
