@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import styles from '../../styles/styles';
 import BaseTextInput from './BaseTextInput';
-import {propTypes, defaultProps} from './baseTextInputPropTypes';
+import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
 const TextInput = forwardRef((props, ref) => (
     <BaseTextInput
@@ -16,8 +16,8 @@ const TextInput = forwardRef((props, ref) => (
     />
 ));
 
-TextInput.propTypes = propTypes;
-TextInput.defaultProps = defaultProps;
+TextInput.propTypes = baseTextInputPropTypes.propTypes;
+TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 TextInput.displayName = 'TextInput';
 
 export default TextInput;
