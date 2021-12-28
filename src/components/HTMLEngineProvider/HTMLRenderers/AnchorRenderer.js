@@ -43,9 +43,7 @@ const AnchorRenderer = (props) => {
         return (
             <ExpensifyText
                 style={styles.link}
-                onPress={() => {
-                    Linking.openURL(attrHref);
-                }}
+                onPress={() => Linking.openURL(attrHref)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </ExpensifyText>
