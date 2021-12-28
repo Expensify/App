@@ -2,7 +2,7 @@ import {TouchableOpacity, View} from 'react-native';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import TextInputFocusable from './TextInputFocusable';
 import Popover from './Popover';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -73,13 +73,13 @@ class PasswordPopover extends Component {
                         !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
                     ]}
                 >
-                    <ExpensifyText
+                    <Text
                         style={[
                             styles.alignSelfCenter,
                         ]}
                     >
                         {this.props.translate('passwordForm.pleaseFillPassword')}
-                    </ExpensifyText>
+                    </Text>
                     <TextInputFocusable
                         style={[
                             styles.textInput,
@@ -101,9 +101,9 @@ class PasswordPopover extends Component {
                             styles.w100,
                         ]}
                     >
-                        <ExpensifyText style={[styles.buttonText]}>
+                        <Text style={[styles.buttonText]}>
                             {this.props.submitButtonText}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </Popover>

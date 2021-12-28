@@ -6,7 +6,7 @@ import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */
@@ -66,13 +66,13 @@ const ConfirmPopover = props => (
                 !props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
             ]}
         >
-            <ExpensifyText
+            <Text
                 style={[
                     styles.alignSelfCenter,
                 ]}
             >
                 {props.title}
-            </ExpensifyText>
+            </Text>
             <TouchableOpacity
                 style={[
                     styles.button,
@@ -83,9 +83,9 @@ const ConfirmPopover = props => (
                 ]}
                 onPress={props.onConfirm}
             >
-                <ExpensifyText style={[styles.buttonText, props.danger && styles.textWhite]}>
+                <Text style={[styles.buttonText, props.danger && styles.textWhite]}>
                     {props.confirmText || props.translate('common.yes')}
-                </ExpensifyText>
+                </Text>
             </TouchableOpacity>
             {props.shouldShowCancelButton
             && (
@@ -98,9 +98,9 @@ const ConfirmPopover = props => (
                     ]}
                     onPress={props.onCancel}
                 >
-                    <ExpensifyText style={[styles.buttonText]}>
+                    <Text style={[styles.buttonText]}>
                         {props.cancelText || props.translate('common.no')}
-                    </ExpensifyText>
+                    </Text>
                 </TouchableOpacity>
             )}
         </View>

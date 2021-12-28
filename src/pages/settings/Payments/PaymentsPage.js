@@ -256,9 +256,9 @@ class PaymentsPage extends React.Component {
                                 }}
                                 style={[styles.button, styles.alignSelfCenter, styles.w100]}
                             >
-                                <ExpensifyText style={[styles.buttonText]}>
+                                <Text style={[styles.buttonText]}>
                                     Make Default Payment Method
-                                </ExpensifyText>
+                                </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -275,9 +275,9 @@ class PaymentsPage extends React.Component {
                                     styles.w100,
                                 ]}
                             >
-                                <ExpensifyText style={[styles.buttonText, styles.textWhite]}>
+                                <Text style={[styles.buttonText, styles.textWhite]}>
                                     {this.props.translate('common.delete')}
-                                </ExpensifyText>
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </Popover>
