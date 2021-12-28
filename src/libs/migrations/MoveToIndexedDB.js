@@ -24,16 +24,21 @@ function shouldMigrate() {
 
 function migrate() {
     const multiSetData = {};
+    const possibleKeys = _.union(_.values(ONYXKEYS), _.values(ONYXKEYS.COLLECTION));
 
     for (let i = 0; i < window.localStorage.length; i += 1) {
         const key = window.localStorage.key(i);
-        const rawValue = window.localStorage.getItem(key);
-        multiSetData[key] = rawValue && JSON.parse(rawValue);
+        if (_.some(possibleKeys, entry => key.startsWith(entry))) {
+            const rawValue = window.localStorage.getItem(key);
+            multiSetData[key] = rawValue && JSON.parse(rawValue);
+        }
     }
 
     return Onyx.multiSet(multiSetData)
-        .then(() => window.localStorage.clear())
-        .then(() => Log.info('[Migrate Onyx] Ran migration MoveToIndexedDB'))
+        .then(() => {
+            _.each(multiSetData, (value, key) => window.localStorage.removeItem(key));
+            Log.info('[Migrate Onyx] Ran migration MoveToIndexedDB');
+        })
         .catch((e) => {
             Log.alert('[Migrate Onyx] MoveToIndexedDB failed', {error: e.message, stack: e.stack}, false);
             return Promise.reject(e);
