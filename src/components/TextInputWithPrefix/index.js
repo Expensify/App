@@ -19,6 +19,7 @@ const propTypes = {
     /** Callback to execute the text input is modified */
     onChangeText: PropTypes.func,
 
+    /** Whether to automatically capitalize certain characters */
     autoCapitalize: PropTypes.string,
 };
 
@@ -27,7 +28,7 @@ const defaultProps = {
     prefixCharacter: '',
     disabled: false,
     onChangeText: () => {},
-    autoCapitalize: 'sentences', // React native default
+    autoCapitalize: 'sentences', // React native TextInput's default
 };
 
 const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)

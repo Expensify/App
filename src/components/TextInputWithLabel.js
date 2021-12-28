@@ -35,6 +35,7 @@ const propTypes = {
     /** Callback to execute when the text input is modified */
     onChangeText: PropTypes.func,
 
+    /** Whether to automatically capitalize certain characters */
     autoCapitalize: PropTypes.string,
 };
 
@@ -48,7 +49,7 @@ const defaultProps = {
     disabled: false,
     placeholder: '',
     onChangeText: () => {},
-    autoCapitalize: 'sentences', // React native default
+    autoCapitalize: 'sentences', // React native TextInput's default
 };
 
 const TextInputWithLabel = props => (
