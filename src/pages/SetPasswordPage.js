@@ -19,7 +19,7 @@ import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
-import ExpensifyText from '../components/ExpensifyText';
+import Text from '../components/Text';
 
 const propTypes = {
     /* Onyx Props */
@@ -116,9 +116,9 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     {!_.isEmpty(error) && (
-                        <ExpensifyText style={[styles.formError]}>
+                        <Text style={[styles.formError]}>
                             {error}
-                        </ExpensifyText>
+                        </Text>
                     )}
                 </SignInPageLayout>
             </SafeAreaView>

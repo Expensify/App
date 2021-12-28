@@ -17,7 +17,7 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiPicker from './ExpensiPicker';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
@@ -61,6 +61,9 @@ const propTypes = {
 
             /** Routing number for the account */
             routingNumber: PropTypes.string,
+
+            /** last 4 digits of the account number */
+            mask: PropTypes.string,
         })),
     }),
 
@@ -192,7 +195,7 @@ class AddPlaidBankAccount extends React.Component {
         const accounts = this.getAccounts();
         const token = this.getPlaidLinkToken();
         const options = _.map(accounts, (account, index) => ({
-            value: index, label: `${account.addressName} ${account.accountNumber}`,
+            value: index, label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
 
@@ -227,7 +230,7 @@ class AddPlaidBankAccount extends React.Component {
                         onSubmit={this.selectAccount}
                     >
                         {!_.isEmpty(this.props.text) && (
-                            <ExpensifyText style={[styles.mb5]}>{this.props.text}</ExpensifyText>
+                            <Text style={[styles.mb5]}>{this.props.text}</Text>
                         )}
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
@@ -235,7 +238,7 @@ class AddPlaidBankAccount extends React.Component {
                                 height={iconSize}
                                 width={iconSize}
                             />
-                            <ExpensifyText style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</ExpensifyText>
+                            <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
                         <View style={[styles.mb5]}>
                             <ExpensiPicker

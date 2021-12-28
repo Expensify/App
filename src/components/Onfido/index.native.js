@@ -10,6 +10,7 @@ import {
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,6 +35,8 @@ class Onfido extends React.Component {
             .then(this.props.onSuccess)
             .catch((error) => {
                 const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+                const errorType = lodashGet(error, 'type');
+                Log.hmmm('Onfido error on native', {errorType, errorMessage});
 
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.

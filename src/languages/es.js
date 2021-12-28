@@ -294,10 +294,8 @@ export default {
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
-        confirmNewPassword: 'Confirma la nueva contraseña',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
-            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
@@ -446,9 +444,7 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
-        confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
-        passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
