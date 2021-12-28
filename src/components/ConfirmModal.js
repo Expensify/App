@@ -9,8 +9,8 @@ import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import ExpensifyButton from './ExpensifyButton';
-import ExpensifyText from './ExpensifyText';
+import Button from './Button';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */
@@ -70,12 +70,12 @@ const ConfirmModal = props => (
 
             {_.isString(props.prompt)
                 ? (
-                    <ExpensifyText>
+                    <Text>
                         {props.prompt}
-                    </ExpensifyText>
+                    </Text>
                 ) : (props.prompt)}
 
-            <ExpensifyButton
+            <Button
                 success
                 danger={props.danger}
                 style={[styles.mt4]}
@@ -85,7 +85,7 @@ const ConfirmModal = props => (
             />
             {props.shouldShowCancelButton
             && (
-                <ExpensifyButton
+                <Button
                     style={[styles.mt3]}
                     onPress={props.onCancel}
                     text={props.cancelText || props.translate('common.no')}

@@ -30,6 +30,8 @@ const propTypes = {
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
+        phoneNumber: PropTypes.string,
+        payPalMeAddress: PropTypes.string,
     })),
 
     /* Onyx Props */

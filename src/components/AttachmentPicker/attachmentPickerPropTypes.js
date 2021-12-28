@@ -8,7 +8,7 @@ const propTypes = {
      * @example
      * <AttachmentPicker>
      * {({openPicker}) => (
-     *     <ExpensifyButton
+     *     <Button
      *         onPress={() => {
      *             openPicker({
      *                 onPicked: (file) => {

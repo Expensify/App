@@ -14,11 +14,11 @@ import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
@@ -206,9 +206,9 @@ class ProfilePage extends Component {
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
-                        <ExpensifyText style={[styles.mt6, styles.mb6]}>
+                        <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </ExpensifyText>
+                        </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             firstNameError={this.state.firstNameError}
@@ -271,7 +271,7 @@ class ProfilePage extends Component {
                         />
                     </ScrollView>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             isDisabled={isButtonDisabled}
                             onPress={this.updatePersonalDetails}

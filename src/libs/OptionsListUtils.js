@@ -357,7 +357,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
-    showReportsWithDrafts = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
@@ -397,11 +396,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
-            && !shouldShowReportIfHasDraft
+            && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
             return;
@@ -690,7 +688,6 @@ function getSidebarOptions(
         sideBarOptions = {
             hideReadReports: true,
             sortByAlphaAsc: true,
-            showReportsWithDrafts: true,
         };
     }
 

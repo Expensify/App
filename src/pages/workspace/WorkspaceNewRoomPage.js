@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -14,7 +14,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as Report from '../../libs/actions/Report';
 import Permissions from '../../libs/Permissions';
@@ -129,13 +129,19 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
         const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
+
+        const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
+            label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+            value: visibilityOption,
+        }));
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.flex1, styles.w100, styles.pRelative, styles.p5]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <TextInputWithLabel
                         label={this.props.translate('newRoomPage.roomName')}
                         prefixCharacter="#"
@@ -155,17 +161,14 @@ class WorkspaceNewRoomPage extends React.Component {
                         />
                     </View>
                     <ExpensiPicker
-                        value={CONST.REPORT.VISIBILITY.RESTRICTED}
+                        value={this.state.visibility}
                         label={this.props.translate('newRoomPage.visibility')}
-                        items={[
-                            {label: 'Restricted', value: CONST.REPORT.VISIBILITY.RESTRICTED},
-                            {label: 'Private', value: CONST.REPORT.VISIBILITY.PRIVATE},
-                        ]}
+                        items={visibilityOptions}
                         onChange={visibility => this.setState({visibility})}
                     />
-                </View>
+                </ScrollView>
                 <FixedFooter>
-                    <ExpensifyButton
+                    <Button
                         isLoading={this.props.isLoadingCreatePolicyRoom}
                         isDisabled={shouldDisableSubmit}
                         success

@@ -41,7 +41,7 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
@@ -697,12 +697,16 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty
-                                        ? styles.buttonDisable : styles.buttonSuccess]}
+                                style={[
+                                    styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                                hitSlop={{
+                                    top: 3, right: 3, bottom: 3, left: 3,
+                                }}
                             >
                                 <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
                             </TouchableOpacity>
@@ -721,9 +725,9 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <ExpensifyText style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                                 {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}

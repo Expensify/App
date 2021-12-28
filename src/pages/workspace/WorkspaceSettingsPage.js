@@ -9,8 +9,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
-import ExpensifyText from '../../components/ExpensifyText';
+import Button from '../../components/Button';
+import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
@@ -124,7 +124,7 @@ class WorkspaceSettingsPage extends React.Component {
                 route={this.props.route}
                 footer={(
                     <FixedFooter style={[styles.w100]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
@@ -173,9 +173,9 @@ class WorkspaceSettingsPage extends React.Component {
                                 isDisabled={hasVBA}
                             />
                         </View>
-                        <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 )}
             </WorkspacePageWithSections>

@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -177,7 +177,7 @@ class ReimbursementAccountPage extends React.Component {
         if (userHasPhonePrimaryEmail) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <ExpensifyText>{this.props.translate('bankAccount.hasPhoneLoginError')}</ExpensifyText>
+                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
                 </View>
             );
         }
@@ -186,9 +186,9 @@ class ReimbursementAccountPage extends React.Component {
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <ExpensifyText>
+                    <Text>
                         {this.props.translate('bankAccount.hasBeenThrottledError')}
-                    </ExpensifyText>
+                    </Text>
                 </View>
             );
         }
