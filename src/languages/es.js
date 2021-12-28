@@ -334,8 +334,8 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
-        setDefaultSuccess: 'TODO',
-        setDefaultFailure: 'TODO',
+        setDefaultSuccess: '¡Método de pago configurado!',
+        setDefaultFailure: 'No se ha podido configurar el método de pago.',
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
