@@ -11,7 +11,7 @@ import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -35,6 +35,9 @@ const propTypes = {
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Optional original filename when uploading */
+    originalFileName: PropTypes.string,
+
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
@@ -50,6 +53,7 @@ const defaultProps = {
     isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
+    originalFileName: null,
     isAuthTokenRequired: false,
     onModalHide: () => {},
 };
@@ -144,6 +148,7 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        subtitle={this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '')}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
@@ -153,7 +158,7 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <ExpensifyButton
+                        <Button
                             success
                             style={[styles.buttonConfirm]}
                             textStyles={[styles.buttonConfirmText]}

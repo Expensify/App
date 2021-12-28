@@ -118,6 +118,9 @@ export default {
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
+    // Stores values put into the additional details step of the wallet KYC flow
+    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
+
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
@@ -162,4 +165,11 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
+
+    // Is Keyboard shortcuts modal open?
+    IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
+
+    // Stores information about active wallet transfer amount, selectedAccountID, status, etc
+    WALLET_TRANSFER: 'walletTransfer',
+
 };

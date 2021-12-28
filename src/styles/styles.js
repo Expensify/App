@@ -1111,8 +1111,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     optionAlternateTextCompact: {
@@ -1161,7 +1161,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         paddingVertical: 16,
     },
 
@@ -1299,10 +1299,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1905,6 +1902,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        padding: 0,
     }, 0),
 
     iouPreviewBox: {

@@ -46,7 +46,7 @@ outside of Expensify, or if no actual discrimination occurs; and/or
 - Celebrating discrimination, whether the discrimination being celebrated is real or theoretical. 
 
 While it certainly takes more than the above to create an inclusive environment, this is
-our minimum expectation for every contributor. We encourage everyone to be curious while simultaneously being respectful of our differences. Building an inclusive environment requires clear communication, checking for understanding, taking note of non-verbalcommunication and being aware of our own assumptions. The best interactions occur when there is a baseline understanding that everyone is equal and all people are individuals with unique experiences.
+our minimum expectation for every contributor. We encourage everyone to be curious while simultaneously being respectful of our differences. Building an inclusive environment requires clear communication, checking for understanding, taking note of non-verbal communication and being aware of our own assumptions. The best interactions occur when there is a baseline understanding that everyone is equal and all people are individuals with unique experiences.
 
 Acting inclusively is of equal importance when we are interacting with colleagues as it is
 when we are interacting with others. Diversity of thought is one of our strengths, so let’s all do our part to protect it.

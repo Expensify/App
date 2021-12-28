@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-// eslint-disable-next-line no-restricted-imports
-import {Pressable, Platform, Text as RNText} from 'react-native';
+import {Pressable, Platform} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import Text from '../Text';
 
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
@@ -34,7 +34,7 @@ function handleLongPress(event, props) {
  */
 const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? RNText : Pressable;
+    const Node = props.inline ? Text : Pressable;
     return (
         <Node
             ref={props.forwardedRef}

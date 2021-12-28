@@ -5,7 +5,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
@@ -24,7 +24,7 @@ const InboxCallButton = props => (
         text={props.translate('requestCallPage.callButtonTooltip')}
         containerStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
     >
-        <ExpensifyButton
+        <Button
             onPress={() => {
                 Navigation.navigate(ROUTES.getRequestCallRoute(props.taskID));
             }}

@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Picker from './Picker';
+import Text from './Text';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
 

@@ -24,7 +24,7 @@ import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/reportUtils';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
@@ -123,7 +123,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (ReportUtils.isDefaultRoom(props.report)) {
+                                if (isDefaultChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -149,17 +149,16 @@ const HeaderView = (props) => {
                                     shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
                                 />
                                 {isDefaultChatRoom && (
-                                    <ExpensifyText
+                                    <Text
                                         style={[
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
-                                            styles.mt1,
                                         ]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}
-                                    </ExpensifyText>
+                                    </Text>
                                 )}
                             </View>
                         </Pressable>

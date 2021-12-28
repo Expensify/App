@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
 import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
@@ -63,33 +63,33 @@ const getLongTermsSections = () => _.map(termsData, (section, index) => (
     <View key={section.title + index}>
         <View style={[styles.longTermsRow]}>
             <View style={[styles.flex4]}>
-                <ExpensifyText>{section.title}</ExpensifyText>
+                <Text>{section.title}</Text>
                 {
                     section.subTitle
                     && (
-                        <ExpensifyText style={[styles.textMicroSupporting, styles.mt1]}>
+                        <Text style={[styles.textMicroSupporting, styles.mt1]}>
                             {section.subTitle}
-                        </ExpensifyText>
+                        </Text>
                     )
                 }
             </View>
             <View style={[styles.flex1, styles.termsCenterRight]}>
-                <ExpensifyText style={[styles.textStrong, styles.textAlignRight]}>
+                <Text style={[styles.textStrong, styles.textAlignRight]}>
                     {section.rightText}
-                </ExpensifyText>
+                </Text>
                 {
                     section.subRightText
                     && (
-                        <ExpensifyText style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
+                        <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
                             {section.subRightText}
-                        </ExpensifyText>
+                        </Text>
                     )
                 }
             </View>
         </View>
-        <ExpensifyText style={[styles.textLabelSupporting, styles.mt2]}>
+        <Text style={[styles.textLabelSupporting, styles.mt2]}>
             {section.details}
-        </ExpensifyText>
+        </Text>
     </View>
 ));
 
@@ -99,17 +99,17 @@ const LongTermsForm = () => (
             {getLongTermsSections()}
         </CollapsibleSection>
 
-        <ExpensifyText style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
+        <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
             {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
             {' '}
             {CONST.TERMS.FDIC_PREPAID}
             {' '}
             {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
-        </ExpensifyText>
-        <ExpensifyText style={[styles.mb4, styles.textMicroSupporting]}>
+        </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>
             {Localize.translateLocal('termsStep.noOverdraftOrCredit')}
-        </ExpensifyText>
-        <ExpensifyText style={[styles.mb4, styles.textMicroSupporting]}>
+        </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>
             {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')}
             {' '}
             {CONST.EMAIL.CONCIERGE}
@@ -118,8 +118,8 @@ const LongTermsForm = () => (
             {' '}
             {CONST.NEWDOT}
             .
-        </ExpensifyText>
-        <ExpensifyText style={[styles.mb6, styles.textMicroSupporting]}>
+        </Text>
+        <Text style={[styles.mb6, styles.textMicroSupporting]}>
             {Localize.translateLocal('termsStep.longTermsForm.generalInformation')}
             {' '}
             {CONST.TERMS.CFPB_PREPAID}
@@ -128,16 +128,16 @@ const LongTermsForm = () => (
             {' '}
             {CONST.TERMS.CFPB_COMPLAINT}
             .
-        </ExpensifyText>
+        </Text>
 
         <View style={styles.flexRow}>
             <Icon style={styles.flex1} src={Expensicons.Printer} />
-            <ExpensifyText
+            <Text
                 style={[styles.link, styles.ml1]}
                 onPress={() => Link.openExternalLink(CONST.FEES_URL)}
             >
                 {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-            </ExpensifyText>
+            </Text>
         </View>
     </>
 );

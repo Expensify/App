@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import colors from '../../../styles/colors';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -11,7 +11,7 @@ import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -86,7 +86,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <ExpensifyText style={styles.formLabel}>{this.props.label}</ExpensifyText>
+                <Text style={styles.formLabel}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
@@ -98,30 +98,30 @@ class LoginField extends Component {
                     </View>
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <ExpensifyText numberOfLines={1}>
+                        <Text numberOfLines={1}>
                             {this.props.type === CONST.LOGIN_TYPE.PHONE
                                 ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                 : this.props.login.partnerUserID}
-                        </ExpensifyText>
+                        </Text>
                         {!this.props.login.validatedDate && (
-                            <ExpensifyButton
+                            <Button
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
-                                    <ExpensifyText style={styles.createMenuText}>
+                                    <Text style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}
-                                    </ExpensifyText>
+                                    </Text>
                                 ))}
                             />
                         )}
                     </View>
                 )}
                 {note && (
-                    <ExpensifyText style={[styles.textLabel, styles.colorMuted]}>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
                         {note}
-                    </ExpensifyText>
+                    </Text>
                 )}
             </View>
         );
