@@ -26,6 +26,7 @@ import Permissions from '../../../libs/Permissions';
 import ConfirmPopover from '../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
+import * as Localize from '../../../libs/Localize';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -93,11 +94,13 @@ class PaymentsPage extends React.Component {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: Expensicons.Bank,
+                    description: `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
-                    title: account.cardName,
+                    title: account.addressName,
                     icon: Expensicons.CreditCard,
+                    description: `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`,
                 };
             }
             this.setState({
