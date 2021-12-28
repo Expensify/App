@@ -34,6 +34,8 @@ const propTypes = {
 
     /** Callback to execute when the text input is modified */
     onChangeText: PropTypes.func,
+
+    autoCapitalize: PropTypes.string,
 };
 
 const defaultProps = {
@@ -46,6 +48,7 @@ const defaultProps = {
     disabled: false,
     placeholder: '',
     onChangeText: () => {},
+    autoCapitalize: 'sentences', // React native default
 };
 
 const TextInputWithLabel = props => (

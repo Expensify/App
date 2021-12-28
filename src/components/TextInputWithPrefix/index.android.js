@@ -18,6 +18,8 @@ const propTypes = {
 
     /** Callback to execute the text input is modified */
     onChangeText: PropTypes.func,
+
+    autoCapitalize: PropTypes.string,
 };
 
 const defaultProps = {
@@ -25,6 +27,7 @@ const defaultProps = {
     prefixCharacter: '',
     disabled: false,
     onChangeText: () => {},
+    autoCapitalize: 'sentences', // React native default
 };
 
 const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
@@ -46,6 +49,7 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                     styles.noOutline,
                     {height: 40},
                 ]}
+                autoCapitalize={props.autoCapitalize}
                 onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
