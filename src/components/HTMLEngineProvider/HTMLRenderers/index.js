@@ -14,4 +14,4 @@ export default {
 
     // Custom tag renderers
     edited: EditedRenderer,
-}
+};
