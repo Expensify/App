@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-api-in-views */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
