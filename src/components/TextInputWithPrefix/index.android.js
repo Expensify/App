@@ -50,7 +50,6 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                     styles.noOutline,
                     {height: 40},
                 ]}
-                autoCapitalize={props.autoCapitalize}
                 onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
