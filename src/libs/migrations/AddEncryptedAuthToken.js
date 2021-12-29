@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Api from '../API';
+import * as API from '../API';
 
 /**
  * This migration adds an encryptedAuthToken to the SESSION key, if it is not present.
@@ -28,7 +28,7 @@ export default function () {
 
                 // If there is an auth token but no encrypted auth token, reauthenticate.
                 if (session.authToken && _.isUndefined(session.encryptedAuthToken)) {
-                    return Api.reauthenticate('Onyx_Migration_AddEncryptedAuthToken')
+                    return API.reauthenticate('Onyx_Migration_AddEncryptedAuthToken')
                         .then(() => {
                             Log.info('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
                             return resolve();
