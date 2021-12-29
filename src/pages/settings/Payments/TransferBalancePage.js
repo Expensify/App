@@ -106,7 +106,7 @@ class TransferBalancePage extends React.Component {
      * @returns {Object|undefined}
      */
     getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.getPaymentMethods(
+        const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
         );

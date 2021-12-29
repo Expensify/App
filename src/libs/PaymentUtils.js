@@ -6,13 +6,13 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 
 /**
- * Get the PaymentMethods list
+ * Format the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername='']
  * @returns {Array<Object>}
  */
-function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -74,6 +74,6 @@ function getWalletTransferAmount(currentBalance) {
 }
 
 export default {
-    getPaymentMethods,
+    formatPaymentMethods,
     getWalletTransferAmount,
 };
