@@ -277,16 +277,16 @@ render() {
 // Bad
 const UserInfo = ({name, email}) => (
 	<View>
-		<ExpensifyText>Name: {name}</ExpensifyText>
-		<ExpensifyText>Email: {email}</ExpensifyText>
+		<Text>Name: {name}</Text>
+		<Text>Email: {email}</Text>
 	</View>
 );
 
 // Good
 const UserInfo = props => (
     <View>
-        <ExpensifyText>Name: {props.name}</ExpensifyText>
-        <ExpensifyText>Email: {props.email}</ExpensifyText>
+        <Text>Name: {props.name}</Text>
+        <Text>Email: {props.email}</Text>
     </View>
 );
 ```
@@ -701,9 +701,9 @@ class BComposedComponent extends React.Component
     render() {
         return (
             <AComponent {...props}>
-                <ExpensifyText>
+                <Text>
                     {this.state.whatever}
-                </ExpensifyText>
+                </Text>
             </AComponent>
         )
     }
