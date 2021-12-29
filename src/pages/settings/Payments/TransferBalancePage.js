@@ -97,32 +97,22 @@ class TransferBalancePage extends React.Component {
 
         this.transferBalance = this.transferBalance.bind(this);
 
-        const selectedAccount = this.getSelectedAccount();
+        const selectedAccount = this.getSelectedPaymentMethodAccount();
         PaymentMethods.saveWalletTransferAccount(selectedAccount ? selectedAccount.id : '');
     }
 
     /**
-     * Get the selected/default Account for wallet tsransfer
+     * Get the selected/default payment method account for wallet transfer
      * @returns {Object|undefined}
      */
-    getSelectedAccount() {
+    getSelectedPaymentMethodAccount() {
         const paymentMethods = PaymentUtils.getPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
         );
 
-        const defaultAccount = _.find(
-            paymentMethods,
-            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccountID', ''),
-        );
-        const selectedAccount = this.props.walletTransfer.selectedAccountID
-            ? _.find(
-                paymentMethods,
-                method => method.id === this.props.walletTransfer.selectedAccountID,
-            )
-            : defaultAccount;
-
-        return selectedAccount;
+        const accountID = this.props.walletTransfer.selectedAccountID || lodashGet(this.props, 'userWallet.walletLinkedAccountID', '');
+        return _.find(paymentMethods, method => method.id === accountID);
     }
 
     /**
@@ -130,14 +120,11 @@ class TransferBalancePage extends React.Component {
      * @param {PaymentMethod} selectedAccount
      */
     transferBalance(selectedAccount) {
-        if (!selectedAccount) {
-            return;
-        }
         PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
     render() {
-        const selectedAccount = this.getSelectedAccount();
+        const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;

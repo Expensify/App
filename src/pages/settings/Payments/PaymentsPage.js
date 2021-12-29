@@ -131,9 +131,6 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
-    /**
-    * Navigate to Transfer wallet balance page
-    */
     navigateToTransferBalancePage() {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     }
