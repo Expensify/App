@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import {withCurrentDate} from '../../../components/OnyxProvider';
 
 const propTypes = {
@@ -13,9 +13,9 @@ const propTypes = {
 };
 
 const ReportActionItemDate = props => (
-    <ExpensifyText style={[styles.chatItemMessageHeaderTimestamp]}>
+    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
         {props.timestampToDateTime(props.timestamp)}
-    </ExpensifyText>
+    </Text>
 );
 
 ReportActionItemDate.propTypes = propTypes;
