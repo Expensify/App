@@ -18,9 +18,6 @@ const propTypes = {
 
     /** Callback to execute the text input is modified */
     onChangeText: PropTypes.func,
-
-    /** Whether to automatically capitalize certain characters */
-    autoCapitalize: PropTypes.string,
 };
 
 const defaultProps = {
