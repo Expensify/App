@@ -11,11 +11,6 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     defaultValues: PropTypes.object,
-    // eslint-disable-next-line react/forbid-prop-types
-    serverError: PropTypes.shape({
-        firstErrorToFix: PropTypes.ref,
-        message: PropTypes.string,
-    }),
 
     validate: PropTypes.func.isRequired,
     saveDraft: PropTypes.bool,
@@ -23,10 +18,6 @@ const propTypes = {
 
 const defaultProps = {
     defaultValues: {},
-    serverError: {
-        firstErrorToFix: null,
-        message: '',
-    },
     saveDraft: true,
 };
 
@@ -38,10 +29,10 @@ class ExpensiForm extends React.Component {
             isLoading: false,
             defaultValues: this.props.defaultValues,
             errors: {},
-            serverError: {},
         };
         this.inputRefs = React.createRef();
         this.inputRefs.current = {};
+        this.firstErrorToFix = null;
 
         this.getFormValues = this.getFormValues.bind(this);
         this.saveDraft = this.saveDraft.bind(this);
@@ -84,12 +75,8 @@ class ExpensiForm extends React.Component {
                     }
                 }));
             } else {
-                this.setState({
-                    serverError: {
-                        firstErrorToFix: this.inputRefs.current[_.keys(errors)[0]]
-                    },
-                    errors,
-                });
+                this.setState({errors});
+                this.firstErrorToFix = this.inputRefs.current[_.keys(errors)[0]];
             }
         }
         return errors;
@@ -110,7 +97,12 @@ class ExpensiForm extends React.Component {
     }
 
     setServerError(value) {
-        this.setState({serverError: value});
+        this.setState(prevState => ({
+            errors: {
+                ...prevState.errors,
+                serverError: value,
+            },
+        }));
     }
 
     onSubmit() {
@@ -155,7 +147,7 @@ class ExpensiForm extends React.Component {
                     onSubmit: this.onSubmit,
                     defaultValue: this.state.defaultValues[child.props.name],
                     error: this.state.errors[child.props.name],
-                    serverError: this.state.serverError,
+                    serverError: this.state.errors.serverError,
                     isLoading: this.state.isLoading,
                 });
             })
