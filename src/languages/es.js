@@ -807,7 +807,7 @@ export default {
     getAssistancePage: {
         title: 'Obtener ayuda',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¡Tenemos respuestas! Elija entre las siguientes opciones de asistencia:',
+        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
