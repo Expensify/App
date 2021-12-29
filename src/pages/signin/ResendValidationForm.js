@@ -6,7 +6,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -115,26 +115,26 @@ class ResendValidationForm extends React.Component {
                         imageStyles={[styles.mr2]}
                     />
                     <View style={[styles.flex1]}>
-                        <ExpensifyText style={[styles.textStrong]}>
+                        <Text style={[styles.textStrong]}>
                             {login}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 </View>
                 <View style={[styles.mv5]}>
-                    <ExpensifyText>
+                    <Text>
                         {message}
-                    </ExpensifyText>
+                    </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
-                    <ExpensifyText style={[styles.formSuccess]}>
+                    <Text style={[styles.formSuccess]}>
                         {this.state.formSuccess}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
-                        <ExpensifyText>
+                        <Text>
                             {this.props.translate('common.back')}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
                     <Button
                         success
