@@ -88,7 +88,7 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
-        this.unsubscribeAppStateSubscription = AppState.addEventListener(
+        this.appStateSubscription = AppState.addEventListener(
             'change',
             this.dismissKeyboardWhenBackgrounded,
         );
@@ -103,10 +103,10 @@ class IOUAmountPage extends React.Component {
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeAppStateSubscription) {
+        if (!this.appStateSubscription) {
             return;
         }
-        this.unsubscribeAppStateSubscription();
+        this.appStateSubscription.remove();
     }
 
     dismissKeyboardWhenBackgrounded(nextAppState) {
