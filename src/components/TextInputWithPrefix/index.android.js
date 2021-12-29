@@ -25,7 +25,6 @@ const defaultProps = {
     prefixCharacter: '',
     disabled: false,
     onChangeText: () => {},
-    autoCapitalize: 'sentences', // React native TextInput's default
 };
 
 const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
