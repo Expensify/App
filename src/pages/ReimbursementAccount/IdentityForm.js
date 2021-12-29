@@ -108,6 +108,7 @@ const IdentityForm = (props) => {
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
+                streetTranslationKey="common.personalAddress"
                 values={props.values}
                 errors={props.errors}
                 onFieldChange={props.onFieldChange}
