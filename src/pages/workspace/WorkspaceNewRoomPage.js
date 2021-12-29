@@ -150,6 +150,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
                         value={this.state.roomName.substr(1)}
                         errorText={this.state.error}
+                        autoCapitalize="none"
                     />
                     <View style={styles.mb5}>
                         <ExpensiPicker
