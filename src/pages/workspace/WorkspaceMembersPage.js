@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -227,9 +227,9 @@ class WorkspaceMembersPage extends React.Component {
                     {this.props.session.email === item.login && (
                         <View style={styles.peopleRowCell}>
                             <View style={[styles.badge, styles.peopleBadge]}>
-                                <ExpensifyText style={[styles.peopleBadgeText]}>
+                                <Text style={[styles.peopleBadgeText]}>
                                     {this.props.translate('common.admin')}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         </View>
                     )}
@@ -296,9 +296,9 @@ class WorkspaceMembersPage extends React.Component {
                                 />
                             </View>
                             <View style={[styles.peopleRowCell, styles.flex1]}>
-                                <ExpensifyText style={[styles.textStrong, styles.ph5]}>
+                                <Text style={[styles.textStrong, styles.ph5]}>
                                     {this.props.translate('workspace.people.selectAll')}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         </View>
                         <FlatList

@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 
 const propTypes = {
     /** The user's wallet account */
@@ -44,11 +44,11 @@ const CurrentWalletBalance = (props) => {
         {style: 'currency', currency: 'USD'},
     );
     return (
-        <ExpensifyText
+        <Text
             style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, ...props.balanceStyles]}
         >
             {`${formattedBalance}`}
-        </ExpensifyText>
+        </Text>
     );
 };
 

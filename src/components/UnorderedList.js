@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -20,8 +20,8 @@ const UnorderedList = props => (
                 key={itemText}
                 style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
             >
-                <ExpensifyText style={[styles.mr2]}>{'\u2022'}</ExpensifyText>
-                <ExpensifyText>{itemText}</ExpensifyText>
+                <Text style={[styles.mr2]}>{'\u2022'}</Text>
+                <Text>{itemText}</Text>
             </View>
         ))}
     </>

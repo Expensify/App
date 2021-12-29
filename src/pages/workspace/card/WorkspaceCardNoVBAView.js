@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -32,7 +32,7 @@ const WorkspaceCardNoVBAView = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <ExpensifyText>{props.translate('workspace.card.noVBACopy')}</ExpensifyText>
+            <Text>{props.translate('workspace.card.noVBACopy')}</Text>
         </View>
 
         <UnorderedList

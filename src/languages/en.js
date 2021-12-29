@@ -294,10 +294,8 @@ export default {
         currentPassword: 'Current password',
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
-        confirmNewPassword: 'Confirm new password',
         errors: {
             currentPassword: 'Current password is required',
-            confirmNewPassword: 'Confirm password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
             newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         },
@@ -446,9 +444,7 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
-        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
-        passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
