@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -19,7 +20,7 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import * as paymentPropTypes from './paymentPropTypes';
+import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
@@ -29,13 +30,34 @@ const propTypes = {
     userWallet: userWalletPropTypes.userWallet,
 
     /** Array of bank account objects */
-    bankAccountList: paymentPropTypes.bankAccountListPropTypes,
+    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc) */
+        addressName: PropTypes.string,
+
+        /** The masked bank account number */
+        accountNumber: PropTypes.string,
+
+        /** The bankAccountID in the bankAccounts db */
+        bankAccountID: PropTypes.number,
+
+        /** The bank account type */
+        type: PropTypes.string,
+    })),
 
     /** Array of card objects */
-    cardList: paymentPropTypes.cardListPropTypes,
+    cardList: PropTypes.arrayOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc) */
+        cardName: PropTypes.string,
+
+        /** The masked credit card number */
+        cardNumber: PropTypes.string,
+
+        /** The ID of the card in the cards DB */
+        cardID: PropTypes.number,
+    })),
 
     /** Wallet balance transfer props */
-    walletTransfer: paymentPropTypes.walletTransferPropTypes,
+    walletTransfer: walletTransferPropTypes,
 
     ...withLocalizePropTypes,
 };

@@ -21,13 +21,13 @@ import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
-import * as paymentPropTypes from './paymentPropTypes';
+import walletTransferPropTypes from './walletTransferPropTypes';
 import ConfirmModal from '../../../components/ConfirmModal';
 import PaymentUtils from '../../../libs/PaymentUtils';
 
 const propTypes = {
     /** Wallet balance transfer props */
-    walletTransfer: paymentPropTypes.walletTransferPropTypes,
+    walletTransfer: walletTransferPropTypes,
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
