@@ -23,10 +23,17 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import * as paymentPropTypes from './paymentPropTypes';
 import ConfirmModal from '../../../components/ConfirmModal';
+import PaymentUtils from '../../../libs/PaymentUtils';
 
 const propTypes = {
     /** Wallet balance transfer props */
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
+
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        currentBalance: PropTypes.number,
+    }),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -40,6 +47,9 @@ const propTypes = {
 const defaultProps = {
     walletTransfer: {
         completed: false,
+    },
+    userWallet: {
+        currentBalance: 0,
     },
     betas: [],
     isLoadingPaymentMethods: true,
@@ -179,7 +189,7 @@ class PaymentsPage extends React.Component {
                         isVisible={this.props.walletTransfer.completed}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
                             amount: this.props.numberFormat(
-                                this.props.walletTransfer.transferAmount,
+                                PaymentUtils.getWalletTransferAmount(this.props.userWallet.currentBalance),
                                 {style: 'currency', currency: 'USD'},
                             ),
                         })}
@@ -200,6 +210,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,

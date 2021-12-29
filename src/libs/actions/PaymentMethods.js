@@ -126,25 +126,15 @@ function transferWalletBalance(paymentMethod) {
 
 /**
  * Set the necessary data for wallet transfer
- * @param {Number} currentBalance
- * @param {Number} selectedAccountID
+ * @param {String} selectedAccountID
  */
-function saveWalletTransferAmountAndAccount(currentBalance, selectedAccountID) {
+function saveWalletTransferAccount(selectedAccountID) {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
-        transferAmount: currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE,
         selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
         completed: false,
     });
-}
-
-/**
- * Update selected accountID and other data for wallet transfer
- * @param {Object} data
- */
-function updateWalletTransferData(data) {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, data);
 }
 
 /**
@@ -159,7 +149,6 @@ export {
     addBillingCard,
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
-    saveWalletTransferAmountAndAccount,
-    updateWalletTransferData,
+    saveWalletTransferAccount,
     cancelWalletTransfer,
 };

@@ -30,9 +30,6 @@ const cardListPropTypes = PropTypes.arrayOf(PropTypes.shape({
 
 /** Wallet balance transfer props */
 const walletTransferPropTypes = PropTypes.shape({
-    /** Amount being transferred  */
-    transferAmount: PropTypes.number,
-
     /** Selected accountID for transfer */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 

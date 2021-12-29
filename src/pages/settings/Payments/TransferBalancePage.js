@@ -44,9 +44,7 @@ const defaultProps = {
     userWallet: {},
     bankAccountList: [],
     cardList: [],
-    walletTransfer: {
-        transferAmount: 0,
-    },
+    walletTransfer: {},
 };
 
 class TransferBalancePage extends React.Component {
@@ -78,10 +76,7 @@ class TransferBalancePage extends React.Component {
         this.transferBalance = this.transferBalance.bind(this);
 
         const selectedAccount = this.getSelectedAccount();
-        PaymentMethods.saveWalletTransferAmountAndAccount(
-            this.props.userWallet.currentBalance,
-            selectedAccount ? selectedAccount.id : '',
-        );
+        PaymentMethods.saveWalletTransferAccount(selectedAccount ? selectedAccount.id : '');
     }
 
     /**
@@ -124,7 +119,8 @@ class TransferBalancePage extends React.Component {
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
-        const transferAmount = this.props.walletTransfer.transferAmount.toFixed(2);
+
+        const transferAmount = PaymentUtils.getWalletTransferAmount(this.props.userWallet.currentBalance).toFixed(2);
         const canTransfer = transferAmount > CONST.WALLET.TRANSFER_BALANCE_FEE;
         const isButtonDisabled = !canTransfer || !selectedAccount;
 

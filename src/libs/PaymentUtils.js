@@ -64,6 +64,16 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     return combinedPaymentMethods;
 }
 
+/**
+ * Get the amount that is being transferred
+ * @param {Number} currentBalance
+ * @returns {Number}
+ */
+function getWalletTransferAmount(currentBalance) {
+    return currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE;
+}
+
 export default {
     getPaymentMethods,
+    getWalletTransferAmount,
 };
