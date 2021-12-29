@@ -5,13 +5,12 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ExpensifyText from '../components/ExpensifyText';
+import Text from '../components/Text';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import ExpensifyButton from '../components/Button';
 import styles from '../styles/styles';
 import AvatarWithImagePicker from '../components/AvatarWithImagePicker';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
-import * as User from '../libs/actions/User';
 import currentUserPersonalDetailsPropsTypes from './settings/Profile/currentUserPersonalDetailsPropsTypes';
 import compose from '../libs/compose';
 import LoginUtil from '../libs/LoginUtil';
@@ -25,9 +24,6 @@ const propTypes = {
 
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
-
-    /** Password required for the secondary login form */
-    password: PropTypes.string.isRequired,
 
     /** Skip Welcome form */
     skipWelcomeForm: PropTypes.func.isRequired,
@@ -53,6 +49,8 @@ class WelcomeForm extends React.Component {
             firstName,
             lastName,
             login: '',
+            avatarFile: '',
+            avatarURL: '',
             errors: {
                 firstName: '',
                 lastName: '',
@@ -76,7 +74,7 @@ class WelcomeForm extends React.Component {
         const errors = this.state.errors;
         errors.firstName = firstNameError;
         errors.lastName = lastNameError;
-        errors.login = !this.state.password || !validationMethod(login);
+        errors.login = !validationMethod(login);
 
         return _.every(errors, error => !error);
     }
@@ -86,30 +84,30 @@ class WelcomeForm extends React.Component {
             return;
         }
 
-        PersonalDetails.setPersonalDetails({
-            firstName: this.state.firstName.trim(),
-            lastName: this.state.lastName.trim(),
-        }, true, true);
-
         const login = this.formType === CONST.LOGIN_TYPE.PHONE
             ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
             : this.state.login;
-        User.setSecondaryLoginAndNavigate(login, this.props.password);
+
+        this.props.updateUserDetails({
+            firstName: this.state.firstName.trim(),
+            lastName: this.state.lastName.trim(),
+            secondaryLogin: login,
+            avatarFile: this.state.avatarFile,
+        });
     }
 
     render() {
         return (
-
             <>
-                <View style={[styles.m5]}>
+                <View style={[styles.m4]}>
                     <AvatarWithImagePicker
                         isUploading={this.props.myPersonalDetails.avatarUploading}
-                        avatarURL={this.props.myPersonalDetails.avatar}
-                        onImageSelected={PersonalDetails.setAvatar}
-                        onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
-                        isUsingDefaultAvatar={this.props.myPersonalDetails.avatar && this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
-                        anchorPosition={styles.createMenuPositionProfile}
-                        size={CONST.AVATAR_SIZE.LARGE}
+                        avatarURL={this.state.avatarURL}
+                        onImageSelected={file => this.setState({avatarFile: file, avatarURL: file.uri})}
+                        onImageRemoved={() => this.setState({avatarFile: null, avatarURL: ''})}
+                        isUsingDefaultAvatar={!this.state.avatarURL}
+                        anchorPosition={{top: 250, left: 190}}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
                         DefaultAvatar={() => (
                             <Icon
                                 src={Expensicons.Workspace}
@@ -119,8 +117,7 @@ class WelcomeForm extends React.Component {
                         )}
                     />
                 </View>
-
-                <View style={[styles.mb5]}>
+                <View style={[styles.mb3]}>
                     <ExpensiTextInput
                         label={this.props.translate('common.firstName')}
                         value={this.state.firstName}
@@ -129,7 +126,7 @@ class WelcomeForm extends React.Component {
                         errorText={this.state.errors.firstName}
                     />
                 </View>
-                <View style={[styles.mb5]}>
+                <View style={[styles.mb3]}>
                     <ExpensiTextInput
                         label={this.props.translate('common.lastName')}
                         value={this.state.lastName}
@@ -138,7 +135,7 @@ class WelcomeForm extends React.Component {
                         errorText={this.state.errors.lastName}
                     />
                 </View>
-                <View style={styles.mb6}>
+                <View style={styles.mb3}>
                     <ExpensiTextInput
                         label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                             ? 'common.phoneNumber'
@@ -151,11 +148,11 @@ class WelcomeForm extends React.Component {
                         returnKeyType="done"
                     />
                 </View>
-                <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => this.props.skipWelcomeForm()}>
-                        <ExpensifyText>
+                        <Text>
                             {this.props.translate('welcomeScreen.skip')}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
                     <ExpensifyButton
                         success
@@ -164,7 +161,6 @@ class WelcomeForm extends React.Component {
                     />
                 </View>
             </>
-
         );
     }
 }

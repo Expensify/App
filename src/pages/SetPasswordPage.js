@@ -81,18 +81,17 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         if (!this.state.isFormValid) {
             return;
         }
 
         this.setState({showWelcomeForm: true});
-        Session.validateEmail(accountID, validateCode, this.state.password);
     }
 
     skipWelcomeForm() {
-        console.log('Skip called');
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        Session.validateEmail(accountID, validateCode, this.state.password);
     }
 
     renderPasswordForm(error) {
