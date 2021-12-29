@@ -55,14 +55,14 @@ const FormAlertWithSubmitButton = (props) => {
     function getAlertPrompt() {
         let error = '';
 
-        if (!_.isEmpty(props.alert.serverError)) {
-            if (props.alert.serverError.isMessageHtml) {
+        if (!_.isEmpty(props.alert.message)) {
+            if (props.alert.isMessageHtml) {
                 error = (
-                    <RenderHTML html={`<muted-text>${props.alert.serverError.message}</muted-text>`} />
+                    <RenderHTML html={`<muted-text>${props.alert.message}</muted-text>`} />
                 );
             } else {
                 error = (
-                    <Text style={styles.mutedTextLabel}>{props.alert.serverError.message}</Text>
+                    <Text style={styles.mutedTextLabel}>{props.alert.message}</Text>
                 );
             }
         } else {
@@ -114,6 +114,6 @@ const FormAlertWithSubmitButton = (props) => {
 FormAlertWithSubmitButton.EXPENSIFORM = true;
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
-FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
+FormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';
 
 export default withLocalize(FormAlertWithSubmitButton);

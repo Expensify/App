@@ -100,8 +100,8 @@ class ExpensiForm extends React.Component {
         this.setState({isLoading: value})
     }
 
-    setFormAlert(serverError) {
-        this.setState({alert: {serverError}});
+    setFormAlert(alert) {
+        this.setState({alert});
     }
 
     onSubmit() {
