@@ -88,7 +88,7 @@ class ResendValidationForm extends React.Component {
 
     render() {
         const isNewAccount = !this.props.account.accountExists;
-        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated && !this.props.account.validateCodeExpired;
+        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
@@ -99,10 +99,10 @@ class ResendValidationForm extends React.Component {
                 login,
                 loginType,
             });
-        } else if (isOldUnvalidatedAccount) {
-            message = this.props.translate('resendValidationForm.unvalidatedAccount');
         } else if (this.props.account.validateCodeExpired) {
             message = this.props.translate('resendValidationForm.validationCodeFailedMessage');
+        } else if (isOldUnvalidatedAccount) {
+            message = this.props.translate('resendValidationForm.unvalidatedAccount');
         } else {
             message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
                 login,
