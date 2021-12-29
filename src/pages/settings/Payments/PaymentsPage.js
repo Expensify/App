@@ -46,7 +46,7 @@ const propTypes = {
 
 const defaultProps = {
     walletTransfer: {
-        completed: false,
+        shouldShowConfirmModal: false,
     },
     userWallet: {
         currentBalance: 0,
