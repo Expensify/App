@@ -27,7 +27,6 @@ class ExpensiForm extends React.Component {
 
         this.state = {
             isLoading: false,
-            defaultValues: this.props.defaultValues,
             errors: {},
             alert: {},
         };
@@ -146,7 +145,7 @@ class ExpensiForm extends React.Component {
                     validate: this.validate,
                     clearInputErrors: this.clearInputErrors,
                     onSubmit: this.onSubmit,
-                    defaultValue: this.state.defaultValues[child.props.name],
+                    defaultValue: this.props.defaultValues[child.props.name],
                     error: this.state.errors[child.props.name],
                     alert: this.state.alert,
                     isLoading: this.state.isLoading,
