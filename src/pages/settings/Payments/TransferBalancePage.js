@@ -15,7 +15,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -155,11 +155,11 @@ class TransferBalancePage extends React.Component {
                                 }}
                             />
                         ))}
-                        <ExpensifyText
+                        <Text
                             style={[styles.pv5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
-                        </ExpensifyText>
+                        </Text>
                         {Boolean(selectedAccount)
                             && (
                                 <MenuItem
@@ -175,7 +175,7 @@ class TransferBalancePage extends React.Component {
                                     }}
                                 />
                             )}
-                        <ExpensifyText
+                        <Text
                             style={[
                                 styles.mt5,
                                 styles.mb3,
@@ -185,15 +185,15 @@ class TransferBalancePage extends React.Component {
                             ]}
                         >
                             {this.props.translate('transferAmountPage.fee')}
-                        </ExpensifyText>
-                        <ExpensifyText
+                        </Text>
+                        <Text
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
                                 CONST.WALLET.TRANSFER_BALANCE_FEE,
                                 {style: 'currency', currency: 'USD'},
                             )}
-                        </ExpensifyText>
+                        </Text>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
