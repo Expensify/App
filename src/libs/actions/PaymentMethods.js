@@ -115,7 +115,7 @@ function transferWalletBalance(paymentMethod) {
                 throw new Error(response.message);
             }
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true, loading: false});
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         }).catch((error) => {
             Log.alert(`[Payments] Failed to transfer wallet balance: ${error.message}`);
@@ -133,14 +133,14 @@ function saveWalletTransferAccount(selectedAccountID) {
         selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
-        completed: false,
+        shouldShowConfirmModal: false,
     });
 }
 
 /**
- * Cancel the wallet transfer
+ * Remove all the data related to wallet transfer and close the ConfirmModal
  */
-function cancelWalletTransfer() {
+function clearWalletTransfer() {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, null);
 }
 
@@ -150,5 +150,5 @@ export {
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
     saveWalletTransferAccount,
-    cancelWalletTransfer,
+    clearWalletTransfer,
 };

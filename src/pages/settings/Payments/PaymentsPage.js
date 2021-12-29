@@ -182,8 +182,8 @@ class PaymentsPage extends React.Component {
                     />
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.cancelWalletTransfer}
-                        isVisible={this.props.walletTransfer.completed}
+                        onConfirm={PaymentMethods.clearWalletTransfer}
+                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
                             amount: this.props.numberFormat(
                                 PaymentUtils.getWalletTransferAmount(this.props.userWallet.currentBalance),
