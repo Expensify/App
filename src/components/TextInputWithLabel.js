@@ -46,7 +46,6 @@ const defaultProps = {
     disabled: false,
     placeholder: '',
     onChangeText: () => {},
-    autoCapitalize: 'sentences', // React native TextInput's default
 };
 
 const TextInputWithLabel = props => (
