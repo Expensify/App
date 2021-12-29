@@ -29,7 +29,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
 import ExpensiForm from '../../components/ExpensiForm';
-import ExpensifyButton from '../../components/ExpensifyButton';
 import ExpensiFormSubmit from '../../components/ExpensiFormSubmit';
 
 const propTypes = {

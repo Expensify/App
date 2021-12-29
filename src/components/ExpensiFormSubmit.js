@@ -6,10 +6,10 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {
@@ -63,24 +63,24 @@ const FormAlertWithSubmitButton = (props) => {
                 );
             } else {
                 error = (
-                    <ExpensifyText style={styles.mutedTextLabel}>{props.message}</ExpensifyText>
+                    <Text style={styles.mutedTextLabel}>{props.message}</Text>
                 );
             }
         } else {
             error = (
                 <>
-                    <ExpensifyText style={styles.mutedTextLabel}>
+                    <Text style={styles.mutedTextLabel}>
                         {`${props.translate('common.please')} `}
-                    </ExpensifyText>
+                    </Text>
                     <TextLink
                         style={styles.label}
                         onPress={() => props.serverError.firstErrorToFix.focus()}
                     >
                         {props.translate('common.fixTheErrors')}
                     </TextLink>
-                    <ExpensifyText style={styles.mutedTextLabel}>
+                    <Text style={styles.mutedTextLabel}>
                         {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
-                    </ExpensifyText>
+                    </Text>
                 </>
             );
         }
@@ -100,7 +100,7 @@ const FormAlertWithSubmitButton = (props) => {
                     {getAlertPrompt()}
                 </View>
             )}
-            <ExpensifyButton
+            <Button
                 success
                 pressOnEnter
                 text={props.buttonText}
