@@ -79,7 +79,7 @@ class BaseExpensiTextInput extends Component {
         if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
-        if (this.props.cleclearInputErrors) {
+        if (this.props.clearInputErrors) {
             this.props.clearInputErrors(this.props.name);
         }
     }

@@ -29,10 +29,10 @@ class ExpensiForm extends React.Component {
             isLoading: false,
             defaultValues: this.props.defaultValues,
             errors: {},
+            alert: {},
         };
         this.inputRefs = React.createRef();
         this.inputRefs.current = {};
-        this.firstErrorToFix = null;
 
         this.getFormValues = this.getFormValues.bind(this);
         this.saveDraft = this.saveDraft.bind(this);
@@ -40,7 +40,7 @@ class ExpensiForm extends React.Component {
         this.validate = this.validate.bind(this);
         this.clearInputErrors = this.clearInputErrors.bind(this);
         this.setLoading = this.setLoading.bind(this);
-        this.setServerError = this.setServerError.bind(this);
+        this.setFormAlert = this.setFormAlert.bind(this);
     }
 
     getFormValues() {
@@ -75,8 +75,12 @@ class ExpensiForm extends React.Component {
                     }
                 }));
             } else {
-                this.setState({errors});
-                this.firstErrorToFix = this.inputRefs.current[_.keys(errors)[0]];
+                this.setState({
+                    errors,
+                    alert: {
+                        firstErrorToFix: this.inputRefs.current[_.keys(errors)[0]],
+                    }
+                });
             }
         }
         return errors;
@@ -96,13 +100,8 @@ class ExpensiForm extends React.Component {
         this.setState({isLoading: value})
     }
 
-    setServerError(value) {
-        this.setState(prevState => ({
-            errors: {
-                ...prevState.errors,
-                serverError: value,
-            },
-        }));
+    setFormAlert(serverError) {
+        this.setState({alert: {serverError}});
     }
 
     onSubmit() {
@@ -111,7 +110,7 @@ class ExpensiForm extends React.Component {
         if (!_.isEmpty(errors)) {
             return;
         }
-        this.props.onSubmit(values, {setLoading: this.setLoading, setServerError: this.setServerError})
+        this.props.onSubmit(values, {setLoading: this.setLoading, setFormAlert: this.setFormAlert})
     }
 
     render() {
@@ -135,6 +134,8 @@ class ExpensiForm extends React.Component {
                     return child;
                 }
 
+                // TODO Should we have a separate static property for the submit button and pass loading state / onSubmit only to that component?
+
 
                 // We clone the child passing down all form props
                 // We should only pass refs to class components!
@@ -147,7 +148,7 @@ class ExpensiForm extends React.Component {
                     onSubmit: this.onSubmit,
                     defaultValue: this.state.defaultValues[child.props.name],
                     error: this.state.errors[child.props.name],
-                    serverError: this.state.errors.serverError,
+                    alert: this.state.alert,
                     isLoading: this.state.isLoading,
                 });
             })

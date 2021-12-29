@@ -55,15 +55,14 @@ const FormAlertWithSubmitButton = (props) => {
     function getAlertPrompt() {
         let error = '';
 
-        // TODO: Check html messages from server errors
-        if (!_.isEmpty(props.serverError.message)) {
-            if (props.isMessageHtml) {
+        if (!_.isEmpty(props.alert.serverError)) {
+            if (props.alert.serverError.isMessageHtml) {
                 error = (
-                    <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
+                    <RenderHTML html={`<muted-text>${props.alert.serverError.message}</muted-text>`} />
                 );
             } else {
                 error = (
-                    <Text style={styles.mutedTextLabel}>{props.message}</Text>
+                    <Text style={styles.mutedTextLabel}>{props.alert.serverError.message}</Text>
                 );
             }
         } else {
@@ -74,7 +73,7 @@ const FormAlertWithSubmitButton = (props) => {
                     </Text>
                     <TextLink
                         style={styles.label}
-                        onPress={() => props.serverError.firstErrorToFix.focus()}
+                        onPress={() => props.alert.firstErrorToFix.focus()}
                     >
                         {props.translate('common.fixTheErrors')}
                     </TextLink>
@@ -94,7 +93,7 @@ const FormAlertWithSubmitButton = (props) => {
 
     return (
         <View style={[styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
-            {!_.isEmpty(props.serverError) && (
+            {!_.isEmpty(props.alert) && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
                     {getAlertPrompt()}

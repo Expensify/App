@@ -83,12 +83,12 @@ class BankAccountStep extends React.Component {
     validate(values) {
         const errors = {};
 
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
+            errors.routingNumber = 'reimbursementAccount.errors.routingNumber';
+        }
         // These are taken from BankCountry.js in Web-Secure
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.accountNumber.trim())) {
             errors.accountNumber = 'reimbursementAccount.errors.accountNumber';
-        }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
-            errors.routingNumber = 'reimbursementAccount.errors.routingNumber';
         }
         // if (!values.hasAcceptedTerms) {
         //     errors.hasAcceptedTerms = true;
