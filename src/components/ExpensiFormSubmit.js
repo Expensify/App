@@ -13,31 +13,26 @@ import Text from './Text';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {
-    // /** Whether the button is disabled */
-    // isDisabled: PropTypes.bool,
+    /** Submit function */
+    onSubmit: PropTypes.func.isRequired,
 
-    // /** Submit function */
-    // onSubmit: PropTypes.func.isRequired,
+    /** Text for the button */
+    buttonText: PropTypes.string.isRequired,
 
-    // /** Text for the button */
-    // buttonText: PropTypes.string.isRequired,
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // /** Callback fired when the "fix the errors" link is pressed */
-    // onFixTheErrorsLinkPressed: PropTypes.func.isRequired,
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
 
-    // /** Error message to display above button */
-    // message: PropTypes.string,
+    /** Is the button in a loading state */
+    alert: PropTypes.shape({
+        firstErrorToFix: PropTypes.func,
+        message: PropTypes.string,
+        isMessageHtml: PropTypes.bool,
+    }),
 
-    // /** Whether message is in html format */
-    // isMessageHtml: PropTypes.bool,
-
-    // /** Styles for container element */
-    // containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    // /** Is the button in a loading state */
-    // isLoading: PropTypes.bool,
-
-    // ...withLocalizePropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
