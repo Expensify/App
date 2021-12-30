@@ -2340,7 +2340,7 @@ const styles = {
         backgroundColor: colors.black,
         flex: 1,
     },
-    passwordTextHint: {
+    formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
