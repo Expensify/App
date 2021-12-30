@@ -1,5 +1,5 @@
 import React from 'react';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
@@ -10,12 +10,12 @@ const propTypes = {
 };
 
 const ErrorBodyText = props => (
-    <ExpensifyText>
+    <Text>
         {props.translate('genericErrorPage.body.helpTextMobile')}
         <TextLink href={CONST.NEW_EXPENSIFY_URL} style={[styles.link]}>
             {props.translate('genericErrorPage.body.helpTextWeb')}
         </TextLink>
-    </ExpensifyText>
+    </Text>
 );
 
 ErrorBodyText.propTypes = propTypes;

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Icon from '../../components/Icon';
 import defaultTheme from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import Button from '../../components/Button';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -44,18 +44,18 @@ const genericErrorPage = (props) => {
                         />
                     </View>
                     <View style={styles.mb5}>
-                        <ExpensifyText style={[styles.headerText, styles.textXXLarge]}>
+                        <Text style={[styles.headerText, styles.textXXLarge]}>
                             {props.translate('genericErrorPage.title')}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                     <View style={styles.mb5}>
                         <ErrorBodyText />
-                        <ExpensifyText>
+                        <Text>
                             {props.translate('genericErrorPage.body.helpTextConcierge')}
                             <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
                                 {CONST.EMAIL.CONCIERGE}
                             </TextLink>
-                        </ExpensifyText>
+                        </Text>
                     </View>
                     <View style={[styles.dFlex, styles.flexRow, styles.w100]}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
