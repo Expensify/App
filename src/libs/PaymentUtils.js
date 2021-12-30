@@ -65,15 +65,15 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
 }
 
 /**
- * Get the amount that is being transferred
+ * Substract the transfer fee from the balance that is being transferred
  * @param {Number} currentBalance
  * @returns {Number}
  */
-function getWalletTransferAmount(currentBalance) {
+function subtractWalletTransferBalanceFee(currentBalance) {
     return currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE;
 }
 
 export default {
     formatPaymentMethods,
-    getWalletTransferAmount,
+    subtractWalletTransferBalanceFee,
 };

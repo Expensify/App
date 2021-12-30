@@ -182,11 +182,11 @@ class PaymentsPage extends React.Component {
                     />
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.clearWalletTransfer}
+                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
                         isVisible={this.props.walletTransfer.shouldShowConfirmModal}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
                             amount: this.props.numberFormat(
-                                PaymentUtils.getWalletTransferAmount(this.props.userWallet.currentBalance),
+                                PaymentUtils.subtractWalletTransferBalanceFee(this.props.userWallet.currentBalance),
                                 {style: 'currency', currency: 'USD'},
                             ),
                         })}

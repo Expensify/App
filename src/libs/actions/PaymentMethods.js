@@ -101,7 +101,6 @@ function clearDebitCardFormErrorAndSubmit() {
  * @param {Object} paymentMethod
  * @param {String} paymentMethod.id
  * @param {'bankAccount'|'debitCard'} paymentMethod.type
- * @returns {Promise}
  */
 function transferWalletBalance(paymentMethod) {
     const parameters = {
@@ -109,7 +108,7 @@ function transferWalletBalance(paymentMethod) {
     };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    return API.TransferWalletBalance(parameters)
+    API.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
@@ -125,11 +124,11 @@ function transferWalletBalance(paymentMethod) {
 }
 
 /**
- * Set the necessary data for wallet transfer
+ * Set the transfer account and reset the transfer data for wallet transfer
  * @param {String} selectedAccountID
  */
-function saveWalletTransferAccount(selectedAccountID) {
-    Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
+function saveWalletTransferAccountAndResetData(selectedAccountID) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
         selectedAccountID,
         filterPaymentMethodType: null,
         loading: false,
@@ -138,10 +137,10 @@ function saveWalletTransferAccount(selectedAccountID) {
 }
 
 /**
- * Remove all the data related to wallet transfer and close the ConfirmModal
+ * Close the ConfirmModal of Wallet balance transfer
  */
-function clearWalletTransfer() {
-    Onyx.set(ONYXKEYS.WALLET_TRANSFER, null);
+function dismissWalletConfirmModal() {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
 
 export {
@@ -149,6 +148,6 @@ export {
     addBillingCard,
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
-    saveWalletTransferAccount,
-    clearWalletTransfer,
+    saveWalletTransferAccountAndResetData,
+    dismissWalletConfirmModal,
 };
