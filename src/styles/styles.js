@@ -2341,9 +2341,10 @@ const styles = {
         flex: 1,
     },
     passwordTextHint: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
-        marginTop: 4,
     },
 };
 

@@ -81,8 +81,8 @@ class NewPasswordForm extends React.Component {
                 />
                 <Text
                     style={[
-                        styles.textLabelSupporting,
                         styles.passwordTextHint,
+                        styles.mt1,
                         this.isInvalidPassword() && styles.formError,
                     ]}
                 >
