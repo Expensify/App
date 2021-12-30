@@ -11,9 +11,9 @@ const propTypes = {
 
 const ErrorBodyText = props => (
     <ExpensifyText>
-        {props.translate('genericErrorView.body.helpTextMobile')}
+        {props.translate('genericErrorPage.body.helpTextMobile')}
         <TextLink href={CONST.NEW_EXPENSIFY_URL} style={[styles.link]}>
-            {props.translate('genericErrorView.body.helpTextWeb')}
+            {props.translate('genericErrorPage.body.helpTextWeb')}
         </TextLink>
     </ExpensifyText>
 );
