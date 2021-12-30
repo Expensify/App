@@ -848,7 +848,7 @@ export default {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
-    genericErrorView: {
+    genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
             helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la ',

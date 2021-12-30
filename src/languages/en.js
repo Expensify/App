@@ -846,7 +846,7 @@ export default {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
-    genericErrorView: {
+    genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
         body: {
             helpTextMobile: 'Please try closing and reopening the app or switching to ',

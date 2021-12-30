@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import BootSplash from '../../libs/BootSplash';
-import GenericErrorView from '../GenericErrorView';
+import GenericErrorPage from '../../pages/GenericErrorPage';
 
 const propTypes = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */
@@ -27,6 +27,7 @@ class BaseErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
         this.state = {hasError: false};
+        this.onRefresh = this.onRefresh.bind(this);
     }
 
     static getDerivedStateFromError() {
@@ -41,10 +42,14 @@ class BaseErrorBoundary extends React.Component {
         BootSplash.hide({fade: true});
     }
 
+    onRefresh() {
+        this.setState({hasError: false});
+    }
+
     render() {
         if (this.state.hasError) {
             // For the moment we've decided not to render any fallback UI
-            return <GenericErrorView />;
+            return <GenericErrorPage />;
         }
 
         return this.props.children;
