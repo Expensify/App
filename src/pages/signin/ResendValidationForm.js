@@ -141,6 +141,7 @@ class ResendValidationForm extends React.Component {
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        style={styles.resendLinkButton}
                     />
                 </View>
             </>
