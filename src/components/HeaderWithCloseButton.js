@@ -152,7 +152,7 @@ const HeaderWithCloseButton = props => (
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
                     >
-                        <Icon src={Expensicons.Exclamation} />
+                        <Icon src={Expensicons.QuestionMark} />
                     </TouchableOpacity>
                 </Tooltip>
                 )}
