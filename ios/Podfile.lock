@@ -219,7 +219,7 @@ PODS:
     - RNPermissions
   - Permission-LocationWhenInUse (3.0.1):
     - RNPermissions
-  - Plaid (2.2.0)
+  - Plaid (2.3.1)
   - PromisesObjC (2.0.0)
   - Protobuf (3.17.0)
   - RCT-Folly (2021.06.28.00-v2):
@@ -437,9 +437,9 @@ PODS:
   - React-jsinspector (0.66.4)
   - React-logger (0.66.4):
     - glog
-  - react-native-config (1.4.1):
-    - react-native-config/App (= 1.4.1)
-  - react-native-config/App (1.4.1):
+  - react-native-config (1.4.5):
+    - react-native-config/App (= 1.4.5)
+  - react-native-config/App (1.4.5):
     - React-Core
   - react-native-document-picker (5.1.0):
     - React-Core
@@ -453,8 +453,8 @@ PODS:
     - React-Core
   - react-native-performance (2.0.0):
     - React-Core
-  - react-native-plaid-link-sdk (7.1.0):
-    - Plaid (~> 2.2.0)
+  - react-native-plaid-link-sdk (7.2.0):
+    - Plaid (~> 2.3.1)
     - React-Core
   - react-native-progress-bar-android (1.0.4):
     - React
@@ -645,7 +645,7 @@ DEPENDENCIES:
   - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
   - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
   - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
-  - Plaid (~> 2.2.0)
+  - Plaid (~> 2.3.1)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -919,7 +919,7 @@ SPEC CHECKSUMS:
   Permission-LocationAccuracy: 76669f87b4c276f5ae803cc0ddd1862a4c0e9dd8
   Permission-LocationAlways: a274bc04bb386068782468dbdaca3859f51634ca
   Permission-LocationWhenInUse: 3a2b0dbc167d79e8e920a4377ff9520cdc108407
-  Plaid: 3485574bd01075562d969a2d9384cde1ed7d9252
+  Plaid: 370b301a884270b5ab796f7a4bd72e4d1cc8be8b
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   Protobuf: 7327d4444215b5f18e560a97f879ff5503c4581c
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
@@ -935,14 +935,14 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 94ce921e1d8ce7023366873ec371f3441383b396
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
-  react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
+  react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: f2f73db94328c84e22144e369fb4a3ede47bc1f5
   react-native-flipper: 169e8ba429b73ad637ce007337ce4b415e783799
   react-native-image-picker: 474cf2c33c2b6671da53d293a16c97995f0aec15
   react-native-netinfo: 42c0965fca99069b92e3f7360ab2d425985e5104
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 6bd6cfac80594775fb782405fceaaf206becf53b
-  react-native-plaid-link-sdk: 0b2e16d091abfee30ba01cf37734182ad610f917
+  react-native-plaid-link-sdk: 9e0ebdaed648a237b36d5f6f6292b5147af92da7
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 21b1e29e70c7559c16c9e0a04c4adc19fce6ede2
   react-native-safe-area-context: 79fea126c6830c85f65947c223a5e3058a666937
@@ -982,6 +982,6 @@ SPEC CHECKSUMS:
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 7d92b071edef921a670dcfc3a679f68298157b57
+PODFILE CHECKSUM: 46dab5ec14a7bc81989e2f3e8cd4bba211deddbe
 
 COCOAPODS: 1.11.2
