@@ -124,7 +124,7 @@ function transferWalletBalance(paymentMethod) {
 }
 
 /**
- * Set the transfer account and reset the transfer data for wallet transfer
+ * Set the transfer account and reset the transfer data for Wallet balance transfer
  * @param {String} selectedAccountID
  */
 function saveWalletTransferAccountAndResetData(selectedAccountID) {
