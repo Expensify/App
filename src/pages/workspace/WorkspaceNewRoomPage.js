@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -141,7 +141,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.flex1, styles.w100, styles.pRelative, styles.p5]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <TextInputWithLabel
                         label={this.props.translate('newRoomPage.roomName')}
                         prefixCharacter="#"
@@ -150,6 +150,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
                         value={this.state.roomName.substr(1)}
                         errorText={this.state.error}
+                        autoCapitalize="none"
                     />
                     <View style={styles.mb5}>
                         <ExpensiPicker
@@ -166,7 +167,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         items={visibilityOptions}
                         onChange={visibility => this.setState({visibility})}
                     />
-                </View>
+                </ScrollView>
                 <FixedFooter>
                     <Button
                         isLoading={this.props.isLoadingCreatePolicyRoom}

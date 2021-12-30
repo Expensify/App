@@ -21,41 +21,7 @@ function getAddressComponent(addressComponents, type, key) {
         .value();
 }
 
-/**
- * Validates this contains the minimum address components
- *
- * @param {Array} addressComponents
- * @returns {Boolean}
- */
-function isAddressValidForVBA(addressComponents) {
-    if (!addressComponents) {
-        return false;
-    }
-    if (!_.some(addressComponents, component => _.includes(component.types, 'street_number'))) {
-        // Missing Street number
-        return false;
-    }
-    if (!_.some(addressComponents, component => _.includes(component.types, 'postal_code'))) {
-        // Missing zip code
-        return false;
-    }
-    if (!_.some(addressComponents, component => _.includes(component.types, 'administrative_area_level_1'))) {
-        // Missing state
-        return false;
-    }
-    if (!_.some(addressComponents, component => _.includes(component.types, 'locality'))
-        && !_.some(addressComponents, component => _.includes(component.types, 'sublocality'))) {
-        // Missing city
-        return false;
-    }
-    if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
-        // Reject PO box
-        return false;
-    }
-    return true;
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     getAddressComponent,
-    isAddressValidForVBA,
 };
