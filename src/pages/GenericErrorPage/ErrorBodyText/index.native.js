@@ -1,7 +1,7 @@
 import React from 'react';
-import ExpensifyText from '../../ExpensifyText';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import TextLink from '../../TextLink';
+import ExpensifyText from '../../../components/ExpensifyText';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 

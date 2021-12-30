@@ -52,8 +52,8 @@ const genericErrorPage = props => (
                         </TextLink>
                     </ExpensifyText>
                 </View>
-                <View style={styles.flexWrap}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.flexWrap, styles.w100]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                         <Button
                             success
                             small={props.isSmallScreenWidth}
@@ -63,7 +63,7 @@ const genericErrorPage = props => (
                         <Button
                             small={props.isSmallScreenWidth}
                             onPress={Session.signOut}
-                            text={props.translate('genericErrorPage.refresh')}
+                            text={props.translate('initialSettingsPage.signOut')}
                         />
                     </View>
                 </View>

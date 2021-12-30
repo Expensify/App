@@ -49,7 +49,7 @@ class BaseErrorBoundary extends React.Component {
     render() {
         if (this.state.hasError) {
             // For the moment we've decided not to render any fallback UI
-            return <GenericErrorPage />;
+            return <GenericErrorPage onRefresh={this.onRefresh} />;
         }
 
         return this.props.children;
