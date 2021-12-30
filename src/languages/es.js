@@ -290,14 +290,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
-        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
+        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
-            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
     addPayPalMePage: {
@@ -445,7 +445,7 @@ export default {
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
-        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
