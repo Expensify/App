@@ -76,7 +76,7 @@
     "react-collapse": "^5.1.0",
     "react-dom": "^17.0.2",
     "react-native": "0.64.1",
-    "react-native-bootsplash": "^3.2.6",
+    "react-native-bootsplash": "^3.2.7",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.0",
     "react-native-document-picker": "^5.1.0",
