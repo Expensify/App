@@ -23,8 +23,8 @@ import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -189,7 +189,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const [firstNameError, lastNameError] = PersonalDetails.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName]);
+        const [firstNameError, lastNameError] = ValidationUtils.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName]);
 
         this.setState({
             firstNameError,

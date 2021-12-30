@@ -27,6 +27,7 @@ import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -160,14 +161,13 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const errors = PersonalDetails.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
-        const [firstNameError, lastNameError, pronounError] = errors;
+        const [firstNameError, lastNameError, pronounError] = ValidationUtils.getCharacterLimitErrors(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
         this.setState({
             firstNameError,
             lastNameError,
             pronounError,
         });
-        return _.isEmpty(errors.join(''));
+        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError) && _.isEmpty(pronounError);
     }
 
     render() {

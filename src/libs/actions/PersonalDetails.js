@@ -65,18 +65,6 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns object with character limit errors. If any are valid,
- * those errors get returned as empty strings.
- *
- * @param {Number} limit
- * @param {Object[]} toBeValidated
- * @returns {Object[]}
- */
-function getCharacterLimitErrors(limit, toBeValidated) {
-    return _.map(toBeValidated, x => (x.length <= limit ? '' : Localize.translateLocal('personalDetails.error.characterLimit', {limit})));
-}
-
-/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
@@ -341,7 +329,6 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getCharacterLimitErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
