@@ -138,26 +138,10 @@ class WorkspaceNewRoomPage extends React.Component {
 
         return (
             <ScreenWrapper>
-<<<<<<< HEAD
-                <HeaderWithCloseButton
-                    title={this.props.translate('newRoomPage.newRoom')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <TextInputWithLabel
-                        label={this.props.translate('newRoomPage.roomName')}
-                        prefixCharacter="#"
-                        placeholder={this.props.translate('newRoomPage.social')}
-                        containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
-                        value={this.state.roomName.substr(1)}
-                        errorText={this.state.error}
-=======
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('newRoomPage.newRoom')}
                         onCloseButtonPress={() => Navigation.dismissModal()}
->>>>>>> e78742336 (Merge pull request #6951 from parasharrajat/room-page)
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <TextInputWithLabel
