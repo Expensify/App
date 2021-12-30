@@ -25,57 +25,63 @@ const propTypes = {
     onRefresh: PropTypes.func.isRequired,
 };
 
-const genericErrorPage = props => (
-    <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
+const genericErrorPage = (props) => {
+    const onSignOutClick = () => {
+        Session.signOut();
+        props.onRefresh();
+    };
 
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <View style={styles.alignItemsStart}>
-                <View style={styles.mb5}>
-                    <Icon
-                        src={Expensicons.Bug}
-                        height={variables.componentSizeNormal}
-                        width={variables.componentSizeNormal}
-                        fill={defaultTheme.iconSuccessFill}
-                    />
-                </View>
-                <View style={styles.mb5}>
-                    <ExpensifyText style={[styles.headerText, styles.textXXLarge]}>
-                        {props.translate('genericErrorPage.title')}
-                    </ExpensifyText>
-                </View>
-                <View style={styles.mb5}>
-                    <ErrorBodyText />
-                    <ExpensifyText>
-                        {props.translate('genericErrorPage.body.helpTextConcierge')}
-                        <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
-                            {CONST.EMAIL.CONCIERGE}
-                        </TextLink>
-                    </ExpensifyText>
-                </View>
-                <View style={[styles.flexWrap, styles.w100]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-                        <Button
-                            success
-                            small={props.isSmallScreenWidth}
-                            onPress={props.onRefresh}
-                            text={props.translate('genericErrorPage.refresh')}
+    return (
+        <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={styles.alignItemsStart}>
+                    <View style={styles.mb5}>
+                        <Icon
+                            src={Expensicons.Bug}
+                            height={variables.componentSizeNormal}
+                            width={variables.componentSizeNormal}
+                            fill={defaultTheme.iconSuccessFill}
                         />
-                        <Button
-                            small={props.isSmallScreenWidth}
-                            onPress={Session.signOut}
-                            text={props.translate('initialSettingsPage.signOut')}
-                        />
+                    </View>
+                    <View style={styles.mb5}>
+                        <ExpensifyText style={[styles.headerText, styles.textXXLarge]}>
+                            {props.translate('genericErrorPage.title')}
+                        </ExpensifyText>
+                    </View>
+                    <View style={styles.mb5}>
+                        <ErrorBodyText />
+                        <ExpensifyText>
+                            {props.translate('genericErrorPage.body.helpTextConcierge')}
+                            <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
+                                {CONST.EMAIL.CONCIERGE}
+                            </TextLink>
+                        </ExpensifyText>
+                    </View>
+                    <View style={[styles.flexWrap, styles.w100]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                            <Button
+                                success
+                                small={props.isSmallScreenWidth}
+                                onPress={props.onRefresh}
+                                text={props.translate('genericErrorPage.refresh')}
+                            />
+                            <Button
+                                small={props.isSmallScreenWidth}
+                                onPress={onSignOutClick}
+                                text={props.translate('initialSettingsPage.signOut')}
+                            />
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
-        <View styles={styles.alignSelfEnd}>
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                <LogoWordmark height={30} width={80} />
+            <View styles={styles.alignSelfEnd}>
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
+                    <LogoWordmark height={30} width={80} />
+                </View>
             </View>
         </View>
-    </View>
-);
+    );
+};
 
 genericErrorPage.propTypes = propTypes;
 
