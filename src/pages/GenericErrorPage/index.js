@@ -57,7 +57,7 @@ const genericErrorPage = (props) => {
                             </TextLink>
                         </ExpensifyText>
                     </View>
-                    <View style={[styles.flexWrap, styles.w100]}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.w100]}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                             <Button
                                 success
