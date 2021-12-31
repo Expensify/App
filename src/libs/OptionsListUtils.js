@@ -603,12 +603,9 @@ function getSearchOptions(
     });
 
     return {
+        // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         recentReports,
         userToInvite,
-
-        // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
-        //  So return [] value for consistentency
-        personalDetails: [],
     };
 }
 
