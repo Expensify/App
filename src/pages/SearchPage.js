@@ -59,7 +59,6 @@ class SearchPage extends Component {
 
         const {
             recentReports,
-            personalDetails,
             userToInvite,
         } = OptionsListUtils.getSearchOptions(
             props.reports,
@@ -71,7 +70,6 @@ class SearchPage extends Component {
         this.state = {
             searchValue: '',
             recentReports,
-            personalDetails,
             userToInvite,
         };
     }
@@ -92,7 +90,7 @@ class SearchPage extends Component {
     getSections() {
         const sections = [{
             title: this.props.translate('common.recents'),
-            data: this.state.recentReports.concat(this.state.personalDetails),
+            data: this.state.recentReports,
             shouldShow: true,
             indexOffset: 0,
         }];
@@ -112,7 +110,6 @@ class SearchPage extends Component {
     updateOptions() {
         const {
             recentReports,
-            personalDetails,
             userToInvite,
         } = OptionsListUtils.getSearchOptions(
             this.props.reports,
@@ -123,7 +120,6 @@ class SearchPage extends Component {
         this.setState({
             userToInvite,
             recentReports,
-            personalDetails,
         });
     }
 
@@ -154,7 +150,7 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
         );
