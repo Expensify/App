@@ -125,8 +125,8 @@ export default {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
-                    Workspace_GetAssistance: {
-                        path: ROUTES.WORKSPACE_GET_ASSISTANCE,
+                    GetAssistance: {
+                        path: ROUTES.GET_ASSISTANCE,
                     },
                 },
             },

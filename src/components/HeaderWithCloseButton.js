@@ -147,7 +147,7 @@ const HeaderWithCloseButton = props => (
                 && (
                 <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                     <TouchableOpacity
-                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceGetAssistanceRoute(props.policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE)}
                         style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}

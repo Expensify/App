@@ -74,6 +74,7 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    GET_ASSISTANCE: 'get-assistance',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
@@ -90,7 +91,6 @@ export default {
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
     WORKSPACE_BANK_ACCOUNT: 'workspace/:policyID/bank-account',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
-    WORKSPACE_GET_ASSISTANCE: 'workspace/:policyID/get-assistance',
     getWorkspaceInitialRoute: policyID => `workspace/${policyID}`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     getWorkspaceSettingsRoute: policyID => `workspace/${policyID}/settings`,
@@ -101,7 +101,6 @@ export default {
     getWorkspaceTravelRoute: policyID => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: policyID => `workspace/${policyID}/members`,
     getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bank-account`,
-    getWorkspaceGetAssistanceRoute: policyID => `workspace/${policyID}/get-assistance`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
     REQUEST_CALL: 'request-call/:taskID',
 
