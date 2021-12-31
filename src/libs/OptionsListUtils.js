@@ -352,6 +352,8 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
+
+    // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
@@ -507,19 +509,6 @@ function getOptions(reports, personalDetails, activeReportID, {
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
-    // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (sortByReportTypeInSearch && searchValue !== '') {
-        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
-            if (option.isDefaultChatRoom || option.isArchivedRoom) {
-                return 3;
-            }
-            if (!option.login) {
-                return 2;
-            }
-            return 1;
-        }], ['asc']);
-    }
-
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -535,6 +524,21 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
             personalDetailsOptions.push(personalDetailOption);
         });
+    }
+
+    // If we are prioritizing 1:1 chats in search, do it only once we started searching
+    if (sortByReportTypeInSearch && searchValue !== '') {
+        // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
+        recentReportOptions.push(...personalDetailsOptions);
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+            if (option.isDefaultChatRoom || option.isArchivedRoom) {
+                return 3;
+            }
+            if (!option.login) {
+                return 2;
+            }
+            return 1;
+        }], ['asc']);
     }
 
     let userToInvite = null;
@@ -581,7 +585,7 @@ function getSearchOptions(
     searchValue = '',
     betas,
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    const {recentReports, userToInvite} = getOptions(reports, personalDetails, 0, {
         betas,
         searchValue,
         includeRecentReports: true,
@@ -597,6 +601,15 @@ function getSearchOptions(
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
     });
+
+    return {
+        recentReports,
+        userToInvite,
+
+        // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
+        //  So return [] value for consistentency
+        personalDetails: [],
+    };
 }
 
 /**
