@@ -522,6 +522,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraRequestTitle: '"New Expensify" Would Like to Access the Camera',
+        cameraRequestMessage: 'Uh-oh, you have not granted us camera access. We need that to complete this verification',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
