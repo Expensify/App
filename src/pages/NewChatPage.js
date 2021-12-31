@@ -17,7 +17,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import ExpensifyButton from '../components/ExpensifyButton';
+import Button from '../components/Button';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import FixedFooter from '../components/FixedFooter';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -265,7 +265,7 @@ class NewChatPage extends Component {
                                     />
                                     {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>
-                                            <ExpensifyButton
+                                            <Button
                                                 success
                                                 onPress={this.createGroup}
                                                 style={[styles.w100]}

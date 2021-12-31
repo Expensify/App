@@ -19,7 +19,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
 
 const propTypes = {
@@ -188,19 +188,19 @@ const OptionRow = (props) => {
                                     shouldUseFullTitle={props.option.isBusinessChatRoom}
                                 />
                                 {props.option.alternateText ? (
-                                    <ExpensifyText
+                                    <Text
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
                                         {props.option.alternateText}
-                                    </ExpensifyText>
+                                    </Text>
                                 ) : null}
                             </View>
                             {props.option.descriptiveText ? (
                                 <View style={[styles.flexWrap]}>
-                                    <ExpensifyText style={[styles.textLabel]}>
+                                    <Text style={[styles.textLabel]}>
                                         {props.option.descriptiveText}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
                             {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}

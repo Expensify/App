@@ -106,6 +106,7 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
+        this.appStateChangeListener = null;
 
         this.didLayout = false;
 
@@ -127,7 +128,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        AppState.addEventListener('change', this.onVisibilityChange);
+        this.appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
@@ -243,7 +244,9 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        AppState.removeEventListener('change', this.onVisibilityChange);
+        if (this.appStateChangeListener) {
+            this.appStateChangeListener.remove();
+        }
 
         Report.unsubscribeFromReportChannel(this.props.reportID);
     }

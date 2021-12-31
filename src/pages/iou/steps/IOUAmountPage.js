@@ -3,6 +3,8 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
+    AppState,
+    Keyboard,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,8 +18,8 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import ExpensifyButton from '../../../components/ExpensifyButton';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Button from '../../../components/Button';
+import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 
 const propTypes = {
@@ -77,6 +79,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
+        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -85,6 +88,10 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
+        this.appStateSubscription = AppState.addEventListener(
+            'change',
+            this.dismissKeyboardWhenBackgrounded,
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -93,6 +100,20 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    componentWillUnmount() {
+        if (!this.appStateSubscription) {
+            return;
+        }
+        this.appStateSubscription.remove();
+    }
+
+    dismissKeyboardWhenBackgrounded(nextAppState) {
+        if (!nextAppState.match(/inactive|background/)) {
+            return;
+        }
+        Keyboard.dismiss();
     }
 
     /**
@@ -184,28 +205,21 @@ class IOUAmountPage extends React.Component {
                         ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
-                        <ExpensifyText style={styles.iouAmountText}>
+                        <Text style={styles.iouAmountText}>
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
-                    {this.props.isSmallScreenWidth
-                        ? (
-                            <ExpensifyText
-                                style={styles.iouAmountText}
-                            >
-                                {this.state.amount}
-                            </ExpensifyText>
-                        ) : (
-                            <TextInputAutoWidth
-                                inputStyle={styles.iouAmountTextInput}
-                                textStyle={styles.iouAmountText}
-                                onChangeText={this.updateAmount}
-                                ref={el => this.textInput = el}
-                                value={this.state.amount}
-                                placeholder="0"
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                            />
-                        )}
+                    <TextInputAutoWidth
+                        inputStyle={styles.iouAmountTextInput}
+                        textStyle={styles.iouAmountText}
+                        onChangeText={this.updateAmount}
+                        ref={el => this.textInput = el}
+                        value={this.state.amount}
+                        placeholder="0"
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        showSoftInputOnFocus={false}
+                        inputmode="none"
+                    />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth
@@ -215,7 +229,7 @@ class IOUAmountPage extends React.Component {
                             />
                         ) : <View />}
 
-                    <ExpensifyButton
+                    <Button
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}

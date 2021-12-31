@@ -7,11 +7,11 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -111,11 +111,11 @@ class AddSecondaryLoginPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <ExpensifyText style={[styles.mb6]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
-                        </ExpensifyText>
+                        </Text>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -141,13 +141,13 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         {!_.isEmpty(this.props.user.error) && (
-                            <ExpensifyText style={styles.formError}>
+                            <Text style={styles.formError}>
                                 {this.props.user.error}
-                            </ExpensifyText>
+                            </Text>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}

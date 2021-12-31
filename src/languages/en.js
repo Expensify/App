@@ -92,6 +92,9 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
+        transferBalance: 'Transfer Balance',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -259,6 +262,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
+            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -286,16 +290,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
-        confirmNewPassword: 'Confirm new password',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         errors: {
             currentPassword: 'Current password is required',
-            confirmNewPassword: 'Confirm password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
     addPayPalMePage: {
@@ -332,9 +334,27 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        allSet: 'All Set!',
+        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
+        gotIt: 'Got it, Thanks!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
+        instant: 'Instant (Debit Card)',
+        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        ach: '1-3 Business Days (Bank Account)',
+        achSummary: 'No fee',
+        whichAccount: 'Which Account?',
+        fee: 'Fee',
+        failedTransfer: 'Failed to transfer balance',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Choose Account',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
+        addDebitCard: 'Add debit card',
+        addBankAccount: 'Add bank account',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
@@ -424,10 +444,8 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
-        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
-        passwordsDontMatch: 'Passwords must match',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -562,10 +580,10 @@ export default {
             sendingFundsTitle: 'Sending funds to another account holder',
             sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
                 + 'bank account, or debit card.',
-            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Wallet '
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
-            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Wallet to '
                 + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '

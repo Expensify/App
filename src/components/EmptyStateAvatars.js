@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
 
@@ -53,9 +53,9 @@ const EmptyStateAvatars = (props) => {
                                         styles.screenBlur,
                                     ]}
                                 />
-                                <ExpensifyText style={styles.avatarInnerTextChat}>
+                                <Text style={styles.avatarInnerTextChat}>
                                     {`+${props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
-                                </ExpensifyText>
+                                </Text>
                             </>
                         )}
                     </View>

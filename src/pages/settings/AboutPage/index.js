@@ -1,26 +1,32 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import ExpensifyText from '../../components/ExpensifyText';
-import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import MenuItem from '../../components/MenuItem';
-import Logo from '../../../assets/images/new-expensify.svg';
-import {version} from '../../../package.json';
-import * as Report from '../../libs/actions/Report';
-import * as Link from '../../libs/actions/Link';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import MenuItem from '../../../components/MenuItem';
+import Logo from '../../../../assets/images/new-expensify.svg';
+import {version} from '../../../../package.json';
+import * as Report from '../../../libs/actions/Report';
+import * as Link from '../../../libs/actions/Link';
+import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const AboutPage = (props) => {
+    const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
+
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -29,6 +35,7 @@ const AboutPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
         },
+        ...platformSpecificMenuItems,
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Expensicons.Eye,
@@ -71,7 +78,7 @@ const AboutPage = (props) => {
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
                             <Logo height={80} width={80} />
-                            <ExpensifyText
+                            <Text
                                 style={[
                                     styles.textLabel,
                                     styles.alignSelfCenter,
@@ -82,10 +89,10 @@ const AboutPage = (props) => {
                             >
                                 v
                                 {version}
-                            </ExpensifyText>
-                            <ExpensifyText style={[styles.baseFontStyle, styles.mv5]}>
+                            </Text>
+                            <Text style={[styles.baseFontStyle, styles.mv5]}>
                                 {props.translate('initialSettingsPage.aboutPage.description')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                     {_.map(menuItems, item => (
@@ -100,7 +107,7 @@ const AboutPage = (props) => {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
-                    <ExpensifyText
+                    <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
                     >
@@ -108,29 +115,29 @@ const AboutPage = (props) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <ExpensifyText
+                        <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </ExpensifyText>
+                        </Text>
                         {' '}
                         {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <ExpensifyText
+                        <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </ExpensifyText>
+                        </Text>
                         .
-                    </ExpensifyText>
+                    </Text>
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -140,4 +147,7 @@ const AboutPage = (props) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default withLocalize(AboutPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(AboutPage);

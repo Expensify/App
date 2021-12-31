@@ -24,7 +24,7 @@ import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/reportUtils';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
@@ -147,8 +147,8 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText]}
                                     shouldUseFullTitle={isBusinessChatRoom}
                                 />
-                                {isBusinessChatRoom && (
-                                    <ExpensifyText
+                                {isDefaultChatRoom && (
+                                    <Text
                                         style={[
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
@@ -157,7 +157,7 @@ const HeaderView = (props) => {
                                         numberOfLines={1}
                                     >
                                         {subtitle}
-                                    </ExpensifyText>
+                                    </Text>
                                 )}
                             </View>
                         </Pressable>
