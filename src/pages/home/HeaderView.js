@@ -147,7 +147,7 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText]}
                                     shouldUseFullTitle={isBusinessChatRoom}
                                 />
-                                {isDefaultChatRoom && (
+                                {isBusinessChatRoom && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,
