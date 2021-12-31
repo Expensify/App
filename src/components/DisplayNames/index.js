@@ -84,7 +84,7 @@ class DisplayNames extends PureComponent {
 
             // Tokenization of string only support 1 numberOfLines on Web
             <Text
-                style={[...this.props.textStyles, styles.pRelative]}
+                style={[...this.props.textStyles, styles.pRelative, {display: 'inline-block'}, styles.noWrap]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
