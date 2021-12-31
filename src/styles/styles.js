@@ -1100,7 +1100,6 @@ const styles = {
         fontFamily: fontFamily.GTA,
         height: 20,
         lineHeight: 20,
-        ...whiteSpace.noWrap,
     },
 
     optionDisplayNameCompact: {
