@@ -73,9 +73,6 @@ const propTypes = {
         total: PropTypes.number,
     }),
 
-    /** The policy ID of the workspace this header is being shown in, if applicable */
-    policyID: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -100,7 +97,6 @@ const defaultProps = {
         top: 0,
         left: 0,
     },
-    policyID: '',
 };
 
 const HeaderWithCloseButton = props => (
