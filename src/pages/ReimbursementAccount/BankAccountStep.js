@@ -189,6 +189,7 @@ class BankAccountStep extends React.Component {
                         Navigation.goBack();
                     }}
                     shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 {!subStep && (

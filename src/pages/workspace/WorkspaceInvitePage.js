@@ -248,6 +248,7 @@ class WorkspaceInvitePage extends React.Component {
                                 Navigation.dismissModal();
                             }}
                             shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             shouldShowBackButton
                             onBackButtonPress={() => Navigation.goBack()}
                         />

@@ -90,7 +90,7 @@ const defaultProps = {
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
-    guidesCallTaskID: 'UPDATE_ME',
+    guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
     threeDotsAnchorPosition: {

@@ -90,6 +90,7 @@ class EnableStep extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />

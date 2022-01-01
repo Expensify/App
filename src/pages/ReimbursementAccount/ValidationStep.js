@@ -24,6 +24,7 @@ import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import WorkspaceSection from '../workspace/WorkspaceSection';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -168,6 +169,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
                     shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
