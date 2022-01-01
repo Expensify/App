@@ -403,6 +403,13 @@ function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
+/**
+ * @param {String} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    Onyx.set('lastAccessedWorkspace', policyID);
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -417,4 +424,5 @@ export {
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
+    updateLastAccessedWorkspace,
 };
