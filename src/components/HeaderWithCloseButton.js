@@ -64,8 +64,8 @@ const propTypes = {
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
 
-    /** The task ID to associate with the call button, if we show it */
-    inboxCallTaskID: PropTypes.string,
+    /** The guides call task ID to associate with the get assistance button, if we show it */
+    guidesCallTaskID: PropTypes.string,
 
     /** Data to display a step counter in the header */
     stepCounter: PropTypes.shape({
@@ -90,7 +90,7 @@ const defaultProps = {
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
-    inboxCallTaskID: '',
+    guidesCallTaskID: 'UPDATE_ME',
     stepCounter: null,
     threeDotsMenuItems: [],
     threeDotsAnchorPosition: {
@@ -143,7 +143,7 @@ const HeaderWithCloseButton = props => (
                 && (
                 <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                     <TouchableOpacity
-                        onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE)}
+                        onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(props.guidesCallTaskID))}
                         style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
