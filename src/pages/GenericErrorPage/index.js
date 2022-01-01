@@ -54,12 +54,13 @@ const GenericErrorPage = props => (
                     </Text>
                 </View>
                 <View style={[styles.dFlex, styles.flexRow, styles.w100]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                    <View style={[styles.flex1, styles.flexRow]}>
                         <Button
                             success
                             small={props.isSmallScreenWidth}
                             onPress={props.onRefresh}
                             text={props.translate('genericErrorPage.refresh')}
+                            style={styles.mr4}
                         />
                         <Button
                             small={props.isSmallScreenWidth}
