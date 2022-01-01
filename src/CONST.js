@@ -536,6 +536,18 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
+    GUIDES_CALL_TASK_IDS: {
+        CONCIERGE_DM: 'NewExpensifyConciergeDM',
+        WORKSPACE_INITIAL: 'WorkspaceHome',
+        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_CARD: 'WorkspaceCorporateCards',
+        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
+        WORKSPACE_BILLS: 'WorkspacePayBills',
+        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
+        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
+        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
+    },
     get EXPENSIFY_EMAILS() {
         return [
             this.EMAIL.CONCIERGE,
