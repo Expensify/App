@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
+import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -15,6 +16,14 @@ import * as Report from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** The task ID to request the call for */
+            taskID: PropTypes.string,
+        }),
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -56,7 +65,7 @@ class GetAssistancePage extends Component {
                             key="requestSetupCall"
                             title={this.props.translate('getAssistancePage.requestSetupCall')}
                             icon={Expensicons.Phone}
-                            onPress={() => Navigation.navigate(ROUTES.getRequestCallRoute('test'))}
+                            onPress={() => Navigation.navigate(ROUTES.getRequestCallRoute(this.props.route.params.taskID))}
                             shouldShowRightIcon
                         />
                     </ScrollView>
