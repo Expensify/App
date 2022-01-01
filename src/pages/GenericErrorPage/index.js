@@ -10,6 +10,7 @@ import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import * as Session from '../../libs/actions/Session';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';
@@ -22,9 +23,6 @@ const propTypes = {
 
     /** Callback to call on refresh button click */
     onRefresh: PropTypes.func.isRequired,
-
-    /** Callback to call on signOut button click */
-    onSignOut: PropTypes.func.isRequired,
 };
 
 const GenericErrorPage = props => (
@@ -64,7 +62,10 @@ const GenericErrorPage = props => (
                         />
                         <Button
                             small={props.isSmallScreenWidth}
-                            onPress={props.onSignOut}
+                            onPress={() => {
+                                Session.signOut();
+                                props.onRefresh();
+                            }}
                             text={props.translate('initialSettingsPage.signOut')}
                         />
                     </View>

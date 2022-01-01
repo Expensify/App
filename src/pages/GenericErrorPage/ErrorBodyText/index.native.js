@@ -18,5 +18,6 @@ const ErrorBodyText = props => (
     </Text>
 );
 
+ErrorBodyText.displayName = 'ErrorBodyText';
 ErrorBodyText.propTypes = propTypes;
 export default withLocalize(ErrorBodyText);

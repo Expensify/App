@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BootSplash from '../../libs/BootSplash';
 import GenericErrorPage from '../../pages/GenericErrorPage';
-import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */
@@ -29,7 +28,6 @@ class BaseErrorBoundary extends React.Component {
         super(props);
         this.state = {hasError: false};
         this.onRefresh = this.onRefresh.bind(this);
-        this.onSignOut = this.onSignOut.bind(this);
     }
 
     static getDerivedStateFromError() {
@@ -48,15 +46,9 @@ class BaseErrorBoundary extends React.Component {
         this.setState({hasError: false});
     }
 
-    onSignOut() {
-        Session.signOut();
-        this.onRefresh();
-    }
-
     render() {
         if (this.state.hasError) {
-            // For the moment we've decided not to render any fallback UI
-            return <GenericErrorPage onRefresh={this.onRefresh} onSignOut={this.onSignOut} />;
+            return <GenericErrorPage onRefresh={this.onRefresh} />;
         }
 
         return this.props.children;
