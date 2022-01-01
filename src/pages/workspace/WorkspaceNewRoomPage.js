@@ -129,7 +129,7 @@ class WorkspaceNewRoomPage extends React.Component {
             Navigation.dismissModal();
             return null;
         }
-        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
+        const shouldDisableSubmit = Boolean(!this.state.roomName.substr(1) || !this.state.policyID || this.state.error);
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
