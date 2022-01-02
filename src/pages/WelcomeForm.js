@@ -28,6 +28,9 @@ const propTypes = {
     /** Skip Welcome form */
     skipWelcomeForm: PropTypes.func.isRequired,
 
+    /** Func form to send data */
+    updateUserDetails: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -106,7 +109,7 @@ class WelcomeForm extends React.Component {
                         onImageSelected={file => this.setState({avatarFile: file, avatarURL: file.uri})}
                         onImageRemoved={() => this.setState({avatarFile: null, avatarURL: ''})}
                         isUsingDefaultAvatar={!this.state.avatarURL}
-                        anchorPosition={{top: 250, left: 190}}
+                        anchorPosition={{top: 400, left: 220}}
                         size={CONST.AVATAR_SIZE.DEFAULT}
                         DefaultAvatar={() => (
                             <Icon
@@ -142,10 +145,11 @@ class WelcomeForm extends React.Component {
                             : 'profilePage.emailAddress')}
                         ref={el => this.phoneNumberInputRef = el}
                         value={this.state.login}
-                        onChangeText={this.onSecondaryLoginChange}
+                        onChangeText={login => this.setState({login})}
                         keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                             ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
-                        returnKeyType="done"
+                        hasError={Boolean(this.state.errors.login)}
+                        errorText={this.state.errors.login}
                     />
                 </View>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
