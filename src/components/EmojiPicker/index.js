@@ -7,6 +7,7 @@ import Popover from '../Popover';
 import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import ONYXKEYS from '../../ONYXKEYS';
+import EmojiPickerMenu from './EmojiPickerMenu';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Expensicons from '../Icon/Expensicons';
 import * as User from '../../libs/actions/User';
@@ -31,7 +32,7 @@ const defaultProps = {
     isDisabled: false,
 };
 
-class EmojiPickerMenu extends React.Component {
+class EmojiPicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -56,7 +57,7 @@ class EmojiPickerMenu extends React.Component {
     }
 
     componentDidMount() {
-        // this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     componentWillUnmount() {
@@ -190,8 +191,8 @@ class EmojiPickerMenu extends React.Component {
     }
 }
 
-EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = defaultProps;
+EmojiPicker.propTypes = propTypes;
+EmojiPicker.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -204,4 +205,4 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(EmojiPickerMenu);
+)(EmojiPicker);
