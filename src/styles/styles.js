@@ -783,6 +783,13 @@ const styles = {
         marginBottom: 8,
     },
 
+    formHelp: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
     formError: {
         color: themeColors.textError,
         fontSize: variables.fontSizeLabel,
