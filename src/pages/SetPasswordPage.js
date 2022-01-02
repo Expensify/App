@@ -68,30 +68,35 @@ class SetPasswordPage extends Component {
     constructor(props) {
         super(props);
 
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.submitPasswordForm = this.submitPasswordForm.bind(this);
+        this.submitFormData = this.submitFormData.bind(this);
+        this.submitWelcomeFormData = this.submitWelcomeFormData.bind(this);
 
         this.state = {
             password: '',
             isFormValid: false,
-            showWelcomeForm: true,
+            showWelcomeForm: false,
         };
     }
 
     /**
-     * Validate the form and then submit it
+     * Validate the password form and then submit it
      */
-    validateAndSubmitForm() {
+    submitPasswordForm() {
         if (!this.state.isFormValid) {
             return;
         }
-
         this.setState({showWelcomeForm: true});
     }
 
-    skipWelcomeForm() {
+    submitFormData(additionalFormData) {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        Session.validateEmail(accountID, validateCode, this.state.password);
+        Session.validateEmail(accountID, validateCode, this.state.password, additionalFormData);
+    }
+
+    submitWelcomeFormData(welcomeFormData) {
+        this.submitFormData(welcomeFormData);
     }
 
     renderPasswordForm(error) {
@@ -102,7 +107,7 @@ class SetPasswordPage extends Component {
                         password={this.state.password}
                         updatePassword={password => this.setState({password})}
                         updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                        onSubmitEditing={this.validateAndSubmitForm}
+                        onSubmitEditing={this.submitPasswordForm}
                     />
                 </View>
                 <View>
@@ -111,7 +116,7 @@ class SetPasswordPage extends Component {
                         style={[styles.mb2]}
                         text={this.props.translate('setPasswordPage.setPassword')}
                         isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
+                        onPress={this.submitPasswordForm}
                         isDisabled={!this.state.isFormValid}
                     />
                 </View>
@@ -136,7 +141,12 @@ class SetPasswordPage extends Component {
                 >
                     {
                         this.state.showWelcomeForm
-                            ? <WelcomeForm skipWelcomeForm={this.skipWelcomeForm} password={this.state.password} />
+                            ? (
+                                <WelcomeForm
+                                    skipWelcomeForm={this.submitFormData}
+                                    updateUserDetails={this.submitFormData}
+                                />
+                            )
                             : this.renderPasswordForm(error)
                     }
                 </SignInPageLayout>
