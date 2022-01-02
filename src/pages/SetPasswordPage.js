@@ -76,7 +76,36 @@ class SetPasswordPage extends Component {
             password: '',
             isFormValid: false,
             showWelcomeForm: false,
+            isAlreadyValidated: false,
+            validateEmailAuthToken: '',
+            loginType: '',
         };
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        const stateToUpdate = {};
+        if (props.session.isValidateAPICalled && !props.session.userHasSetPassword && !state.showWelcomeForm) {
+            stateToUpdate.showWelcomeForm = true;
+        }
+
+        _.each(['isAlreadyValidated', 'validateEmailAuthToken', 'loginType'], (fieldToCompare) => {
+            if (props.session[fieldToCompare] === state[fieldToCompare]) {
+                return;
+            }
+            stateToUpdate[fieldToCompare] = props.session[fieldToCompare];
+        });
+
+        if (_.isEmpty(stateToUpdate)) {
+            return null;
+        }
+        return stateToUpdate;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!(!this.state.showWelcomeForm && this.props.session.isValidateAPICalled && this.props.session.isValidateAPICalled !== prevProps.session.isValidateAPICalled)) {
+            return;
+        }
+        this.submitFormData();
     }
 
     /**
@@ -86,13 +115,17 @@ class SetPasswordPage extends Component {
         if (!this.state.isFormValid) {
             return;
         }
-        this.setState({showWelcomeForm: true});
+
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+
+        Session.validateEmailAndFetchResponse(accountID, validateCode);
     }
 
     submitFormData(additionalFormData) {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        Session.validateEmail(accountID, validateCode, this.state.password, additionalFormData);
+        Session.updateUserPasswordAndProfile(accountID, validateCode, this.state.validateEmailAuthToken, this.state.isAlreadyValidated, this.state.password, additionalFormData);
     }
 
     submitWelcomeFormData(welcomeFormData) {
@@ -145,6 +178,7 @@ class SetPasswordPage extends Component {
                                 <WelcomeForm
                                     skipWelcomeForm={this.submitFormData}
                                     updateUserDetails={this.submitFormData}
+                                    loginType={this.state.loginType}
                                 />
                             )
                             : this.renderPasswordForm(error)
