@@ -6,8 +6,8 @@ import styles from '../../styles/styles';
 import * as Emojis from '../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
-import * as EmojiUtils from './../../libs/EmojiUtils';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
+import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
 
 const propTypes = {
@@ -36,7 +36,7 @@ class EmojiSkinToneList extends Component {
 
     componentDidMount() {
         // Get the selected skinToneEmoji based on the index
-        const selectedEmoji = EmojiUtils.getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
+        const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         this.setState({highlightedIndex: selectedEmoji.skinTone});
     }
 
@@ -50,7 +50,7 @@ class EmojiSkinToneList extends Component {
     }
 
     render() {
-        const selectedEmoji = EmojiUtils.getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
+        const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         return (
             <View style={[styles.flexRow, styles.p1, styles.ph4]}>
                 {

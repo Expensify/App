@@ -14,6 +14,7 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import * as Link from './Link';
+import getSkinToneEmojiFromIndex from '../../components/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -95,9 +96,9 @@ function getUserDetails() {
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
-            // const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
-            // Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            // EmojiUtils.getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
 
             const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
             Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
