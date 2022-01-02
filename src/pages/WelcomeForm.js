@@ -72,12 +72,21 @@ class WelcomeForm extends React.Component {
             ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
             : this.state.login;
 
-        const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
+        const validationConfig = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? {
+                method: Str.isValidPhone,
+                errorKey: 'loginForm.error.invalidFormatEmailLogin',
+            }
+            : {
+                method: Str.isValidEmail,
+                errorKey: 'loginForm.error.invalidFormatPhoneLogin',
+            };
 
         const errors = this.state.errors;
         errors.firstName = firstNameError;
         errors.lastName = lastNameError;
-        errors.login = !validationMethod(login);
+        const hasSecondaryLoginError = this.state.login.length > 0 && !validationConfig.method(login);
+        errors.login = hasSecondaryLoginError ? validationConfig.errorKey : false;
 
         return _.every(errors, error => !error);
     }
@@ -149,7 +158,7 @@ class WelcomeForm extends React.Component {
                         keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                             ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                         hasError={Boolean(this.state.errors.login)}
-                        errorText={this.state.errors.login}
+                        errorText={this.state.errors.login ? this.props.translate(this.state.errors.login) : ''}
                     />
                 </View>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
