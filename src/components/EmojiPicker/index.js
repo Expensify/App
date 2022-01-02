@@ -23,7 +23,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** callback on emoji popover hide */
-    onModalHide: PropTypes.func.isRequired,
+    onModalHide: PropTypes.func,
 
     /** callback on emoji selection */
     onEmojiSelected: PropTypes.func.isRequired,
@@ -33,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     isDisabled: false,
+    onModalHide: () => {},
 };
 
 class EmojiPicker extends React.Component {
