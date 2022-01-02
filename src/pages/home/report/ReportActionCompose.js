@@ -181,27 +181,6 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     */
-    addEmojiToTextBox(emoji) {
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateComment(newComment);
-    }
-
-
-    /**
      * Updates the Highlight state of the composer
      *
      * @param {Boolean} shouldHighlight
@@ -262,6 +241,27 @@ class ReportActionCompose extends React.Component {
 
         return this.props.translate('reportActionCompose.writeSomething');
     }
+
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     */
+    addEmojiToTextBox(emoji) {
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
+            },
+        }));
+        this.updateComment(newComment);
+    }
+
 
     /**
      * Focus the composer text input
@@ -573,9 +573,10 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <EmojiPicker
-                    isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
-                    onModalHide={() => this.focus(true)}
-                    onEmojiSelected={this.addEmojiToTextBox} />
+                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
+                        onModalHide={() => this.focus(true)}
+                        onEmojiSelected={this.addEmojiToTextBox}
+                    />
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity

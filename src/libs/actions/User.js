@@ -14,7 +14,7 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import * as Link from './Link';
-import getSkinToneEmojiFromIndex from '../../components/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
