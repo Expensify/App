@@ -19,6 +19,7 @@ import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
+import * as PersonalDetails from '../PersonalDetails';
 import * as ValidationUtils from '../../ValidationUtils';
 
 let credentials = {};
@@ -226,8 +227,9 @@ function createTemporaryLogin(authToken, email) {
  *
  * @param {String} password
  * @param {String} [twoFactorAuthCode]
+ * @param {Object} additionalFormData
  */
-function signIn(password, twoFactorAuthCode) {
+function signIn(password, twoFactorAuthCode, additionalFormData) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.Authenticate({
@@ -239,8 +241,30 @@ function signIn(password, twoFactorAuthCode) {
         twoFactorAuthCode,
         email: credentials.login,
     })
-        .then(({authToken, email}) => {
-            createTemporaryLogin(authToken, email);
+        .then(({authToken, email}) => createTemporaryLogin(authToken, email)).then(() => {
+            if (!additionalFormData) {
+                return Promise.resolve();
+            }
+
+            const promises = [];
+            if (_.has(additionalFormData, 'firstName')) {
+                promises.push(PersonalDetails.setPersonalDetails({
+                    firstName: additionalFormData.firstName.trim(),
+                    lastName: additionalFormData.lastName.trim(),
+                }, false, false));
+            }
+
+            if (_.has(additionalFormData, 'avatarFile')) {
+                promises.push(PersonalDetails.setAvatar(additionalFormData.avatarFile));
+            }
+
+            if (_.has(additionalFormData, 'secondaryLogin')) {
+                promises.push(User.setSecondaryLoginAndNavigate(additionalFormData.secondaryLogin, password));
+            }
+
+            if (promises.length > 0) {
+                Promise.all(promises);
+            }
         })
         .catch((error) => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
@@ -378,15 +402,16 @@ function clearAccountMessages() {
 /**
  * @param {String} authToken
  * @param {String} password
+ * @param {String} additionalFormData
  */
-function changePasswordAndSignIn(authToken, password) {
+function changePasswordAndSignIn(authToken, password, additionalFormData) {
     API.ChangePassword({
         authToken,
         password,
     })
         .then((responsePassword) => {
             if (responsePassword.jsonCode === 200) {
-                signIn(password);
+                signIn(password, null, additionalFormData);
                 return;
             }
 
@@ -398,15 +423,16 @@ function changePasswordAndSignIn(authToken, password) {
  * @param {String} accountID
  * @param {String} validateCode
  * @param {String} password
+ * @param {String} additionalFormData
  */
-function validateEmail(accountID, validateCode, password) {
+function validateEmail(accountID, validateCode, password, additionalFormData) {
     API.ValidateEmail({
         accountID,
         validateCode,
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                changePasswordAndSignIn(responseValidate.authToken, password);
+                changePasswordAndSignIn(responseValidate.authToken, password, additionalFormData);
                 return;
             }
 
