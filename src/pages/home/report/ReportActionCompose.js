@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View,
     TouchableOpacity,
-    Pressable,
     InteractionManager,
-    Dimensions,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -13,7 +11,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -25,11 +22,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
-import Popover from '../../../components/Popover';
-import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
-import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
@@ -48,7 +42,7 @@ import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
+import EmojiPickerMenu from '../../../components/EmojiPickerMenu';
 
 const propTypes = {
     /** Beta features list */
@@ -130,33 +124,18 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.showEmojiPicker = this.showEmojiPicker.bind(this);
-        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
-        this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.emojiPopoverAnchor = null;
-        this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
-            isEmojiPickerVisible: false,
             isMenuVisible: false,
-
-            // The horizontal and vertical position (relative to the window) where the emoji popover will display.
-            emojiPopoverAnchorPosition: {
-                horizontal: 0,
-                vertical: 0,
-            },
             selection: {
                 start: props.comment.length,
                 end: props.comment.length,
@@ -172,7 +151,6 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     componentDidUpdate(prevProps) {
@@ -195,24 +173,12 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
     }
 
-    /**
-     * Update preferredSkinTone and sync with Onyx, NVP.
-     * @param {Number|String} skinTone
-     */
-    setPreferredSkinTone(skinTone) {
-        if (skinTone === this.props.preferredSkinTone) {
-            return;
-        }
-
-        User.setPreferredSkinTone(skinTone);
-    }
 
     /**
      * Updates the Highlight state of the composer
@@ -377,70 +343,6 @@ class ReportActionCompose extends React.Component {
                 Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
             }
         }
-    }
-
-    /**
-     * Show the ReportActionContextMenu modal popover.
-     *
-     */
-    showEmojiPicker() {
-        this.textInput.blur();
-        this.setState({isEmojiPickerVisible: true});
-    }
-
-    /**
-     * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
-     */
-    measureEmojiPopoverAnchorPosition() {
-        if (!this.emojiPopoverAnchor) {
-            return;
-        }
-
-        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
-            emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
-        }));
-    }
-
-
-    /**
-     * Hide the ReportActionContextMenu modal popover.
-     */
-    hideEmojiPicker() {
-        this.setState({isEmojiPickerVisible: false});
-    }
-
-    /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    addEmojiToTextBox(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
-        this.hideEmojiPicker();
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateComment(newComment);
-    }
-
-    /**
-     * Focus the search input in the emoji picker.
-     */
-    focusEmojiSearchInput() {
-        if (!this.emojiSearchInput) {
-            return;
-        }
-
-        this.emojiSearchInput.focus();
     }
 
     /**
@@ -649,51 +551,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {
-
-                        // There is no way to disable animations and they are really laggy, because there are so many
-                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
-                    }
-                    <Popover
-                        isVisible={this.state.isEmojiPickerVisible}
-                        onClose={this.hideEmojiPicker}
-                        onModalShow={this.focusEmojiSearchInput}
-                        onModalHide={() => this.focus(true)}
-                        hideModalContentWhileAnimating
-                        animationInTiming={1}
-                        animationOutTiming={1}
-                        anchorPosition={{
-                            bottom: this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical,
-                            left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
-                        }}
-                    >
-                        <EmojiPickerMenu
-                            onEmojiSelected={this.addEmojiToTextBox}
-                            ref={el => this.emojiSearchInput = el}
-                            preferredSkinTone={this.props.preferredSkinTone}
-                            updatePreferredSkinTone={this.setPreferredSkinTone}
-                            frequentlyUsedEmojis={this.props.frequentlyUsedEmojis}
-                        />
-                    </Popover>
-                    <Pressable
-                        style={({hovered, pressed}) => ([
-                            styles.chatItemEmojiButton,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
-                        ])}
-                        ref={el => this.emojiPopoverAnchor = el}
-                        onLayout={this.measureEmojiPopoverAnchorPosition}
-                        onPress={this.showEmojiPicker}
-                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
-                    >
-                        {({hovered, pressed}) => (
-                            <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
-                                <Icon
-                                    src={Expensicons.Emoji}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            </Tooltip>
-                        )}
-                    </Pressable>
+                    <EmojiPickerMenu isDisabled={isBlockedFromConcierge || isArchivedChatRoom} onModalHide={() => this.focus(true)} />
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
@@ -761,12 +619,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(ReportActionCompose);
