@@ -420,34 +420,64 @@ function changePasswordAndSignIn(authToken, password, additionalFormData) {
 }
 
 /**
+ * Function to validate Email and check if the user has first signin
  * @param {String} accountID
  * @param {String} validateCode
- * @param {String} password
- * @param {String} additionalFormData
  */
-function validateEmail(accountID, validateCode, password, additionalFormData) {
+function validateEmailAndFetchResponse(accountID, validateCode) {
     API.ValidateEmail({
         accountID,
         validateCode,
-    })
-        .then((responseValidate) => {
-            if (responseValidate.jsonCode === 200) {
-                changePasswordAndSignIn(responseValidate.authToken, password, additionalFormData);
-                return;
-            }
+    }).then((responseValidate) => {
+        const result = {
+            isValidateAPICalled: true,
+            userHasSetPassword: true,
+            loginType: CONST.LOGIN_TYPE.EMAIL,
+            validateEmailAuthToken: '',
+            isAlreadyValidated: false,
+        };
 
-            if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
-                // If the email is already validated, set the password using the validate code
-                setPassword(
-                    password,
-                    validateCode,
-                    accountID,
-                );
-                return;
+        if (responseValidate.jsonCode === 200) {
+            if (!responseValidate.email) {
+                result.loginType = CONST.LOGIN_TYPE.PHONE;
             }
+            result.userHasSetPassword = false;
+            result.validateEmailAuthToken = responseValidate.authToken;
+        }
 
-            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.accountNotValidated'});
-        });
+        if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
+            result.isAlreadyValidated = true;
+        }
+
+        Onyx.merge(ONYXKEYS.SESSION, result);
+    });
+}
+
+/**
+ * @param {String} accountID
+ * @param {String} validateCode
+ * @param {String} authToken
+ * @param {String} isAlreadyValidated
+ * @param {String} password
+ * @param {String} additionalFormData
+ */
+function updateUserPasswordAndProfile(accountID, validateCode, authToken, isAlreadyValidated, password, additionalFormData) {
+    if (authToken) {
+        changePasswordAndSignIn(authToken, password, additionalFormData);
+        return;
+    }
+
+    if (isAlreadyValidated) {
+        // If the email is already validated, set the password using the validate code
+        setPassword(
+            password,
+            validateCode,
+            accountID,
+        );
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.accountNotValidated'});
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -521,8 +551,9 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    validateEmail,
+    updateUserPasswordAndProfile,
     authenticatePusher,
     reauthenticatePusher,
     setShouldShowComposeInput,
+    validateEmailAndFetchResponse,
 };
