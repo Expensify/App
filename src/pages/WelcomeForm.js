@@ -31,6 +31,9 @@ const propTypes = {
     /** Func form to send data */
     updateUserDetails: PropTypes.func.isRequired,
 
+    /** flag to decide secondary login field type (email/phone) */
+    loginType: PropTypes.oneOf([CONST.LOGIN_TYPE.EMAIL, CONST.LOGIN_TYPE.PHONE]).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -68,20 +71,17 @@ class WelcomeForm extends React.Component {
     validate() {
         const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
+        const login = this.props.loginType === CONST.LOGIN_TYPE.PHONE
+            ? this.state.login : LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
 
-        const validationConfig = this.formType === CONST.LOGIN_TYPE.PHONE
+        const validationConfig = this.props.loginType === CONST.LOGIN_TYPE.PHONE
             ? {
-                method: Str.isValidPhone,
-                errorKey: 'loginForm.error.invalidFormatEmailLogin',
-            }
-            : {
                 method: Str.isValidEmail,
                 errorKey: 'loginForm.error.invalidFormatPhoneLogin',
+            } : {
+                method: Str.isValidPhone,
+                errorKey: 'loginForm.error.invalidFormatEmailLogin',
             };
-
         const errors = this.state.errors;
         errors.firstName = firstNameError;
         errors.lastName = lastNameError;
@@ -96,9 +96,8 @@ class WelcomeForm extends React.Component {
             return;
         }
 
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
+        const login = this.props.loginType === CONST.LOGIN_TYPE.PHONE
+            ? this.state.login : LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
 
         this.props.updateUserDetails({
             firstName: this.state.firstName.trim(),
@@ -149,14 +148,13 @@ class WelcomeForm extends React.Component {
                 </View>
                 <View style={styles.mb3}>
                     <ExpensiTextInput
-                        label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                            ? 'common.phoneNumber'
-                            : 'profilePage.emailAddress')}
+                        label={this.props.translate(this.props.loginType === CONST.LOGIN_TYPE.PHONE
+                            ? 'profilePage.emailAddress' : 'common.phoneNumber')}
                         ref={el => this.phoneNumberInputRef = el}
                         value={this.state.login}
                         onChangeText={login => this.setState({login})}
-                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                        keyboardType={this.props.loginType === CONST.LOGIN_TYPE.PHONE
+                            ? undefined : CONST.KEYBOARD_TYPE.PHONE_PAD}
                         hasError={Boolean(this.state.errors.login)}
                         errorText={this.state.errors.login ? this.props.translate(this.state.errors.login) : ''}
                     />
