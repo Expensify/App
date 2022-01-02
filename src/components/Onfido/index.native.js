@@ -47,7 +47,14 @@ class Onfido extends React.Component {
                 }
 
                 // Handle user camera permission on iOS and Android
-                if (_.contains([CONST.ONFIDO.ERROR.USER_CAMERA_PERMISSION, CONST.ONFIDO.ERROR.USER_CAMERA_DENINED, CONST.ONFIDO.ERROR.USER_CAMERA_CONSENT_DENIED], errorMessage)) {
+                if (_.contains(
+                    [
+                        CONST.ONFIDO.ERROR.USER_CAMERA_PERMISSION,
+                        CONST.ONFIDO.ERROR.USER_CAMERA_DENINED,
+                        CONST.ONFIDO.ERROR.USER_CAMERA_CONSENT_DENIED,
+                    ],
+                    errorMessage,
+                )) {
                     Alert.alert(
                         this.props.translate('onfidoStep.cameraRequestTitle'),
                         this.props.translate('onfidoStep.cameraRequestMessage'),
