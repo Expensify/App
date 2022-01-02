@@ -31,11 +31,6 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: personalDetailsPropType.isRequired,
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }).isRequired,
-
     /** The details about the user that is signed in */
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
@@ -113,7 +108,6 @@ class RequestCallPage extends Component {
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
-            email: this.props.session.email,
         });
     }
 
@@ -261,9 +255,6 @@ export default compose(
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         user: {
             key: ONYXKEYS.USER,
