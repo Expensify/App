@@ -127,9 +127,7 @@ class EmojiPicker extends React.Component {
         this.emojiSearchInput.focus();
     }
 
-
     render() {
-        console.log('Props', this.props);
         return (
             <>
                 {
