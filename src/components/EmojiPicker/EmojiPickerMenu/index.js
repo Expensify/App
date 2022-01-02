@@ -2,20 +2,20 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
-import * as StyleUtils from '../../../../styles/StyleUtils';
-import themeColors from '../../../../styles/themes/default';
-import emojis from '../../../../../assets/emojis';
+import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
+import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../../../components/Text';
-import TextInputFocusable from '../../../../components/TextInputFocusable';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
-import getOperatingSystem from '../../../../libs/getOperatingSystem';
+import Text from '../../Text';
+import TextInputFocusable from '../../TextInputFocusable';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import compose from '../../../libs/compose';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 import EmojiSkinToneList from '../EmojiSkinToneList';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
