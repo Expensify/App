@@ -24,6 +24,9 @@ const propTypes = {
 
     /** callback on emoji popover hide */
     onModalHide: PropTypes.func.isRequired,
+
+    /** callback on emoji selection */
+    onEmojiSelected: PropTypes.func.isRequired,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -40,7 +43,7 @@ class EmojiPicker extends React.Component {
         this.emojiPopoverDimensionListener = null;
         this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.selectEmoji = this.selectEmoji.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
@@ -79,28 +82,16 @@ class EmojiPicker extends React.Component {
         User.setPreferredSkinTone(skinTone);
     }
 
-
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    addEmojiToTextBox(emoji, emojiObject) {
+    selectEmoji(emoji, emojiObject) {
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.hideEmojiPicker();
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateComment(newComment);
+        this.props.onEmojiSelected(emoji);
     }
 
 
@@ -160,7 +151,7 @@ class EmojiPicker extends React.Component {
                     }}
                 >
                     <EmojiPickerMenu
-                        onEmojiSelected={this.addEmojiToTextBox}
+                        onEmojiSelected={this.selectEmoji}
                         ref={el => this.emojiSearchInput = el}
                         preferredSkinTone={this.props.preferredSkinTone}
                         updatePreferredSkinTone={this.setPreferredSkinTone}
