@@ -3,6 +3,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import CONST from '../CONST';
 import * as User from './actions/User';
+import * as Emojis from '../../assets/emojis';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -154,6 +155,15 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
+/**
+ * Fetch the emoji code of selected skinTone
+ * @param {Number} skinToneIndex
+ * @returns {String}
+ */
+function getSkinToneEmojiFromIndex(skinToneIndex) {
+    return _.find(Emojis.skinTones, emoji => emoji.skinTone === skinToneIndex) || Emojis.skinTones[0];
+}
+
 
 export {
     getEmojiUnicode,
@@ -163,4 +173,5 @@ export {
     getDynamicSpacing,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
+    getSkinToneEmojiFromIndex,
 };
