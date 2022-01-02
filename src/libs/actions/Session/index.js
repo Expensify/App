@@ -41,6 +41,9 @@ function setSuccessfulSignInData(data) {
     Onyx.merge(ONYXKEYS.SESSION, {
         shouldShowComposeInput: true,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
+        validateEmailAuthToken: null,
+        isAlreadyValidated: null,
+        isValidateAPICalled: null,
     });
 }
 
@@ -462,7 +465,7 @@ function validateEmailAndFetchResponse(accountID, validateCode) {
  * @param {String} additionalFormData
  */
 function updateUserPasswordAndProfile(accountID, validateCode, authToken, isAlreadyValidated, password, additionalFormData) {
-    if (authToken) {
+    if (!_.isEmpty(authToken)) {
         changePasswordAndSignIn(authToken, password, additionalFormData);
         return;
     }
@@ -474,6 +477,7 @@ function updateUserPasswordAndProfile(accountID, validateCode, authToken, isAlre
             validateCode,
             accountID,
         );
+        Onyx.merge(ONYXKEYS.SESSION, {validateEmailAuthToken: null, isAlreadyValidated: null, isValidateAPICalled: null});
         return;
     }
 
