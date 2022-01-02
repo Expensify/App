@@ -416,6 +416,7 @@ export default {
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
+            invalidFormatPhoneLogin: 'The phone entered is invalid. Please fix the format and try again.',
         },
     },
     personalDetails: {

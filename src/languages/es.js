@@ -416,6 +416,7 @@ export default {
         phoneOrEmail: 'Número de teléfono o email',
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            invalidFormatPhoneLogin: 'El teléfono introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
     },
     personalDetails: {
