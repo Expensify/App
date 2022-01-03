@@ -249,7 +249,8 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} [params.requestorPhoneNumber] - used for Venmo
  * @param {String} [params.requestorPayPalMeAddress]
  * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
- * @param {Boolean} [params.shouldRedirectToChatReport]
+ *
+ * @return {Promise}
  */
 function payIOUReport({
     chatReportID,
@@ -260,7 +261,6 @@ function payIOUReport({
     requestorPhoneNumber,
     requestorPayPalMeAddress,
     newIOUReportDetails,
-    shouldRedirectToChatReport = false,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
 
@@ -304,12 +304,9 @@ function payIOUReport({
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
-
-            if (shouldRedirectToChatReport) {
-                Navigation.navigate(ROUTES.REPORT);
-            }
         }),
     url);
+    return payIOUPromise;
 }
 
 export {
