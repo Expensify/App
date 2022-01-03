@@ -842,6 +842,7 @@ export default {
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
+            copy: 'Copiar comentario',
         },
     },
     guides: {

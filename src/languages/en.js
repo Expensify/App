@@ -840,6 +840,7 @@ export default {
             escape: 'Escape Dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
+            copy: 'Copy comment',
         },
     },
     guides: {
