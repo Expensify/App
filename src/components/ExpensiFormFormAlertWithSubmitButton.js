@@ -98,7 +98,7 @@ const ExpensiFormFormAlertWithSubmitButton = (props) => {
     );
 };
 
-ExpensiFormFormAlertWithSubmitButton.EXPENSIFORM_COMPATIBLE_INPUT = true;
+ExpensiFormFormAlertWithSubmitButton.EXPENSIFORM_SUBMIT_INPUT = true;
 ExpensiFormFormAlertWithSubmitButton.propTypes = propTypes;
 ExpensiFormFormAlertWithSubmitButton.defaultProps = defaultProps;
 ExpensiFormFormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';

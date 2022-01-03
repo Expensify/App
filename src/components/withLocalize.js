@@ -145,6 +145,7 @@ export default function withLocalize(WrappedComponent) {
 
     WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
     WithLocalize.EXPENSIFORM_COMPATIBLE_INPUT = WrappedComponent.EXPENSIFORM_COMPATIBLE_INPUT;
+    WithLocalize.EXPENSIFORM_SUBMIT_INPUT = WrappedComponent.EXPENSIFORM_SUBMIT_INPUT;
     return WithLocalize;
 }
 

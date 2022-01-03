@@ -133,11 +133,18 @@ class ExpensiForm extends React.Component {
 
                 // We check if the component has the EXPENSIFORM_COMPATIBLE_INPUT static property enabled,
                 // as we don't want to pass form props to non form components, e.g. View, Text, etc
-                if (!child.type.EXPENSIFORM_COMPATIBLE_INPUT) {
+                if (!child.type.EXPENSIFORM_COMPATIBLE_INPUT && !child.type.EXPENSIFORM_SUBMIT_INPUT) {
                     return child;
                 }
 
-                // TODO Should we have a separate static property for the submit button and pass loading state / onSubmit only to that component?
+                // // We clone the child passing down all submit input props
+                if (child.type.EXPENSIFORM_SUBMIT_INPUT) {
+                    return React.cloneElement(child, {
+                        onSubmit: this.onSubmit,
+                        alert: this.state.alert,
+                        isLoading: this.state.isLoading,
+                    });
+                }
 
                 // We clone the child passing down all form props
                 // We should only pass refs to class components!
@@ -146,11 +153,8 @@ class ExpensiForm extends React.Component {
                     saveDraft: this.saveDraft,
                     validateField: this.validateField,
                     clearInputErrors: this.clearInputErrors,
-                    onSubmit: this.onSubmit,
                     defaultValue: this.props.defaultValues[child.props.name],
                     errorText: this.state.errors[child.props.name],
-                    alert: this.state.alert,
-                    isLoading: this.state.isLoading,
                 });
             })
         );
