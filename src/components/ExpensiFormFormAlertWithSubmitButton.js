@@ -27,7 +27,7 @@ const propTypes = {
 
     /** Is the button in a loading state */
     alert: PropTypes.shape({
-        firstErrorToFix: PropTypes.func,
+        firstErrorToFix: PropTypes.object,
         message: PropTypes.string,
     }),
 
@@ -41,7 +41,7 @@ const defaultProps = {
     isLoading: false,
 };
 
-const FormAlertWithSubmitButton = (props) => {
+const ExpensiFormFormAlertWithSubmitButton = (props) => {
     /**
      * @returns {React.Component}
      */
@@ -98,9 +98,9 @@ const FormAlertWithSubmitButton = (props) => {
     );
 };
 
-FormAlertWithSubmitButton.EXPENSIFORM_COMPATIBLE_INPUT = true;
-FormAlertWithSubmitButton.propTypes = propTypes;
-FormAlertWithSubmitButton.defaultProps = defaultProps;
-FormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';
+ExpensiFormFormAlertWithSubmitButton.EXPENSIFORM_COMPATIBLE_INPUT = true;
+ExpensiFormFormAlertWithSubmitButton.propTypes = propTypes;
+ExpensiFormFormAlertWithSubmitButton.defaultProps = defaultProps;
+ExpensiFormFormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';
 
-export default withLocalize(FormAlertWithSubmitButton);
+export default withLocalize(ExpensiFormFormAlertWithSubmitButton);

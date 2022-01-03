@@ -36,7 +36,8 @@ class ExpensiForm extends React.Component {
         this.getFormValues = this.getFormValues.bind(this);
         this.saveDraft = this.saveDraft.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.validate = this.validate.bind(this);
+        this.validateForm = this.validateForm.bind(this);
+        this.validateField = this.validateField.bind(this);
         this.clearInputErrors = this.clearInputErrors.bind(this);
         this.setLoading = this.setLoading.bind(this);
         this.setFormAlert = this.setFormAlert.bind(this);
@@ -57,7 +58,19 @@ class ExpensiForm extends React.Component {
         FormAction.saveFormDraft(`${this.props.name}_draft`, {...draft});
     }
 
-    validate(field) {
+    validateField(fieldName) {
+        const fieldError = this.props.validate({[fieldName]: this.inputRefs[fieldName].value})[fieldName];
+        if (fieldError) {
+            this.setState(prevState => ({
+                errors: {
+                    ...prevState.errors,
+                    [fieldName]: fieldError,
+                }
+            }));
+        };
+    }
+
+    validateForm() {
         const values = this.getFormValues();
         // validate takes in form values and returns errors object in the format
         // {username: 'form.errors.required', name: 'form.errors.tooShort', ...}
@@ -66,21 +79,12 @@ class ExpensiForm extends React.Component {
         // We check if we are trying to validate a single field or the entire form
         const errors = this.props.validate(values);
         if (!_.isEmpty(errors)) {
-            if (field) {
-                this.setState(prevState => ({
-                    errors: {
-                        ...prevState.errors,
-                        [field]: errors[field]
-                    }
-                }));
-            } else {
-                this.setState({
-                    errors,
-                    alert: {
-                        firstErrorToFix: this.inputRefs[_.keys(errors)[0]],
-                    }
-                });
-            }
+            this.setState({
+                errors,
+                alert: {
+                    firstErrorToFix: this.inputRefs[_.keys(errors)[0]],
+                }
+            });
         }
         return errors;
     }
@@ -105,7 +109,7 @@ class ExpensiForm extends React.Component {
 
     onSubmit() {
         const values = this.getFormValues();
-        const errors = this.validate();
+        const errors = this.validateForm();
         if (!_.isEmpty(errors)) {
             return;
         }
@@ -140,11 +144,11 @@ class ExpensiForm extends React.Component {
                 return React.cloneElement(child, {
                     ref: node => this.inputRefs[child.props.name] = node,
                     saveDraft: this.saveDraft,
-                    validate: this.validate,
+                    validateField: this.validateField,
                     clearInputErrors: this.clearInputErrors,
                     onSubmit: this.onSubmit,
                     defaultValue: this.props.defaultValues[child.props.name],
-                    error: this.state.errors[child.props.name],
+                    errorText: this.state.errors[child.props.name],
                     alert: this.state.alert,
                     isLoading: this.state.isLoading,
                 });

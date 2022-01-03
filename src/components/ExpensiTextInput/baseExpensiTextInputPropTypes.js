@@ -19,9 +19,6 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
-
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -39,7 +36,6 @@ const defaultProps = {
     name: '',
     errorText: '',
     placeholder: '',
-    hasError: false,
     containerStyles: [],
     inputStyle: [],
     autoFocus: false,

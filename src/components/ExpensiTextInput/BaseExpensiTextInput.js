@@ -88,8 +88,8 @@ class BaseExpensiTextInput extends Component {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
-        if (this.props.validate) {
-            this.props.validate(this.props.name);
+        if (this.props.validateField) {
+            this.props.validateField(this.props.name);
         }
     }
 
@@ -218,9 +218,9 @@ class BaseExpensiTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {!_.isEmpty(this.props.errorText || this.props.error) && (
+                {!_.isEmpty(this.props.errorText) && (
                     <InlineErrorText>
-                        {this.props.errorText || this.props.error}
+                        {this.props.errorText}
                     </InlineErrorText>
                 )}
             </View>

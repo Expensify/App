@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -29,7 +30,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
 import ExpensiForm from '../../components/ExpensiForm';
-import ExpensiFormSubmit from '../../components/ExpensiFormSubmit';
+import ExpensiFormFormAlertWithSubmitButton from '../../components/ExpensiFormFormAlertWithSubmitButton';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -83,11 +84,11 @@ class BankAccountStep extends React.Component {
     validate(values) {
         const errors = {};
 
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(lodashGet(values, 'routingNumber', '').trim()) || !ValidationUtils.isValidRoutingNumber(lodashGet(values, 'routingNumber', ''))) {
             errors.routingNumber = 'reimbursementAccount.errors.routingNumber';
         }
         // These are taken from BankCountry.js in Web-Secure
-        if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.accountNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(lodashGet(values, 'accountNumber', '').trim())) {
             errors.accountNumber = 'reimbursementAccount.errors.accountNumber';
         }
         // if (!values.hasAcceptedTerms) {
@@ -288,7 +289,7 @@ class BankAccountStep extends React.Component {
                             )}
                             // hasError={this.getErrors().hasAcceptedTerms}
                         />
-                        <ExpensiFormSubmit
+                        <ExpensiFormFormAlertWithSubmitButton
                             success
                             pressOnEnter
                             buttonText={"Save & continue"}
