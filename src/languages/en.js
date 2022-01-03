@@ -275,7 +275,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Security',
@@ -290,14 +290,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         errors: {
             currentPassword: 'Current password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
     addPayPalMePage: {
@@ -445,7 +445,7 @@ export default {
     setPasswordPage: {
         enterPassword: 'Enter a password',
         setPassword: 'Set password',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -840,6 +840,7 @@ export default {
             escape: 'Escape Dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
+            copy: 'Copy comment',
         },
     },
     guides: {
