@@ -31,7 +31,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -228,10 +227,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.roomIsArchived');
         }
 
-        if (this.props.report.participants
-            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE)
-            && !_.isEmpty(this.props.blockedFromConcierge)
-            && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
+        if (ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
@@ -405,12 +401,7 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
-        const isConciergeChat = this.props.report.participants
-            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
-        let isBlockedFromConcierge = false;
-        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
-            isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
-        }
+        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
         const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 

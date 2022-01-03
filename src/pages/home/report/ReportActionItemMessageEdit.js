@@ -15,9 +15,7 @@ import Button from '../../../components/Button';
 import EmojiPicker from '../../../components/EmojiPicker';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
-import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/reportUtils';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -178,14 +176,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const isConciergeChat = this.props.report.participants
-            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
-
-        let isBlockedFromConcierge = false;
-        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
-            isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
-        }
-
+        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
         const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 
         return (
