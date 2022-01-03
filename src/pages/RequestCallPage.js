@@ -25,6 +25,7 @@ import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -82,10 +83,10 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
-            firstNameError: '',
+            firstNameError: false,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
-            lastNameError: '',
+            lastNameError: false,
             phoneNumberError: '',
         };
 
@@ -196,7 +197,7 @@ class RequestCallPage extends Component {
             lastNameError,
             phoneNumberError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && !firstNameError && !lastNameError;
     }
 
     render() {
@@ -222,9 +223,9 @@ class RequestCallPage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
+                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.firstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
+                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.lastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mv4]}

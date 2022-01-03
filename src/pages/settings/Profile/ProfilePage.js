@@ -71,11 +71,11 @@ class ProfilePage extends Component {
         super(props);
         this.state = {
             firstName: props.myPersonalDetails.firstName,
-            firstNameError: '',
+            firstNameError: false,
             lastName: props.myPersonalDetails.lastName,
-            lastNameError: '',
+            lastNameError: false,
             pronouns: props.myPersonalDetails.pronouns,
-            pronounError: '',
+            pronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -167,7 +167,7 @@ class ProfilePage extends Component {
             lastNameError,
             pronounError,
         });
-        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError) && _.isEmpty(pronounError);
+        return !firstNameError && !lastNameError && !pronounError;
     }
 
     render() {
@@ -213,9 +213,9 @@ class ProfilePage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
+                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.firstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
+                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.lastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
@@ -243,7 +243,7 @@ class ProfilePage extends Component {
                                         value={this.state.pronouns}
                                         onChangeText={pronouns => this.setState({pronouns})}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                        errorText={this.state.pronounError}
+                                        errorText={PersonalDetails.getMaxCharacterError(this.state.pronounError)}
                                     />
                                 </View>
                             )}

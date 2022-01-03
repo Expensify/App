@@ -3,7 +3,6 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import LoginUtil from './LoginUtil';
-import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -303,15 +302,15 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Returns object with character limit errors. If any are valid,
- * those errors get returned as empty strings.
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit.
  *
  * @param {Number} limit
- * @param {Object[]} toBeValidated
- * @returns {Object[]}
+ * @param {String[]} toBeValidated
+ * @returns {Boolean[]}
  */
 function getCharacterLimitErrors(limit, toBeValidated) {
-    return _.map(toBeValidated, x => (x.length <= limit ? '' : Localize.translateLocal('personalDetails.error.characterLimit', {limit})));
+    return _.map(toBeValidated, x => x.length > limit);
 }
 
 export {

@@ -65,6 +65,17 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
+ * Returns max character error text if true.
+ *
+ * @param {Boolean} shouldShowError
+ * @returns {String}
+ */
+function getMaxCharacterError(shouldShowError) {
+    return shouldShowError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+}
+
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
@@ -334,4 +345,5 @@ export {
     deleteAvatar,
     fetchLocalCurrency,
     getCurrencyList,
+    getMaxCharacterError,
 };
