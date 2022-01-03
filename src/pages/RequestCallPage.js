@@ -62,12 +62,15 @@ const propTypes = {
     requestCallForm: PropTypes.shape({
         loading: PropTypes.bool,
     }),
+
+    lastAccessedWorkspace: PropTypes.string,
 };
 
 const defaultProps = {
     requestCallForm: {
         loading: false,
     },
+    lastAccessedWorkspace: '',
 };
 
 class RequestCallPage extends Component {
@@ -96,15 +99,20 @@ class RequestCallPage extends Component {
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
-        if (!personalPolicy) {
+        // If there's a lastAccessedWorkspace in Onyx then use that as the policy for the call, otherwise use the personal policy
+        const policyForCall = this.props.lastAccessedWorkspace
+            ? this.props.lastAccessedWorkspace : _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
+
+        if (!policyForCall) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
 
+        const policyIDForCall = _.isObject(policyForCall) ? policyForCall.id : policyForCall;
+
         Inbox.requestInboxCall({
             taskID: this.props.route.params.taskID,
-            policyID: personalPolicy.id,
+            policyID: policyIDForCall,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
@@ -265,6 +273,9 @@ export default compose(
         requestCallForm: {
             key: ONYXKEYS.REQUEST_CALL_FORM,
             initWithStoredValues: false,
+        },
+        lastAccessedWorkspace: {
+            key: ONYXKEYS.LAST_ACCESSED_WORKSPACE,
         },
     }),
 )(RequestCallPage);
