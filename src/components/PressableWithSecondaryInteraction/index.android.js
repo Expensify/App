@@ -3,7 +3,7 @@ import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable, Platform} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
@@ -34,7 +34,7 @@ function handleLongPress(event, props) {
  */
 const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? ExpensifyText : Pressable;
+    const Node = props.inline ? Text : Pressable;
     return (
         <Node
             ref={props.forwardedRef}

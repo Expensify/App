@@ -14,8 +14,7 @@ import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensifyText from '../../components/ExpensifyText';
-import Log from '../../libs/Log';
+import Text from '../../components/Text';
 import Growl from '../../libs/Growl';
 
 const propTypes = {
@@ -72,8 +71,7 @@ class OnfidoStep extends React.Component {
                     this.canShowOnfido() ? (
                         <Onfido
                             sdkToken={this.props.walletOnfidoData.sdkToken}
-                            onError={(error) => {
-                                Log.hmmm('Onfido error in OnfidoStep', {error});
+                            onError={() => {
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             }}
                             onUserExit={() => {
@@ -93,7 +91,7 @@ class OnfidoStep extends React.Component {
                             {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && (
                                 <>
                                     <View style={styles.justifyContentCenter}>
-                                        <ExpensifyText style={[styles.mb5]}>
+                                        <Text style={[styles.mb5]}>
                                             {this.props.translate('onfidoStep.acceptTerms')}
                                             <TextLink
                                                 href="https://onfido.com/facial-scan-policy-and-release/"
@@ -113,7 +111,7 @@ class OnfidoStep extends React.Component {
                                                 {this.props.translate('common.termsOfService')}
                                             </TextLink>
                                             .
-                                        </ExpensifyText>
+                                        </Text>
                                     </View>
                                     <Button
                                         success
@@ -129,9 +127,9 @@ class OnfidoStep extends React.Component {
                                 && this.props.walletOnfidoData.loading && <FullscreenLoadingIndicator />}
                             {!this.props.walletOnfidoData.loading && this.props.walletOnfidoData.error && (
                                 <>
-                                    <ExpensifyText style={[styles.h3, styles.textStrong, styles.mb2]}>
+                                    <Text style={[styles.h3, styles.textStrong, styles.mb2]}>
                                         {this.props.walletOnfidoData.error}
-                                    </ExpensifyText>
+                                    </Text>
                                     <Button
                                         success
                                         text={this.props.translate('onfidoStep.tryAgain')}

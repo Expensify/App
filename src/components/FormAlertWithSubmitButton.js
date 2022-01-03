@@ -9,7 +9,7 @@ import colors from '../styles/colors';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {
@@ -65,24 +65,24 @@ const FormAlertWithSubmitButton = (props) => {
                 );
             } else {
                 error = (
-                    <ExpensifyText style={styles.mutedTextLabel}>{props.message}</ExpensifyText>
+                    <Text style={styles.mutedTextLabel}>{props.message}</Text>
                 );
             }
         } else {
             error = (
                 <>
-                    <ExpensifyText style={styles.mutedTextLabel}>
+                    <Text style={styles.mutedTextLabel}>
                         {`${props.translate('common.please')} `}
-                    </ExpensifyText>
+                    </Text>
                     <TextLink
                         style={styles.label}
                         onPress={props.onFixTheErrorsLinkPressed}
                     >
                         {props.translate('common.fixTheErrors')}
                     </TextLink>
-                    <ExpensifyText style={styles.mutedTextLabel}>
+                    <Text style={styles.mutedTextLabel}>
                         {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
-                    </ExpensifyText>
+                    </Text>
                 </>
             );
         }

@@ -16,6 +16,9 @@ const propTypes = {
     /** Title of the Header */
     title: PropTypes.string,
 
+    /** Subtitle of the header */
+    subtitle: PropTypes.string,
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress: PropTypes.func,
 
@@ -74,6 +77,7 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
+    subtitle: '',
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
@@ -117,7 +121,7 @@ const HeaderWithCloseButton = props => (
             )}
             <Header
                 title={props.title}
-                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : props.subtitle}
             />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {

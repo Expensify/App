@@ -92,6 +92,9 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
+        transferBalance: 'Transfer Balance',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -133,10 +136,10 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -272,7 +275,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Security',
@@ -287,16 +290,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
-        confirmNewPassword: 'Confirm new password',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         errors: {
             currentPassword: 'Current password is required',
-            confirmNewPassword: 'Confirm password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
     addPayPalMePage: {
@@ -333,9 +334,27 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        allSet: 'All Set!',
+        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
+        gotIt: 'Got it, Thanks!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
+        instant: 'Instant (Debit Card)',
+        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        ach: '1-3 Business Days (Bank Account)',
+        achSummary: 'No fee',
+        whichAccount: 'Which Account?',
+        fee: 'Fee',
+        failedTransfer: 'Failed to transfer balance',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Choose Account',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
+        addDebitCard: 'Add debit card',
+        addBankAccount: 'Add bank account',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
@@ -409,6 +428,7 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
         resendLink: 'Resend link',
+        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
         unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
         newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
@@ -425,10 +445,8 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
-        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
-        passwordsDontMatch: 'Passwords must match',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -823,6 +841,7 @@ export default {
             escape: 'Escape Dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
+            copy: 'Copy comment',
         },
     },
     guides: {

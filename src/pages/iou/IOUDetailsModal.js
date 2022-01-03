@@ -94,8 +94,8 @@ class IOUDetailsModal extends Component {
             paymentMethodType,
             amount: this.props.iouReport.total,
             currency: this.props.iouReport.currency,
-            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            submitterPhoneNumber: this.getSubmitterPhoneNumber(),
+            requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            requestorPhoneNumber: this.getSubmitterPhoneNumber(),
         });
     }
 

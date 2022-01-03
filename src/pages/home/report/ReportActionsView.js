@@ -9,7 +9,10 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Clipboard from '../../../libs/Clipboard';
 import * as Report from '../../../libs/actions/Report';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import SelectionScraper from '../../../libs/SelectionScraper';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -106,6 +109,7 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
+        this.appStateChangeListener = null;
 
         this.didLayout = false;
 
@@ -127,7 +131,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        AppState.addEventListener('change', this.onVisibilityChange);
+        this.appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
@@ -151,6 +155,13 @@ class ReportActionsView extends React.Component {
         }
 
         Report.fetchActions(this.props.reportID);
+
+        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
+        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
+
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
+            this.copySelectionToClipboard();
+        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -243,9 +254,15 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        AppState.removeEventListener('change', this.onVisibilityChange);
+        if (this.appStateChangeListener) {
+            this.appStateChangeListener.remove();
+        }
 
         Report.unsubscribeFromReportChannel(this.props.reportID);
+
+        if (this.unsubscribeCopyShortcut) {
+            this.unsubscribeCopyShortcut();
+        }
     }
 
     /**
@@ -257,6 +274,12 @@ class ReportActionsView extends React.Component {
         }
 
         Report.updateLastReadActionID(this.props.reportID);
+    }
+
+    copySelectionToClipboard = () => {
+        const selectionMarkdown = SelectionScraper.getAsMarkdown();
+
+        Clipboard.setString(selectionMarkdown);
     }
 
     /**

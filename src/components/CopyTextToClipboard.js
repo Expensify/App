@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
 import Icon from './Icon';
@@ -48,11 +48,11 @@ class CopyTextToClipboard extends React.Component {
 
     render() {
         return (
-            <ExpensifyText
+            <Text
                 onPress={this.copyToClipboard}
                 style={[styles.flexRow, styles.cursorPointer]}
             >
-                <ExpensifyText style={this.props.textStyles}>{this.props.text}</ExpensifyText>
+                <Text style={this.props.textStyles}>{this.props.text}</Text>
                 <Icon
                     src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
                     fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
@@ -60,7 +60,7 @@ class CopyTextToClipboard extends React.Component {
                     height={variables.iconSizeSmall}
                     inline
                 />
-            </ExpensifyText>
+            </Text>
         );
     }
 }

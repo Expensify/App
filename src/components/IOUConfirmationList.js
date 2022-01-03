@@ -5,7 +5,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
@@ -24,6 +24,9 @@ import ROUTES from '../ROUTES';
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
+
+    /** Callback to to parent modal to send money */
+    onSendMoney: PropTypes.func.isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -150,7 +153,7 @@ class IOUConfirmationList extends Component {
     onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onConfirm();
+            this.props.onSendMoney(value);
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
@@ -377,9 +380,9 @@ class IOUConfirmationList extends Component {
                 </View>
                 <FixedFooter>
                     {this.props.network.isOffline && (
-                        <ExpensifyText style={[styles.formError, styles.pb2]}>
+                        <Text style={[styles.formError, styles.pb2]}>
                             {this.props.translate('session.offlineMessage')}
-                        </ExpensifyText>
+                        </Text>
                     )}
                     {shouldShowSettlementButton ? (
                         <SettlementButton
@@ -388,10 +391,10 @@ class IOUConfirmationList extends Component {
                             onPress={this.onPress}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
-                            currency={this.props.localCurrencyCode}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
                         <ButtonWithMenu

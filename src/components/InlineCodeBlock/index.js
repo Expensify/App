@@ -1,6 +1,6 @@
 import React from 'react';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 
 const InlineCodeBlock = (props) => {
     const TDefaultRenderer = props.TDefaultRenderer;
@@ -9,11 +9,11 @@ const InlineCodeBlock = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props.defaultRendererProps}
         >
-            <ExpensifyText
+            <Text
                 style={{...props.boxModelStyle, ...props.textStyle}}
             >
                 {props.defaultRendererProps.tnode.data}
-            </ExpensifyText>
+            </Text>
         </TDefaultRenderer>
     );
 };
