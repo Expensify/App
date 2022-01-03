@@ -214,13 +214,17 @@ class AdditionalDetailsStep extends React.Component {
                                     <AddressSearch
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.state.addressStreet}
-                                        onChangeText={(fieldName, value) => {
-                                            if (fieldName === 'addressZipCode') {
-                                                this.clearErrorAndSetValue('addressZip', value);
-                                                return;
-                                            }
-
-                                            this.clearErrorAndSetValue(fieldName, value);
+                                        onChange={(values) => {
+                                            const renamedFields = {
+                                                street: 'addressStreet',
+                                                state: 'addressState',
+                                                zipCode: 'addressZip',
+                                                city: 'addressCity',
+                                            };
+                                            _.each(values, (value, inputKey) => {
+                                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                            });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
