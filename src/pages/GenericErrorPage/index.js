@@ -55,13 +55,13 @@ const GenericErrorPage = props => (
                     <View style={[styles.flex1, styles.flexRow]}>
                         <Button
                             success
-                            small={props.isSmallScreenWidth}
+                            medium
                             onPress={props.onRefresh}
                             text={props.translate('genericErrorPage.refresh')}
                             style={styles.mr4}
                         />
                         <Button
-                            small={props.isSmallScreenWidth}
+                            medium
                             onPress={() => {
                                 Session.signOut();
                                 props.onRefresh();
