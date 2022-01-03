@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -126,9 +126,9 @@ class PasswordForm extends React.Component {
                             onPress={Session.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
-                            <ExpensifyText style={[styles.link]}>
+                            <Text style={[styles.link]}>
                                 {this.props.translate('passwordForm.forgot')}
-                            </ExpensifyText>
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -149,15 +149,15 @@ class PasswordForm extends React.Component {
                 )}
 
                 {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.account.error}
-                    </ExpensifyText>
+                    </Text>
                 )}
 
                 {this.state.formError && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 <View>
                     <Button
