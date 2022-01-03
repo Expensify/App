@@ -9,7 +9,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 
@@ -68,7 +68,7 @@ const AttachmentView = (props) => {
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
-            <ExpensifyText style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</ExpensifyText>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.download')}>
