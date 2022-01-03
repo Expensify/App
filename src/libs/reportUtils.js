@@ -189,7 +189,6 @@ function isBlockedFromConciergeChat(report, blockedFromConcierge) {
     return isBlockedFromConcierge;
 }
 
-
 /**
  * Returns true if there is any automated expensify account in emails
  * @param {Array} emails

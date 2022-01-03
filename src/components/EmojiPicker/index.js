@@ -25,6 +25,9 @@ const propTypes = {
     /** callback on emoji popover hide */
     onModalHide: PropTypes.func,
 
+    /** callback on before showing emoji picker */
+    onBeforeShowEmojiPicker: PropTypes.func,
+
     /** callback on emoji selection */
     onEmojiSelected: PropTypes.func.isRequired,
     ...windowDimensionsPropTypes,
@@ -34,6 +37,7 @@ const propTypes = {
 const defaultProps = {
     isDisabled: false,
     onModalHide: () => {},
+    onBeforeShowEmojiPicker: () => {},
 };
 
 class EmojiPicker extends React.Component {
@@ -95,13 +99,14 @@ class EmojiPicker extends React.Component {
         this.props.onEmojiSelected(emoji);
     }
 
-
     hideEmojiPicker() {
         this.setState({isEmojiPickerVisible: false});
     }
 
     showEmojiPicker() {
-        // this.textInput.blur();
+        if (this.props.onBeforeShowEmojiPicker) {
+            this.props.onBeforeShowEmojiPicker();
+        }
         this.setState({isEmojiPickerVisible: true});
     }
 

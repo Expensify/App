@@ -9,7 +9,6 @@ import Text from '../Text';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
-
 const propTypes = {
 
     /** Stores user's preferred skin tone */
