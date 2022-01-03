@@ -30,8 +30,8 @@ class ExpensiForm extends React.Component {
             errors: {},
             alert: {},
         };
-        this.inputRefs = React.createRef();
-        this.inputRefs.current = {};
+
+        this.inputRefs = {};
 
         this.getFormValues = this.getFormValues.bind(this);
         this.saveDraft = this.saveDraft.bind(this);
@@ -44,8 +44,8 @@ class ExpensiForm extends React.Component {
 
     getFormValues() {
         const formData = {};
-        _.each(_.keys(this.inputRefs.current), (key) => {
-            formData[key] = this.inputRefs.current[key].value;
+        _.each(_.keys(this.inputRefs), (key) => {
+            formData[key] = this.inputRefs[key].value;
         });
         return formData;
     }
@@ -77,7 +77,7 @@ class ExpensiForm extends React.Component {
                 this.setState({
                     errors,
                     alert: {
-                        firstErrorToFix: this.inputRefs.current[_.keys(errors)[0]],
+                        firstErrorToFix: this.inputRefs[_.keys(errors)[0]],
                     }
                 });
             }
@@ -127,20 +127,18 @@ class ExpensiForm extends React.Component {
                     });
                 }
 
-                // We check if the component has the EXPENSIFORM static property enabled,
+                // We check if the component has the EXPENSIFORM_COMPATIBLE_INPUT static property enabled,
                 // as we don't want to pass form props to non form components, e.g. View, Text, etc
-                if (!child.type.EXPENSIFORM) {
+                if (!child.type.EXPENSIFORM_COMPATIBLE_INPUT) {
                     return child;
                 }
 
                 // TODO Should we have a separate static property for the submit button and pass loading state / onSubmit only to that component?
 
-
                 // We clone the child passing down all form props
                 // We should only pass refs to class components!
-                const inputRef = node => this.inputRefs.current[child.props.name] = node;
                 return React.cloneElement(child, {
-                    ref: inputRef,
+                    ref: node => this.inputRefs[child.props.name] = node,
                     saveDraft: this.saveDraft,
                     validate: this.validate,
                     clearInputErrors: this.clearInputErrors,

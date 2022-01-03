@@ -75,7 +75,7 @@ function getNextStep(updatedACHData) {
  * @param {String} verificationsError
  * @param {Object} updatedACHData
  */
-function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData) {
+function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData, formFunctions) {
     let error = verificationsError;
     let isErrorHTML = false;
     const responseACHData = lodashGet(response, 'achData', {});
@@ -100,8 +100,8 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
     }
 
     if (error) {
-        errors.showBankAccountFormValidationError(error);
-        errors.showBankAccountErrorModal(error, isErrorHTML);
+        formFunctions.setFormAlert({message: response.htmlMessage, isMessageHtml: isErrorHTML});
+        formFunctions.setLoading(false);
     }
 
     const nextStep = response.jsonCode === 200 && !error ? getNextStep(updatedACHData) : updatedACHData.currentStep;
@@ -213,8 +213,8 @@ function setupWithdrawalAccount(params, formFunctions) {
             const currentStep = updatedACHData.currentStep;
             const responseACHData = lodashGet(response, 'achData', {});
             const verificationsError = lodashGet(responseACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
-            if (response.jsonCode !== 200 || verificationsError) {
-                showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData);
+            if (response.jsonCode === 200 || verificationsError) {
+                showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData, formFunctions);
                 return;
             }
 
@@ -259,7 +259,6 @@ function setupWithdrawalAccount(params, formFunctions) {
         })
         .catch((response) => {
             // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
-            formFunctions.addressZipCodesetLoading(false);
             console.error(response.stack);
             errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
             formFunctions.setLoading(false);

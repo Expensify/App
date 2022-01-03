@@ -215,7 +215,7 @@ class Button extends Component {
     }
 }
 
-Button.EXPENSIFORM = true;
+Button.EXPENSIFORM_COMPATIBLE_INPUT = true;
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 

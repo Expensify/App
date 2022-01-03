@@ -29,7 +29,6 @@ const propTypes = {
     alert: PropTypes.shape({
         firstErrorToFix: PropTypes.func,
         message: PropTypes.string,
-        isMessageHtml: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -38,7 +37,6 @@ const propTypes = {
 const defaultProps = {
     message: '',
     isDisabled: false,
-    isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
 };
@@ -51,15 +49,9 @@ const FormAlertWithSubmitButton = (props) => {
         let error = '';
 
         if (!_.isEmpty(props.alert.message)) {
-            if (props.alert.isMessageHtml) {
-                error = (
-                    <RenderHTML html={`<muted-text>${props.alert.message}</muted-text>`} />
-                );
-            } else {
-                error = (
-                    <Text style={styles.mutedTextLabel}>{props.alert.message}</Text>
-                );
-            }
+            error = (
+                <RenderHTML html={`<muted-text>${props.alert.message}</muted-text>`} />
+            );
         } else {
             error = (
                 <>
@@ -106,7 +98,7 @@ const FormAlertWithSubmitButton = (props) => {
     );
 };
 
-FormAlertWithSubmitButton.EXPENSIFORM = true;
+FormAlertWithSubmitButton.EXPENSIFORM_COMPATIBLE_INPUT = true;
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
 FormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';
