@@ -8,8 +8,6 @@ import Text from '../../components/Text';
 import Button from '../../components/Button';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import compose from '../../libs/compose';
 import * as Session from '../../libs/actions/Session';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
@@ -19,7 +17,6 @@ import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 
     /** Callback to call on refresh button click */
     onRefresh: PropTypes.func.isRequired,
@@ -83,7 +80,4 @@ const GenericErrorPage = props => (
 GenericErrorPage.propTypes = propTypes;
 GenericErrorPage.displayName = 'GenericErrorPage';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(GenericErrorPage);
+export default withLocalize(GenericErrorPage);
