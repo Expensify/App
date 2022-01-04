@@ -387,7 +387,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report || !report.reportID || (_.isEmpty(logins) && !ReportUtils.isUserCreatedPolicyRoom(report))) {
+        if (!report || !report.reportID || (_.isEmpty(logins) && !ReportUtils.isBusinessRoom(report))) {
             return;
         }
 
