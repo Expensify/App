@@ -140,7 +140,7 @@ class ReportActionsView extends React.Component {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
             }
-            ReportScrollManager.scrollToBottom()
+            ReportScrollManager.scrollToBottom();
         });
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
@@ -210,7 +210,7 @@ class ReportActionsView extends React.Component {
             // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
-                ReportScrollManager.scrollToBottom()
+                ReportScrollManager.scrollToBottom();
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
