@@ -237,11 +237,13 @@ function createOption(personalDetailList, report, {
 
     let text;
     let alternateText;
+    let icons;
     if (isBusinessChatRoom) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : ReportUtils.getBusinessRoomSubtitle(report, policies);
+        icons = lodashGet(report, 'icons', ['']);
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -250,11 +252,12 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        icons = lodashGet(report, 'icons', [personalDetail.avatar]);
     }
     return {
         text,
         alternateText,
-        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
+        icons,
         tooltipText,
         participantsList: personalDetailList,
 
@@ -384,7 +387,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report || !report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || (_.isEmpty(logins) && !ReportUtils.isUserCreatedPolicyRoom(report))) {
             return;
         }
 
