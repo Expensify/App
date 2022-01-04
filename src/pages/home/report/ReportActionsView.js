@@ -310,7 +310,6 @@ class ReportActionsView extends React.Component {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
-
     /**
      * Updates and sorts the report actions by sequence number
      *
@@ -379,7 +378,7 @@ class ReportActionsView extends React.Component {
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
-    scrollToBottomAndUpdateLastRead(){
+    scrollToBottomAndUpdateLastRead() {
         ReportScrollManager.scrollToBottom();
         Report.updateLastReadActionID(this.props.reportID);
     }
@@ -395,7 +394,6 @@ class ReportActionsView extends React.Component {
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
         Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
-
 
     /**
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
