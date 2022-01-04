@@ -181,9 +181,9 @@ function getSearchText(report, personalDetailList, isChatRoom) {
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
         if (isChatRoom) {
-            const defaultRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-            searchTerms.push(...defaultRoomSubtitle);
-            searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+            searchTerms.push(...chatRoomSubtitle);
+            searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
         } else {
             searchTerms.push(...report.participants);
         }
