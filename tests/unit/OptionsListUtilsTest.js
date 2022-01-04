@@ -188,7 +188,7 @@ describe('OptionsListUtils', () => {
             unreadActionCount: 1,
         },
     };
-    
+
     const REPORTS_WITH_MORE_PINS = {
         ...REPORTS,
         13: {
@@ -516,7 +516,6 @@ describe('OptionsListUtils', () => {
             ]),
         );
 
-
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
             REPORTS_WITH_CHRONOS,
@@ -629,29 +628,29 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
-                // D report name (Alphabetically first among pinned reports)  
+                // D report name (Alphabetically first among pinned reports)
                 expect(results.recentReports[0].login).toBe('d_email@email.com');
-        
-                // Mister Fantastic report name (Alphabetically second among pinned reports) 
+
+                // Mister Fantastic report name (Alphabetically second among pinned reports)
                 expect(results.recentReports[1].login).toBe('reedrichards@expensify.com');
 
-                // Z report name (Alphabetically third among pinned reports) 
+                // Z report name (Alphabetically third among pinned reports)
                 expect(results.recentReports[2].login).toBe('z_email@email.com');
 
                 // Unpinned report name ordered alphabetically after pinned reports
-                //Black Panther report name has unread message
+                // Black Panther report name has unread message
                 expect(results.recentReports[3].login).toBe('tchalla@expensify.com');
 
-                //Captain America report name has unread message
+                // Captain America report name has unread message
                 expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
 
-                //Invisible woman report name has unread message
+                // Invisible woman report name has unread message
                 expect(results.recentReports[5].login).toBe('suestorm@expensify.com');
-        
-                //Mister Sinister report name has IOU debt
+
+                // Mister Sinister report name has IOU debt
                 expect(results.recentReports[7].login).toBe('mistersinister@marauders.com');
 
-                //Spider-Man report name is last report and has unread message
+                // Spider-Man report name is last report and has unread message
                 expect(results.recentReports[8].login).toBe('peterparker@expensify.com');
             }));
 });
