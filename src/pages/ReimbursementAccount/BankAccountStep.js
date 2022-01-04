@@ -241,7 +241,7 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ExpensiForm
                         name={ONYXKEYS.REIMBURSEMENT_ACCOUNT}    
-                        defaultValues={this.props.reimbursementAccountDraft}
+                        // defaultValues={this.props.reimbursementAccountDraft}
                         validate={this.validate}
                         onSubmit={this.addManualAccount}
                         style={[styles.flex1, styles.mh5]}
@@ -271,6 +271,7 @@ class BankAccountStep extends React.Component {
                             // value={this.state.accountNumber}
                             // onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                             disabled={shouldDisableInputs}
+                            shouldSaveDraft={false}
                             // errorText={this.getErrorText('accountNumber')}
                         />
                         <CheckboxWithLabel

@@ -79,17 +79,14 @@ class BaseExpensiTextInput extends Component {
         if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
-        if (this.props.clearInputErrors) {
-            this.props.clearInputErrors(this.props.name);
-        }
     }
 
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
-        if (this.props.validateField) {
-            this.props.validateField(this.props.name);
+        if (this.props.validateInput) {
+            this.props.validateInput(this.props.name);
         }
     }
 
@@ -100,8 +97,9 @@ class BaseExpensiTextInput extends Component {
      * @memberof BaseExpensiTextInput
      */
     setValue(value) {
+        console.log(value)
         this.value = value;
-        if (this.props.saveDraft) {
+        if (this.props.saveDraft && this.props.shouldSaveDraft) {
             this.props.saveDraft({[this.props.name]: value});
         }
         Str.result(this.props.onChangeText, value);

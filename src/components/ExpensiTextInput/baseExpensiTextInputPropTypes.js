@@ -29,6 +29,8 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
+
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +49,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
+    shouldSaveDraft: true,
 };
 
 export {propTypes, defaultProps};

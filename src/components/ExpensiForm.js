@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as FormAction from '../libs/actions/ExpensiForm';
 import {ScrollView, View} from 'react-native';
 import styles from '../styles/styles';
+import {withOnyx} from 'react-native-onyx';
 
 const propTypes = {
     name: PropTypes.string.isRequired,
@@ -13,12 +14,12 @@ const propTypes = {
     defaultValues: PropTypes.object,
 
     validate: PropTypes.func.isRequired,
-    saveDraft: PropTypes.bool,
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
     defaultValues: {},
-    saveDraft: true,
+    shouldSaveDraft: true,
 };
 
 class ExpensiForm extends React.Component {
@@ -37,7 +38,7 @@ class ExpensiForm extends React.Component {
         this.saveDraft = this.saveDraft.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.validateForm = this.validateForm.bind(this);
-        this.validateField = this.validateField.bind(this);
+        this.validateInput = this.validateInput.bind(this);
         this.clearInputErrors = this.clearInputErrors.bind(this);
         this.setLoading = this.setLoading.bind(this);
         this.setFormAlert = this.setFormAlert.bind(this);
@@ -52,22 +53,20 @@ class ExpensiForm extends React.Component {
     }
 
     saveDraft(draft) {
-        if (!this.props.saveDraft) {
+        if (!this.props.shouldSaveDraft) {
             return;
         }
         FormAction.saveFormDraft(`${this.props.name}_draft`, {...draft});
     }
 
-    validateField(fieldName) {
-        const fieldError = this.props.validate({[fieldName]: this.inputRefs[fieldName].value})[fieldName];
-        if (fieldError) {
-            this.setState(prevState => ({
-                errors: {
-                    ...prevState.errors,
-                    [fieldName]: fieldError,
-                }
-            }));
-        };
+    validateInput(inputName) {
+        const inputError = this.props.validate({[inputName]: this.inputRefs[inputName].value})[inputName];
+        this.setState(prevState => ({
+            errors: {
+                ...prevState.errors,
+                [inputName]: inputError,
+            }
+        }));
     }
 
     validateForm() {
@@ -75,26 +74,24 @@ class ExpensiForm extends React.Component {
         // validate takes in form values and returns errors object in the format
         // {username: 'form.errors.required', name: 'form.errors.tooShort', ...}
         // how do we handle multiple errors in this case???
-
-        // We check if we are trying to validate a single field or the entire form
         const errors = this.props.validate(values);
+        const alert = {};
         if (!_.isEmpty(errors)) {
-            this.setState({
-                errors,
-                alert: {
-                    firstErrorToFix: this.inputRefs[_.keys(errors)[0]],
-                }
-            });
+            alert['firstErrorToFix'] = this.inputRefs[_.keys(errors)[0]];
         }
+        this.setState({
+            errors,
+            alert,
+        });
         return errors;
     }
 
     // Should be called onFocus
-    clearInputErrors(field) {
+    clearInputErrors(inputName) {
         this.setState(prevState => ({
             errors: {
                 ...prevState.errors,
-                [field]: undefined,
+                [inputName]: undefined,
             },
         }));
     }
@@ -151,9 +148,9 @@ class ExpensiForm extends React.Component {
                 return React.cloneElement(child, {
                     ref: node => this.inputRefs[child.props.name] = node,
                     saveDraft: this.saveDraft,
-                    validateField: this.validateField,
+                    validateInput: this.validateInput,
                     clearInputErrors: this.clearInputErrors,
-                    defaultValue: this.props.defaultValues[child.props.name],
+                    defaultValue: this.props.draft[child.props.name],
                     errorText: this.state.errors[child.props.name],
                 });
             })
@@ -179,4 +176,8 @@ class ExpensiForm extends React.Component {
 ExpensiForm.propTypes = propTypes;
 ExpensiForm.defaultProps = defaultProps;
 
-export default ExpensiForm;
+export default withOnyx({
+    draft: {
+        key: name => name,
+    }
+})(ExpensiForm);;
