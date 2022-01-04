@@ -40,6 +40,8 @@ import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage'
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
+import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
+import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -179,6 +181,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
+    },
+    {
+        Component: TransferBalancePage,
+        name: 'Settings_Payments_Transfer_Balance',
+    },
+    {
+        Component: ChooseTransferAccountPage,
+        name: 'Settings_Payments_Choose_Transfer_Account',
     },
     {
         Component: SettingsAddPayPalMePage,

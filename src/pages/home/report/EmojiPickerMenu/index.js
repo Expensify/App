@@ -8,7 +8,7 @@ import * as StyleUtils from '../../../../styles/StyleUtils';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import ExpensifyText from '../../../../components/ExpensifyText';
+import Text from '../../../../components/Text';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -341,9 +341,9 @@ class EmojiPickerMenu extends Component {
 
         if (header) {
             return (
-                <ExpensifyText style={styles.emojiHeaderStyle}>
+                <Text style={styles.emojiHeaderStyle}>
                     {code}
-                </ExpensifyText>
+                </Text>
             );
         }
 
@@ -385,7 +385,7 @@ class EmojiPickerMenu extends Component {
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
-                        <ExpensifyText
+                        <Text
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
@@ -396,7 +396,7 @@ class EmojiPickerMenu extends Component {
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
-                        </ExpensifyText>
+                        </Text>
                     )
                     : (
                         <FlatList
