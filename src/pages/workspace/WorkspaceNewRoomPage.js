@@ -19,6 +19,7 @@ import FixedFooter from '../../components/FixedFooter';
 import * as Report from '../../libs/actions/Report';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -137,46 +138,49 @@ class WorkspaceNewRoomPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('newRoomPage.newRoom')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <TextInputWithLabel
-                        label={this.props.translate('newRoomPage.roomName')}
-                        prefixCharacter="#"
-                        placeholder={this.props.translate('newRoomPage.social')}
-                        containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
-                        value={this.state.roomName.substr(1)}
-                        errorText={this.state.error}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('newRoomPage.newRoom')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    <View style={styles.mb5}>
-                        <Picker
-                            value={this.state.policyID}
-                            label={this.props.translate('workspace.common.workspace')}
-                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                            items={this.state.workspaceOptions}
-                            onChange={this.onWorkspaceSelect}
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                        <TextInputWithLabel
+                            label={this.props.translate('newRoomPage.roomName')}
+                            prefixCharacter="#"
+                            placeholder={this.props.translate('newRoomPage.social')}
+                            containerStyles={[styles.mb5]}
+                            onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
+                            value={this.state.roomName.substr(1)}
+                            errorText={this.state.error}
+                            autoCapitalize="none"
                         />
-                    </View>
-                    <Picker
-                        value={this.state.visibility}
-                        label={this.props.translate('newRoomPage.visibility')}
-                        items={visibilityOptions}
-                        onChange={visibility => this.setState({visibility})}
-                    />
-                </ScrollView>
-                <FixedFooter>
-                    <Button
-                        isLoading={this.props.isLoadingCreatePolicyRoom}
-                        isDisabled={shouldDisableSubmit}
-                        success
-                        onPress={this.onSubmit}
-                        style={[styles.w100]}
-                        text={this.props.translate('newRoomPage.createRoom')}
-                    />
-                </FixedFooter>
+                        <View style={styles.mb5}>
+                            <Picker
+                                value={this.state.policyID}
+                                label={this.props.translate('workspace.common.workspace')}
+                                placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
+                                items={this.state.workspaceOptions}
+                                onChange={this.onWorkspaceSelect}
+                            />
+                        </View>
+                        <Picker
+                            value={this.state.visibility}
+                            label={this.props.translate('newRoomPage.visibility')}
+                            items={visibilityOptions}
+                            onChange={visibility => this.setState({visibility})}
+                        />
+                    </ScrollView>
+                    <FixedFooter>
+                        <Button
+                            isLoading={this.props.isLoadingCreatePolicyRoom}
+                            isDisabled={shouldDisableSubmit}
+                            success
+                            onPress={this.onSubmit}
+                            style={[styles.w100]}
+                            text={this.props.translate('newRoomPage.createRoom')}
+                        />
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
