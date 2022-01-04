@@ -89,15 +89,40 @@ class ReportDetailsPage extends Component {
             },
         };
 
-        this.menuItems = ReportUtils.isArchivedRoom(this.props.report) ? []
-            : [
+        if (ReportUtils.isArchivedRoom(this.props.report)) {
+            this.menuItems = [];
+        } else if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+            this.menuItems = [
                 {
                     translationKey: 'common.members',
                     icon: Expensicons.Users,
                     subtitle: props.report.participants.length,
                     action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
                 },
+                {
+                    translationKey: 'common.settings',
+                    icon: Expensicons.Gear,
+                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                },
+                {
+                    translationKey: 'common.invite',
+                    icon: Expensicons.Plus,
+                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                },
+                {
+                    translationKey: 'common.leaveRoom',
+                    icon: Expensicons.ArrowRight,
+                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                },
             ];
+        } else {
+            this.menuItems = {
+                translationKey: 'common.members',
+                icon: Expensicons.Users,
+                subtitle: props.report.participants.length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+            };
+        }
     }
 
     render() {
