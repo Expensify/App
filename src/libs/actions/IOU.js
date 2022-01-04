@@ -278,7 +278,7 @@ function payIOUReport({
         url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
     }
 
-    asyncOpenURL(payIOUPromise
+    const promiseWithHandlers = payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
@@ -304,9 +304,9 @@ function payIOUReport({
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
-        }),
-    url);
-    return payIOUPromise;
+        });
+    asyncOpenURL(promiseWithHandlers, url);
+    return promiseWithHandlers;
 }
 
 export {
