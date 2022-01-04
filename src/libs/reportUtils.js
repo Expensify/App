@@ -150,7 +150,7 @@ function isArchivedRoom(report) {
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getBusinessRoomSubtitle(report, policiesMap) {
+function getChatRoomSubtitle(report, policiesMap) {
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
         return '';
     }
@@ -231,7 +231,7 @@ export {
     isDefaultRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
-    getBusinessRoomSubtitle,
+    getChatRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,

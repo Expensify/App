@@ -181,7 +181,7 @@ function getSearchText(report, personalDetailList, isChatRoom) {
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
         if (isChatRoom) {
-            const defaultRoomSubtitle = ReportUtils.getBusinessRoomSubtitle(report, policies);
+            const defaultRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
             searchTerms.push(...defaultRoomSubtitle);
             searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
         } else {
@@ -242,7 +242,7 @@ function createOption(personalDetailList, report, {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : ReportUtils.getBusinessRoomSubtitle(report, policies);
+            : ReportUtils.getChatRoomSubtitle(report, policies);
 
         // Chat rooms do not use icons from their users for the avatar so falling back on personalDetails
         // doesn't make sense here

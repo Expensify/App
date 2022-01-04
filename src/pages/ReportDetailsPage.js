@@ -102,7 +102,7 @@ class ReportDetailsPage extends Component {
 
     render() {
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const defaultRoomSubtitle = ReportUtils.getBusinessRoomSubtitle(this.props.report, this.props.policies);
+        const defaultRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
