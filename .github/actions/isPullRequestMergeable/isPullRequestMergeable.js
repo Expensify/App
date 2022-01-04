@@ -27,7 +27,7 @@ const run = function () {
                     return;
                 }
 
-                if (_.isNull(data.mergeable_state)) {
+                if (_.isEmpty(data.mergeable_state)) {
                     console.log('Pull request mergeable_state is not yet resolved...');
                     retryCount++;
                     return;
