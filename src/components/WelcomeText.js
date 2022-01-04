@@ -21,7 +21,7 @@ const WelcomeText = (props) => {
     return (
         <>
             <Text style={[textSize, styles.textStrong, styles.mb1]}>
-                {props.translate('welcomeText.phrase1')}
+                {props.translate('welcomeText.welcome')}
             </Text>
             <Text style={[textSize]}>
                 {props.translate('welcomeText.phrase2')}
