@@ -138,9 +138,9 @@ export default function fileDownload(url, fileName) {
             hasAndroidPermission().then((hasPermission) => {
                 if (hasPermission) {
                     handleDownload(url, fileName).then(() => resolve());
+                } else {
+                    showAlert(permissionError);
                 }
-
-                showAlert(permissionError);
                 return resolve();
             }).catch(() => {
                 showAlert(permissionError);

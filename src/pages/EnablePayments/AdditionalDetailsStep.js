@@ -1,6 +1,4 @@
 import lodashGet from 'lodash/get';
-import lodashUnset from 'lodash/unset';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -26,6 +24,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
+import FormHelper from '../../libs/FormHelper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -94,6 +93,14 @@ class AdditionalDetailsStep extends React.Component {
             dob: lodashGet(props.walletAdditionalDetailsDraft, 'dob', ''),
             ssn: lodashGet(props.walletAdditionalDetailsDraft, 'ssn', ''),
         };
+
+        const formHelper = new FormHelper({
+            errorPath: 'walletAdditionalDetails.errorFields',
+            setErrors: Wallet.setAdditionalDetailsErrors,
+        });
+
+        this.getErrors = () => formHelper.getErrors(props);
+        this.clearError = path => formHelper.clearError(props, path);
     }
 
     /**
@@ -101,8 +108,7 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {String}
      */
     getErrorText(fieldName) {
-        const errors = lodashGet(this.props.walletAdditionalDetails, 'errorFields', {});
-        if (!errors[fieldName]) {
+        if (!this.getErrors()[fieldName]) {
             return '';
         }
 
@@ -159,18 +165,11 @@ class AdditionalDetailsStep extends React.Component {
     clearErrorAndSetValue(fieldName, value) {
         this.setState({[fieldName]: value});
         Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errorFields', {});
-        if (!lodashGet(errors, fieldName, false)) {
-            return;
-        }
-
-        const newErrors = lodashCloneDeep(errors);
-        lodashUnset(newErrors, fieldName);
-        Wallet.setAdditionalDetailsErrors(newErrors);
+        this.clearError(fieldName);
     }
 
     render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'walletAdditionalDetails.errorFields', {})) > 0
+        const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         return (
             <ScreenWrapper>
@@ -215,13 +214,17 @@ class AdditionalDetailsStep extends React.Component {
                                     <AddressSearch
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.state.addressStreet}
-                                        onChangeText={(fieldName, value) => {
-                                            if (fieldName === 'addressZipCode') {
-                                                this.clearErrorAndSetValue('addressZip', value);
-                                                return;
-                                            }
-
-                                            this.clearErrorAndSetValue(fieldName, value);
+                                        onChange={(values) => {
+                                            const renamedFields = {
+                                                street: 'addressStreet',
+                                                state: 'addressState',
+                                                zipCode: 'addressZip',
+                                                city: 'addressCity',
+                                            };
+                                            _.each(values, (value, inputKey) => {
+                                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                            });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
