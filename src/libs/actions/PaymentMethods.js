@@ -53,6 +53,7 @@ function addBillingCard(params) {
         addressName: params.nameOnCard,
         addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
+        isP2PDebitCard: true,
         password: params.password,
     }).then(((response) => {
         let errorMessage = '';
