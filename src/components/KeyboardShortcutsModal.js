@@ -1,8 +1,10 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -10,8 +12,13 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import * as KeyboardShortcutsActions from '../libs/actions/KeyboardShortcuts';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
+    /** prop to set shortcuts modal visibility */
+    isShortcutsModalOpen: PropTypes.bool,
+
     /** prop to fetch screen width */
     ...windowDimensionsPropTypes,
 
@@ -19,23 +26,16 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    isShortcutsModalOpen: false,
+};
+
 class KeyboardShortcutsModal extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isOpen: false,
-        };
-
-        this.showKeyboardShortcutModal = this.showKeyboardShortcutModal.bind(this);
-        this.hideKeyboardShortcutModal = this.hideKeyboardShortcutModal.bind(this);
-    }
-
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(shortcutConfig.modifiers);
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            this.showKeyboardShortcutModal();
+            KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, shortcutConfig.descriptionKey, shortcutModifiers, true);
     }
 
@@ -44,14 +44,6 @@ class KeyboardShortcutsModal extends React.Component {
             return;
         }
         this.unsubscribeShortcutModal();
-    }
-
-    showKeyboardShortcutModal() {
-        this.setState({isOpen: true});
-    }
-
-    hideKeyboardShortcutModal() {
-        this.setState({isOpen: false});
     }
 
     /**
@@ -71,10 +63,10 @@ class KeyboardShortcutsModal extends React.Component {
                 key={shortcut.displayName}
             >
                 <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
-                    <ExpensifyText>{shortcut.displayName}</ExpensifyText>
+                    <Text>{shortcut.displayName}</Text>
                 </View>
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                    <ExpensifyText>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</ExpensifyText>
+                    <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
                 </View>
             </View>
         );
@@ -86,14 +78,14 @@ class KeyboardShortcutsModal extends React.Component {
 
         return (
             <Modal
-                isVisible={this.state.isOpen}
+                isVisible={this.props.isShortcutsModalOpen}
                 type={modalType}
                 containerStyle={styles.keyboardShortcutModalContainer}
-                onClose={this.hideKeyboardShortcutModal}
+                onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
-                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={this.hideKeyboardShortcutModal} />
+                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
                 <View style={[styles.p5, styles.pt0]}>
-                    <ExpensifyText style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</ExpensifyText>
+                    <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
                             {_.map(shortcuts, (shortcut, index) => {
@@ -109,8 +101,12 @@ class KeyboardShortcutsModal extends React.Component {
 }
 
 KeyboardShortcutsModal.propTypes = propTypes;
+KeyboardShortcutsModal.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
+    }),
 )(KeyboardShortcutsModal);

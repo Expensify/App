@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -46,9 +46,9 @@ const WorkspaceCardVBANoECardView = props => (
             />
         </WorkspaceSection>
         {props.user.isCheckingDomain && (
-            <ExpensifyText style={[styles.m5, styles.formError]}>
+            <Text style={[styles.m5, styles.formError]}>
                 {props.translate('workspace.card.checkingDomain')}
-            </ExpensifyText>
+            </Text>
         )}
     </>
 );

@@ -6,7 +6,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -148,20 +148,20 @@ class LoginForm extends React.Component {
                     />
                 </View>
                 {this.state.formError && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </ExpensifyText>
+                    </Text>
                 )}
 
                 {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.account.error}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 {!_.isEmpty(this.props.account.success) && (
-                    <ExpensifyText style={[styles.formSuccess]}>
+                    <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 <View style={[styles.mt5]}>
                     <Button

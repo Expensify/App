@@ -1,6 +1,4 @@
 import lodashGet from 'lodash/get';
-import lodashUnset from 'lodash/unset';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -13,7 +11,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
@@ -26,6 +24,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
+import FormHelper from '../../libs/FormHelper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -94,6 +93,14 @@ class AdditionalDetailsStep extends React.Component {
             dob: lodashGet(props.walletAdditionalDetailsDraft, 'dob', ''),
             ssn: lodashGet(props.walletAdditionalDetailsDraft, 'ssn', ''),
         };
+
+        const formHelper = new FormHelper({
+            errorPath: 'walletAdditionalDetails.errorFields',
+            setErrors: Wallet.setAdditionalDetailsErrors,
+        });
+
+        this.getErrors = () => formHelper.getErrors(props);
+        this.clearError = path => formHelper.clearError(props, path);
     }
 
     /**
@@ -101,8 +108,7 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {String}
      */
     getErrorText(fieldName) {
-        const errors = lodashGet(this.props.walletAdditionalDetails, 'errorFields', {});
-        if (!errors[fieldName]) {
+        if (!this.getErrors()[fieldName]) {
             return '';
         }
 
@@ -159,18 +165,11 @@ class AdditionalDetailsStep extends React.Component {
     clearErrorAndSetValue(fieldName, value) {
         this.setState({[fieldName]: value});
         Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errorFields', {});
-        if (!lodashGet(errors, fieldName, false)) {
-            return;
-        }
-
-        const newErrors = lodashCloneDeep(errors);
-        lodashUnset(newErrors, fieldName);
-        Wallet.setAdditionalDetailsErrors(newErrors);
+        this.clearError(fieldName);
     }
 
     render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'walletAdditionalDetails.errorFields', {})) > 0
+        const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         return (
             <ScreenWrapper>
@@ -181,7 +180,7 @@ class AdditionalDetailsStep extends React.Component {
                     />
                     <View style={[styles.flex1]}>
                         <View style={[styles.ph5]}>
-                            <ExpensifyText style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</ExpensifyText>
+                            <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
                             <TextLink
                                 style={styles.mb3}
                                 href="https://use.expensify.com/usa-patriot-act"
@@ -225,9 +224,9 @@ class AdditionalDetailsStep extends React.Component {
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
                                     />
-                                    <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>
+                                    <Text style={[styles.mutedTextLabel, styles.mt1]}>
                                         {this.props.translate('common.noPO')}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                                 <TextInput
                                     containerStyles={[styles.mt4]}

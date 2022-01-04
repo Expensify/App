@@ -14,7 +14,7 @@ import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
@@ -22,7 +22,7 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import TextInput from '../../../components/TextInput';
-import ExpensiPicker from '../../../components/ExpensiPicker';
+import Picker from '../../../components/Picker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
@@ -206,9 +206,9 @@ class ProfilePage extends Component {
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
-                        <ExpensifyText style={[styles.mt6, styles.mb6]}>
+                        <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </ExpensifyText>
+                        </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             firstNameError={this.state.firstNameError}
@@ -219,7 +219,7 @@ class ProfilePage extends Component {
                             style={[styles.mt4, styles.mb4]}
                         />
                         <View style={styles.mb6}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('profilePage.preferredPronouns')}
                                 onChange={(pronouns) => {
                                     const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
@@ -256,7 +256,7 @@ class ProfilePage extends Component {
                             login={this.state.logins.phone}
                         />
                         <View style={styles.mb3}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('profilePage.timezone')}
                                 onChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}

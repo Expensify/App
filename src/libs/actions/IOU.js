@@ -246,25 +246,36 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
  * @param {Number} params.amount
  * @param {String} params.currency
- * @param {String} [params.submitterPhoneNumber] - used for Venmo
- * @param {String} [params.submitterPayPalMeAddress]
+ * @param {String} [params.requestorPhoneNumber] - used for Venmo
+ * @param {String} [params.requestorPayPalMeAddress]
+ * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
+ * @param {Boolean} [params.shouldRedirectToChatReport]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
+    chatReportID,
+    reportID,
+    paymentMethodType,
+    amount,
+    currency,
+    requestorPhoneNumber,
+    requestorPayPalMeAddress,
+    newIOUReportDetails,
+    shouldRedirectToChatReport = false,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID})
-        : API.PayIOU({reportID, paymentMethodType});
+        ? API.PayWithWallet({reportID, newIOUReportDetails})
+        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
     // Build the url for the user's platform of choice if they have
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
     }
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
     }
 
     asyncOpenURL(payIOUPromise
@@ -291,7 +302,13 @@ function payIOUReport({
             }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+
+            if (shouldRedirectToChatReport) {
+                Navigation.navigate(ROUTES.REPORT);
+            }
+        }),
     url);
 }
 
