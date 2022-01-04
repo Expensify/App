@@ -589,7 +589,7 @@ function getSearchOptions(
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
-        searchValue,
+        searchValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -658,7 +658,7 @@ function getNewChatOptions(
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
-        searchValue,
+        searchValue: searchValue.trim(),
         selectedOptions,
         excludeDefaultRooms: true,
         includeRecentReports: true,

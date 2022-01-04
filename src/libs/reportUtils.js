@@ -210,8 +210,19 @@ function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, rep
         && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 }
 
+/**
+ * Check if the comment is deleted
+ * @param {Object} action
+ * @returns {Boolean}
+ */
+function isDeletedAction(action) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    return action.message.length === 0 || action.message[0].html === '';
+}
+
 export {
     getReportParticipantsTitle,
+    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,

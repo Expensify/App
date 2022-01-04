@@ -506,7 +506,7 @@ PODS:
     - React-perflogger (= 0.64.1)
   - rn-fetch-blob (0.12.0):
     - React-Core
-  - RNBootSplash (3.2.6):
+  - RNBootSplash (3.2.7):
     - React-Core
   - RNCAsyncStorage (1.15.5):
     - React-Core
@@ -850,7 +850,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: 9f813f735901d719751da82f0365b5c506c28f14
+  FBReactNativeSpec: f5187ed83c38ec2fb4634140a81c0019adcd9cb3
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: c3e48ebf5e7e5c674c5a131c68e941d7921d83dc
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -920,7 +920,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: ff951a0c241bfaefc4940a3f1f1a229e7cb32fa6
   ReactCommon: bedc99ed4dae329c4fcf128d0c31b9115e5365ca
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
-  RNBootSplash: 00f99e3c05fb44af3613e6088406de4be0a8eca3
+  RNBootSplash: b82ee16a943903ea612edb15233ea4f247155ef9
   RNCAsyncStorage: 8324611026e8dc3706f829953aa6e3899f581589
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
   RNCMaskedView: 138134c4d8a9421b4f2bf39055a79aa05c2d47b1
