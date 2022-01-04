@@ -3,7 +3,6 @@ import {
     View,
 } from 'react-native';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -11,6 +10,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import Text from '../../../components/Text';
 import Timers from '../../../libs/Timers';
 import CONST from '../../../CONST';
+import DateUtils from '../../../libs/DateUtils';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -42,14 +42,15 @@ class ParticipantLocalTime extends PureComponent {
 
     getParticipantLocalTime() {
         const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        moment.locale(this.props.preferredLocale);
-        const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
-        const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
+        const timezone1 = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, reportRecipientTimezone);
+        const timezone2 = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, this.props.currentUserTimezone.selected);
+        const reportRecipientDay = timezone1.format('dddd');
+        const currentUserDay = timezone2.format('dddd');
 
         if (reportRecipientDay !== currentUserDay) {
-            return `${moment().tz(reportRecipientTimezone.selected).format('LT')} ${reportRecipientDay}`;
+            return `${timezone1.format('LT')} ${reportRecipientDay}`;
         }
-        return `${moment().tz(reportRecipientTimezone.selected).format('LT')}`;
+        return `${timezone1.format('LT')}`;
     }
 
     render() {
