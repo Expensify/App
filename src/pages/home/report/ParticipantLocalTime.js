@@ -43,7 +43,7 @@ class ParticipantLocalTime extends PureComponent {
     getParticipantLocalTime() {
         const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportTimezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, reportRecipientTimezone.selected);
-        const currentTimezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, this.props.currentUserTimezone.selected);
+        const currentTimezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale);
         const reportRecipientDay = reportTimezone.format('dddd');
         const currentUserDay = currentTimezone.format('dddd');
 
