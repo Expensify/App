@@ -102,7 +102,7 @@ class ReportDetailsPage extends Component {
                 {
                     translationKey: 'common.settings',
                     icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
                 },
                 {
                     translationKey: 'common.invite',
