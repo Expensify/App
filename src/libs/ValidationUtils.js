@@ -309,7 +309,7 @@ function isValidRoutingNumber(number) {
  * @param {String[]} toBeValidated
  * @returns {Boolean[]}
  */
-function getCharacterLimitErrors(limit, toBeValidated) {
+function doesFailCharacterLimit(limit, toBeValidated) {
     return _.map(toBeValidated, x => x.length > limit);
 }
 
@@ -334,5 +334,5 @@ export {
     isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
-    getCharacterLimitErrors,
+    doesFailCharacterLimit,
 };
