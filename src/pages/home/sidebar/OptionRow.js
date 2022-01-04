@@ -173,7 +173,7 @@ const OptionRow = (props) => {
                                                 ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isBusinessChatRoom={props.option.isBusinessChatRoom}
+                                        isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
                                     />
                                 )
@@ -185,7 +185,7 @@ const OptionRow = (props) => {
                                     tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isBusinessChatRoom}
+                                    shouldUseFullTitle={props.option.isChatRoom}
                                 />
                                 {props.option.alternateText ? (
                                     <Text

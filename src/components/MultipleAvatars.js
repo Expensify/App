@@ -17,7 +17,7 @@ const propTypes = {
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether this avatar is for a business room */
-    isBusinessChatRoom: PropTypes.bool,
+    isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
@@ -27,7 +27,7 @@ const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    isBusinessChatRoom: false,
+    isChatRoom: false,
     isArchivedRoom: false,
 };
 
@@ -49,7 +49,7 @@ const MultipleAvatars = (props) => {
                 <Avatar
                     source={props.avatarImageURLs[0]}
                     size={props.size}
-                    isBusinessChatRoom={props.isBusinessChatRoom}
+                    isChatRoom={props.isChatRoom}
                     isArchivedRoom={props.isArchivedRoom}
                 />
             </View>

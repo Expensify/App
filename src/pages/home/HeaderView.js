@@ -85,8 +85,8 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isBusinessChatRoom = ReportUtils.isChatRoom(props.report);
-    const title = isBusinessChatRoom
+    const isChatRoom = ReportUtils.isChatRoom(props.report);
+    const title = isChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -122,7 +122,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (isBusinessChatRoom) {
+                                if (isChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -135,7 +135,7 @@ const HeaderView = (props) => {
                             <MultipleAvatars
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
-                                isBusinessChatRoom={isBusinessChatRoom}
+                                isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -145,9 +145,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isBusinessChatRoom}
+                                    shouldUseFullTitle={isChatRoom}
                                 />
-                                {isBusinessChatRoom && (
+                                {isChatRoom && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,

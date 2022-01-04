@@ -32,5 +32,5 @@ export default PropTypes.shape({
     isPinned: PropTypes.bool,
 
     // Whether the report corresponds to a business room
-    isBusinessChatRoom: PropTypes.bool,
+    isChatRoom: PropTypes.bool,
 });
