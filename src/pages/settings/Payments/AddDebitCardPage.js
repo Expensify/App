@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {
     View,
-    ScrollView,
     TouchableOpacity,
 } from 'react-native';
 import lodashGet from 'lodash/get';
@@ -29,7 +28,6 @@ import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import * as Session from '../../../libs/actions/Session';
-import StatePicker from '../../../components/StatePicker';
 import FormScrollView from '../../../components/FormScrollView';
 
 const propTypes = {
@@ -151,11 +149,10 @@ class DebitCardPage extends Component {
             errors.addressStreet = true;
         }
 
-        
         if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
             errors.addressZipCode = true;
         }
-        
+
         if (!this.state.addressState) {
             errors.addressState = true;
         }
@@ -163,7 +160,7 @@ class DebitCardPage extends Component {
         if (_.isEmpty(this.state.password.trim())) {
             errors.password = true;
         }
-        
+
         if (!this.state.acceptedTerms) {
             errors.acceptedTerms = true;
         }
