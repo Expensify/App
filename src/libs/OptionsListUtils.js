@@ -244,7 +244,7 @@ function createOption(personalDetailList, report, {
             ? lastMessageText
             : ReportUtils.getBusinessRoomSubtitle(report, policies);
 
-        // Chat rooms do not use icons from their users for the avatar so  falling back on personalDetails
+        // Chat rooms do not use icons from their users for the avatar so falling back on personalDetails
         // doesn't make sense here
         icons = lodashGet(report, 'icons', ['']);
     } else {
