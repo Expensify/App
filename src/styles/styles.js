@@ -17,7 +17,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
-const expensiPicker = {
+const picker = {
     backgroundColor: 'transparent',
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
@@ -712,18 +712,18 @@ const styles = {
         },
     },
 
-    expensiPickerContainer: {
+    pickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
-    expensiPickerLabel: {
+    pickerLabel: {
         position: 'absolute',
         left: 12,
         top: 7,
     },
-    expensiPicker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
             right: 11,
@@ -732,12 +732,12 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
