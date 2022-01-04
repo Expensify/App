@@ -16,7 +16,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether this avatar is for a business room */
+    /** Whether this avatar is for a chat room */
     isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived room */

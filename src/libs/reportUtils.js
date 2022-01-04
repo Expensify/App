@@ -103,7 +103,7 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
- * Whether the provided report is a business room
+ * Whether the provided report is a chat room
  * @param {Object} report
  * @param {String} report.chatType
  * @returns {Boolean}

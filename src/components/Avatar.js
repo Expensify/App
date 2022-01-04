@@ -18,7 +18,7 @@ const propTypes = {
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
 
-    /** Whether this avatar is for a business room */
+    /** Whether this avatar is for a chat room */
     isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived default room */
