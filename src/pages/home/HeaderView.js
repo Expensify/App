@@ -85,7 +85,7 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isBusinessChatRoom = ReportUtils.isBusinessRoom(props.report);
+    const isBusinessChatRoom = ReportUtils.isChatRoom(props.report);
     const title = isBusinessChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');

@@ -158,7 +158,7 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isBusinessRoom(this.props.report)) {
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isChatRoom(this.props.report)) {
             return null;
         }
 

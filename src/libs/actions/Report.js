@@ -187,7 +187,7 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isBusinessRoom({chatType})
+    const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 

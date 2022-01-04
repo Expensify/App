@@ -538,7 +538,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isBusinessChatRoom = ReportUtils.isBusinessRoom(this.props.report);
+        const isBusinessChatRoom = ReportUtils.isChatRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {

@@ -108,7 +108,7 @@ function isUserCreatedPolicyRoom(report) {
  * @param {String} report.chatType
  * @returns {Boolean}
  */
-function isBusinessRoom(report) {
+function isChatRoom(report) {
     return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
 }
 
@@ -230,7 +230,7 @@ export {
     sortReportsByLastVisited,
     isDefaultRoom,
     isUserCreatedPolicyRoom,
-    isBusinessRoom,
+    isChatRoom,
     getBusinessRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,

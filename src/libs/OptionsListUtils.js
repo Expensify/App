@@ -216,7 +216,7 @@ function hasReportDraftComment(report) {
 function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const isBusinessChatRoom = ReportUtils.isBusinessRoom(report);
+    const isBusinessChatRoom = ReportUtils.isChatRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isBusinessChatRoom;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -390,7 +390,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report || !report.reportID || (_.isEmpty(logins) && !ReportUtils.isBusinessRoom(report))) {
+        if (!report || !report.reportID || (_.isEmpty(logins) && !ReportUtils.isChatRoom(report))) {
             return;
         }
 
@@ -411,7 +411,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (ReportUtils.isBusinessRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (ReportUtils.isChatRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -765,7 +765,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isBusinessRoom(report)) {
+    if (ReportUtils.isChatRoom(report)) {
         return [''];
     }
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
