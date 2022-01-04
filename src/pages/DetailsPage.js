@@ -66,7 +66,7 @@ const DetailsPage = (props) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(props.route.params.reportID);
-    const timezone = DateUtils.getLocalMomentFromTimestamp(props.preferredLocale, details.timezone.selected);
+    const timezone = DateUtils.getLocalMomentFromTimestamp(props.preferredLocale, null, details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
     const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
