@@ -35,7 +35,7 @@ const run = function () {
 
                 mergeabilityResolved = true;
                 console.log(`Merge information for #${pullRequestNumber} - mergeable: ${data.mergeable}, mergeable_state ${data.mergeable_state}`);
-                isMergeable = data.mergeable && data.mergeable_state === 'CLEAN';
+                isMergeable = data.mergeable && data.mergeable_state !== 'BLOCKED';
             })
             .catch((githubError) => {
                 mergeabilityResolved = true;
