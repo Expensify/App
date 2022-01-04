@@ -20,7 +20,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
@@ -263,7 +263,7 @@ class CompanyStep extends React.Component {
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
-                        <ExpensiPicker
+                        <Picker
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
