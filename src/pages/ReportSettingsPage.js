@@ -1,10 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
-import { compose } from 'underscore';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize from '../components/withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
+import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
