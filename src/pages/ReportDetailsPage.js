@@ -107,12 +107,12 @@ class ReportDetailsPage extends Component {
                 {
                     translationKey: 'common.invite',
                     icon: Expensicons.Plus,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                    action: () => { /* Placeholder for when inviting other users is built in */ },
                 },
                 {
                     translationKey: 'common.leaveRoom',
                     icon: Expensicons.SignOut,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                    action: () => { /* Placeholder for when leaving rooms is built in */ },
                 },
             ];
         } else {
