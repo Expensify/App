@@ -279,16 +279,12 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
 /**
  * User forgot the password so let's send them the link to reset their password
  *
- * @param {Boolean} showGrowl
  */
-function resetPassword(showGrowl) {
+function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});
-            if (showGrowl) {
-                Growl.show(Localize.translateLocal('addDebitCardPage.magicSignInListSent'), CONST.GROWL.SUCCESS, 3000);
-            }
         });
 }
 
