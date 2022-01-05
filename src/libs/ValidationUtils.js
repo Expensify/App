@@ -305,12 +305,12 @@ function isValidRoutingNumber(number) {
  * Checks if each string in array is of valid length and then returns true
  * for each string which exceeds the limit.
  *
- * @param {Number} limit
- * @param {String[]} toBeValidated
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
  * @returns {Boolean[]}
  */
-function doesFailCharacterLimit(limit, toBeValidated) {
-    return _.map(toBeValidated, x => x.length > limit);
+function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, x => x.length > maxLength);
 }
 
 export {
