@@ -25,6 +25,7 @@ import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -222,9 +223,9 @@ class RequestCallPage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            hasFirstNameError={this.state.firstNameError}
+                            hasFirstNameError={PersonalDetails.getMaxCharacterError(this.state.firstNameError)}
                             lastName={this.state.lastName}
-                            hasLastNameError={this.state.lastNameError}
+                            hasLastNameError={PersonalDetails.getMaxCharacterError(this.state.lastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mv4]}

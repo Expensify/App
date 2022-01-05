@@ -5,7 +5,6 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -19,14 +18,14 @@ const propTypes = {
     /** Used to prefill the firstName input, can also be used to make it a controlled input */
     firstName: PropTypes.string,
 
-    /** If first name input should show error */
-    hasFirstNameError: PropTypes.bool,
+    /** Error message to display below firstName input */
+    firstNameError: PropTypes.string,
 
     /** Used to prefill the lastName input, can also be used to make it a controlled input */
     lastName: PropTypes.string,
 
-    /** If last name input should show error */
-    hasLastNameError: PropTypes.bool,
+    /** Error message to display below lastName input */
+    lastNameError: PropTypes.string,
 
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
@@ -36,9 +35,9 @@ const propTypes = {
 };
 const defaultProps = {
     firstName: '',
-    hasFirstNameError: false,
+    firstNameError: '',
     lastName: '',
-    hasLastNameError: false,
+    lastNameError: '',
     style: {},
 };
 
@@ -50,7 +49,7 @@ const FullNameInputRow = (props) => {
                 <TextInput
                     label={props.translate('common.firstName')}
                     value={props.firstName}
-                    errorText={PersonalDetails.getMaxCharacterError(props.hasFirstNameError)}
+                    errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
                     placeholder={props.translate('profilePage.john')}
                 />
@@ -59,7 +58,7 @@ const FullNameInputRow = (props) => {
                 <TextInput
                     label={props.translate('common.lastName')}
                     value={props.lastName}
-                    errorText={PersonalDetails.getMaxCharacterError(props.hasLastNameError)}
+                    errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
                     placeholder={props.translate('profilePage.doe')}
                 />
