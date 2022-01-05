@@ -11,7 +11,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
@@ -155,7 +155,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             autoCapitalize="none"
                         />
                         <View style={styles.mb5}>
-                            <ExpensiPicker
+                            <Picker
                                 value={this.state.policyID}
                                 label={this.props.translate('workspace.common.workspace')}
                                 placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
@@ -163,7 +163,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 onChange={this.onWorkspaceSelect}
                             />
                         </View>
-                        <ExpensiPicker
+                        <Picker
                             value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
