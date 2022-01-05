@@ -6,7 +6,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import ExpensifyText from '../../components/ExpensifyText';
-import TextLink from '../../components/TextLink';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -109,27 +108,27 @@ const AboutPage = (props) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <TextLink
+                        <ExpensifyText
                             style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.TERMS_URL}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </TextLink>
+                        </ExpensifyText>
                         {' '}
                         {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <TextLink
+                        <ExpensifyText
                             style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.PRIVACY_URL}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </TextLink>
+                        </ExpensifyText>
                         .
                     </ExpensifyText>
                 </View>
