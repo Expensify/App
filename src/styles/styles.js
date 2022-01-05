@@ -865,10 +865,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    resendLinkButton: {
-        minWidth: 108,
-    },
-
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
