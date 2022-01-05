@@ -213,9 +213,9 @@ class ProfilePage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.firstNameError)}
+                            hasFirstNameError={PersonalDetails.getMaxCharacterError(this.state.firstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.lastNameError)}
+                            hasLastNameError={PersonalDetails.getMaxCharacterError(this.state.lastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}

@@ -5,6 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiTextInput from './ExpensiTextInput';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -18,14 +19,14 @@ const propTypes = {
     /** Used to prefill the firstName input, can also be used to make it a controlled input */
     firstName: PropTypes.string,
 
-    /** Error message to display below firstName input */
-    firstNameError: PropTypes.string,
+    /** If first name input should show error */
+    hasFirstNameError: PropTypes.bool,
 
     /** Used to prefill the lastName input, can also be used to make it a controlled input */
     lastName: PropTypes.string,
 
-    /** Error message to display below lastName input */
-    lastNameError: PropTypes.string,
+    /** If last name input should show error */
+    hasLastNameError: PropTypes.bool,
 
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
@@ -35,9 +36,9 @@ const propTypes = {
 };
 const defaultProps = {
     firstName: '',
-    firstNameError: '',
+    hasFirstNameError: false,
     lastName: '',
-    lastNameError: '',
+    hasLastNameError: false,
     style: {},
 };
 
@@ -49,7 +50,7 @@ const FullNameInputRow = (props) => {
                 <ExpensiTextInput
                     label={props.translate('common.firstName')}
                     value={props.firstName}
-                    errorText={props.firstNameError}
+                    errorText={PersonalDetails.getMaxCharacterError(props.hasFirstNameError)}
                     onChangeText={props.onChangeFirstName}
                     placeholder={props.translate('profilePage.john')}
                 />
@@ -58,7 +59,7 @@ const FullNameInputRow = (props) => {
                 <ExpensiTextInput
                     label={props.translate('common.lastName')}
                     value={props.lastName}
-                    errorText={props.lastNameError}
+                    errorText={PersonalDetails.getMaxCharacterError(props.hasLastNameError)}
                     onChangeText={props.onChangeLastName}
                     placeholder={props.translate('profilePage.doe')}
                 />
