@@ -115,27 +115,27 @@ const AboutPage = (props) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <ExpensifyText
+                        <Text
                             style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.TERMS_URL}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </ExpensifyText>
+                        </Text>
                         {' '}
                         {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <ExpensifyText
+                        <Text
                             style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.PRIVACY_URL}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </ExpensifyText>
+                        </Text>
                         .
                     </Text>
                 </View>

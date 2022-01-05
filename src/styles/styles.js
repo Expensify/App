@@ -729,7 +729,7 @@ const styles = {
             right: 11,
             zIndex: -1,
         },
-        
+
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
