@@ -21,6 +21,7 @@ import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
+import Exit from '../../../assets/images/exit.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
@@ -56,7 +57,6 @@ import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
-import Exit from '../../../assets/images/exit.svg';
 import Sync from '../../../assets/images/sync.svg';
 import Transfer from '../../../assets/images/transfer.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
@@ -92,6 +92,7 @@ export {
     Download,
     Emoji,
     Exclamation,
+    Exit,
     Eye,
     EyeDisabled,
     ExpensifyCard,
