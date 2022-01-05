@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
@@ -161,7 +161,7 @@ class PasswordPage extends Component {
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.currentPassword')}*`}
                                 ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
@@ -176,7 +176,7 @@ class PasswordPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.newPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
