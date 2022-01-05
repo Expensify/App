@@ -5,19 +5,23 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
+import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import FixedFooter from '../../../components/FixedFooter';
+import CloseAccountPopover from '../../../components/CloseAccountPopover';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /* The user's primary email or phone number */
     accountPhoneOrEmail: PropTypes.string,
 
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -33,6 +37,7 @@ class CloseAccountPage extends Component {
             reasonForLeaving: 'a',
             phoneOrEmail: 'b',
             loading: false,
+            shouldShowPopover: false,
         };
 
         this.submitForm = this.submitForm.bind(this);
@@ -89,6 +94,15 @@ class CloseAccountPage extends Component {
                             isDisabled={this.props.accountPhoneOrEmail !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
+                    <CloseAccountPopover
+                        isVisible={this.state.shouldShowPopover}
+                        anchorPosition={styles.fullscreenCardWeb}
+                        onConfirm={() => {
+                            this.setState({
+                                shouldShowPopover: false,
+                            });
+                        }}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -99,4 +113,7 @@ CloseAccountPage.propTypes = propTypes;
 CloseAccountPage.defaultProps = defaultProps;
 CloseAccountPage.displayName = 'CloseAccountPage';
 
-export default withLocalize(CloseAccountPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(CloseAccountPage);
