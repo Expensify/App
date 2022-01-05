@@ -36,3 +36,5 @@ jobs:
       - run: npm run test
         env:
           CI: true
+
+      - run: tests/unit/getPullRequestsMergedBetweenTest.sh
