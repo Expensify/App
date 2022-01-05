@@ -8,7 +8,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -46,7 +46,7 @@ class ReportTypingIndicator extends React.Component {
     render() {
         const numUsersTyping = _.size(this.state.usersTyping);
 
-        // Decide on the ExpensifyText element that will hold the display based on the number of users that are typing.
+        // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
             case 0:
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
@@ -54,24 +54,24 @@ class ReportTypingIndicator extends React.Component {
                 return (
                     <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
                         <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
-                            <ExpensifyText
+                            <Text
                                 style={[styles.chatItemComposeSecondaryRowSubText]}
                                 numberOfLines={1}
                             >
                                 {PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                         <View style={[styles.flexShrink0]}>
-                            <ExpensifyText style={[styles.chatItemComposeSecondaryRowSubText]}>
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
                                 {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                 );
             default:
                 return (
                     <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <ExpensifyText
+                        <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
                                 styles.chatItemComposeSecondaryRowOffset,
@@ -80,7 +80,7 @@ class ReportTypingIndicator extends React.Component {
                         >
                             {this.props.translate('reportTypingIndicator.multipleUsers')}
                             {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 );
         }

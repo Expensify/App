@@ -202,7 +202,10 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(() => navigateToPolicy(newPolicyID));
+        .then(() => {
+            Navigation.dismissModal();
+            navigateToPolicy(newPolicyID);
+        });
 }
 
 /**

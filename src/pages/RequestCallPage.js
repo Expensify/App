@@ -12,15 +12,15 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import ExpensifyButton from '../components/ExpensifyButton';
+import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
 import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
-import ExpensiTextInput from '../components/ExpensiTextInput';
-import ExpensifyText from '../components/ExpensifyText';
+import TextInput from '../components/TextInput';
+import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
@@ -214,12 +214,12 @@ class RequestCallPage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <ExpensifyText style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</ExpensifyText>
+                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
                             <RequestCallIcon width={160} height={100} style={styles.flex1} />
                         </View>
-                        <ExpensifyText style={[styles.mb4]}>
+                        <Text style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
-                        </ExpensifyText>
+                        </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             firstNameError={this.state.firstNameError}
@@ -230,7 +230,7 @@ class RequestCallPage extends Component {
                             style={[styles.mv4]}
                         />
                         <View style={styles.mt4}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.phoneNumber')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
@@ -243,7 +243,7 @@ class RequestCallPage extends Component {
                         </View>
                     </ScrollView>
                     <FixedFooter>
-                        <ExpensifyButton
+                        <Button
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}

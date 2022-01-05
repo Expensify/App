@@ -12,7 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
@@ -20,7 +20,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -287,7 +287,7 @@ class WorkspaceInvitePage extends React.Component {
                         </View>
                         <View style={[styles.flexShrink0]}>
                             <View style={[styles.ph5, styles.pv3]}>
-                                <ExpensiTextInput
+                                <TextInput
                                     label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                     autoCompleteType="off"
                                     autoCorrect={false}
@@ -320,11 +320,11 @@ class WorkspaceInvitePage extends React.Component {
                             >
                                 {({hovered, pressed}) => (
                                     <View style={[styles.flexRow]}>
-                                        <ExpensifyText
+                                        <Text
                                             style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
                                         >
                                             {this.props.translate('common.privacyPolicy')}
-                                        </ExpensifyText>
+                                        </Text>
                                     </View>
                                 )}
                             </Pressable>

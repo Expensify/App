@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import styles from '../../styles/styles';
-import * as Expensicons from '../Icon/Expensicons';
+import Icon from '../../Icon';
+import styles from '../../../styles/styles';
+import * as Expensicons from '../../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */

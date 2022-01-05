@@ -223,11 +223,11 @@ created to house a collection of items in plural form and using camelCase (eg: p
 ## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
 
-- If you export a constant named `CONST` it's file/directory should be named the `CONST`.
-- If you export a component named `Text` the file/directory should be named `Text`.
-- If you export a function named `guid` the file/directory should be named `guid`.
+- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
+- If you export a component named `Text`, the file/directory should be named `Text`.
+- If you export a function named `guid`, the file/directory should be named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- HOCs should be named in camelCase like withOnyx.
+- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
