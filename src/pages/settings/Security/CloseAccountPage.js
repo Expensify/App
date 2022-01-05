@@ -7,9 +7,9 @@ import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import FixedFooter from '../../../components/FixedFooter';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -62,17 +62,17 @@ class CloseAccountPage extends Component {
                             styles.p5,
                         ]}
                     >
-                        <ExpensifyText>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</ExpensifyText>
-                        <ExpensiTextInput
+                        <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <TextInput
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.typeMessageHere')}
                             containerStyles={[styles.mt5]}
                         />
-                        <ExpensifyText style={[styles.mt5]}>
+                        <Text style={[styles.mt5]}>
                             {this.props.translate('closeAccountPage.closeAccountWarning')}
-                        </ExpensifyText>
-                        <ExpensiTextInput
+                        </Text>
+                        <TextInput
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail})}
                             label={this.props.translate('loginForm.phoneOrEmail')}
