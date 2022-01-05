@@ -12,16 +12,16 @@ const propTypes = {
 
 
 const ReportSettingsPage = (props) => {
-  return (
-    <ScreenWrapper>
-      <HeaderWithCloseButton
-        title={this.props.translate('common.settings')}
-        shouldShowBackButton
-        onBackButtonPress={() => Navigation.goBack()}
-        onCloseButtonPress={() => NavigationContainer.dismissModal(true)}
-      />
-    </ScreenWrapper>
-  );
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={this.props.translate('common.settings')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={() => NavigationContainer.dismissModal(true)}
+            />
+        </ScreenWrapper>
+    );
 }
 
 ReportSettingsPage.propTypes = propTypes;
