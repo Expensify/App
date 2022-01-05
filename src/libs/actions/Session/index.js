@@ -20,6 +20,7 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
+import Growl from '../../Growl';
 
 let credentials = {};
 Onyx.connect({
@@ -277,12 +278,17 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
 
 /**
  * User forgot the password so let's send them the link to reset their password
+ *
+ * @param {Boolean} showGrowl
  */
-function resetPassword() {
+function resetPassword(showGrowl) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});
+            if (showGrowl) {
+                Growl.show(Localize.translateLocal('addDebitCardPage.magicSignInListSent'), CONST.GROWL.SUCCESS, 3000);
+            }
         });
 }
 

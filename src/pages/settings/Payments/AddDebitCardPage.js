@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -39,12 +38,6 @@ const propTypes = {
         submitting: PropTypes.bool,
     }),
 
-    /** The credentials of the person entering the password */
-    credentials: PropTypes.shape({
-        login: PropTypes.string,
-        password: PropTypes.string,
-    }),
-
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
@@ -54,7 +47,6 @@ const defaultProps = {
         error: '',
         submitting: false,
     },
-    credentials: {},
 };
 
 class DebitCardPage extends Component {
@@ -197,10 +189,6 @@ class DebitCardPage extends Component {
     }
 
     render() {
-        const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
-        const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
-        const showMagicSigninLinkMessage = this.props.account.forgotPassword;
-
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -299,23 +287,17 @@ class DebitCardPage extends Component {
                                     autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                                     secureTextEntry
                                 />
-                                {showMagicSigninLinkMessage
-                                    ? (
-                                        <Text style={[styles.pt2, styles.textLabelSupporting]}>
-                                            {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login})}
+                                <Text style={[styles.textMicroSupporting, styles.pt2]}>
+                                    {this.props.translate('addDebitCardPage.forgotPassword')}
+                                    <TouchableOpacity
+                                        onPress={() => Session.resetPassword(true)}
+                                    >
+                                        <Text style={[styles.link, styles.textMicro]}>
+                                            {this.props.translate('addDebitCardPage.magicSignInLink')}
                                         </Text>
-                                    ) : (
-                                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                                            <TouchableOpacity
-                                                style={[styles.mt2]}
-                                                onPress={Session.resetPassword}
-                                            >
-                                                <Text style={[styles.link, styles.textMicro]}>
-                                                    {this.props.translate('addDebitCardPage.forgotPassword')}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
+                                    </TouchableOpacity>
+                                    !
+                                </Text>
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
@@ -372,8 +354,6 @@ export default compose(
         addDebitCardForm: {
             key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
         },
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
     withLocalize,
 )(DebitCardPage);

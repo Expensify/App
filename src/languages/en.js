@@ -320,7 +320,9 @@ export default {
         expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
-        forgotPassword: 'Forgot password?',
+        forgotPassword: 'Forgot your password? Get a ',
+        magicSignInLink: 'magic sign-in link',
+        magicSignInListSent: 'Magic sign-in link sent!',
         error: {
             invalidName: 'Please enter a valid name',
             addressZipCode: 'Please enter a valid zip code',
