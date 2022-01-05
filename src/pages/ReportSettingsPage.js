@@ -1,17 +1,15 @@
-import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
-import withLocalize from '../components/withLocalize';
-import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
 
     /** The active report */
     report: PropTypes.shape({
@@ -21,21 +19,21 @@ const propTypes = {
         /** The report name */
         reportName: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 
-const ReportSettingsPage = (props) => {
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={this.props.translate('common.settings')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => NavigationContainer.dismissModal(true)}
-            />
-        </ScreenWrapper>
-    );
-}
+const ReportSettingsPage = props => (
+    <ScreenWrapper>
+        <HeaderWithCloseButton
+            title={props.translate('common.settings')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+        />
+    </ScreenWrapper>
+);
 
 ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
