@@ -111,7 +111,7 @@ class ReportDetailsPage extends Component {
                 },
                 {
                     translationKey: 'common.leaveRoom',
-                    icon: Expensicons.ArrowRight,
+                    icon: Expensicons.SignOut,
                     action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
                 },
             ];
