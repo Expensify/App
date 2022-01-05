@@ -22,7 +22,7 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -258,7 +258,7 @@ class AddPlaidBankAccount extends React.Component {
                         </View>
                         {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
                             <View style={[styles.mb5]}>
-                                <ExpensiTextInput
+                                <TextInput
                                     label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
                                     secureTextEntry
                                     value={this.state.password}

@@ -18,7 +18,7 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
@@ -86,7 +86,7 @@ class AddPayPalMePage extends React.Component {
                             <Text style={[styles.mb4]}>
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
                                 autoCompleteType="off"
                                 autoCorrect={false}

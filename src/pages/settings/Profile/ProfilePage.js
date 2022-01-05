@@ -21,7 +21,7 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
@@ -237,7 +237,7 @@ class ProfilePage extends Component {
                             />
                             {this.state.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         value={this.state.pronouns}
                                         onChangeText={pronouns => this.setState({pronouns})}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}

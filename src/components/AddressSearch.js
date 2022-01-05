@@ -6,7 +6,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 
@@ -25,7 +25,7 @@ const propTypes = {
     /** A callback function when the value of this field has changed */
     onChange: PropTypes.func.isRequired,
 
-    /** Customize the ExpensiTextInput container */
+    /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
@@ -110,7 +110,7 @@ const AddressSearch = (props) => {
                 url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
             }}
             textInputProps={{
-                InputComp: ExpensiTextInput,
+                InputComp: TextInput,
                 label: props.label,
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
