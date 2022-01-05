@@ -244,6 +244,7 @@ class BankAccountStep extends React.Component {
                         // defaultValues={this.props.reimbursementAccountDraft}
                         validate={this.validate}
                         onSubmit={this.addManualAccount}
+                        buttonText={'Save & continue'}
                         style={[styles.flex1, styles.mh5]}
                     >
                         <Text style={[styles.mb5]}>
@@ -289,14 +290,6 @@ class BankAccountStep extends React.Component {
                                 </View>
                             )}
                             // hasError={this.getErrors().hasAcceptedTerms}
-                        />
-                        <ExpensiFormFormAlertWithSubmitButton
-                            success
-                            pressOnEnter
-                            buttonText={"Save & continue"}
-                            // onPress={props.onSubmit}
-                            // isDisabled={props.isDisabled}
-                            // isLoading={props.isLoading}
                         />
                     </ExpensiForm>
                 )}

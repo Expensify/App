@@ -5,6 +5,7 @@ import * as FormAction from '../libs/actions/ExpensiForm';
 import {ScrollView, View} from 'react-native';
 import styles from '../styles/styles';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiFormFormAlertWithSubmitButton from './ExpensiFormFormAlertWithSubmitButton';
 
 const propTypes = {
     name: PropTypes.string.isRequired,
@@ -114,6 +115,7 @@ class ExpensiForm extends React.Component {
     }
 
     render() {
+        console.log(this.props.draft)
         const childrenWrapperWithProps = children => (
             React.Children.map(children, (child) => {
                 // Do nothing if child is not a valid React element
@@ -166,6 +168,12 @@ class ExpensiForm extends React.Component {
                     {/* Form elements */}
                     <View style={[this.props.style]}>
                         {childrenWrapperWithProps(this.props.children)}
+                        <ExpensiFormFormAlertWithSubmitButton
+                            buttonText={this.props.buttonText}
+                            isLoading={this.state.isLoading}
+                            alert={this.state.alert}
+                            onSubmit={this.onSubmit}
+                        />
                     </View>
                 </ScrollView>
             </>
@@ -178,6 +186,6 @@ ExpensiForm.defaultProps = defaultProps;
 
 export default withOnyx({
     draft: {
-        key: name => name,
+        key: ({name}) => `${name}_draft`,
     }
 })(ExpensiForm);;

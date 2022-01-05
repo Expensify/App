@@ -98,9 +98,8 @@ const ExpensiFormFormAlertWithSubmitButton = (props) => {
     );
 };
 
-ExpensiFormFormAlertWithSubmitButton.EXPENSIFORM_SUBMIT_INPUT = true;
 ExpensiFormFormAlertWithSubmitButton.propTypes = propTypes;
 ExpensiFormFormAlertWithSubmitButton.defaultProps = defaultProps;
-ExpensiFormFormAlertWithSubmitButton.displayName = 'ExpensiFormSubmit';
+ExpensiFormFormAlertWithSubmitButton.displayName = 'ExpensiFormFormAlertWithSubmitButton';
 
 export default withLocalize(ExpensiFormFormAlertWithSubmitButton);
