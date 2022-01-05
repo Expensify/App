@@ -11,7 +11,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import * as User from '../../libs/actions/User';
@@ -19,7 +19,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 
 const propTypes = {
@@ -66,14 +66,14 @@ const PreferencesPage = (props) => {
             />
             <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
+                    <Text style={[styles.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
-                    </ExpensifyText>
+                    </Text>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>
-                            <ExpensifyText>
+                            <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
@@ -83,7 +83,7 @@ const PreferencesPage = (props) => {
                         </View>
                     </View>
                     <View style={[styles.mb2, styles.w100]}>
-                        <ExpensiPicker
+                        <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
@@ -92,9 +92,9 @@ const PreferencesPage = (props) => {
                             value={props.priorityMode}
                         />
                     </View>
-                    <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[props.priorityMode].description}
-                    </ExpensifyText>
+                    </Text>
                     <View style={[styles.mb2]}>
                         <LocalePicker />
                     </View>
@@ -103,14 +103,14 @@ const PreferencesPage = (props) => {
                     {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
                     {props.environment === CONST.ENVIRONMENT.STAGING && (
                         <>
-                            <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
                                 Test Preferences
-                            </ExpensifyText>
+                            </Text>
                             <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <ExpensifyText>
+                                    <Text>
                                         Use Secure Staging Server
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch

@@ -92,6 +92,9 @@ export default {
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
         decline: 'Rechazar',
+        transferBalance: 'Transferencia de saldo',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Ingresar manualmente',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -133,10 +136,10 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
+        welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -272,7 +275,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Seguridad',
@@ -296,16 +299,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
-        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
+        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
-        confirmNewPassword: 'Confirma la nueva contraseña',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
-            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
-            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
     addPayPalMePage: {
@@ -342,9 +343,27 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        allSet: 'Todo listo!',
+        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
+        gotIt: 'Gracias!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
+        instant: 'Instante',
+        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        ach: '1-3 días laborales',
+        achSummary: 'Sin cargo',
+        whichAccount: '¿Que cuenta?',
+        fee: 'Tarifa',
+        failedTransfer: 'No se pudo transferir el saldo',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Elegir cuenta',
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
+        addDebitCard: 'Agregar tarjeta de débito',
+        addBankAccount: 'Agregar cuenta de banco',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
@@ -418,6 +437,7 @@ export default {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
+        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
         unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
         newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
@@ -434,10 +454,8 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
-        confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
-        passwordsDontMatch: 'Las contraseñas deben coincidir',
-        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
@@ -834,6 +852,7 @@ export default {
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
+            copy: 'Copiar comentario',
         },
     },
     guides: {
