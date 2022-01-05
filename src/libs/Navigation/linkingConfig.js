@@ -132,6 +132,11 @@ export default {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
                 },
             },
+            Report_Settings: {
+                screens: {
+                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,

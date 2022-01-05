@@ -72,7 +72,7 @@ export default {
     ) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
-    REPORT_SETTINGS: 'r/:reportID/settigns',
+    REPORT_SETTINGS: 'r/:reportID/settings',
     getReportSettingsRoute: reportID => `r/${reportID}/settings`,
     LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
