@@ -8,6 +8,19 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** The personal details of the person who is logged in */
+    personalDetails: personalDetailsPropType.isRequired,
+
+    /** The active report */
+    report: PropTypes.shape({
+        /** The list of icons */
+        icons: PropTypes.arrayOf(PropTypes.string),
+
+        /** The report name */
+        reportName: PropTypes.string,
+    }).isRequired,
 };
 
 
@@ -28,7 +41,13 @@ ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
-  withLocalize,
-  withOnyx({
-  }),
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+    }),
 )(ReportSettingsPage);
