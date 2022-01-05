@@ -7,6 +7,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import CONST from '../../../../CONST';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -41,7 +42,7 @@ export default [
         icon: Expensicons.Clipboard,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
+        shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
