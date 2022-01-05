@@ -13,7 +13,9 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const result = execSync(command).toString().trim();
-    const json = `[${result}]`.replace('},]', '}]');
+    const sanitizedOutput = result
+        .replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+    const json = `[${sanitizedOutput}]`.replace('},]', '}]');
     return JSON.parse(json);
 }
 
