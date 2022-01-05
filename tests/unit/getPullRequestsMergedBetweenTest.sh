@@ -103,16 +103,18 @@ git add package.json package-lock.json
 git commit -m "Update version to $(printVersion)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #2 from Expensify/version-bump"
+info "Merged PR #2 to main"
 git branch -d version-bump
-success "Version bumped to 1.0.2 on main"
+success "Version bumped to $(printVersion) on main"
 
 # Merge main into staging
 info "Merging main into staging..."
 git checkout staging
 git checkout -b update-staging-from-main
-git merge -Xtheirs main
+git merge --no-edit -Xtheirs main
 git checkout staging
 git merge update-staging-from-main --no-ff -m "Merge pull request #3 from Expensify/update-staging-from-main"
+info "Merged PR #3 to staging"
 git branch -d update-staging-from-main
 success "Merged main into staging!"
 
@@ -129,6 +131,46 @@ output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
 assert_equal "$output" "[ '1' ]"
 
 success "Scenario #1 completed successfully!"
+
+### Scenario 2: Lock the deploy checklist
+title "Scenario #2: Locking the deploy checklist"
+
+# Bump the version to 1.1.0 on main
+info "Bumping the version to 1.1.0 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.0 -m "Update version to 1.1.0"
+git add package.json package-lock.json
+git commit -m "Update version to $(printVersion)"
+git checkout main
+git merge version-bump --no-ff -m "Merge pull request #4 from Expensify/version-bump"
+info "Merged PR #4 to main"
+git br -d version-bump
+success "Version bumped to $(printVersion) on main!"
+
+# Merge main into staging
+info "Merging main into staging..."
+git checkout staging
+git checkout -b update-staging-from-main
+git merge --no-edit -Xtheirs main
+git checkout staging
+git merge update-staging-from-main --no-ff -m "Merge pull request #5 from Expensify/update-staging-from-main"
+info "Merged PR #5 into main"
+git branch -d update-staging-from-main
+success "Merged main into staging!"
+
+# Tag the new version on staging
+info "Tagging the new version on staging"
+git checkout staging
+git tag "$(printVersion)"
+success "Successfully created tag $(printVersion)"
+
+# Verify output
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
+assert_equal "$output" "[ '1' ]"
+
+success "Scenario #2 completed successfully!"
 
 ### Cleanup
 title "Cleaning up..."
