@@ -27,8 +27,8 @@ fi
 ### Setup
 title "Starting setup"
 
-info "Creating new DummyRepo..."
 DUMMY_DIR="$TEST_DIR/../../DummyRepo"
+info "Creating new DummyRepo at $DUMMY_DIR..."
 mkdir "$DUMMY_DIR"
 cd "$DUMMY_DIR" || exit 1
 success "Successfully created DummyRepo at $(pwd)"
