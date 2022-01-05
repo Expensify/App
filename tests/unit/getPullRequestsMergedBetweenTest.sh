@@ -200,7 +200,7 @@ git add PR7.txt
 git commit -m "Changes from PR #7"
 git checkout main
 git merge pr-7 --no-ff -m "Merge pull request #7 from Expensify/pr-7"
-PR_7_MERGE_COMMIT="$(git log --format='%H' HEAD^..HEAD)"
+PR_7_MERGE_COMMIT="$(git log -1 --format='%H')"
 info "Merged PR #7 into main"
 git branch -d pr-7
 success "Created PR #7 and merged it to main!"
@@ -213,7 +213,7 @@ git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #8 from Expensify/version-bump"
-VERSION_BUMP_MERGE_COMMIT="$(git log --format='%H' HEAD^..HEAD)"
+VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
 info "Merged PR #8 into main"
 git br -d version-bump
 success "Bumped version to 1.1.1 on main!"
