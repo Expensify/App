@@ -111,7 +111,7 @@ class ReportDetailsPage extends Component {
                 },
                 {
                     translationKey: 'common.leaveRoom',
-                    icon: Expensicons.SignOut,
+                    icon: Expensicons.Exit,
                     action: () => { /* Placeholder for when leaving rooms is built in */ },
                 },
             ];

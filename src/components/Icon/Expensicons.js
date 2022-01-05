@@ -56,7 +56,7 @@ import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
-import SignOut from '../../../assets/images/sign-out.svg';
+import Exit from '../../../assets/images/exit.svg';
 import Sync from '../../../assets/images/sync.svg';
 import Transfer from '../../../assets/images/transfer.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
@@ -127,7 +127,7 @@ export {
     ReceiptSearch,
     RotateLeft,
     Send,
-    SignOut,
+    Exit,
     Sync,
     Transfer,
     ThreeDots,
