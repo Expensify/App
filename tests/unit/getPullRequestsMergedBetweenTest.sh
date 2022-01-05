@@ -145,7 +145,7 @@ git commit -m "Update version to $(print_version)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #4 from Expensify/version-bump"
 info "Merged PR #4 to main"
-git br -d version-bump
+git branch -d version-bump
 success "Version bumped to $(print_version) on main!"
 
 # Merge main into staging
@@ -215,7 +215,7 @@ git checkout main
 git merge version-bump --no-ff -m "Merge pull request #8 from Expensify/version-bump"
 VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
 info "Merged PR #8 into main"
-git br -d version-bump
+git branch -d version-bump
 success "Bumped version to 1.1.1 on main!"
 
 info "Cherry picking PR #7 and the version bump to staging..."
@@ -225,7 +225,7 @@ git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_CO
 git cherry-pick -S -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
 git checkout staging
 git merge cherry-pick-staging-7 --no-ff -m "Merge pull request #9 from Expensify/cherry-pick-staging-7"
-git br -d cherry-pick-staging-7
+git branch -d cherry-pick-staging-7
 info "Merged PR #9 into staging"
 success "Successfully cherry-picked PR #7 to staging!"
 
@@ -252,7 +252,7 @@ git merge --no-edit -Xtheirs staging
 git checkout production
 git merge update-production-from-staging --no-ff -m "Merge pull request #10 from Expensify/update-production-from-staging"
 info "Merged PR #10 into production"
-git br -d update-production-from-staging
+git branch -d update-production-from-staging
 success "Updated production from staging!"
 
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
@@ -272,7 +272,7 @@ git commit -m "Update version to $(print_version)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #11 from Expensify/version-bump"
 info "Merged PR #11 into main"
-git br -d version-bump
+git branch -d version-bump
 success "Successfully updated version to 1.1.2 on main!"
 
 info "Updating staging from main..."
