@@ -5,7 +5,7 @@ getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
 
 source "$TEST_DIR/../shellUtils.sh"
 
-function printVersion {
+function print_version {
   < package.json  jq -r .version
 }
 
@@ -70,21 +70,21 @@ success "Initialized Git repo!"
 
 info "Creating initial tag..."
 git checkout staging
-git tag "$(printVersion)"
+git tag "$(print_version)"
 git checkout main
-success "Created initial tag $(printVersion)"
+success "Created initial tag $(print_version)"
 
 success "Setup complete!"
 
-### Scenario #1: Merge a pull request when the checklist is unlocked
-title "Starting scenario #1: Merge a pull request while the checklist is unlocked"
+
+title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
 # Create "PR 1", and merge that PR to main.
 info "Creating PR #1"
 git checkout main
 git checkout -b pr-1
-echo "Changes from PR #1" >> CHANGELOG.txt
-git add CHANGELOG.txt
+echo "Changes from PR #1" >> PR1.txt
+git add PR1.txt
 git commit -m "Changes from PR #1"
 success "Created PR #1 in branch pr-1"
 
@@ -100,12 +100,12 @@ git checkout main
 git checkout -b version-bump
 npm --no-git-tag-version version 1.0.2 -m "Update version to 1.0.2"
 git add package.json package-lock.json
-git commit -m "Update version to $(printVersion)"
+git commit -m "Update version to $(print_version)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #2 from Expensify/version-bump"
 info "Merged PR #2 to main"
 git branch -d version-bump
-success "Version bumped to $(printVersion) on main"
+success "Version bumped to $(print_version) on main"
 
 # Merge main into staging
 info "Merging main into staging..."
@@ -121,9 +121,9 @@ success "Merged main into staging!"
 # Tag staging
 info "Tagging new version..."
 git checkout staging
-git tag "$(printVersion)"
+git tag "$(print_version)"
 git checkout main
-success "Created new tag $(printVersion)"
+success "Created new tag $(print_version)"
 
 # Verify output
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
@@ -132,7 +132,7 @@ assert_equal "$output" "[ '1' ]"
 
 success "Scenario #1 completed successfully!"
 
-### Scenario 2: Lock the deploy checklist
+
 title "Scenario #2: Locking the deploy checklist"
 
 # Bump the version to 1.1.0 on main
@@ -141,12 +141,12 @@ git checkout main
 git checkout -b version-bump
 npm --no-git-tag-version version 1.1.0 -m "Update version to 1.1.0"
 git add package.json package-lock.json
-git commit -m "Update version to $(printVersion)"
+git commit -m "Update version to $(print_version)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #4 from Expensify/version-bump"
 info "Merged PR #4 to main"
 git br -d version-bump
-success "Version bumped to $(printVersion) on main!"
+success "Version bumped to $(print_version) on main!"
 
 # Merge main into staging
 info "Merging main into staging..."
@@ -160,17 +160,86 @@ git branch -d update-staging-from-main
 success "Merged main into staging!"
 
 # Tag the new version on staging
-info "Tagging the new version on staging"
+info "Tagging the new version on staging..."
 git checkout staging
-git tag "$(printVersion)"
-success "Successfully created tag $(printVersion)"
+git tag "$(print_version)"
+success "Successfully created tag $(print_version)"
 
 # Verify output
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.0"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.0')
 assert_equal "$output" "[ '1' ]"
 
 success "Scenario #2 completed successfully!"
+
+
+title "Scenario #3: Merge a pull request with the checklist locked, but don't CP it"
+
+info "Creating PR #6 and merging it into main..."
+git checkout main
+git checkout -b pr-6
+echo "Changes from PR #6" >> PR6.txt
+git add PR6.txt
+git commit -m "Changes from PR #6"
+git checkout main
+git merge pr-6 --no-ff -m "Merge pull request #6 from Expensify/pr-6"
+info "Merged PR #6 into main"
+git branch -d pr-6
+success "Created PR #6 and merged it to main!"
+
+success "Scenario #3 completed successfully!"
+
+
+title "Scenario #4: Merge a pull request with the checklist locked and CP it to staging"
+
+info "Creating PR #7 and merging it into main..."
+git checkout main
+git checkout -b pr-7
+echo "Changes from PR #7" >> PR7.txt
+git add PR7.txt
+git commit -m "Changes from PR #7"
+git checkout main
+git merge pr-7 --no-ff -m "Merge pull request #7 from Expensify/pr-7"
+PR_7_MERGE_COMMIT="$(git log --format='%H' HEAD^..HEAD)"
+info "Merged PR #7 into main"
+git branch -d pr-7
+success "Created PR #7 and merged it to main!"
+
+info "Bumping version to 1.1.1 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
+git add package.json package-lock.json
+git commit -m "Update version to $(print_version)"
+git checkout main
+git merge version-bump --no-ff -m "Merge pull request #8 from Expensify/version-bump"
+VERSION_BUMP_MERGE_COMMIT="$(git log --format='%H' HEAD^..HEAD)"
+info "Merged PR #8 into main"
+git br -d version-bump
+success "Bumped version to 1.1.1 on main!"
+
+info "Cherry picking PR #7 and the version bump to staging..."
+git checkout staging
+git checkout -b cherry-pick-staging-7
+git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
+git cherry-pick -S -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
+git checkout staging
+git merge cherry-pick-staging-7 --no-ff -m "Merge pull request #9 from Expensify/cherry-pick-staging-7"
+git br -d cherry-pick-staging-7
+info "Merged PR #9 into staging"
+success "Successfully cherry-picked PR #7 to staging!"
+
+info "Tagging the new version on staging..."
+git checkout staging
+git tag "$(print_version)"
+success "Created tag $(print_version)"
+
+# Verify output
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.1')
+assert_equal "$output" "[ '9', '7', '1' ]"
+
+success "Scenario #4 completed successfully!"
 
 ### Cleanup
 title "Cleaning up..."
