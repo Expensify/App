@@ -37,4 +37,9 @@ jobs:
         env:
           CI: true
 
+      - name: Configure Git
+        run: |
+          git config user.name OSBotify
+          git config user.email infra+osbotify@expensify.com
+
       - run: tests/unit/getPullRequestsMergedBetweenTest.sh
