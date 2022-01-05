@@ -128,7 +128,6 @@ export {
     ReceiptSearch,
     RotateLeft,
     Send,
-    Exit,
     Sync,
     Transfer,
     ThreeDots,
