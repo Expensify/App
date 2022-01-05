@@ -96,7 +96,7 @@ class CloseAccountPage extends Component {
                     </FixedFooter>
                     <CloseAccountPopover
                         isVisible={this.state.shouldShowPopover}
-                        anchorPosition={styles.fullscreenCardWeb}
+                        anchorPosition={styles.fullscreenCardWebCentered}
                         onConfirm={() => {
                             this.setState({
                                 shouldShowPopover: false,
