@@ -255,6 +255,7 @@ class DebitCardPage extends Component {
                                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                                         value={this.state.addressZipCode}
                                         errorText={this.getErrorText('addressZipCode')}
+                                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
