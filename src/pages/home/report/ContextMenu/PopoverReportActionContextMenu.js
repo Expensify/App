@@ -68,7 +68,6 @@ class PopoverReportActionContextMenu extends React.Component {
         if (!this.dimensionsEventListener) {
             return;
         }
-
         this.dimensionsEventListener.remove();
     }
 

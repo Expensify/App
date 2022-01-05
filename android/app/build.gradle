@@ -128,7 +128,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 def enableHermes = project.ext.react.get("enableHermes", false);
 
 /**
- * Architectures to build native code for in debug.
+ * Required in order to build native code for debug builds
  */
 def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
 
