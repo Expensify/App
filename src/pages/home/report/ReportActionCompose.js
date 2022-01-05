@@ -41,7 +41,7 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
@@ -477,7 +477,6 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -498,7 +497,7 @@ class ReportActionCompose extends React.Component {
             ]}
             >
                 {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} currentUserTimezone={currentUserTimezone} />}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
@@ -725,9 +724,9 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <ExpensifyText style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                                 {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}

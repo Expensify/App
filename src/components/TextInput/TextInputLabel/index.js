@@ -1,9 +1,9 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
+import {propTypes, defaultProps} from './TextInputLabelPropTypes';
 
-class ExpensiTextInputLabel extends PureComponent {
+class TextInputLabel extends PureComponent {
     componentDidMount() {
         if (!this.props.for) {
             return;
@@ -18,9 +18,9 @@ class ExpensiTextInputLabel extends PureComponent {
                 accessibilityRole="label"
                 ref={el => this.label = el}
                 style={[
-                    styles.expensiTextInputLabel,
-                    styles.expensiTextInputLabelDesktop,
-                    styles.expensiTextInputLabelTransformation(
+                    styles.textInputLabel,
+                    styles.textInputLabelDesktop,
+                    styles.textInputLabelTransformation(
                         this.props.labelTranslateY,
                         0,
                         this.props.labelScale,
@@ -33,7 +33,7 @@ class ExpensiTextInputLabel extends PureComponent {
     }
 }
 
-ExpensiTextInputLabel.propTypes = propTypes;
-ExpensiTextInputLabel.defaultProps = defaultProps;
+TextInputLabel.propTypes = propTypes;
+TextInputLabel.defaultProps = defaultProps;
 
-export default ExpensiTextInputLabel;
+export default TextInputLabel;

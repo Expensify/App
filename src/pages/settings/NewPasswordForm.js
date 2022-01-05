@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import withLocalize, {
     withLocalizePropTypes,
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -69,7 +69,7 @@ class NewPasswordForm extends React.Component {
     render() {
         return (
             <View style={styles.mb6}>
-                <ExpensiTextInput
+                <TextInput
                     label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                     secureTextEntry
                     autoCompleteType="password"
@@ -79,15 +79,15 @@ class NewPasswordForm extends React.Component {
                     onBlur={() => this.onBlurNewPassword()}
                     onSubmitEditing={() => this.props.onSubmitEditing()}
                 />
-                <ExpensifyText
+                <Text
                     style={[
-                        styles.textLabelSupporting,
+                        styles.formHelp,
                         styles.mt1,
                         this.isInvalidPassword() && styles.formError,
                     ]}
                 >
                     {this.props.translate('setPasswordPage.newPasswordPrompt')}
-                </ExpensifyText>
+                </Text>
             </View>
         );
     }

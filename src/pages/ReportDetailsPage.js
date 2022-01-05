@@ -22,8 +22,8 @@ import * as Report from '../libs/actions/Report';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
-import ExpensifyText from '../components/ExpensifyText';
-import ExpensiPicker from '../components/ExpensiPicker';
+import Picker from '../components/Picker';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -144,7 +144,7 @@ class ReportDetailsPage extends Component {
                                     textStyles={[styles.headerText, styles.mb2]}
                                     shouldUseFullTitle={ReportUtils.isDefaultRoom(this.props.report)}
                                 />
-                                <ExpensifyText
+                                <Text
                                     style={[
                                         styles.sidebarLinkText,
                                         styles.optionAlternateText,
@@ -154,19 +154,19 @@ class ReportDetailsPage extends Component {
                                     numberOfLines={1}
                                 >
                                     {defaultRoomSubtitle}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         </View>
                         {!ReportUtils.isArchivedRoom(this.props.report) && (
                             <View>
                                 <View style={styles.mt4}>
-                                    <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel]} numberOfLines={1}>
                                         {this.props.translate('common.notifications')}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                                 <View>
                                     <View style={[styles.mb5]}>
-                                        <ExpensiPicker
+                                        <Picker
                                             // eslint-disable-next-line max-len
                                             label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
                                             onChange={(notificationPreference) => {

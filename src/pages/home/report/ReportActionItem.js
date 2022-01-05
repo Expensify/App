@@ -23,6 +23,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -94,8 +95,8 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
+        // Block menu on the message being Edited or is already deleted
+        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -180,7 +181,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-
+                                    && !ReportUtils.isDeletedAction(this.props.action)
                                 }
                                 draftMessage={this.props.draftMessage}
                             />

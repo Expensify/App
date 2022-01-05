@@ -123,6 +123,8 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+        WEB: 'web',
+        DESKTOP: 'desktop',
     },
     KEYBOARD_SHORTCUT_MODIFIERS: {
         CTRL: {
@@ -158,6 +160,11 @@ const CONST = {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+        },
+        COPY: {
+            descriptionKey: 'copy',
+            shortcutKey: 'C',
+            modifiers: ['CTRL'],
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {

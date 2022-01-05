@@ -24,9 +24,12 @@ function addBecameActiveListener(callback) {
         }
         appState = state;
     }
-    AppState.addEventListener('change', appStateChangeCallback);
+    const appStateChangeSubscription = AppState.addEventListener('change', appStateChangeCallback);
     return () => {
-        AppState.removeEventListener('change', appStateChangeCallback);
+        if (!appStateChangeSubscription) {
+            return;
+        }
+        appStateChangeSubscription.remove();
     };
 }
 

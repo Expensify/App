@@ -8,7 +8,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
@@ -157,11 +157,11 @@ class PasswordPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <ExpensifyText style={[styles.mb6]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
-                        </ExpensifyText>
+                        </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.currentPassword')}*`}
                                 ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
@@ -172,10 +172,11 @@ class PasswordPage extends Component {
                                 returnKeyType="done"
                                 hasError={this.state.errors.currentPassword}
                                 errorText={this.getErrorText('currentPassword')}
+                                onSubmitEditing={this.submit}
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.newPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -191,21 +192,21 @@ class PasswordPage extends Component {
                             {
 
                                 shouldShowNewPasswordPrompt && (
-                                <ExpensifyText
+                                <Text
                                     style={[
                                         styles.textLabelSupporting,
                                         styles.mt1,
                                     ]}
                                 >
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
-                                </ExpensifyText>
+                                </Text>
                                 )
                             }
                         </View>
                         {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
-                            <ExpensifyText style={styles.formError}>
+                            <Text style={styles.formError}>
                                 {this.props.account.error}
-                            </ExpensifyText>
+                            </Text>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
