@@ -20,7 +20,6 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
-import Growl from '../../Growl';
 
 let credentials = {};
 Onyx.connect({
@@ -278,7 +277,6 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
 
 /**
  * User forgot the password so let's send them the link to reset their password
- *
  */
 function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
