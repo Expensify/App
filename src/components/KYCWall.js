@@ -64,11 +64,11 @@ class KYCWall extends React.Component {
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const position = getClickedElementLocation(event.nativeEvent);
+            const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
             this.setState({
                 shouldShowAddPaymentMenu: true,
-                anchorPositionTop: position.bottom - 226,
-                anchorPositionLeft: position.right - 356,
+                anchorPositionTop: clickedElementLocation.bottom - CONST.ADD_PAYMENT_MENU_POSITION_Y,
+                anchorPositionLeft: clickedElementLocation.right - CONST.ADD_PAYMENT_MENU_POSITION_X,
             });
             return;
         }
