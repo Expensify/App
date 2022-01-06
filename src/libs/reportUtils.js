@@ -240,7 +240,6 @@ export {
     getReportActionMessageText,
     isReportActionAttachment,
     isDeletedAction,
-    isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
