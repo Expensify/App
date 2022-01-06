@@ -2,7 +2,7 @@ import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Collapsible from './Collapsible';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -39,9 +39,9 @@ class CollapsibleSection extends React.Component {
         return (
             <View style={styles.mt4}>
                 <TouchableOpacity onPress={this.toggleSection} style={[styles.pb4, styles.flexRow]}>
-                    <ExpensifyText style={[styles.flex1, styles.textStrong]}>
+                    <Text style={[styles.flex1, styles.textStrong]}>
                         {this.props.title}
-                    </ExpensifyText>
+                    </Text>
                     <Icon src={src} />
                 </TouchableOpacity>
                 <View style={styles.collapsibleSectionBorder} />

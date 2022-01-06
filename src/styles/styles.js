@@ -17,7 +17,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
-const expensiPicker = {
+const picker = {
     backgroundColor: 'transparent',
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
@@ -606,7 +606,7 @@ const styles = {
         height: variables.componentSizeLarge,
     },
 
-    expensiTextInputContainer: {
+    textInputContainer: {
         flex: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
@@ -617,7 +617,7 @@ const styles = {
         overflow: 'hidden',
     },
 
-    expensiTextInputLabel: {
+    textInputLabel: {
         position: 'absolute',
         left: 11,
         top: 0,
@@ -627,7 +627,7 @@ const styles = {
         width: '100%',
     },
 
-    expensiTextInputLabelBackground: {
+    textInputLabelBackground: {
         position: 'absolute',
         top: 0,
         width: '100%',
@@ -637,11 +637,11 @@ const styles = {
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputLabelDesktop: {
+    textInputLabelDesktop: {
         transformOrigin: 'left center',
     },
 
-    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+    textInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
             {translateX},
@@ -649,7 +649,7 @@ const styles = {
         ],
     }),
 
-    expensiTextInput: {
+    baseTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
@@ -661,12 +661,12 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputAndIconContainer: {
+    textInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
     },
 
-    expensiTextInputDesktop: addOutlineWidth({}, 0),
+    textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
         paddingRight: 11,
@@ -725,18 +725,18 @@ const styles = {
         },
     },
 
-    expensiPickerContainer: {
+    pickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
-    expensiPickerLabel: {
+    pickerLabel: {
         position: 'absolute',
         left: 12,
         top: 7,
     },
-    expensiPicker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
             right: 11,
@@ -745,12 +745,12 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
@@ -794,6 +794,13 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
+    },
+
+    formHelp: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+        marginBottom: 4,
     },
 
     formError: {
@@ -1927,7 +1934,6 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
-        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
