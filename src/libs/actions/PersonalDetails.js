@@ -67,11 +67,11 @@ function getDisplayName(login, personalDetail) {
 /**
  * Returns max character error text if true.
  *
- * @param {Boolean} shouldReturnError
+ * @param {Boolean} isError
  * @returns {String}
  */
-function getMaxCharacterError(shouldReturnError) {
-    return shouldReturnError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+function getMaxCharacterError(isError) {
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
 
