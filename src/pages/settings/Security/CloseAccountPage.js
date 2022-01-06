@@ -12,7 +12,7 @@ import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import FixedFooter from '../../../components/FixedFooter';
-import CloseAccountPopover from '../../../components/CloseAccountPopover';
+import ConfirmModal from '../../../components/ConfirmModal';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -94,14 +94,21 @@ class CloseAccountPage extends Component {
                             isDisabled={this.props.accountPhoneOrEmail !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
-                    <CloseAccountPopover
+                    <ConfirmModal
+                        title=''
+                        confirmText={this.props.translate('closeAccountPage.closeAccount')}
+                        prompt={false ? (
+                            <Text>
+                                <Text>{this.props.translate('workspace.bankAccount.disconnectYour')}</Text>
+                                <Text style={styles.textStrong}>
+                                    {bankShortName}
+                                </Text>
+                                <Text>{this.props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+                            </Text>
+                        ) : this.props.translate('workspace.bankAccount.clearProgress')}
+                        onConfirm={() => this.setState({shouldShowPopover: false})}
                         isVisible={this.state.shouldShowPopover}
-                        anchorPosition={styles.fullscreenCardWebCentered}
-                        onConfirm={() => {
-                            this.setState({
-                                shouldShowPopover: false,
-                            });
-                        }}
+                        shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
