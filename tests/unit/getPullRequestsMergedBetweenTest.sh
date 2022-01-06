@@ -53,6 +53,7 @@ fi
 
 info "Initializing Git repo..."
 git init -b main
+git config commit.gpgsign false
 git add package.json package-lock.json
 git commit -m "Initial commit"
 
