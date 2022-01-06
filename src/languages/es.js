@@ -294,7 +294,8 @@ export default {
         typeMessageHere: 'Escribe el mensaje aquí',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir. Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
-        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía aquí e intenta nuevamente',
+        closeAccountActionRequiredPart2: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
+        closeAccountActionRequiredPart2: 'e intenta nuevamente',
         okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
