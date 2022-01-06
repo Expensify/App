@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
+import styles from '../styles/styles';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -49,8 +50,10 @@ const ReportSettingsPage = props => (
             onBackButtonPress={() => Navigation.goBack()}
             onCloseButtonPress={() => Navigation.dismissModal(true)}
         />
-        <ScrollView>
-            <NotificationPreferences report={props.report} />
+        <ScrollView style={styles.flex1}>
+            <View style={[styles.m5]}>
+                <NotificationPreferences report={props.report} />
+            </View>
         </ScrollView>
     </ScreenWrapper>
 );
