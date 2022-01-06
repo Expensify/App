@@ -45,6 +45,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
+import * as ReportActionsRenderContext from './ReportActionsRenderContext';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -109,7 +110,6 @@ class ReportActionsView extends React.Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
-        this.flagReportActionForRerender = this.flagReportActionForRerender.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
@@ -130,11 +130,6 @@ class ReportActionsView extends React.Component {
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
 
-        // A set of report actions that need to be re-rendered
-        // TODO: need to put this in a context so that it can be accessed from BaseHTMLEngineProvider.
-        //  this also means that we need to use unique client-generated ReportActionIDs instead of sequenceNumber because the context is global (above ReportActionsView)
-        this.reportActionsNeedingRerender = new Set();
-
         this.state = {
             isMarkerActive: false,
             localUnreadActionCount: this.props.report.unreadActionCount,
@@ -142,18 +137,16 @@ class ReportActionsView extends React.Component {
             // TODO: Should we use ReportActionID instead? Need to have client-generated reportActionID first
             dataProvider: new DataProvider(
                 (before, after) => {
-                    // FIXME: There is no difference in the reportAction when an image loads from the network and the thumbnail resizes. Partial solution in `reportActionsNeedingRerender`
-
                     const reportActionBefore = before.action;
                     const reportActionAfter = after.action;
 
-                    // TODO: Figure out all the cases where this can change and optimize this comparison
+                    // TODO: Figure out all the cases where this can change and optimize this comparison instead of using slower deepequals
                     if (!_.isEqual(reportActionBefore, reportActionAfter)) {
                         return true;
                     }
 
-                    if (this.reportActionsNeedingRerender.has(reportActionAfter.sequenceNumber)) {
-                        this.reportActionsNeedingRerender.delete(reportActionAfter.sequenceNumber);
+                    if (this.context.has(reportActionAfter.reportActionID)) {
+                        this.context.delete(reportActionAfter.reportActionID);
                         return true;
                     }
 
@@ -400,8 +393,7 @@ class ReportActionsView extends React.Component {
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT)
             .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+            .value();
     }
 
     /**
@@ -545,13 +537,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * @param {Object} reportAction
-     */
-    flagReportActionForRerender(reportAction) {
-        this.reportActionsNeedingRerender.add(reportAction);
-    }
-
-    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -597,7 +582,6 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
-                flagForRerender={this.flagReportActionForRerender}
                 index={index}
             />
         );
@@ -679,6 +663,7 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
+ReportActionsView.contextType = ReportActionsRenderContext.context;
 
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),

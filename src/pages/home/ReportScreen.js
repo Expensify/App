@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
@@ -19,6 +18,7 @@ import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import * as ReportActionsRenderContext from './report/ReportActionsRenderContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -108,6 +108,7 @@ class ReportScreen extends React.Component {
             return;
         }
 
+        this.context.clear();
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
@@ -164,44 +165,47 @@ class ReportScreen extends React.Component {
 
         const reportID = getReportID(this.props.route);
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
+            <ReportActionsRenderContext.Provider>
+                <ScreenWrapper style={[styles.appContent, styles.flex1]}>
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={Navigation.navigate}
+                    />
 
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                >
-                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
-                    {!this.shouldShowLoader() && (
-                        <ReportActionsView
-                            reportID={reportID}
-                            reportActions={this.props.reportActions}
-                            report={this.props.report}
-                            session={this.props.session}
-                        />
-                    )}
-                    {this.props.session.shouldShowComposeInput && (
-                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                            <ReportActionCompose
-                                onSubmit={this.onSubmitComment}
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    >
+                        <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                        {!this.shouldShowLoader() && (
+                            <ReportActionsView
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
+                                session={this.props.session}
                             />
-                        </SwipeableView>
-                    )}
-                    <KeyboardSpacer />
-                </View>
-            </ScreenWrapper>
+                        )}
+                        {this.props.session.shouldShowComposeInput && (
+                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                <ReportActionCompose
+                                    onSubmit={this.onSubmitComment}
+                                    reportID={reportID}
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                />
+                            </SwipeableView>
+                        )}
+                        <KeyboardSpacer />
+                    </View>
+                </ScreenWrapper>
+            </ReportActionsRenderContext.Provider>
         );
     }
 }
 
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
+ReportScreen.contextType = ReportActionsRenderContext.context;
 
 export default withOnyx({
     isSidebarLoaded: {

@@ -71,6 +71,7 @@ const ReportActionItemSingle = (props) => {
                             <ReportActionItemFragment
                                 key={`person-${props.action.sequenceNumber}-${index}`}
                                 fragment={fragment}
+                                reportActionID={props.action.reportActionID}
                                 tooltipText={props.action.actorEmail}
                                 isAttachment={props.action.isAttachment}
                                 isLoading={props.action.loading}

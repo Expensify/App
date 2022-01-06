@@ -19,6 +19,9 @@ const propTypes = {
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
 
+    /** The ID of the reportAction this fragment is associated with */
+    reportActionID: PropTypes.string.isRequired,
+
     /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
 
@@ -65,7 +68,9 @@ class ReportActionItemFragment extends React.PureComponent {
                 return this.props.fragment.html !== this.props.fragment.text
                     ? (
                         <RenderHTML
-                            html={`<comment>${this.props.fragment.html + (this.props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                            html={`<comment data-report-action-id="${this.props.reportActionID}">${this.props.fragment.html}${
+                                (this.props.fragment.isEdited ? '<edited></edited>' : '')
+                            }</comment>`}
                         />
                     ) : (
                         <Text

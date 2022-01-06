@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
@@ -8,6 +8,7 @@ import {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
+    useRendererProps,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -25,6 +26,7 @@ import Text from '../Text';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import * as ReportActionsRenderContext from '../../pages/home/report/ReportActionsRenderContext';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -82,6 +84,23 @@ function isInsideComment(tnode) {
         currentNode = currentNode.parent;
     }
     return false;
+}
+
+/**
+ * Fid the reportActionID of the parent <comment> tag, or return null if none is found.
+ *
+ * @param {TNode} tnode
+ * @returns {String|null}
+ */
+function getReportActionID(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.domNode.name === 'comment') {
+            return lodashGet(currentNode, 'attributes.data-report-action-id', null);
+        }
+        currentNode = currentNode.parent;
+    }
+    return null;
 }
 
 function AnchorRenderer(props) {
@@ -197,6 +216,7 @@ function EditedRenderer(props) {
 
 function ImgRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
+    const rendererProps = useRendererProps('img');
 
     // There are two kinds of images that need to be displayed:
     //
@@ -241,12 +261,13 @@ function ImgRenderer(props) {
             {({show}) => (
                 <TouchableOpacity
                     style={styles.noOutline}
-                    onPress={() => show()}
+                    onPress={show}
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
+                        onResize={() => rendererProps.flagForRerender(getReportActionID(props.tnode))}
                     />
                 </TouchableOpacity>
             )}
@@ -276,15 +297,6 @@ const renderers = {
     edited: withLocalize(EditedRenderer),
 };
 
-const renderersProps = {
-    img: {
-        initialDimensions: {
-            width: MAX_IMG_DIMENSIONS,
-            height: MAX_IMG_DIMENSIONS,
-        },
-    },
-};
-
 const defaultViewProps = {style: {alignItems: 'flex-start'}};
 
 // We are using the explicit composite architecture for performance gains.
@@ -293,8 +305,15 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
 const BaseHTMLEngineProvider = (props) => {
+    const reportActionsNeedingRerender = useContext(ReportActionsRenderContext.context);
+
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
+    const renderersProps = {
+        img: {
+            flagForRerender: reportActionID => reportActionsNeedingRerender.add(reportActionID),
+        },
+    };
 
     return (
         <TRenderEngineProvider
