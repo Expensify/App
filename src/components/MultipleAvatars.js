@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -16,8 +16,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether this avatar is for a default room */
-    isDefaultChatRoom: PropTypes.bool,
+    /** Whether this avatar is for a chat room */
+    isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
@@ -27,7 +27,7 @@ const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    isDefaultChatRoom: false,
+    isChatRoom: false,
     isArchivedRoom: false,
 };
 
@@ -49,7 +49,7 @@ const MultipleAvatars = (props) => {
                 <Avatar
                     source={props.avatarImageURLs[0]}
                     size={props.size}
-                    isDefaultChatRoom={props.isDefaultChatRoom}
+                    isChatRoom={props.isChatRoom}
                     isArchivedRoom={props.isArchivedRoom}
                 />
             </View>
@@ -77,12 +77,12 @@ const MultipleAvatars = (props) => {
                         <View
                             style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
-                            <ExpensifyText style={props.size === 'small'
+                            <Text style={props.size === 'small'
                                 ? styles.avatarInnerTextSmall
                                 : styles.avatarInnerText}
                             >
                                 {`+${props.avatarImageURLs.length - 1}`}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     )}
                 </View>

@@ -21,7 +21,7 @@ import AttachmentModal from '../AttachmentModal';
 import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -99,28 +99,28 @@ function AnchorRenderer(props) {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalExpensifyPath) {
         return (
-            <ExpensifyText
+            <Text
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
+            </Text>
         );
     }
 
     if (!isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as ExpensifyText for now because TextLink breaks the alignment in Android.
+        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
-            <ExpensifyText
+            <Text
                 style={styles.link}
                 onPress={() => {
                     Linking.openURL(attrHref);
                 }}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
-            </ExpensifyText>
+            </Text>
         );
     }
 
@@ -182,16 +182,16 @@ function CodeRenderer(props) {
 function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     return (
-        <ExpensifyText
+        <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
         >
             {/* Native devices do not support margin between nested text */}
-            <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
+            <Text style={styles.w1}>{' '}</Text>
             {props.translate('reportActionCompose.edited')}
-        </ExpensifyText>
+        </Text>
     );
 }
 
@@ -216,6 +216,7 @@ function ImgRenderer(props) {
     //           control and thus require no authToken to verify access.
     //
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const originalFileName = htmlAttribs['data-name'];
     let previewSource = htmlAttribs.src;
     let source = isAttachment
         ? htmlAttribs['data-expensify-source']
@@ -233,9 +234,9 @@ function ImgRenderer(props) {
 
     return (
         <AttachmentModal
-            title="Attachment"
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
+            originalFileName={originalFileName}
         >
             {({show}) => (
                 <TouchableOpacity
@@ -301,7 +302,7 @@ const BaseHTMLEngineProvider = (props) => {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            dangerouslyDisableWhitespaceCollapsing={false}
+            dangerouslyDisableWhitespaceCollapsing
             systemFonts={EXTRA_FONTS}
         >
             <RenderHTMLConfigProvider
