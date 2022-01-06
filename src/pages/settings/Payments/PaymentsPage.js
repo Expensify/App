@@ -115,7 +115,7 @@ class PaymentsPage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('common.payments')}
+                        title="TESTING"
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
