@@ -9,7 +9,6 @@ import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -18,12 +17,11 @@ import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
-import * as Report from '../libs/actions/Report';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
-import Picker from '../components/Picker';
 import Text from '../components/Text';
+import NotificationPreferences from '../components/NotificationPreferences';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -72,22 +70,6 @@ const propTypes = {
 class ReportDetailsPage extends Component {
     constructor(props) {
         super(props);
-
-        this.notificationPreferencesOptions = {
-            default: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                label: props.translate('reportDetailsPage.always'),
-
-            },
-            daily: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-                label: props.translate('reportDetailsPage.daily'),
-            },
-            mute: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-                label: props.translate('reportDetailsPage.mute'),
-            },
-        };
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             this.menuItems = [];
@@ -186,29 +168,7 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                         {!ReportUtils.isArchivedRoom(this.props.report) && !ReportUtils.isUserCreatedPolicyRoom(this.props.report) && (
-                            <View>
-                                <View style={styles.mt4}>
-                                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                                        {this.props.translate('common.notifications')}
-                                    </Text>
-                                </View>
-                                <View>
-                                    <View style={[styles.mb5]}>
-                                        <Picker
-                                            // eslint-disable-next-line max-len
-                                            label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                                            onChange={(notificationPreference) => {
-                                                Report.updateNotificationPreference(
-                                                    this.props.report.reportID,
-                                                    notificationPreference,
-                                                );
-                                            }}
-                                            items={_.values(this.notificationPreferencesOptions)}
-                                            value={this.props.report.notificationPreference}
-                                        />
-                                    </View>
-                                </View>
-                            </View>
+                            <NotificationPreferences report={this.props.report} />
                         )}
                     </View>
                     {_.map(this.menuItems, (item) => {
