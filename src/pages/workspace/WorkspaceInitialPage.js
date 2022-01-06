@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import MenuItem from '../../components/MenuItem';
 import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -24,7 +23,6 @@ import * as PolicyActions from '../../libs/actions/Policy';
 const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
@@ -223,6 +221,5 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withFullPolicy,
 )(WorkspaceInitialPage);
