@@ -1489,8 +1489,8 @@ function navigateToConciergeChat() {
         return;
     }
 
-    Navigation.closeDrawer();
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    Navigation.closeDrawer();
 }
 
 /**
