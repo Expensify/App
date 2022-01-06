@@ -23,7 +23,7 @@ function continueSetup() {
         return;
     }
 
-    // Close the view on success and continue with setup
+    // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack();
     kycWallRef.current.continue();
 }

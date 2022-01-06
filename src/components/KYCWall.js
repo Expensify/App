@@ -30,7 +30,7 @@ const defaultProps = {
 };
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
-// before continuing to take whatever action they originall intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
+// before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
 class KYCWall extends React.Component {
     constructor(props) {
