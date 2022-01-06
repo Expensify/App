@@ -37,9 +37,19 @@ jobs:
         env:
           CI: true
 
-      - name: Configure Git
+      - name: Decrypt OSBotify GPG key
+        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Import OSBotify GPG Key
+        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+
+      - name: Set up git for OSBotify
         run: |
-          git config --global user.name OSBotify
-          git config --global user.email infra+osbotify@expensify.com
+          git config user.signingkey 367811D53E34168C
+          git config --global commit.gpgsign true
+          git config user.name OSBotify
+          git config user.email infra+osbotify@expensify.com
 
       - run: tests/unit/getPullRequestsMergedBetweenTest.sh
