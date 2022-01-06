@@ -56,7 +56,7 @@ class Onfido extends React.Component {
                     errorMessage,
                 )) {
                     Alert.alert(
-                        this.props.translate('cameraPermissionsNotGranted'),
+                        this.props.translate('onfidoStep.cameraPermissionsNotGranted'),
                         this.props.translate('onfidoStep.cameraRequestMessage'),
                         [
                             {
