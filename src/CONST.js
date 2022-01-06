@@ -430,6 +430,10 @@ const CONST = {
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
+            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
+            // eslint-disable-next-line max-len
+            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 

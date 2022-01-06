@@ -4,8 +4,8 @@ import {
     Animated, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import * as baseExpensiTextInputPropTypes from './baseExpensiTextInputPropTypes';
+import TextInputLabel from './TextInputLabel';
+import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
@@ -14,7 +14,7 @@ import InlineErrorText from '../InlineErrorText';
 import * as styleConst from './styleConst';
 import TextInputWithName from '../TextInputWithName';
 
-class BaseExpensiTextInput extends Component {
+class BaseTextInput extends Component {
     constructor(props) {
         super(props);
 
@@ -91,7 +91,7 @@ class BaseExpensiTextInput extends Component {
      * Set Value & activateLabel
      *
      * @param {String} value
-     * @memberof BaseExpensiTextInput
+     * @memberof BaseTextInput
      */
     setValue(value) {
         this.value = value;
@@ -141,7 +141,7 @@ class BaseExpensiTextInput extends Component {
 
     render() {
         // eslint-disable-next-line react/forbid-foreign-prop-types
-        const inputProps = _.omit(this.props, _.keys(baseExpensiTextInputPropTypes.propTypes));
+        const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
         return (
             <View>
@@ -154,7 +154,7 @@ class BaseExpensiTextInput extends Component {
                     <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                         <View
                             style={[
-                                styles.expensiTextInputContainer,
+                                styles.textInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
                                 (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                             ]}
@@ -163,8 +163,8 @@ class BaseExpensiTextInput extends Component {
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} pointerEvents="none" />}
-                                    <ExpensiTextInputLabel
+                                    {this.props.multiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
+                                    <TextInputLabel
                                         label={this.props.label}
                                         labelTranslateY={this.state.labelTranslateY}
                                         labelScale={this.state.labelScale}
@@ -172,7 +172,7 @@ class BaseExpensiTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <View style={[styles.expensiTextInputAndIconContainer]}>
+                            <View style={[styles.textInputAndIconContainer]}>
                                 <TextInputWithName
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
@@ -219,7 +219,7 @@ class BaseExpensiTextInput extends Component {
     }
 }
 
-BaseExpensiTextInput.propTypes = baseExpensiTextInputPropTypes.propTypes;
-BaseExpensiTextInput.defaultProps = baseExpensiTextInputPropTypes.defaultProps;
+BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
+BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default BaseExpensiTextInput;
+export default BaseTextInput;
