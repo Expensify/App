@@ -26,15 +26,15 @@ const NotificationPreferences = (props) => {
     const notificationPreferencesOptions = {
         default: {
             value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            label: props.translate('reportDetailsPage.always'),
+            label: props.translate('notificationPreferences.always'),
         },
         daily: {
             value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-            label: props.translate('reportDetailsPage.daily'),
+            label: props.translate('notificationPreferences.daily'),
         },
         mute: {
             value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-            label: props.translate('reportDetailsPage.mute'),
+            label: props.translate('notificationPreferences.mute'),
         },
     };
     return (
@@ -43,10 +43,13 @@ const NotificationPreferences = (props) => {
                 <Text style={[styles.formLabel]} numberOfLines={1}>
                     {props.translate('common.notifications')}
                 </Text>
+                <Text>
+                    {props.translate('notificationPreferences.description')}
+                </Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View style={[styles.mb5, styles.mt2]}>
                 <Picker
-                    label={props.translate('reportDetailsPage.notificationPreferencesDescription')}
+                    label={props.translate('notificationPreferences.label')}
                     onChange={(notificationPreference) => {
                         Report.updateNotificationPreference(
                             props.report.reportID,

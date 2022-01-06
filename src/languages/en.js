@@ -214,8 +214,9 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
