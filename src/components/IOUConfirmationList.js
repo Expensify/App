@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import SettlementButton from './SettlementButton';
@@ -368,7 +368,7 @@ class IOUConfirmationList extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
