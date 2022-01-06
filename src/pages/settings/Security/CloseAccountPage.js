@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ScrollView} from 'react-native';
+import {Linking, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -95,17 +95,22 @@ class CloseAccountPage extends Component {
                         />
                     </FixedFooter>
                     <ConfirmModal
-                        title=''
-                        confirmText={this.props.translate('closeAccountPage.closeAccount')}
-                        prompt={false ? (
+                        title=""
+                        confirmText={this.props.translate('closeAccountPage.okayGotIt')}
+                        prompt={(
                             <Text>
-                                <Text>{this.props.translate('workspace.bankAccount.disconnectYour')}</Text>
-                                <Text style={styles.textStrong}>
-                                    {bankShortName}
+                                {this.props.translate('closeAccountPage.closeAccountActionRequiredPart1')}
+                                {' '}
+                                <Text
+                                    style={styles.link}
+                                    onPress={() => { Linking.openURL('http://http.cat'); }}
+                                >
+                                    {this.props.translate('common.here')}
                                 </Text>
-                                <Text>{this.props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+                                {' '}
+                                {this.props.translate('closeAccountPage.closeAccountActionRequiredPart2')}
                             </Text>
-                        ) : this.props.translate('workspace.bankAccount.clearProgress')}
+                        )}
                         onConfirm={() => this.setState({shouldShowPopover: false})}
                         isVisible={this.state.shouldShowPopover}
                         shouldShowCancelButton={false}

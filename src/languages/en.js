@@ -294,7 +294,8 @@ export default {
         typeMessageHere: 'Type message here',
         closeAccountWarning: 'Closing your account cannot be undone. This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
         closeAccountSuccess: 'Account closed successfully',
-        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide here and try again after.',
+        closeAccountActionRequiredPart1: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountActionRequiredPart2: 'and try again after.',
         okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
