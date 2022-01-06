@@ -6,6 +6,13 @@ import ONYXKEYS from '../../ONYXKEYS';
 import getPlatform from '../getPlatform';
 import CONST from '../../CONST';
 
+/**
+ * Test whether the current platform is eligible for migration
+ * This migration is only applicable for desktop/web
+ * We're also skipping logged-out users as there would be nothing to migrate
+ *
+ * @returns {Boolean}
+ */
 function shouldMigrate() {
     const isTargetPlatform = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
     if (!isTargetPlatform) {
@@ -22,32 +29,31 @@ function shouldMigrate() {
     return true;
 }
 
-function migrate() {
-    const multiSetData = {};
-    const possibleKeys = _.union(_.values(ONYXKEYS), _.values(ONYXKEYS.COLLECTION));
+/**
+ * Find Onyx data and move it from local storage to IndexedDB
+ *
+ * @returns {Promise<void>}
+ */
+function applyMigration() {
+    const onyxKeys = new Set(_.values(ONYXKEYS));
+    const onyxCollections = _.values(ONYXKEYS.COLLECTION);
 
-    for (let i = 0; i < window.localStorage.length; i += 1) {
-        const key = window.localStorage.key(i);
-        if (_.some(possibleKeys, entry => key.startsWith(entry))) {
-            const rawValue = window.localStorage.getItem(key);
-            multiSetData[key] = rawValue && JSON.parse(rawValue);
-        }
-    }
+    // Prepare a key-value dictionary of keys eligible for migration
+    // Targeting existing Onyx keys in local storage or any key prefixed by a collection name
+    const dataToMigrate = _.chain(window.localStorage)
+        .keys()
+        .filter(key => onyxKeys.has(key) || _.some(onyxCollections, collectionKey => key.startsWith(collectionKey)))
+        .map(key => [key, JSON.parse(window.localStorage.getItem(key))])
+        .object()
+        .value();
 
-    return Onyx.multiSet(multiSetData)
-        .then(() => {
-            _.each(multiSetData, (value, key) => window.localStorage.removeItem(key));
-            Log.info('[Migrate Onyx] Ran migration MoveToIndexedDB');
-        })
-        .catch((e) => {
-            Log.alert('[Migrate Onyx] MoveToIndexedDB failed', {error: e.message, stack: e.stack}, false);
-            return Promise.reject(e);
-        });
+    // Move the data in Onyx and only then delete it from local storage
+    return Onyx.multiSet(dataToMigrate)
+        .then(() => _.each(dataToMigrate, (value, key) => window.localStorage.removeItem(key)));
 }
 
 /**
- * This migration is only applicable for desktop/web
- * The migration moves user data from local storage to IndexedDb
+ * Migrate Web/Desktop storage to IndexedDB
  *
  * @returns {Promise}
  */
@@ -56,5 +62,15 @@ export default function () {
         return Promise.resolve();
     }
 
-    return migrate();
+    return new Promise((resolve, reject) => {
+        applyMigration()
+            .then(() => {
+                Log.info('[Migrate Onyx] Ran migration MoveToIndexedDB');
+                resolve();
+            })
+            .catch((e) => {
+                Log.alert('[Migrate Onyx] MoveToIndexedDB failed', {error: e.message, stack: e.stack}, false);
+                reject(e);
+            });
+    });
 }
