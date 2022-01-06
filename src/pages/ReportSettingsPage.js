@@ -25,6 +25,14 @@ const propTypes = {
         reportName: PropTypes.string,
     }).isRequired,
 
+    /** Route params */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** Report ID passed via route r/:reportID/settings */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
