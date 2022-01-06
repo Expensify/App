@@ -53,7 +53,7 @@ const BaseHTMLEngineProvider = (props) => {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            dangerouslyDisableWhitespaceCollapsing={false}
+            dangerouslyDisableWhitespaceCollapsing
             systemFonts={_.values(fontFamily)}
         >
             <RenderHTMLConfigProvider
