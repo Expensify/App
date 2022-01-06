@@ -24,7 +24,7 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import PageSectionWithIcon from '../../components/PageSectionWithIcon';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
@@ -194,7 +194,7 @@ class BankAccountStep extends React.Component {
                 />
                 {!subStep && (
                     <ScrollView style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <PageSectionWithIcon
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />

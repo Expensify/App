@@ -23,7 +23,7 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import PageSectionWithIcon from '../../components/PageSectionWithIcon';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -229,7 +229,7 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <PageSectionWithIcon
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBlue}
                             menuItems={[
@@ -250,7 +250,7 @@ class ValidationStep extends React.Component {
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
                             </Text>
-                        </WorkspaceSection>
+                        </PageSectionWithIcon>
                     </View>
                 )}
             </View>

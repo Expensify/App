@@ -6,7 +6,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import WorkspaceSection from '../WorkspaceSection';
+import PageSectionWithIcon from '../../../components/PageSectionWithIcon';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Link from '../../../libs/actions/Link';
 import * as User from '../../../libs/actions/User';
@@ -20,7 +20,7 @@ const propTypes = {
 
 const WorkspaceCardVBANoECardView = props => (
     <>
-        <WorkspaceSection
+        <PageSectionWithIcon
             title={props.translate('workspace.card.header')}
             icon={Illustrations.JewelBoxBlue}
             menuItems={[
@@ -44,7 +44,7 @@ const WorkspaceCardVBANoECardView = props => (
                     props.translate('workspace.card.benefit4'),
                 ]}
             />
-        </WorkspaceSection>
+        </PageSectionWithIcon>
         {props.user.isCheckingDomain && (
             <Text style={[styles.m5, styles.formError]}>
                 {props.translate('workspace.card.checkingDomain')}

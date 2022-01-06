@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import PageSectionWithIcon from '../../../components/PageSectionWithIcon';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 
@@ -19,7 +19,7 @@ const propTypes = {
 
 const WorkspaceReimburseVBAView = props => (
     <>
-        <WorkspaceSection
+        <PageSectionWithIcon
             title={props.translate('workspace.reimburse.captureReceipts')}
             icon={Illustrations.ReceiptYellow}
             menuItems={[
@@ -42,9 +42,9 @@ const WorkspaceReimburseVBAView = props => (
                     <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                 </Text>
             </View>
-        </WorkspaceSection>
+        </PageSectionWithIcon>
 
-        <WorkspaceSection
+        <PageSectionWithIcon
             title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
             icon={Illustrations.BankUserGreen}
             menuItems={[
@@ -60,7 +60,7 @@ const WorkspaceReimburseVBAView = props => (
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </PageSectionWithIcon>
     </>
 );
 
