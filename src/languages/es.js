@@ -321,6 +321,8 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         forgotPassword: '¿Te has olvidado?',
+        magicSignInLink: 'magic sign-in link',
+        magicSignInListSent: 'Magic sign-in link sent!',
         error: {
             invalidName: 'Por favor ingrese un nombre válido',
             addressZipCode: 'Por favor ingrese un código postal válido',
