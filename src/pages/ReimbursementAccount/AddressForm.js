@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -10,6 +10,10 @@ import StatePicker from '../../components/StatePicker';
 import Text from '../../components/Text';
 
 const propTypes = {
+
+    /** Translate key for Street name */
+    streetTranslationKey: PropTypes.string.isRequired,
+
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func.isRequired,
 
@@ -47,7 +51,7 @@ const defaultProps = {
 const AddressForm = props => (
     <>
         <AddressSearch
-            label={props.translate('common.personalAddress')}
+            label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
             value={props.values.street}
             onChange={props.onFieldChange}
@@ -56,7 +60,7 @@ const AddressForm = props => (
         <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
-                <ExpensiTextInput
+                <TextInput
                     label={props.translate('common.city')}
                     value={props.values.city}
                     onChangeText={value => props.onFieldChange({city: value})}
@@ -72,7 +76,7 @@ const AddressForm = props => (
                 />
             </View>
         </View>
-        <ExpensiTextInput
+        <TextInput
             label={props.translate('common.zip')}
             containerStyles={[styles.mt4]}
             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}

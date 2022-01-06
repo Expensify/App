@@ -18,8 +18,8 @@ const propTypes = {
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
 
-    /** Whether this avatar is for a default room */
-    isDefaultChatRoom: PropTypes.bool,
+    /** Whether this avatar is for a chat room */
+    isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived default room */
     isArchivedRoom: PropTypes.bool,
@@ -30,13 +30,13 @@ const defaultProps = {
     imageStyles: [],
     containerStyles: [],
     size: 'default',
-    isDefaultChatRoom: false,
+    isChatRoom: false,
     isArchivedRoom: false,
 };
 
 class Avatar extends PureComponent {
     render() {
-        if (!this.props.source && !this.props.isDefaultChatRoom) {
+        if (!this.props.source && !this.props.isChatRoom) {
             return null;
         }
 
@@ -46,7 +46,7 @@ class Avatar extends PureComponent {
         ];
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {this.props.isDefaultChatRoom
+                {this.props.isChatRoom
                     ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
                     : <Image source={{uri: this.props.source}} style={imageStyle} />}
             </View>

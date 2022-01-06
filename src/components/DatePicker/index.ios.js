@@ -3,7 +3,7 @@ import React from 'react';
 import {Button, View} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import ExpensiTextInput from '../ExpensiTextInput';
+import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
@@ -68,7 +68,7 @@ class Datepicker extends React.Component {
         const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <>
-                <ExpensiTextInput
+                <TextInput
                     label={this.props.label}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
