@@ -942,7 +942,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 42c0965fca99069b92e3f7360ab2d425985e5104
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 6bd6cfac80594775fb782405fceaaf206becf53b
-  react-native-plaid-link-sdk: 9e0ebdaed648a237b36d5f6f6292b5147af92da7
+  react-native-plaid-link-sdk: 6ce5b2453b6a09ba3e975975c6a3fc7013a064fe
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 21b1e29e70c7559c16c9e0a04c4adc19fce6ede2
   react-native-safe-area-context: 79fea126c6830c85f65947c223a5e3058a666937
@@ -959,7 +959,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: dec32ee6f2e2a26e13e58152271535fadff5455a
   ReactCommon: 57b69f6383eafcbd7da625bfa6003810332313c4
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
-  RNBootSplash: b82ee16a943903ea612edb15233ea4f247155ef9
+  RNBootSplash: f31eba8f6d496e2029859e06e5582cac4607256d
   RNCAsyncStorage: 56a3355a10b5d660c48c6e37325ac85ebfd09885
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCMaskedView: fc29d354a40316a990e8fb46391f08aea829c3aa
