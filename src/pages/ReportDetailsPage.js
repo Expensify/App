@@ -185,7 +185,7 @@ class ReportDetailsPage extends Component {
                                 </Text>
                             </View>
                         </View>
-                        {!ReportUtils.isArchivedRoom(this.props.report) && (
+                        {!ReportUtils.isArchivedRoom(this.props.report) && !ReportUtils.isUserCreatedPolicyRoom(this.props.report) && (
                             <View>
                                 <View style={styles.mt4}>
                                     <Text style={[styles.formLabel]} numberOfLines={1}>
