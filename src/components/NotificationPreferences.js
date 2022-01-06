@@ -2,16 +2,24 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {View} from 'react-native';
+import CONST from '../CONST';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
-import withLocalize, { withLocalizePropTypes } from "./withLocalize";
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Picker from './Picker';
 
 const propTypes = {
     /** The report whose notification preferences to show */
-    report: PropTypes.oneOfType([PropTypes.object]),
+    report: PropTypes.shape({
+        /** ID of the report */
+        reportID: PropTypes.number,
+
+        /** The current user's notification preference for this report */
+        notificationPreference: PropTypes.string,
+    }).isRequired,
 
     ...withLocalizePropTypes,
-}
+};
 
 const NotificationPreferences = (props) => {
     const notificationPreferencesOptions = {
@@ -45,11 +53,9 @@ const NotificationPreferences = (props) => {
             </View>
         </View>
     );
-}
+};
 
 NotificationPreferences.propTypes = propTypes;
 NotificationPreferences.displayName = 'NotificationPreferences';
 
-export default compose(
-    withLocalize,
-)(NotificationPreferences);
+export default withLocalize(NotificationPreferences);

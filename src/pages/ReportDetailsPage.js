@@ -104,7 +104,7 @@ class ReportDetailsPage extends Component {
                     icon: Expensicons.Users,
                     subtitle: props.report.participants.length,
                     action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-                }
+                },
             ];
         }
     }
