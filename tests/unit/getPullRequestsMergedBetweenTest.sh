@@ -1,6 +1,7 @@
 #!/bin/bash
 
 TEST_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
 
 source "$TEST_DIR/../shellUtils.sh"
@@ -27,13 +28,12 @@ fi
 ### Setup
 title "Starting setup"
 
-DUMMY_DIR="$TEST_DIR/../../DummyRepo"
-info "Creating new DummyRepo at $DUMMY_DIR..."
+info "Creating new dummy repo at $DUMMY_DIR"
 mkdir "$DUMMY_DIR"
 cd "$DUMMY_DIR" || exit 1
-success "Successfully created DummyRepo at $(pwd)"
+success "Successfully created dummy repo at $(pwd)"
 
-info "Initializing npm project in DummyRepo..."
+info "Initializing npm project in $DUMMY_DIR"
 if [[ $(npm init -y) ]]
 then
   success "Successfully initialized npm project"
