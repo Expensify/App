@@ -111,7 +111,7 @@ const MenuItem = props => (
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
 
-                    {/* Since props.subtitle can be of type number, we should allow 0 to be shown */}
+                    {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                     {(props.subtitle || props.subtitle === 0) && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text

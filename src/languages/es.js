@@ -514,7 +514,6 @@ export default {
         selfSelect: 'Personalízalo',
         callMeByMyName: 'Llámame por mi nombre',
     },
-    cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
@@ -525,6 +524,8 @@ export default {
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
+        cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
+        cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
