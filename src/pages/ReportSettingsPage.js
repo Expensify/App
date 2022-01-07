@@ -17,7 +17,7 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import TextInputWithPrefix from '../components/TextInputWithPrefix';
 import Picker from '../components/Picker';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
+import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 
 
 const propTypes = {
