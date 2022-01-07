@@ -152,34 +152,10 @@ class ReportSettingsPage extends Component {
                         </Text>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex3]}>
-                                <TextInputWithPrefix
-                                    prefixCharacter="#"
-                                    placeholder={this.props.translate('newRoomPage.social')}
-                                    onChangeText={(roomName) => { this.setState({newRoomName: this.checkAndModifyRoomName(roomName)}); }}
-                                    value={this.state.newRoomName.substring(1)}
-                                    errorText={this.state.error}
-                                    autoCapitalize="none"
-                                    disabled={shouldDisableRename}
-                                />
-                            </View>
-                            <Button
-                                success={!shouldDisableRename}
-                                text={this.props.translate('common.save')}
-                                onPress={() => {
-                                    // When renaming is built, this will use that API command
-                                }}
-                                style={[styles.ml2]}
-                                textStyles={[styles.label]}
-                                buttonStyles={[styles.reportSettingsChangeNameButton]}
-                                isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
-                            />
-                        </View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex3]}>
                                 <RoomNameInput
-                                    onChangeText={(roomName) => { this.setState({newRoomName: roomName})}}
-                                    initialValue={this.state.newRoomName.substring(1)}
-                                    disabled={shouldDisableRename}
+                                    onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
+                                    initialValue={this.state.newRoomName}
+                                    isDisabled={shouldDisableRename}
                                 />
                             </View>
                             <Button
