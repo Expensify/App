@@ -1,8 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View,
-    TouchableOpacity,
-} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -26,7 +23,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
-import * as Session from '../../../libs/actions/Session';
 import FormScrollView from '../../../components/FormScrollView';
 
 const propTypes = {
@@ -287,17 +283,6 @@ class DebitCardPage extends Component {
                                     autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                                     secureTextEntry
                                 />
-                                <Text style={[styles.textMicroSupporting, styles.pt2]}>
-                                    {this.props.translate('addDebitCardPage.forgotPassword')}
-                                    <TouchableOpacity
-                                        onPress={() => Session.resetPassword(true)}
-                                    >
-                                        <Text style={[styles.link, styles.textMicro]}>
-                                            {this.props.translate('addDebitCardPage.magicSignInLink')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    !
-                                </Text>
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
