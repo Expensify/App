@@ -83,10 +83,10 @@ class ReportSettingsPage extends Component {
      * @returns {String}
      */
     checkAndModifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substr(1)
+        const modifiedRoomNameWithoutHash = roomName.substring(1)
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
-            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+            .substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
         const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
 

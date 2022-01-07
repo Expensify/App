@@ -104,10 +104,10 @@ class WorkspaceNewRoomPage extends React.Component {
      * @returns {String}
      */
     checkAndModifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substr(1)
+        const modifiedRoomNameWithoutHash = roomName.substring(1)
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
-            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+            .substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
         const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
 
@@ -150,7 +150,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             placeholder={this.props.translate('newRoomPage.social')}
                             containerStyles={[styles.mb5]}
                             onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
-                            value={this.state.roomName.substr(1)}
+                            value={this.state.roomName.substring(1)}
                             errorText={this.state.error}
                             autoCapitalize="none"
                         />
