@@ -21,7 +21,6 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
-import NotificationPreferences from '../components/NotificationPreferences';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,9 +43,6 @@ const propTypes = {
 
         /** ID of the report */
         reportID: PropTypes.number,
-
-        /** The current user's notification preference for this report */
-        notificationPreference: PropTypes.string,
     }).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
@@ -73,7 +69,7 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             this.menuItems = [];
-        } else if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+        } else if (ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems = [
                 {
                     translationKey: 'common.members',
@@ -167,9 +163,6 @@ class ReportDetailsPage extends Component {
                                 </Text>
                             </View>
                         </View>
-                        {!ReportUtils.isArchivedRoom(this.props.report) && !ReportUtils.isUserCreatedPolicyRoom(this.props.report) && (
-                            <NotificationPreferences report={this.props.report} />
-                        )}
                     </View>
                     {_.map(this.menuItems, (item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
