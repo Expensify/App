@@ -82,10 +82,7 @@ RCT_EXPORT_METHOD(hide) {
   if (_rootView == nil || _rootView.loadingView == nil || RCTRunningInAppExtension())
     return;
 
-  UIApplication * _Nullable sharedApp = RCTSharedApplication();
-  bool active = sharedApp != nil && [sharedApp applicationState] == UIApplicationStateActive;
-
-  if (active) {
+  if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {
     [RCTBootSplash hideLoadingView];
   } else {
     [[NSNotificationCenter defaultCenter] addObserver:self
