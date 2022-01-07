@@ -199,8 +199,12 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const result = execSync(command).toString().trim();
+
+    // Remove any double-quotes from commit subjects
     const sanitizedOutput = result
         .replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+
+    // Then format as JSON and convert to a proper JS object
     const json = `[${sanitizedOutput}]`.replace('},]', '}]');
     return JSON.parse(json);
 }
