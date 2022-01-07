@@ -25,6 +25,7 @@ import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -85,6 +86,8 @@ class RequestCallPage extends Component {
             firstNameError: '',
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            phoneExtension: '',
+            phoneExtensionError: '',
             lastNameError: '',
             phoneNumberError: '',
         };
@@ -92,9 +95,11 @@ class RequestCallPage extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
+        this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
         this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
+        this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
     }
 
     onSubmit() {
@@ -143,6 +148,20 @@ class RequestCallPage extends Component {
     }
 
     /**
+     * Gets the phone extension error message depending on the phoneExtension input value.
+     * @returns {String}
+     */
+    getPhoneExtensionError() {
+        if (_.isEmpty(this.state.phoneExtension)) {
+            return '';
+        }
+        if (!ValidationUtils.isPositiveInteger(this.state.phoneExtension)) {
+            return this.props.translate('requestCallPage.error.phoneExtension');
+        }
+        return '';
+    }
+
+    /**
      * Gets the first and last name from the user's personal details.
      * If the login is the same as the displayName, then they don't exist,
      * so we return empty strings instead.
@@ -176,6 +195,10 @@ class RequestCallPage extends Component {
 
     validatePhoneInput() {
         this.setState({phoneNumberError: this.getPhoneNumberError()});
+    }
+
+    validatePhoneExtensionInput() {
+        this.setState({phoneExtensionError: this.getPhoneExtensionError()});
     }
 
     /**
@@ -229,17 +252,31 @@ class RequestCallPage extends Component {
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mv4]}
                         />
-                        <View style={styles.mt4}>
-                            <TextInput
-                                label={this.props.translate('common.phoneNumber')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                value={this.state.phoneNumber}
-                                placeholder="2109400803"
-                                errorText={this.state.phoneNumberError}
-                                onBlur={this.validatePhoneInput}
-                                onChangeText={phoneNumber => this.setState({phoneNumber})}
-                            />
+                        <View style={[styles.mt4, styles.flexRow]}>
+                            <View style={styles.flex1}>
+                                <TextInput
+                                    label={this.props.translate('common.phoneNumber')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    value={this.state.phoneNumber}
+                                    placeholder="2109400803"
+                                    errorText={this.state.phoneNumberError}
+                                    onBlur={this.validatePhoneInput}
+                                    onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                />
+                            </View>
+                            <View style={[styles.flex1, styles.ml2]}>
+                                <TextInput
+                                    label={this.props.translate('requestCallPage.extension')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    value={this.state.phoneExtension}
+                                    placeholder="100"
+                                    errorText={this.state.phoneExtensionError}
+                                    onBlur={this.validatePhoneExtensionInput}
+                                    onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                />
+                            </View>
                         </View>
                     </ScrollView>
                     <FixedFooter>

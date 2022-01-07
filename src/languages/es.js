@@ -810,12 +810,16 @@ export default {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        extension: 'Extensión',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        error: {
+            phoneExtension: 'Ingrese un número de extensión de teléfono válido',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',

@@ -808,12 +808,16 @@ export default {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        extension: 'Extension',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        error: {
+            phoneExtension: 'Please enter a valid phone extension number',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
