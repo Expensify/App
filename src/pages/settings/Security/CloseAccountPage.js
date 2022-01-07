@@ -93,6 +93,7 @@ class CloseAccountPage extends Component {
                     </FixedFooter>
                     <ConfirmModal
                         title=""
+                        success={false}
                         confirmText={this.props.translate('closeAccountPage.okayGotIt')}
                         prompt={(
                             <Text>
