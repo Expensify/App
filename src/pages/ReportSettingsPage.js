@@ -121,94 +121,92 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={styles.flex1}>
-                    <View style={[styles.m5]}>
+                <ScrollView style={[styles.flex1, styles.m5]}>
+                    <View>
                         <View>
-                            <View style={styles.mt4}>
-                                <Text style={[styles.formLabel]} numberOfLines={1}>
-                                    {this.props.translate('common.notifications')}
-                                </Text>
-                                <Text>
-                                    {this.props.translate('notificationPreferences.description')}
-                                </Text>
-                            </View>
-                            <View style={[styles.mb5, styles.mt2]}>
-                                <Picker
-                                    label={this.props.translate('notificationPreferences.label')}
-                                    onChange={(notificationPreference) => {
-                                        Report.updateNotificationPreference(
-                                            this.props.report.reportID,
-                                            notificationPreference,
-                                        );
-                                    }}
-                                    items={_.values(this.notificationPreferencesOptions)}
-                                    value={this.props.report.notificationPreference}
-                                />
-                            </View>
-                        </View>
-                        <View style={styles.mt4}>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('newRoomPage.roomName')}
+                                {this.props.translate('common.notifications')}
                             </Text>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex3]}>
-                                    <TextInputWithPrefix
-                                        label={this.props.translate('newRoomPage.roomName')}
-                                        prefixCharacter="#"
-                                        placeholder={this.props.translate('newRoomPage.social')}
-                                        onChangeText={(roomName) => { this.setState({newRoomName: this.checkAndModifyRoomName(roomName)}); }}
-                                        value={this.state.newRoomName.substring(1)}
-                                        errorText={this.state.error}
-                                        autoCapitalize="none"
-                                        disabled={shouldDisableRename}
-                                    />
-                                </View>
-                                <Button
-                                    success={!shouldDisableRename}
-                                    text={this.props.translate('common.save')}
-                                    onPress={() => {
-                                        // When renaming is built, this will use that API command
-                                    }}
-                                    style={[styles.ml2]}
-                                    textStyles={[styles.label]}
-                                    buttonStyles={[styles.reportSettingsChangeNameButton]}
-                                    isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
+                            <Text>
+                                {this.props.translate('notificationPreferences.description')}
+                            </Text>
+                        </View>
+                        <View style={[styles.mb5, styles.mt2]}>
+                            <Picker
+                                label={this.props.translate('notificationPreferences.label')}
+                                onChange={(notificationPreference) => {
+                                    Report.updateNotificationPreference(
+                                        this.props.report.reportID,
+                                        notificationPreference,
+                                    );
+                                }}
+                                items={_.values(this.notificationPreferencesOptions)}
+                                value={this.props.report.notificationPreference}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.mt4}>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            {this.props.translate('newRoomPage.roomName')}
+                        </Text>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex3]}>
+                                <TextInputWithPrefix
+                                    label={this.props.translate('newRoomPage.roomName')}
+                                    prefixCharacter="#"
+                                    placeholder={this.props.translate('newRoomPage.social')}
+                                    onChangeText={(roomName) => { this.setState({newRoomName: this.checkAndModifyRoomName(roomName)}); }}
+                                    value={this.state.newRoomName.substring(1)}
+                                    errorText={this.state.error}
+                                    autoCapitalize="none"
+                                    disabled={shouldDisableRename}
                                 />
                             </View>
+                            <Button
+                                success={!shouldDisableRename}
+                                text={this.props.translate('common.save')}
+                                onPress={() => {
+                                    // When renaming is built, this will use that API command
+                                }}
+                                style={[styles.ml2]}
+                                textStyles={[styles.label]}
+                                buttonStyles={[styles.reportSettingsChangeNameButton]}
+                                isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
+                            />
                         </View>
-                        {linkedWorkspace && (
-                            <View style={[styles.mt4]}>
-                                <Text style={[styles.formLabel]} numberOfLines={1}>
-                                    {this.props.translate('workspace.common.workspace')}
-                                </Text>
-                                <Text numberOfLines={1}>
-                                    {linkedWorkspace.name}
-                                </Text>
-                            </View>
-                        )}
-                        {this.props.report.visibility && (
-                            <View style={[styles.mt4]}>
-                                <Text style={[styles.formLabel]} numberOfLines={1}>
-                                    {this.props.translate('newRoomPage.visibility')}
-                                </Text>
-                                <Text numberOfLines={1}>
-                                    {/* Use capialized versions of the visibility rNVP value */}
-                                    {
-                                        this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                            ? 'Restricted'
-                                            : 'Private'
-                                    }
-                                </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {
-                                        this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                            ? this.props.translate('newRoomPage.restrictedDescription')
-                                            : this.props.translate('newRoomPage.privateDescription')
-                                    }
-                                </Text>
-                            </View>
-                        )}
                     </View>
+                    {linkedWorkspace && (
+                        <View style={[styles.mt4]}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('workspace.common.workspace')}
+                            </Text>
+                            <Text numberOfLines={1}>
+                                {linkedWorkspace.name}
+                            </Text>
+                        </View>
+                    )}
+                    {this.props.report.visibility && (
+                        <View style={[styles.mt4]}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('newRoomPage.visibility')}
+                            </Text>
+                            <Text numberOfLines={1}>
+                                {/* Use capialized versions of the visibility rNVP value */}
+                                {
+                                    this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
+                                        ? 'Restricted'
+                                        : 'Private'
+                                }
+                            </Text>
+                            <Text style={[styles.textLabelSupporting, styles.mt1]}>
+                                {
+                                    this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
+                                        ? this.props.translate('newRoomPage.restrictedDescription')
+                                        : this.props.translate('newRoomPage.privateDescription')
+                                }
+                            </Text>
+                        </View>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         );
