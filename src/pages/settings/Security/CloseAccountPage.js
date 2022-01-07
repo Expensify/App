@@ -66,6 +66,8 @@ class CloseAccountPage extends Component {
                     >
                         <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                         <TextInput
+                            multiline
+                            numberOfLines={6}
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.typeMessageHere')}
