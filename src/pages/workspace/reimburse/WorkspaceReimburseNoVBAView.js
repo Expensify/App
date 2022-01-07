@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ExpensifyText from '../../../components/ExpensifyText';
+import TextInput from '../../../components/TextInput';
+import Picker from '../../../components/Picker';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -13,8 +15,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import ExpensiPicker from '../../../components/ExpensiPicker';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
@@ -110,14 +110,14 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                     ]}
                 >
                     <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
-                        <ExpensifyText>
+                        <Text>
                             {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                             <CopyTextToClipboard
                                 text="receipts@expensify.com"
                                 textStyles={[styles.textBlue]}
                             />
-                            <ExpensifyText>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</ExpensifyText>
-                        </ExpensifyText>
+                            <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                        </Text>
                     </View>
                 </WorkspaceSection>
 
@@ -126,11 +126,11 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                     icon={Illustrations.GpsTrackOrange}
                 >
                     <View style={[styles.mv4]}>
-                        <ExpensifyText>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</ExpensifyText>
+                        <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <View style={[styles.rateCol]}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={this.state.rateCurrency}
                                 onChangeText={value => this.setRate(value)}
@@ -140,7 +140,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                             />
                         </View>
                         <View style={[styles.unitCol]}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                 items={this.unitItems}
                                 value={this.state.unitValue}
@@ -163,7 +163,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                     ]}
                 >
                     <View style={[styles.mv4]}>
-                        <ExpensifyText>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</ExpensifyText>
+                        <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                     </View>
                 </WorkspaceSection>
             </>
