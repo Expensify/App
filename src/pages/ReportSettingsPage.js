@@ -185,14 +185,16 @@ class ReportSettingsPage extends Component {
                                 </Text>
                             </View>
                         )}
-                        <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('newRoomPage.visibility')}
-                            </Text>
-                            <Text numberOfLines={1}>
-                                TODO
-                            </Text>
-                        </View>
+                        {ReportUtils.isUserCreatedPolicyRoom(this.props.report) && (
+                            <View style={[styles.mt4]}>
+                                <Text style={[styles.formLabel]} numberOfLines={1}>
+                                    {this.props.translate('newRoomPage.visibility')}
+                                </Text>
+                                <Text numberOfLines={1}>
+                                    {this.props.report.visibility}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
