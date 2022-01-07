@@ -60,14 +60,6 @@ RCT_EXPORT_MODULE();
   });
 }
 
-- (void)hideOnAppDidBecomeActive {
-  [RCTBootSplash hideLoadingView];
-
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                  name:UIApplicationDidBecomeActiveNotification
-                                                object:nil];
-}
-
 RCT_REMAP_METHOD(getVisibilityStatus,
                  getVisibilityStatusWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
@@ -79,17 +71,8 @@ RCT_REMAP_METHOD(getVisibilityStatus,
 RCT_EXPORT_METHOD(hide) {
   _hideHasBeenCalled = true;
 
-  if (_rootView == nil || _rootView.loadingView == nil || RCTRunningInAppExtension())
-    return;
-
-  if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {
+  if (!RCTRunningInAppExtension())
     [RCTBootSplash hideLoadingView];
-  } else {
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(hideOnAppDidBecomeActive)
-                                                 name:UIApplicationDidBecomeActiveNotification
-                                               object:nil];
-  }
 }
 
 @end
