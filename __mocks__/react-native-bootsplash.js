@@ -1,5 +1,4 @@
 export default {
-    hide: jest.fn().mockResolvedValueOnce(),
-    show: jest.fn().mockResolvedValueOnce(),
+    hide: jest.fn(),
     getVisibilityStatus: jest.fn().mockResolvedValue('hidden'),
 };
