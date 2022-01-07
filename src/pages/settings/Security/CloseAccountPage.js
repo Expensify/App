@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {Linking, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -16,10 +17,15 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import * as CloseAccountActions from '../../../libs/actions/CloseAccount';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /* The user's primary email or phone number */
     accountPhoneOrEmail: PropTypes.string,
+
+    /*  */
+    isCloseAccoutModalOpen: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -27,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     accountPhoneOrEmail: 'jules',
+    isCloseAccoutModalOpen: false,
 };
 
 class CloseAccountPage extends Component {
@@ -37,7 +44,7 @@ class CloseAccountPage extends Component {
             reasonForLeaving: 'a',
             phoneOrEmail: 'b',
             loading: false,
-            shouldShowPopover: false,
+            isCloseAccoutModalOpen: true,
         };
 
         this.submitForm = this.submitForm.bind(this);
@@ -111,8 +118,8 @@ class CloseAccountPage extends Component {
                                 {this.props.translate('closeAccountPage.closeAccountActionRequiredPart2')}
                             </Text>
                         )}
-                        onConfirm={() => this.setState({shouldShowPopover: false})}
-                        isVisible={this.state.shouldShowPopover}
+                        onConfirm={() => {CloseAccountActions.hideCloseAccountModal();}}
+                        isVisible={this.props.isCloseAccoutModalOpen}
                         shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
@@ -128,4 +135,7 @@ CloseAccountPage.displayName = 'CloseAccountPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withOnyx({
+        isCloseAccoutModalOpen: {key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN},
+    }),
 )(CloseAccountPage);

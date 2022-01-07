@@ -17,6 +17,7 @@ import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 
 let sessionAuthToken = '';
@@ -76,6 +77,8 @@ function closeAccount(message) {
             redirectToSignIn();
             return;
         }
+
+        CloseAccountActions.showCloseAccountModal();
 
         // Unable to delete account
         Growl.show(JSON.stringify(response.message), CONST.GROWL.SUCCESS);
