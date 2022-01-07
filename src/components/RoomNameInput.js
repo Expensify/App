@@ -1,7 +1,29 @@
 import React, {Component} from 'react';
-import TextInputWithPrefix from '../components/TextInputWithPrefix';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
+import CONST from '../CONST';
+import styles from '../styles/styles';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+
+import TextInputWithPrefix from './TextInputWithPrefix';
 
 const propTypes = {
+    /** Callback to execute when the text input is modified */
+    onChangeText: PropTypes.func,
+
+    /** Initial room name to show in input field. This should include the '#' already prefixed to the name */
+    initialValue: PropTypes.string,
+
+    /** Whether we should show the input as disabled */
+    disabled: PropTypes.bool,
+
+    ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    onChangeText: () => {},
+    initialValue: '',
 };
 
 
@@ -9,9 +31,9 @@ class RoomNameInput extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            roomName: '',
+            roomName: props.initialValue,
             error: '',
-        }
+        };
     }
 
     /**
@@ -47,6 +69,7 @@ class RoomNameInput extends Component {
     render() {
         return (
             <TextInputWithPrefix
+                disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
                 prefixCharacter="#"
                 placeholder={this.props.translate('newRoomPage.social')}
@@ -62,10 +85,12 @@ class RoomNameInput extends Component {
             />
         );
     }
-
 }
 
 RoomNameInput.propTypes = propTypes;
+RoomNameInput.defaultProps = defaultProps;
 
 
-export default RoomNameInput;
+export default compose(
+    withLocalize,
+)(RoomNameInput);

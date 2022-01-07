@@ -155,7 +155,7 @@ class ReportSettingsPage extends Component {
                                 <RoomNameInput
                                     onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
                                     initialValue={this.state.newRoomName}
-                                    isDisabled={shouldDisableRename}
+                                    disabled={shouldDisableRename}
                                 />
                             </View>
                             <Button
