@@ -16,7 +16,6 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import StatePicker from '../../../components/StatePicker';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -24,6 +23,7 @@ import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import FormScrollView from '../../../components/FormScrollView';
+import ExpensiTextInput from '../../../components/ExpensiTextInput';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
