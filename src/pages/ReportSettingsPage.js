@@ -21,6 +21,10 @@ import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './wor
 
 
 const propTypes = {
+    ...fullPolicyPropTypes,
+
+    ...withLocalizePropTypes,
+
     /* Onyx Props */
 
     /** The active report */
@@ -45,10 +49,6 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-
-    ...fullPolicyPropTypes,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
