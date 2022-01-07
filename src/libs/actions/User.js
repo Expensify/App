@@ -78,10 +78,8 @@ function closeAccount(message) {
             return;
         }
 
+        // Inform user that they are currently unable to close their account
         CloseAccountActions.showCloseAccountModal();
-
-        // Unable to delete account
-        Growl.show(JSON.stringify(response.message), CONST.GROWL.SUCCESS);
     });
 }
 

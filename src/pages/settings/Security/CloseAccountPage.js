@@ -24,7 +24,7 @@ const propTypes = {
     /* The user's primary email or phone number */
     accountPhoneOrEmail: PropTypes.string,
 
-    /*  */
+    /* Is the Close Account information modal open? */
     isCloseAccoutModalOpen: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
@@ -45,15 +45,6 @@ class CloseAccountPage extends Component {
             phoneOrEmail: 'b',
             loading: false,
         };
-
-        this.submitForm = this.submitForm.bind(this);
-    }
-
-    /**
-     * Attempt to close the user's account
-     */
-    submitForm() {
-        User.closeAccount(this.state.reasonForLeaving);
     }
 
     render() {
@@ -96,7 +87,7 @@ class CloseAccountPage extends Component {
                             style={[styles.mb5]}
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
-                            onPress={this.submitForm}
+                            onPress={() => User.closeAccount(this.state.reasonForLeaving)}
                             isDisabled={this.props.accountPhoneOrEmail !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
@@ -117,7 +108,7 @@ class CloseAccountPage extends Component {
                                 {this.props.translate('closeAccountPage.closeAccountActionRequiredPart2')}
                             </Text>
                         )}
-                        onConfirm={() => {CloseAccountActions.hideCloseAccountModal();}}
+                        onConfirm={CloseAccountActions.hideCloseAccountModal}
                         isVisible={this.props.isCloseAccoutModalOpen}
                         shouldShowCancelButton={false}
                     />
