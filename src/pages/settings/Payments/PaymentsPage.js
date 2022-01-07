@@ -120,7 +120,7 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <PaymentMethodList
-                        ListHeaderComponent={(
+                        ListHeaderComponent={() => (
                             <>
                                 {Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />}
                                 <Text style={[styles.ph5, styles.formLabel]}>
