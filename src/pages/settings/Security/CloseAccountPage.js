@@ -21,18 +21,22 @@ import * as CloseAccountActions from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
-    /* The user's primary email or phone number */
-    accountPhoneOrEmail: PropTypes.string,
+    /** Onyx Props */
 
-    /* Is the Close Account information modal open? */
+    /** Is the Close Account information modal open? */
     isCloseAccoutModalOpen: PropTypes.bool,
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Email address */
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    accountPhoneOrEmail: 'jules',
     isCloseAccoutModalOpen: false,
 };
 
@@ -94,7 +98,7 @@ class CloseAccountPage extends Component {
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                            isDisabled={this.props.accountPhoneOrEmail !== this.state.phoneOrEmail}
+                            isDisabled={this.props.session.email !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
                     <ConfirmModal
@@ -133,6 +137,11 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        isCloseAccoutModalOpen: {key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN},
+        isCloseAccoutModalOpen: {
+            key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
     }),
 )(CloseAccountPage);
