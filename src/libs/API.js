@@ -63,26 +63,6 @@ function isAuthTokenRequired(command) {
 }
 
 /**
- * Determines if we're supposed to retry the given request
- * @param {Object} request
- * @returns {Boolean}
- */
-function isRequestRetriable(request) {
-    return lodashGet(request, 'data.shouldRetry', false);
-}
-
-/**
- * Adds the request back to the queue to be retried
- * It will either get retried now, or later when we're back online
- * @param {Object} request
- */
-function retryRequest(request) {
-    Network.post(request.command, request.data, request.type, request.shouldUseSecure)
-        .then(request.resolve)
-        .catch(request.reject);
-}
-
-/**
  * Adds default values to our request data
  *
  * @param {String} command
@@ -112,14 +92,16 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
- * @param {Object} originalRequest
+ * @param {String} originalCommand
+ * @param {Object} [originalParameters]
+ * @param {String} [originalType]
+ * @returns {Promise}
  */
-function handleExpiredAuthToken(originalRequest) {
+function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        retryRequest(originalRequest);
-        return;
+        return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -127,8 +109,18 @@ function handleExpiredAuthToken(originalRequest) {
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    reauthenticate(originalRequest.command)
-        .finally(() => retryRequest(originalRequest));
+    return reauthenticate(originalCommand)
+        .then(() => {
+            // Now that the API is authenticated, make the original request again with the new authToken
+            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
+            return Network.post(originalCommand, params, originalType);
+        })
+        .catch(() => (
+
+            // If the request did not succeed because of a networking issue or the server did not respond requeue the
+            // original request.
+            Network.post(originalCommand, originalParameters, originalType)
+        ));
 }
 
 Network.registerRequestHandler((queuedRequest, finalParameters) => {
@@ -167,12 +159,15 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (!isRequestRetriable(queuedRequest) || unableToReauthenticate) {
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+        if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
 
-        handleExpiredAuthToken(queuedRequest);
+        handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
+            .then(queuedRequest.resolve)
+            .catch(queuedRequest.reject);
         return;
     }
 
@@ -196,8 +191,13 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Set an error state and signify we are done loading
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
-    if (isRequestRetriable(queuedRequest)) {
-        retryRequest(queuedRequest);
+    // When the request should be retried add it back to the queue
+    // It will either get retried now, or later when we're back online
+    if (lodashGet(queuedRequest, 'data.shouldRetry')) {
+        Network.post(queuedRequest.command, queuedRequest.data, queuedRequest.type, queuedRequest.shouldUseSecure)
+            .then(queuedRequest.resolve)
+            .catch(queuedRequest.reject);
+
         return;
     }
 
