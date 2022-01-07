@@ -45,9 +45,8 @@ class CloseAccountPage extends Component {
         super(props);
 
         this.state = {
-            reasonForLeaving: 'a',
-            phoneOrEmail: 'b',
-            loading: false,
+            reasonForLeaving: '',
+            phoneOrEmail: '',
         };
     }
 
@@ -111,7 +110,7 @@ class CloseAccountPage extends Component {
                                 {' '}
                                 <Text
                                     style={styles.link}
-                                    onPress={() => { Linking.openURL('http://http.cat'); }}
+                                    onPress={() => { Linking.openURL('https://community.expensify.com/discussion/4724/faq-why-cant-i-close-my-account'); }}
                                 >
                                     {this.props.translate('common.here')}
                                 </Text>
