@@ -33,9 +33,6 @@ const propTypes = {
     /** Array of bank account objects */
     bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
-    /** Component to display as list header */
-    ListHeaderComponent: PropTypes.func,
-
     /** Array of card objects */
     cardList: PropTypes.arrayOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc */
@@ -57,7 +54,6 @@ const defaultProps = {
     cardList: [],
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
-    ListHeaderComponent: undefined,
 };
 
 class PaymentMethodList extends Component {
@@ -139,7 +135,6 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <FlatList
-                ListHeaderComponent={this.props.ListHeaderComponent}
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
             />
