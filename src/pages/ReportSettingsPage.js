@@ -185,7 +185,7 @@ class ReportSettingsPage extends Component {
                                 </Text>
                             </View>
                         )}
-                        {ReportUtils.isUserCreatedPolicyRoom(this.props.report) && (
+                        {this.props.report.visibility && (
                             <View style={[styles.mt4]}>
                                 <Text style={[styles.formLabel]} numberOfLines={1}>
                                     {this.props.translate('newRoomPage.visibility')}
