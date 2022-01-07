@@ -44,7 +44,6 @@ class CloseAccountPage extends Component {
             reasonForLeaving: 'a',
             phoneOrEmail: 'b',
             loading: false,
-            isCloseAccoutModalOpen: true,
         };
 
         this.submitForm = this.submitForm.bind(this);
