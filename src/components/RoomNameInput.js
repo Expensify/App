@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../CONST';
 import styles from '../styles/styles';
-import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 import TextInputWithPrefix from './TextInputWithPrefix';
@@ -24,6 +23,7 @@ const propTypes = {
 const defaultProps = {
     onChangeText: () => {},
     initialValue: '',
+    disabled: false,
 };
 
 
@@ -91,6 +91,4 @@ RoomNameInput.propTypes = propTypes;
 RoomNameInput.defaultProps = defaultProps;
 
 
-export default compose(
-    withLocalize,
-)(RoomNameInput);
+export default withLocalize(RoomNameInpt);

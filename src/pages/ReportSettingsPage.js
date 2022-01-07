@@ -15,7 +15,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
 import Button from '../components/Button';
-import TextInputWithPrefix from '../components/TextInputWithPrefix';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
@@ -78,36 +77,6 @@ class ReportSettingsPage extends Component {
         this.state = {
             newRoomName: this.props.report.reportName,
         };
-    }
-
-    /**
-     * Modifies the room name to follow our conventions:
-     * - Max length 80 characters
-     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
-     * - Must be lowercase
-     * Also checks to see if this room name already exists, and displays an error message if so.
-     * @param {String} roomName
-     *
-     * @returns {String}
-     */
-    checkAndModifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substring(1)
-            .replace(/ /g, '_')
-            .replace(/[^a-zA-Z\d_]/g, '')
-            .substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
-            .toLowerCase();
-        const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
-
-        const isExistingRoomName = _.some(
-            _.values(this.props.reports),
-            report => report && report.policyID === this.props.report.policyID && report.reportName === finalRoomName,
-        );
-        if (isExistingRoomName) {
-            this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
-        } else {
-            this.setState({error: ''});
-        }
-        return finalRoomName;
     }
 
     render() {
