@@ -19,8 +19,7 @@ function info {
 }
 
 function title {
-  echo "
-$TITLE$1$RESET"
+  printf "\n%s%s%s\n" "$TITLE" "$1" "$RESET"
 }
 
 function assert_equal {

@@ -131,7 +131,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<String>} commitMessages
- * @returns {*}
+ * @returns {Array<String>}
  */
 function getValidMergedPRs(commitMessages) {
     return _.reduce(commitMessages, (mergedPRs, commitMessage) => {
