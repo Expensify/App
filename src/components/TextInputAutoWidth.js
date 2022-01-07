@@ -56,7 +56,7 @@ class TextInputAutoWidth extends React.Component {
                 Text input component doesn't support auto grow by default.
                 We're using a hidden text input to achieve that.
                 This text view is used to calculate width of the input value given textStyle in this component.
-                This text component is intentionally positioned out of the screen.
+                This Text component is intentionally positioned out of the screen.
                 */}
                 <Text
                     style={[this.props.textStyle, styles.hiddenElementOutsideOfWindow]}

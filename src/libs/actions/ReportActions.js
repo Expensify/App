@@ -83,15 +83,15 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
         return 0;
     }
 
-    return _.reduce(reportActions[reportID], (deletedMessages, action) => {
+    return _.reduce(reportActions[reportID], (numDeletedMessages, action) => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber <= sequenceNumber) {
-            return deletedMessages;
+            return numDeletedMessages;
         }
 
         // Empty ADDCOMMENT actions typically mean they have been deleted
         const message = _.first(lodashGet(action, 'message', null));
         const html = lodashGet(message, 'html', '');
-        return _.isEmpty(html) ? deletedMessages + 1 : deletedMessages;
+        return _.isEmpty(html) ? numDeletedMessages + 1 : numDeletedMessages;
     }, 0);
 }
 

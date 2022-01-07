@@ -1,16 +1,29 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import * as App from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import Log from '../Log';
+import themeColors from '../../styles/themes/default';
+
+// https://reactnavigation.org/docs/themes
+const navigationTheme = {
+    ...DefaultTheme,
+    colors: {
+        ...DefaultTheme.colors,
+        background: themeColors.appBG,
+    },
+};
 
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
+
+    /** Fired when react-navigation is ready */
+    onReady: PropTypes.func.isRequired,
 };
 
 class NavigationRoot extends Component {
@@ -45,6 +58,8 @@ class NavigationRoot extends Component {
             <NavigationContainer
                 fallback={<FullScreenLoadingIndicator />}
                 onStateChange={this.parseAndStoreRoute}
+                onReady={this.props.onReady}
+                theme={navigationTheme}
                 ref={Navigation.navigationRef}
                 linking={linkingConfig}
                 documentTitle={{

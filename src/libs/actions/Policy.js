@@ -49,6 +49,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
+ * @param {String} [fullPolicyOrPolicySummary.avatarURL]
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @returns {Object}
@@ -61,7 +62,10 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
         type: fullPolicyOrPolicySummary.type,
         owner: fullPolicyOrPolicySummary.owner,
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || '',
+
+        // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
+        // avatarUrl will be nested within the key "value"
+        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
     };
 }
@@ -145,7 +149,7 @@ function deletePolicy(policyID) {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
                 Growl.error(errorMessage, 5000);
                 return;
             }
@@ -198,7 +202,10 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(() => navigateToPolicy(newPolicyID));
+        .then(() => {
+            Navigation.dismissModal();
+            navigateToPolicy(newPolicyID);
+        });
 }
 
 /**

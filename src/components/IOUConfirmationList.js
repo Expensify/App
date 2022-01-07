@@ -14,18 +14,18 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
-import * as Expensicons from './Icon/Expensicons';
-import Permissions from '../libs/Permissions';
-import isAppInstalled from '../libs/isAppInstalled';
-import * as ValidationUtils from '../libs/ValidationUtils';
-import makeCancellablePromise from '../libs/MakeCancellablePromise';
+import SettlementButton from './SettlementButton';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
+
+    /** Callback to to parent modal to send money */
+    onSendMoney: PropTypes.func.isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -118,38 +118,21 @@ class IOUConfirmationList extends Component {
     constructor(props) {
         super(props);
 
-        const formattedParticipants = _.map(this.getParticipantsWithAmount(this.props.participants), participant => ({
+        const formattedParticipants = _.map(this.getParticipantsWithAmount(props.participants), participant => ({
             ...participant, selected: true,
         }));
 
-        // Add the button options to payment menu
-        const confirmationButtonOptions = [];
-        let defaultButtonOption = {
-            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: this.props.numberFormat(
-                    this.props.iouAmount,
-                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+        this.splitOrRequestOptions = [{
+            text: props.translate(props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: props.numberFormat(
+                    props.iouAmount,
+                    {style: 'currency', currency: props.iou.selectedCurrencyCode},
                 ),
             }),
-        };
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1 && Permissions.canUseIOUSend(this.props.betas)) {
-            // Add the Expensify Wallet option if available and make it the first option
-            if (this.props.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), icon: Expensicons.Wallet});
-            }
-
-            // Add PayPal option
-            if (this.props.participants[0].payPalMeAddress) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), icon: Expensicons.PayPal});
-            }
-            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), icon: Expensicons.Cash};
-        }
-        confirmationButtonOptions.push(defaultButtonOption);
-
-        this.checkVenmoAvailabilityPromise = null;
+            value: props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
+        }];
 
         this.state = {
-            confirmationButtonOptions,
             participants: formattedParticipants,
         };
 
@@ -161,31 +144,17 @@ class IOUConfirmationList extends Component {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-
-        // Only add the Venmo option if we're sending a payment
-        if (this.props.iouType !== CONST.IOU.IOU_TYPE.SEND) {
-            return;
-        }
-
-        this.addVenmoPaymentOptionToMenu();
-    }
-
-    componentWillUnmount() {
-        if (!this.checkVenmoAvailabilityPromise) {
-            return;
-        }
-
-        this.checkVenmoAvailabilityPromise.cancel();
-        this.checkVenmoAvailabilityPromise = null;
     }
 
     /**
-     * When confirmation button is clicked
+     * @param {String} value
      */
-    onPress() {
+    onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            this.props.onConfirm();
+            Log.info(`[IOU] Sending money via: ${value}`);
+            this.props.onSendMoney(value);
         } else {
+            Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
         }
     }
@@ -330,31 +299,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Adds Venmo, if available, as the second option in the menu of payment options
-     */
-    addVenmoPaymentOptionToMenu() {
-        if (this.props.localCurrencyCode !== CONST.CURRENCY.USD || !this.state.participants[0].phoneNumber || !ValidationUtils.isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            return;
-        }
-
-        this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
-        this.checkVenmoAvailabilityPromise
-            .promise
-            .then((isVenmoInstalled) => {
-                if (!isVenmoInstalled) {
-                    return;
-                }
-
-                this.setState(prevState => ({
-                    confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
-                        {text: this.props.translate('iou.settleVenmo'), icon: Expensicons.Venmo},
-                        ...prevState.confirmationButtonOptions.slice(1),
-                    ],
-                }));
-            });
-    }
-
-    /**
      * Calculates the amount per user given a list of participants
      * @param {Array} participants
      * @param {Boolean} isDefaultUser
@@ -403,6 +347,10 @@ class IOUConfirmationList extends Component {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
         const selectedParticipants = this.getSelectedParticipants();
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
+        const isLoading = this.props.iou.loading && !this.props.network.isOffline;
+        const recipient = this.state.participants[0];
         return (
             <>
                 <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
@@ -420,7 +368,7 @@ class IOUConfirmationList extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
@@ -435,12 +383,23 @@ class IOUConfirmationList extends Component {
                             {this.props.translate('session.offlineMessage')}
                         </Text>
                     )}
-                    <ButtonWithMenu
-                        options={this.state.confirmationButtonOptions}
-                        isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
-                        isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                        onPress={this.onPress}
-                    />
+                    {shouldShowSettlementButton ? (
+                        <SettlementButton
+                            isDisabled={shouldDisableButton}
+                            isLoading={this.props.iou.loading && !this.props.network.isOffline}
+                            onPress={this.onPress}
+                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                            recipientPhoneNumber={recipient.phoneNumber}
+                            currency={this.props.iou.selectedCurrencyCode}
+                        />
+                    ) : (
+                        <ButtonWithMenu
+                            isDisabled={shouldDisableButton}
+                            isLoading={isLoading}
+                            onPress={this.onPress}
+                            options={this.splitOrRequestOptions}
+                        />
+                    )}
                 </FixedFooter>
             </>
         );

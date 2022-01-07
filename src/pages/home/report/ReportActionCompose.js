@@ -48,6 +48,7 @@ import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -123,6 +124,8 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
+        this.dimensionsEventListener = null;
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -171,7 +174,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     componentDidUpdate(prevProps) {
@@ -194,7 +197,11 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
+
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     onSelectionChange(e) {
@@ -412,8 +419,10 @@ class ReportActionCompose extends React.Component {
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
+     * @param {Object} emojiObject
      */
-    addEmojiToTextBox(emoji) {
+    addEmojiToTextBox(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.hideEmojiPicker();
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
@@ -474,7 +483,6 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -495,7 +503,7 @@ class ReportActionCompose extends React.Component {
             ]}
             >
                 {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} currentUserTimezone={currentUserTimezone} />}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
@@ -669,6 +677,7 @@ class ReportActionCompose extends React.Component {
                             ref={el => this.emojiSearchInput = el}
                             preferredSkinTone={this.props.preferredSkinTone}
                             updatePreferredSkinTone={this.setPreferredSkinTone}
+                            frequentlyUsedEmojis={this.props.frequentlyUsedEmojis}
                         />
                     </Popover>
                     <Pressable
@@ -693,12 +702,16 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty
-                                        ? styles.buttonDisable : styles.buttonSuccess]}
+                                style={[
+                                    styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                                hitSlop={{
+                                    top: 3, right: 3, bottom: 3, left: 3,
+                                }}
                             >
                                 <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
                             </TouchableOpacity>
@@ -756,6 +769,9 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(ReportActionCompose);

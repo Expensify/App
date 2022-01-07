@@ -15,8 +15,9 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 
-const expensiPicker = {
+const picker = {
     backgroundColor: 'transparent',
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
@@ -427,6 +428,13 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -585,7 +593,7 @@ const styles = {
         height: variables.componentSizeLarge,
     },
 
-    expensiTextInputContainer: {
+    textInputContainer: {
         flex: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
@@ -596,7 +604,7 @@ const styles = {
         overflow: 'hidden',
     },
 
-    expensiTextInputLabel: {
+    textInputLabel: {
         position: 'absolute',
         left: 11,
         top: 0,
@@ -606,7 +614,7 @@ const styles = {
         width: '100%',
     },
 
-    expensiTextInputLabelBackground: {
+    textInputLabelBackground: {
         position: 'absolute',
         top: 0,
         width: '100%',
@@ -616,11 +624,11 @@ const styles = {
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputLabelDesktop: {
+    textInputLabelDesktop: {
         transformOrigin: 'left center',
     },
 
-    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+    textInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
             {translateX},
@@ -628,12 +636,11 @@ const styles = {
         ],
     }),
 
-    expensiTextInput: {
+    baseTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
-        height: '100%',
         paddingTop: 23,
         paddingBottom: 8,
         paddingHorizontal: 11,
@@ -641,12 +648,12 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputAndIconContainer: {
+    textInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
     },
 
-    expensiTextInputDesktop: addOutlineWidth({}, 0),
+    textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
         paddingRight: 11,
@@ -669,18 +676,54 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    expensiPickerContainer: {
+    textInputWithPrefix: {
+        container: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            textAlignVertical: 'center',
+        },
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 10,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
+    },
+
+    pickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
-    expensiPickerLabel: {
+    pickerLabel: {
         position: 'absolute',
         left: 12,
         top: 7,
     },
-    expensiPicker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
             right: 11,
@@ -689,12 +732,12 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
-            ...expensiPicker,
+            ...picker,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
@@ -740,6 +783,13 @@ const styles = {
         marginBottom: 8,
     },
 
+    formHelp: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
     formError: {
         color: themeColors.textError,
         fontSize: variables.fontSizeLabel,
@@ -763,11 +813,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    genericView: {
-        backgroundColor: themeColors.heading,
-        height: '100%',
     },
 
     signInPageInner: {
@@ -804,8 +849,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -1064,20 +1118,15 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     optionAlternateTextCompact: {
         flexShrink: 1,
         flexGrow: 1,
         flexBasis: 'auto',
-    },
-
-    // App Content Wrapper styles
-    appContentWrapper: {
-        backgroundColor: themeColors.appBG,
-        color: themeColors.text,
+        ...optionAlternateTextPlatformStyles,
     },
 
     appContent: {
@@ -1257,10 +1306,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 6,
-        paddingRight: 6,
-        paddingBottom: 6,
-        paddingLeft: 6,
+        padding: 6,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1863,6 +1909,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        padding: 0,
     }, 0),
 
     iouPreviewBox: {
@@ -1874,7 +1921,6 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
-        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -1975,7 +2021,7 @@ const styles = {
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: 380,
+        maxWidth: variables.sideBarWidth,
         right: 0,
         position: 'fixed',
     },
@@ -2142,6 +2188,23 @@ const styles = {
         bottom: 0,
     },
 
+    shortTermsBorder: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+    },
+
+    shortTermsHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
+    shortTermsLargeHorizontalRule: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -2155,7 +2218,7 @@ const styles = {
     shortTermsBoldHeadingSection: {
         paddingRight: 12,
         paddingLeft: 12,
-        marginTop: 16,
+        marginTop: 12,
     },
 
     longTermsRow: {

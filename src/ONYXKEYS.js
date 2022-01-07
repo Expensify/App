@@ -58,8 +58,11 @@ export default {
     // select a currency based on the list
     CURRENCY_LIST: 'currencyList',
 
-    // Indicates whether an update is available and ready to beinstalled.
+    // Indicates whether an update is available and ready to be installed.
     UPDATE_AVAILABLE: 'updateAvailable',
+
+    // Indicates that a request to join a screen share with a GuidesPlus agent was received
+    SCREEN_SHARE_REQUEST: 'screenShareRequest',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
@@ -115,6 +118,9 @@ export default {
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
+    // Stores values put into the additional details step of the wallet KYC flow
+    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
+
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
@@ -132,6 +138,9 @@ export default {
 
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
+
+    // Store frequently used emojis for this user
+    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
 
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -153,4 +162,14 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the create policy room command
+    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
+
+    // Is Keyboard shortcuts modal open?
+    IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
+
+    // Stores information about active wallet transfer amount, selectedAccountID, status, etc
+    WALLET_TRANSFER: 'walletTransfer',
+
 };

@@ -59,15 +59,10 @@ class ACHContractStep extends React.Component {
             certifyTrueInformation: 'beneficialOwnersStep.error.certify',
         };
 
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-    }
-
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
     }
 
     /**
@@ -122,29 +117,24 @@ class ACHContractStep extends React.Component {
      * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
      * @param {Integer} ownerIndex
-     * @param {String} inputKey
-     * @param {String} value
+     * @param {Object} values
      */
-    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+    clearErrorAndSetBeneficialOwnerValues(ownerIndex, values) {
         this.setState((prevState) => {
-            const renamedFields = {
-                addressStreet: 'street',
-                addressCity: 'city',
-                addressState: 'state',
-                addressZipCode: 'zipCode',
-            };
-            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
-            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], ...values};
             BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
 
+        // Prepare inputKeys for clearing errors
+        const inputKeys = _.keys(values);
+
         // dob field has multiple validations/errors, we are handling it temporarily like this.
-        if (inputKey === 'dob') {
-            this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
+        if (_.contains(inputKeys, 'dob')) {
+            inputKeys.push('dobAge');
         }
-        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
+        this.clearErrors(_.map(inputKeys, inputKey => `beneficialOwnersErrors.${ownerIndex}.${inputKey}`));
     }
 
     submit() {
@@ -233,7 +223,7 @@ class ACHContractStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(inputKey, value) => this.clearErrorAndSetBeneficialOwnerValue(index, inputKey, value)}
+                                        onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',

@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
@@ -32,7 +32,7 @@ const propTypes = {
         /** Success message to display when necessary */
         success: PropTypes.string,
 
-        /** Whether or not a sign on form is loading (being submitted) */
+        /** Whether a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
@@ -49,12 +49,9 @@ class PasswordPage extends Component {
         this.state = {
             currentPassword: '',
             newPassword: '',
-            confirmNewPassword: '',
             errors: {
                 currentPassword: false,
                 newPassword: false,
-                confirmNewPassword: false,
-                confirmPasswordMatch: false,
                 newPasswordSameAsOld: false,
             },
         };
@@ -67,9 +64,7 @@ class PasswordPage extends Component {
 
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
-            confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
             newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
-            confirmPasswordMatch: 'setPasswordPage.passwordsDontMatch',
             newPassword: 'passwordPage.errors.newPassword',
         };
     }
@@ -125,16 +120,8 @@ class PasswordPage extends Component {
             errors.newPassword = true;
         }
 
-        if (!this.state.confirmNewPassword) {
-            errors.confirmNewPassword = true;
-        }
-
         if (this.state.currentPassword && this.state.newPassword && _.isEqual(this.state.currentPassword, this.state.newPassword)) {
             errors.newPasswordSameAsOld = true;
-        }
-
-        if (ValidationUtils.isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
-            errors.confirmPasswordMatch = true;
         }
 
         this.setState({errors});
@@ -166,7 +153,7 @@ class PasswordPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
@@ -174,7 +161,7 @@ class PasswordPage extends Component {
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.currentPassword')}*`}
                                 ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
@@ -185,10 +172,11 @@ class PasswordPage extends Component {
                                 returnKeyType="done"
                                 hasError={this.state.errors.currentPassword}
                                 errorText={this.getErrorText('currentPassword')}
+                                onSubmitEditing={this.submit}
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={`${this.props.translate('passwordPage.newPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -199,6 +187,7 @@ class PasswordPage extends Component {
                                     ? this.getErrorText('newPasswordSameAsOld')
                                     : this.getErrorText('newPassword')}
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
+                                onSubmitEditing={this.submit}
                             />
                             {
 
@@ -214,19 +203,6 @@ class PasswordPage extends Component {
                                 )
                             }
                         </View>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.confirmNewPassword}
-                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text, ['confirmPasswordMatch'])}
-                                hasError={this.state.errors.confirmNewPassword || this.state.errors.confirmPasswordMatch}
-                                errorText={this.getErrorText(this.state.errors.confirmNewPassword ? 'confirmNewPassword' : 'confirmPasswordMatch')}
-                                onSubmitEditing={this.validateAndSubmitForm}
-                            />
-                        </View>
                         {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
@@ -236,7 +212,6 @@ class PasswordPage extends Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            style={[styles.mb2]}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
                             onPress={this.submit}

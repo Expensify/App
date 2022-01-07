@@ -89,6 +89,12 @@ export default {
         more: 'More',
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Bank account',
+        join: 'Join',
+        decline: 'Decline',
+        transferBalance: 'Transfer Balance',
+        cantFindAddress: 'Can\'t find your address? ',
+        enterManually: 'Enter it manually',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -130,10 +136,10 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -176,6 +182,7 @@ export default {
         fabAction: 'New chat',
         newChat: 'New chat',
         newGroup: 'New group',
+        newRoom: 'New Room',
         headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
@@ -192,7 +199,6 @@ export default {
         viewDetails: 'View details',
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
-        decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
         settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
@@ -256,6 +262,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
+            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -268,12 +275,12 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
+        security: 'Security',
         signOut: 'Sign out',
         versionLetter: 'v',
-        changePassword: 'Change password',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Read the',
             phrase2: 'terms of service',
@@ -283,16 +290,14 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
-        confirmNewPassword: 'Confirm new password',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         errors: {
             currentPassword: 'Current password is required',
-            confirmNewPassword: 'Confirm password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
     addPayPalMePage: {
@@ -329,9 +334,27 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        allSet: 'All Set!',
+        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
+        gotIt: 'Got it, Thanks!',
+    },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
+        instant: 'Instant (Debit Card)',
+        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        ach: '1-3 Business Days (Bank Account)',
+        achSummary: 'No fee',
+        whichAccount: 'Which Account?',
+        fee: 'Fee',
+        failedTransfer: 'Failed to transfer balance',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Choose Account',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
+        addDebitCard: 'Add debit card',
+        addBankAccount: 'Add bank account',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
@@ -405,6 +428,7 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
         resendLink: 'Resend link',
+        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
         unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
         newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
@@ -421,10 +445,8 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
-        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
-        passwordsDontMatch: 'Passwords must match',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -475,6 +497,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
     },
@@ -489,7 +512,6 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
@@ -500,6 +522,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraPermissionsNotGranted: 'Camera permissions not granted',
+        cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -521,48 +545,48 @@ export default {
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
         electronicFundsInstantFee: '1.5%',
-        electronicFundsInstantFeeMin: 'Min $0.25',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
-        electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
-        instant: 'Instant',
+        electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
+            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
-            inNetwork: 'In-network',
+            inNetwork: 'in-network',
             outOfNetwork: 'out-of-network',
             atmBalanceInquiry: 'ATM balance inquiry',
-            inOrOutOfNetwork: 'In-network or out-of-network',
+            inOrOutOfNetwork: '(in-network or out-of-network)',
             customerService: 'Customer service',
-            automatedOrLive: 'Automated or live agent',
-            afterTwelveMonths: 'After 12 months with no transactions',
-            weChargeOneFee: 'We charge 1 type of fee.',
+            automatedOrLive: '(automated or live agent)',
+            afterTwelveMonths: '(after 12 months with no transactions)',
+            weChargeOneFee: 'We charge one type of fee.',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
             conditionsPhone: 'or calling +1 833-400-0904.',
+            instant: '(instant)',
+            electronicFundsInstantFeeMin: '(min $0.25)',
         },
         longTermsForm: {
-            listOfAllFees: 'All Expensify Payments account fees:',
+            listOfAllFees: 'A list of all Expensify Wallet fees',
             typeOfFeeHeader: 'Type of fee',
             feeAmountHeader: 'Fee amount',
             moreDetailsHeader: 'More details',
             openingAccountTitle: 'Opening an account',
-            openingAccountDetails: 'There is no fee to create an account.',
-            monthlyFeeDetails: 'There is no monthly fee',
+            openingAccountDetails: 'There is no fee to open an account.',
+            monthlyFeeDetails: 'There is no monthly fee.',
             customerServiceTitle: 'Customer service',
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
             sendingFundsTitle: 'Sending funds to another account holder',
             sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
                 + 'bank account, or debit card.',
-            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Wallet '
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
-            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
-                + 'your linked debit card using the instant transfer option. This transfer usually completes within'
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Wallet to '
+                + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
                 + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
@@ -576,6 +600,8 @@ export default {
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
+            instant: 'Instant',
+            electronicFundsInstantFeeMin: 'Min $0.25',
         },
     },
     activateStep: {
@@ -672,6 +698,7 @@ export default {
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
+            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -791,6 +818,22 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
     },
+    newRoomPage: {
+        newRoom: 'New Room',
+        roomName: 'Room Name',
+        visibility: 'Visibility',
+        restrictedDescription: 'People in your workspace are able to find this room using Search',
+        privateDescription: 'Only people invited to this room are able to find it',
+        createRoom: 'Create Room',
+        roomAlreadyExists: 'A room with this name already exists',
+        social: 'social',
+        selectAWorkspace: 'Select a workspace',
+        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        visibilityOptions: {
+            restricted: 'Restricted',
+            private: 'Private',
+        },
+    },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
@@ -799,6 +842,11 @@ export default {
             escape: 'Escape Dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
+            copy: 'Copy comment',
         },
+    },
+    guides: {
+        screenShare: 'Screen share',
+        screenShareRequest: 'Expensify is inviting you to a screen share',
     },
 };

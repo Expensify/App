@@ -75,7 +75,7 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
+            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.props.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);

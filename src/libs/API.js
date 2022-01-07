@@ -495,7 +495,7 @@ function GetFullPolicy(policyID) {
     const commandName = 'Get';
     const parameters = {
         returnValueList: 'policyList',
-        policyIDList: [policyID],
+        policyIDList: policyID,
     };
     return Network.post(commandName, parameters);
 }
@@ -536,6 +536,7 @@ function Graphite_Timer(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayIOU(parameters) {
@@ -547,6 +548,7 @@ function PayIOU(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
@@ -961,7 +963,7 @@ function BankAccount_SetupWithdrawal(parameters) {
         'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
         'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
 
         // data from company step:
@@ -1129,6 +1131,21 @@ function CreatePolicyRoom(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Transfer Wallet balance and takes either the bankAccoundID or fundID
+ * @param {Object} parameters
+ * @param {String} [parameters.bankAccountID]
+ * @param {String} [parameters.fundID]
+ * @returns {Promise}
+ */
+function Wallet_TransferBalance(parameters) {
+    const commandName = 'TransferWalletBalance';
+    if (!parameters.bankAccountID && !parameters.fundID) {
+        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
+    }
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1186,6 +1203,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
+    Wallet_TransferBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

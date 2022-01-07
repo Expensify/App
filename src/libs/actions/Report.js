@@ -125,7 +125,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns the title for a default room or generates one based on the participants
+ * Returns the title for a default room, a policy room or generates one based on the participants
  *
  * @param {Object} fullReport
  * @param {String} chatType
@@ -140,6 +140,11 @@ function getChatReportName(fullReport, chatType) {
         })
             ? ` (${Localize.translateLocal('common.deleted')})`
             : '')}`;
+    }
+
+    // For a basic policy room, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;
@@ -182,7 +187,7 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
@@ -533,7 +538,15 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
 function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+        // Don't do anything for messages that aren't deleted.
+        if (message.html) {
+            return;
+        }
+
+        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
+        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+    });
 
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
@@ -715,6 +728,24 @@ function subscribeToUserEvents() {
             );
         });
 
+    // Live-update a report's actions when a 'chunked report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_CHUNK} event sent by Pusher`, false, {reportID: pushJSON.reportID},
+        );
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_CHUNK},
+            );
+        });
+
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
@@ -732,6 +763,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment chunk' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK} event sent by Pusher`, false, {
+                reportActionID: pushJSON.reportActionID,
+            },
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, true,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK},
             );
         });
 
@@ -1451,28 +1502,33 @@ function handleInaccessibleReport() {
 }
 
 /**
- * Creates a policy room and fetches it
+ * Creates a policy room, fetches it, and navigates to it.
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
  * @return {Promise}
  */
 function createPolicyRoom(policyID, reportName, visibility) {
+    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Log.hmmm(response.message);
+                Growl.error(response.message);
                 return;
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then(([{reportID}]) => {
             if (!reportID) {
-                Log.hmmm('Unable to grab policy room after creation');
+                Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
 
 export {

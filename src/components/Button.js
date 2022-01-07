@@ -32,6 +32,15 @@ const propTypes = {
     /** A function that is called when the button is clicked on */
     onPress: PropTypes.func,
 
+    /** A function that is called when the button is long pressed */
+    onLongPress: PropTypes.func,
+
+    /** A function that is called when the button is pressed */
+    onPressIn: PropTypes.func,
+
+    /** A function that is called when the button is released */
+    onPressOut: PropTypes.func,
+
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
@@ -68,6 +77,9 @@ const defaultProps = {
     small: false,
     large: false,
     onPress: () => {},
+    onLongPress: () => {},
+    onPressIn: () => {},
+    onPressOut: () => {},
     pressOnEnter: false,
     style: [],
     textStyles: [],
@@ -158,6 +170,9 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={this.props.onPress}
+                onLongPress={this.props.onLongPress}
+                onPressIn={this.props.onPressIn}
+                onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? styles.cursorDisabled : {},

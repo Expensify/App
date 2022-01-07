@@ -9,7 +9,10 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Clipboard from '../../../libs/Clipboard';
 import * as Report from '../../../libs/actions/Report';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import SelectionScraper from '../../../libs/SelectionScraper';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -106,6 +109,7 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
+        this.appStateChangeListener = null;
 
         this.didLayout = false;
 
@@ -127,7 +131,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        AppState.addEventListener('change', this.onVisibilityChange);
+        this.appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
@@ -151,6 +155,13 @@ class ReportActionsView extends React.Component {
         }
 
         Report.fetchActions(this.props.reportID);
+
+        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
+        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
+
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
+            this.copySelectionToClipboard();
+        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -186,6 +197,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
+            return true;
+        }
+
+        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
             return true;
         }
 
@@ -239,9 +254,15 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        AppState.removeEventListener('change', this.onVisibilityChange);
+        if (this.appStateChangeListener) {
+            this.appStateChangeListener.remove();
+        }
 
         Report.unsubscribeFromReportChannel(this.props.reportID);
+
+        if (this.unsubscribeCopyShortcut) {
+            this.unsubscribeCopyShortcut();
+        }
     }
 
     /**
@@ -253,6 +274,12 @@ class ReportActionsView extends React.Component {
         }
 
         Report.updateLastReadActionID(this.props.reportID);
+    }
+
+    copySelectionToClipboard = () => {
+        const selectionMarkdown = SelectionScraper.getAsMarkdown();
+
+        Clipboard.setString(selectionMarkdown);
     }
 
     /**
@@ -313,14 +340,8 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter((action) => {
-                // Only show non-empty ADDCOMMENT actions or IOU actions
-                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
-                const message = _.first(lodashGet(action, 'message', null));
-                const html = lodashGet(message, 'html', '');
-                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
-            })
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT)
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -517,7 +538,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
+        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
@@ -532,9 +553,9 @@ class ReportActionsView extends React.Component {
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isDefaultChatRoom={isDefaultChatRoom}
+                            isChatRoom={isChatRoom}
                         />
-                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isChatRoom} />
                     </View>
                 </View>
             );
@@ -558,7 +579,10 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldShowReportRecipientLocalTime && styles.pt0,
+                    ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}

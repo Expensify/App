@@ -78,7 +78,7 @@ class ReportActionItemFragment extends React.PureComponent {
                                     fontSize={variables.fontSizeSmall}
                                     color={themeColors.textSupporting}
                                 >
-                                    {/* Native devices do not support margin between nested text */}
+                                    {/* Native devices do not support margin between nested Text */}
                                     <Text style={styles.w1}>{' '}</Text>
                                     {this.props.translate('reportActionCompose.edited')}
                                 </Text>

@@ -9,7 +9,7 @@ const CONST = {
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
-    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
+    AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -123,6 +123,8 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+        WEB: 'web',
+        DESKTOP: 'desktop',
     },
     KEYBOARD_SHORTCUT_MODIFIERS: {
         CTRL: {
@@ -158,6 +160,11 @@ const CONST = {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+        },
+        COPY: {
+            descriptionKey: 'copy',
+            shortcutKey: 'C',
+            modifiers: ['CTRL'],
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
@@ -219,6 +226,7 @@ const CONST = {
             POLICY_ANNOUNCE: 'policyAnnounce',
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
+            POLICY_ROOM: 'policyRoom',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -230,7 +238,12 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        VISIBILITY: {
+            RESTRICTED: 'restricted',
+            PRIVATE: 'private',
+        },
         MAX_PREVIEW_AVATARS: 4,
+        MAX_ROOM_NAME_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -289,6 +302,7 @@ const CONST = {
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
+        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -309,6 +323,10 @@ const CONST = {
     },
 
     EMOJI_SPACER: 'SPACER',
+
+    EMOJI_NUM_PER_ROW: 8,
+
+    EMOJI_FREQUENT_ROW_COUNT: 3,
 
     LOGIN_TYPE: {
         PHONE: 'phone',
@@ -366,6 +384,11 @@ const CONST = {
     },
 
     WALLET: {
+        TRANSFER_BALANCE_FEE: 0.30,
+        TRANSFER_METHOD_TYPE: {
+            INSTANT: 'instant',
+            ACH: 'ach',
+        },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',
@@ -405,6 +428,10 @@ const CONST = {
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
+            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
+            // eslint-disable-next-line max-len
+            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -425,6 +452,12 @@ const CONST = {
         Opera: 'opera',
         SAFARI: 'safari',
         OTHER: 'other',
+    },
+
+    PAYMENT_METHODS: {
+        PAYPAL: 'payPalMe',
+        DEBIT_CARD: 'debitCard',
+        BANK_ACCOUNT: 'bankAccount',
     },
 
     IOU: {
@@ -487,6 +520,7 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
+        ALPHABETIC_CHARS: /[a-zA-Z]+/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,

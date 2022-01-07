@@ -3,6 +3,8 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
+    AppState,
+    Keyboard,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -77,6 +79,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
+        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -85,6 +88,10 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
+        this.appStateSubscription = AppState.addEventListener(
+            'change',
+            this.dismissKeyboardWhenBackgrounded,
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -93,6 +100,20 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    componentWillUnmount() {
+        if (!this.appStateSubscription) {
+            return;
+        }
+        this.appStateSubscription.remove();
+    }
+
+    dismissKeyboardWhenBackgrounded(nextAppState) {
+        if (!nextAppState.match(/inactive|background/)) {
+            return;
+        }
+        Keyboard.dismiss();
     }
 
     /**
@@ -188,23 +209,17 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
-                    {this.props.isSmallScreenWidth
-                        ? (
-                            <Text
-                                style={styles.iouAmountText}
-                            >
-                                {this.state.amount}
-                            </Text>
-                        ) : (
-                            <TextInputAutoWidth
-                                inputStyle={styles.iouAmountTextInput}
-                                textStyle={styles.iouAmountText}
-                                onChangeText={this.updateAmount}
-                                ref={el => this.textInput = el}
-                                value={this.state.amount}
-                                placeholder="0"
-                            />
-                        )}
+                    <TextInputAutoWidth
+                        inputStyle={styles.iouAmountTextInput}
+                        textStyle={styles.iouAmountText}
+                        onChangeText={this.updateAmount}
+                        ref={el => this.textInput = el}
+                        value={this.state.amount}
+                        placeholder="0"
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        showSoftInputOnFocus={false}
+                        inputmode="none"
+                    />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth

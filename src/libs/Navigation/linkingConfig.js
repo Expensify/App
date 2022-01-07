@@ -44,8 +44,20 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
+                    Settings_Security: {
+                        path: ROUTES.SETTINGS_SECURITY,
+                        exact: true,
+                    },
                     Settings_Payments: {
                         path: ROUTES.SETTINGS_PAYMENTS,
+                        exact: true,
+                    },
+                    Settings_Payments_Transfer_Balance: {
+                        path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                        exact: true,
+                    },
+                    Settings_Payments_Choose_Transfer_Account: {
+                        path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
                         exact: true,
                     },
                     Settings_Add_Paypal_Me: {
@@ -54,6 +66,10 @@ export default {
                     },
                     Settings_Add_Debit_Card: {
                         path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
+                        exact: true,
+                    },
+                    Settings_Add_Bank_Account: {
+                        path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                         exact: true,
                     },
                     Settings_Profile: {
@@ -102,8 +118,11 @@ export default {
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
+                    Workspace_NewRoom: {
+                        path: ROUTES.WORKSPACE_NEW_ROOM,
+                    },
                     ReimbursementAccount: {
-                        path: ROUTES.BANK_ACCOUNT,
+                        path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
                 },

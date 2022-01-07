@@ -1,5 +1,5 @@
 import React from 'react';
-import {ActivityIndicator, Text} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
+import Text from './Text';
 
 const propTypes = {
     /** The user's wallet account */

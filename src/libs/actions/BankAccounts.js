@@ -1,7 +1,12 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as Plaid from './Plaid';
+import * as ReimbursementAccount from './ReimbursementAccount';
+import Navigation from '../Navigation/Navigation';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as PaymentMethods from './PaymentMethods';
 
 export {
     setupWithdrawalAccount,
@@ -41,6 +46,7 @@ export {
  * @param {String} plaidLinkToken
  */
 function addPersonalBankAccount(account, password, plaidLinkToken) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
         bankAccount.plaidAccountID === account.plaidAccountID
     ));
@@ -71,12 +77,22 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
         }),
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                alert('There was a problem adding this bank account.');
+            if (response.jsonCode === 200) {
+                PaymentMethods.getPaymentMethods()
+                    .then(() => {
+                        Navigation.goBack();
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                    });
                 return;
             }
 
-            alert('Bank account added successfully.');
+            if (response.message === 'Incorrect Expensify password entered') {
+                ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
+            }
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }
 
