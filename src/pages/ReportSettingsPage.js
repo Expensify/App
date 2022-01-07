@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -49,111 +49,115 @@ const propTypes = {
 };
 
 
-const ReportSettingsPage = (props) => {
-    const notificationPreferencesOptions = {
-        default: {
-            value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            label: props.translate('notificationPreferences.always'),
-        },
-        daily: {
-            value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-            label: props.translate('notificationPreferences.daily'),
-        },
-        mute: {
-            value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-            label: props.translate('notificationPreferences.mute'),
-        },
-    };
-    const shouldDisableRename = ReportUtils.isDefaultRoom(props.report) || ReportUtils.isArchivedRoom(props.report);
+class ReportSettingsPage extends Component {
+    constructor(props) {
+        super(props);
+        this.notificationPreferencesOptions = {
+            default: {
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                label: this.props.translate('notificationPreferences.always'),
+            },
+            daily: {
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+                label: this.props.translate('notificationPreferences.daily'),
+            },
+            mute: {
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
+                label: this.props.translate('notificationPreferences.mute'),
+            },
+        };
 
-    let originalReportName = props.report.reportName.substring(1);
-    let newReportName = originalReportName;
+        this.state = {
+            newRoomName: this.props.report.reportName,
+        };
+    }
 
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('common.settings')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <ScrollView style={styles.flex1}>
-                <View style={[styles.m5]}>
-                    <View>
+    render() {
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.settings')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <ScrollView style={styles.flex1}>
+                    <View style={[styles.m5]}>
+                        <View>
+                            <View style={styles.mt4}>
+                                <Text style={[styles.formLabel]} numberOfLines={1}>
+                                    {this.props.translate('common.notifications')}
+                                </Text>
+                                <Text>
+                                    {this.props.translate('notificationPreferences.description')}
+                                </Text>
+                            </View>
+                            <View style={[styles.mb5, styles.mt2]}>
+                                <Picker
+                                    label={this.props.translate('notificationPreferences.label')}
+                                    onChange={(notificationPreference) => {
+                                        Report.updateNotificationPreference(
+                                            this.props.report.reportID,
+                                            notificationPreference,
+                                        );
+                                    }}
+                                    items={_.values(this.notificationPreferencesOptions)}
+                                    value={this.props.report.notificationPreference}
+                                />
+                            </View>
+                        </View>
                         <View style={styles.mt4}>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {props.translate('common.notifications')}
+                                {this.props.translate('newRoomPage.roomName')}
                             </Text>
-                            <Text>
-                                {props.translate('notificationPreferences.description')}
-                            </Text>
-                        </View>
-                        <View style={[styles.mb5, styles.mt2]}>
-                            <Picker
-                                label={props.translate('notificationPreferences.label')}
-                                onChange={(notificationPreference) => {
-                                    Report.updateNotificationPreference(
-                                        props.report.reportID,
-                                        notificationPreference,
-                                    );
-                                }}
-                                items={_.values(notificationPreferencesOptions)}
-                                value={props.report.notificationPreference}
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.mt4}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {props.translate('newRoomPage.roomName')}
-                        </Text>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex3]}>
-                                <TextInputWithPrefix
-                                    label={props.translate('newRoomPage.roomName')}
-                                    prefixCharacter="#"
-                                    placeholder={props.translate('newRoomPage.social')}
-                                    onChangeText={roomName => { newReportName = roomName}}
-                                    value={newReportName}
-                                    errorText=""
-                                    autoCapitalize="none"
-                                    disabled={shouldDisableRename}
-                                />
-                            </View>
-                            <View styles={[styles.flex1]}>
-                                <Button
-                                    success
-                                    text={props.translate('common.save')}
-                                    onPress={() => {
-                                        // When renaming is built, this will use that API command
-                                        // For now it will just console out the new name
-                                        console.log('#' + newReportName);
-                                    }}
-                                    isDisabled={shouldDisableRename || originalReportName === newReportName}
-                                />
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex3]}>
+                                    <TextInputWithPrefix
+                                        label={this.props.translate('newRoomPage.roomName')}
+                                        prefixCharacter="#"
+                                        placeholder={this.props.translate('newRoomPage.social')}
+                                        onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
+                                        value={this.state.newRoomName}
+                                        errorText=""
+                                        autoCapitalize="none"
+                                        disabled={shouldDisableRename}
+                                    />
+                                </View>
+                                <View styles={[styles.flex1]}>
+                                    <Button
+                                        success
+                                        text={this.props.translate('common.save')}
+                                        onPress={() => {
+                                            // When renaming is built, this will use that API command
+                                        }}
+                                        isDisabled={shouldDisableRename || this.state.newRoomName !== this.props.report.reportName.substring(1)}
+                                    />
+                                </View>
                             </View>
                         </View>
+                        <View style={[styles.mt4]}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('workspace.common.workspace')}
+                            </Text>
+                            <Text numberOfLines={1}>
+                                TODO
+                            </Text>
+                        </View>
+                        <View style={[styles.mt4]}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('newRoomPage.visibility')}
+                            </Text>
+                            <Text numberOfLines={1}>
+                                TODO
+                            </Text>
+                        </View>
                     </View>
-                    <View style={[styles.mt4]}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {props.translate('workspace.common.workspace')}
-                        </Text>
-                        <Text numberOfLines={1}>
-                            TODO
-                        </Text>
-                    </View>
-                    <View style={[styles.mt4]}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {props.translate('newRoomPage.visibility')}
-                        </Text>
-                        <Text numberOfLines={1}>
-                            TODO
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
-    );
-};
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
+}
 
 ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
