@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator} from 'react-native';
+import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from './AddPaymentMethodMenu';
@@ -46,6 +48,7 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
+        PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
     }
 
@@ -105,7 +108,9 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.children(this.continue)}
+                {this.props.isLoadingPaymentMethods
+                    ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
+                    : this.props.children(this.continue)}
             </>
         );
     }
@@ -123,5 +128,9 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    isLoadingPaymentMethods: {
+        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+        initWithStoredValues: false,
     },
 })(KYCWall);
