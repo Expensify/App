@@ -17,6 +17,7 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import TextInputWithPrefix from '../components/TextInputWithPrefix';
 import Picker from '../components/Picker';
+import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 
 
 const propTypes = {
@@ -45,7 +46,13 @@ const propTypes = {
         }),
     }).isRequired,
 
+    ...fullPolicyPropTypes,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    ...fullPolicyDefaultProps,
 };
 
 
@@ -92,7 +99,7 @@ class ReportSettingsPage extends Component {
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report && report.policyID === this.state.policyID && report.reportName === finalRoomName,
+            report => report && report.policyID === this.props.report.policyID && report.reportName === finalRoomName,
         );
         if (isExistingRoomName) {
             this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
@@ -104,6 +111,8 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+        const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -166,14 +175,16 @@ class ReportSettingsPage extends Component {
                                 </View>
                             </View>
                         </View>
-                        <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('workspace.common.workspace')}
-                            </Text>
-                            <Text numberOfLines={1}>
-                                TODO
-                            </Text>
-                        </View>
+                        {linkedWorkspace && (
+                            <View style={[styles.mt4]}>
+                                <Text style={[styles.formLabel]} numberOfLines={1}>
+                                    {this.props.translate('workspace.common.workspace')}
+                                </Text>
+                                <Text numberOfLines={1}>
+                                    {linkedWorkspace.name}
+                                </Text>
+                            </View>
+                        )}
                         <View style={[styles.mt4]}>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('newRoomPage.visibility')}
@@ -190,16 +201,21 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
+ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportSettingsPage);
