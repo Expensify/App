@@ -19,7 +19,7 @@ import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
 import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
-import ExpensiTextInput from '../components/ExpensiTextInput';
+import TextInput from '../components/TextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
@@ -230,7 +230,7 @@ class RequestCallPage extends Component {
                             style={[styles.mv4]}
                         />
                         <View style={styles.mt4}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.phoneNumber')}
                                 autoCompleteType="off"
                                 autoCorrect={false}

@@ -184,12 +184,12 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isDefaultRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
                     return;
                 }
 
                 const avatars = OptionsListUtils.getReportIcons(report, details);
-                const reportName = ReportUtils.isDefaultRoom(report)
+                const reportName = ReportUtils.isChatRoom(report)
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
