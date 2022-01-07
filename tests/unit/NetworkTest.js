@@ -132,8 +132,22 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
     const TEST_CHAT_LIST = [1, 2, 3];
 
     let chatList;
+    Onyx.connect({
+        key: 'test_chatList',
+        callback: val => chatList = val,
+    });
+
     let account;
+    Onyx.connect({
+        key: 'test_account',
+        callback: val => account = val,
+    });
+
     let personalDetailsList;
+    Onyx.connect({
+        key: 'test_personalDetailsList',
+        callback: val => personalDetailsList = val,
+    });
 
     // When we sign in
     return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -180,15 +194,15 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             // And then make 3 API requests in quick succession with an expired authToken and handle the response
             API.Get({returnValueList: 'chatList'})
                 .then((response) => {
-                    chatList = response.chatList;
+                    Onyx.merge('test_chatList', response.chatList);
                 });
             API.Get({returnValueList: 'personalDetailsList'})
                 .then((response) => {
-                    personalDetailsList = response.personalDetailsList;
+                    Onyx.merge('test_personalDetailsList', response.personalDetailsList);
                 });
             API.Get({returnValueList: 'account'})
                 .then((response) => {
-                    account = response.account;
+                    Onyx.merge('test_account', response.account);
                 });
 
             return waitForPromisesToResolve();
