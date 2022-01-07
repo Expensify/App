@@ -175,21 +175,23 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
                     authToken: 'qwerty12345',
                 }))
 
-                .mockImplementation((command, data) => {
-                    const response = {jsonCode: 200};
+                // Get&returnValueList=personalDetailsList
+                .mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: 200,
+                    personalDetailsList: TEST_PERSONAL_DETAILS,
+                }))
 
-                    // Get&returnValueList=chatList
-                    // Get&returnValueList=personalDetailsList
-                    // Get&returnValueList=account
-                    switch (data.returnValueList) {
-                        case 'chatList': response.chatList = TEST_CHAT_LIST; break;
-                        case 'personalDetailsList': response.personalDetailsList = TEST_PERSONAL_DETAILS; break;
-                        case 'account': response.account = TEST_ACCOUNT_DATA; break;
-                        default: throw new Error('Unexpected XHR call');
-                    }
+                // Get&returnValueList=account
+                .mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: 200,
+                    account: TEST_ACCOUNT_DATA,
+                }))
 
-                    return Promise.resolve(response);
-                });
+                // Get&returnValueList=chatList
+                .mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: 200,
+                    chatList: TEST_CHAT_LIST,
+                }));
 
             // And then make 3 API requests in quick succession with an expired authToken and handle the response
             API.Get({returnValueList: 'chatList'})
