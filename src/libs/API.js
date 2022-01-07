@@ -118,7 +118,7 @@ function handleExpiredAuthToken(originalRequest) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        retry(originalRequest);
+        retryRequest(originalRequest);
         return;
     }
 
