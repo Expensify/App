@@ -72,7 +72,11 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5]}
                         />
                         <Text style={[styles.mt5]}>
-                            {this.props.translate('closeAccountPage.closeAccountWarning')}
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.closeAccountWarningPart1')}
+                            </Text>
+                            {' '}
+                            {this.props.translate('closeAccountPage.closeAccountWarningPart2')}
                         </Text>
                         <TextInput
                             value={this.state.phoneOrEmail}
