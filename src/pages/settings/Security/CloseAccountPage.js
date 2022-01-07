@@ -138,7 +138,7 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         isCloseAccoutModalOpen: {
-            key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN
+            key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
         },
         session: {
             key: ONYXKEYS.SESSION,
