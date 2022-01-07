@@ -192,13 +192,13 @@ class ReportSettingsPage extends Component {
                                 </Text>
                                 <Text numberOfLines={1}>
                                     {/* Use capialized versions of the visibility rNVP value*/}
-                                    {this.props.visibility === CONST.REPORT.RESTRICTED
+                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
                                         ? 'Restricted'
                                         : 'Private'
                                     }
                                 </Text>
-                                <Text numberOfLines={2}>
-                                    {this.props.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
+                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
                                         ? this.props.translate('newRoomPage.restrictedDescription')
                                         : this.props.translate('newRoomPage.privateDescription')
                                     }
