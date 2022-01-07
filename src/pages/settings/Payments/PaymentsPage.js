@@ -1,5 +1,4 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -120,22 +119,20 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1}>
-                        {
-                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
-                        }
-                        <Text
-                            style={[styles.ph5, styles.formLabel]}
-                        >
-                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </Text>
-                        <PaymentMethodList
-                            onPress={this.paymentMethodPressed}
-                            style={[styles.flex4]}
-                            isLoadingPayments={this.props.isLoadingPaymentMethods}
-                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                        />
-                    </ScrollView>
+                    <PaymentMethodList
+                        ListHeaderComponent={(
+                            <>
+                                {Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />}
+                                <Text style={[styles.ph5, styles.formLabel]}>
+                                    {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                                </Text>
+                            </>
+                        )}
+                        onPress={this.paymentMethodPressed}
+                        style={[styles.flex1]}
+                        isLoadingPayments={this.props.isLoadingPaymentMethods}
+                        isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
+                    />
                     <AddPaymentMethodMenu
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
