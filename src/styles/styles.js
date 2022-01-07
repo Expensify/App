@@ -1703,6 +1703,11 @@ const styles = {
         ...flex.alignItemsCenter,
     },
 
+    reportSettingsChangeNameButton: {
+        height: 42,
+        paddingHorizontal: 20,
+    },
+
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',

@@ -163,16 +163,17 @@ class ReportSettingsPage extends Component {
                                         disabled={shouldDisableRename}
                                     />
                                 </View>
-                                <View styles={[styles.flex1]}>
-                                    <Button
-                                        success
-                                        text={this.props.translate('common.save')}
-                                        onPress={() => {
-                                            // When renaming is built, this will use that API command
-                                        }}
-                                        isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
-                                    />
-                                </View>
+                                <Button
+                                    success={!shouldDisableRename}
+                                    text={this.props.translate('common.save')}
+                                    onPress={() => {
+                                        // When renaming is built, this will use that API command
+                                    }}
+                                    style={[styles.ml2]}
+                                    textStyles={[styles.label]}
+                                    buttonStyles={[styles.reportSettingsChangeNameButton]}
+                                    isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
+                                />
                             </View>
                         </View>
                         {linkedWorkspace && (
