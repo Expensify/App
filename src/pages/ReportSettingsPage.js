@@ -66,6 +66,9 @@ const ReportSettingsPage = (props) => {
     };
     const shouldDisableRename = ReportUtils.isDefaultRoom(props.report) || ReportUtils.isArchivedRoom(props.report);
 
+    let originalReportName = props.report.reportName.substring(1);
+    let newReportName = originalReportName;
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -109,8 +112,8 @@ const ReportSettingsPage = (props) => {
                                     label={props.translate('newRoomPage.roomName')}
                                     prefixCharacter="#"
                                     placeholder={props.translate('newRoomPage.social')}
-                                    onChangeText={() => {}}
-                                    value=""
+                                    onChangeText={roomName => { newReportName = roomName}}
+                                    value={newReportName}
                                     errorText=""
                                     autoCapitalize="none"
                                     disabled={shouldDisableRename}
@@ -121,9 +124,11 @@ const ReportSettingsPage = (props) => {
                                     success
                                     text={props.translate('common.save')}
                                     onPress={() => {
-                                        // Submit a name change for this policyRoom
+                                        // When renaming is built, this will use that API command
+                                        // For now it will just console out the new name
+                                        console.log('#' + newReportName);
                                     }}
-                                    isDisabled={shouldDisableRename}
+                                    isDisabled={shouldDisableRename || originalReportName === newReportName}
                                 />
                             </View>
                         </View>
