@@ -9,6 +9,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from '../libs/reportUtils';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -63,6 +64,8 @@ const ReportSettingsPage = (props) => {
             label: props.translate('notificationPreferences.mute'),
         },
     };
+    const shouldDisableRename = ReportUtils.isDefaultRoom(props.report) || ReportUtils.isArchivedRoom(props.report);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -110,15 +113,17 @@ const ReportSettingsPage = (props) => {
                                     value=""
                                     errorText=""
                                     autoCapitalize="none"
+                                    disabled={shouldDisableRename}
                                 />
                             </View>
-                            <View styles={[styles.flex1, styles.mt4]}>
+                            <View styles={[styles.flex1]}>
                                 <Button
                                     success
                                     text={props.translate('common.save')}
                                     onPress={() => {
                                         // Submit a name change for this policyRoom
                                     }}
+                                    isDisabled={shouldDisableRename}
                                 />
                             </View>
                         </View>
