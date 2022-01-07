@@ -72,6 +72,36 @@ class ReportSettingsPage extends Component {
         };
     }
 
+    /**
+     * Modifies the room name to follow our conventions:
+     * - Max length 80 characters
+     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
+     * - Must be lowercase
+     * Also checks to see if this room name already exists, and displays an error message if so.
+     * @param {String} roomName
+     *
+     * @returns {String}
+     */
+    checkAndModifyRoomName(roomName) {
+        const modifiedRoomNameWithoutHash = roomName.substr(1)
+            .replace(/ /g, '_')
+            .replace(/[^a-zA-Z\d_]/g, '')
+            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+            .toLowerCase();
+        const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
+
+        const isExistingRoomName = _.some(
+            _.values(this.props.reports),
+            report => report && report.policyID === this.state.policyID && report.reportName === finalRoomName,
+        );
+        if (isExistingRoomName) {
+            this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
+        } else {
+            this.setState({error: ''});
+        }
+        return finalRoomName;
+    }
+
     render() {
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         return (
@@ -117,9 +147,9 @@ class ReportSettingsPage extends Component {
                                         label={this.props.translate('newRoomPage.roomName')}
                                         prefixCharacter="#"
                                         placeholder={this.props.translate('newRoomPage.social')}
-                                        onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
-                                        value={this.state.newRoomName}
-                                        errorText=""
+                                        onChangeText={(roomName) => { this.setState({newRoomName: this.checkAndModifyRoomName(roomName)}); }}
+                                        value={this.state.newRoomName.substring(1)}
+                                        errorText={this.state.error}
                                         autoCapitalize="none"
                                         disabled={shouldDisableRename}
                                     />
@@ -131,7 +161,7 @@ class ReportSettingsPage extends Component {
                                         onPress={() => {
                                             // When renaming is built, this will use that API command
                                         }}
-                                        isDisabled={shouldDisableRename || this.state.newRoomName !== this.props.report.reportName.substring(1)}
+                                        isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
                                     />
                                 </View>
                             </View>
