@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -696,11 +697,13 @@ const styles = {
             textAlignVertical: 'center',
         },
         textInput: {
+            padding: 0,
             outlineStyle: 'none',
             color: themeColors.text,
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
             textAlignVertical: 'center',
+            lineHeight: (Platform.OS === 'ios') ? 19 : 20,
             flex: 1,
         },
         prefix: {
@@ -709,6 +712,7 @@ const styles = {
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
             textAlignVertical: 'center',
+            lineHeight: 20,
         },
     },
 

@@ -34,17 +34,15 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
         <View
                 style={[
                     styles.textInputWithPrefix.container,
-                    {paddingTop: 0},
                     props.disabled && styles.inputDisabled,
                     props.errorText && styles.errorOutline,
                 ]}
         >
-            <Text style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</Text>
+            <Text style={[styles.textInputWithPrefix.prefix]}>{props.prefixCharacter}</Text>
             <TextInput
                 style={[
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,
-                    {height: 40},
                 ]}
                 onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
