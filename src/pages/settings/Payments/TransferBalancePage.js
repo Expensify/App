@@ -216,7 +216,7 @@ class TransferBalancePage extends React.Component {
                                 {
                                     amount: canTransfer
                                         ? this.props.numberFormat(
-                                            transferAmount,
+                                            transferAmount / 100,
                                             {style: 'currency', currency: 'USD'},
                                         ) : '',
                                 },

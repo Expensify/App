@@ -186,7 +186,7 @@ class PaymentsPage extends React.Component {
                         isVisible={this.props.walletTransfer.shouldShowConfirmModal}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
                             amount: this.props.numberFormat(
-                                PaymentUtils.subtractWalletTransferBalanceFee(this.props.userWallet.currentBalance),
+                                PaymentUtils.subtractWalletTransferBalanceFee(this.props.userWallet.currentBalance) / 100,
                                 {style: 'currency', currency: 'USD'},
                             ),
                         })}

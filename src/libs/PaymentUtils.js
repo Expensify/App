@@ -70,7 +70,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
  * @returns {Number}
  */
 function subtractWalletTransferBalanceFee(currentBalance) {
-    return (currentBalance / 100) - CONST.WALLET.TRANSFER_BALANCE_FEE;
+    return currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE;
 }
 
 export default {
