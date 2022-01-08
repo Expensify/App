@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
+import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
