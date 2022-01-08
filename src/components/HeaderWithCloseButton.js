@@ -17,7 +17,7 @@ const propTypes = {
     title: PropTypes.string,
 
     /** Subtitle of the header */
-    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress: PropTypes.func,

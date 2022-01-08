@@ -74,6 +74,21 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+        this.getSplitFileName = this.getSplitFileName.bind(this);
+    }
+
+    /**
+     * Returns the filename split into leading and trailing text
+     * @returns {Object}
+     */
+    getSplitFileName() {
+        const fileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
+        const splittedFileName = fileName.split('.');
+        const trailingText = splittedFileName.pop();
+        const leadingText = splittedFileName.join('.');
+        return {
+            leadingText, trailingText,
+        };
     }
 
     /**
@@ -122,21 +137,6 @@ class AttachmentModal extends PureComponent {
         return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
     }
 
-    renderFileNamePreview() {
-        const fileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
-        const splittedFileName = fileName.split('.');
-        const trailingText = splittedFileName.pop();
-        const leadingText = splittedFileName.join('.');
-        return (
-            <TextWithEllipses
-                leadingText={leadingText.trim()}
-                trailingText={trailingText ? `.${trailingText.trim()}` : ''}
-                wrapperStyle={styles.w100}
-                textStyle={styles.mutedTextLabel}
-            />
-        );
-    }
-
     render() {
         const sourceURL = this.props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
@@ -145,6 +145,8 @@ class AttachmentModal extends PureComponent {
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
+
+        const {leadingText, trailingText} = this.getSplitFileName();
         return (
             <>
                 <Modal
@@ -164,7 +166,14 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={this.renderFileNamePreview()}
+                        subtitle={(
+                            <TextWithEllipses
+                                leadingText={leadingText.trim()}
+                                trailingText={trailingText ? `.${trailingText.trim()}` : ''}
+                                wrapperStyle={styles.w100}
+                                textStyle={styles.mutedTextLabel}
+                            />
+                        )}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (

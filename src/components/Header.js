@@ -11,7 +11,7 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     /** Subtitle of the header */
-    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 
     /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge: PropTypes.bool,
