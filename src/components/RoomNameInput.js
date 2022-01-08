@@ -15,7 +15,7 @@ const propTypes = {
     /** Callback to execute when the text input is modified correctly */
     onChangeText: PropTypes.func,
 
-    /** Callback to execute when an error either gets added/removed/changed */
+    /** Callback to execute when an error gets found/cleared/modified */
     onChangeError: PropTypes.func,
 
     /** Initial room name to show in input field. This should include the '#' already prefixed to the name */
@@ -29,6 +29,27 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...fullPolicyPropTypes,
+
+    /* Onyx Props */
+
+    /** All reports shared with the user */
+    reports: PropTypes.shape({
+        /** The report name */
+        reportName: PropTypes.string,
+
+        /** ID of the report */
+        reportID: PropTypes.number,
+    }).isRequired,
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+
+        /** ID of the policy */
+        id: PropTypes.string,
+    }).isRequired,
+
 };
 
 const defaultProps = {
@@ -55,11 +76,10 @@ class RoomNameInput extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // As we are modifying the text input, we'll bubble up any changes/errors so the other components can see it
+        // As we are modifying the text input, we'll bubble up any changes/errors so the parent component can see it
         if (prevState.roomName !== this.state.roomName) {
             this.props.onChangeText(this.state.roomName);
         }
-
         if (prevState.error !== this.state.error) {
             this.props.onChangeError(this.state.error);
         }

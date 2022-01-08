@@ -21,8 +21,15 @@ import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './wor
 
 
 const propTypes = {
-    ...fullPolicyPropTypes,
+    /** Route params */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** Report ID passed via route r/:reportID/settings */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
 
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 
     /* Onyx Props */
@@ -42,12 +49,13 @@ const propTypes = {
         notificationPreference: PropTypes.string,
     }).isRequired,
 
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/settings */
-            reportID: PropTypes.string,
-        }),
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+
+        /** ID of the policy */
+        id: PropTypes.string,
     }).isRequired,
 };
 
@@ -139,11 +147,11 @@ class ReportSettingsPage extends Component {
                                 style={[styles.ml2]}
                                 textStyles={[styles.label]}
                                 buttonStyles={[styles.reportSettingsChangeNameButton]}
-                                isDisabled={
+                                isDisabled={Boolean(
                                     shouldDisableRename
                                     || this.state.newRoomName === this.props.report.reportName
-                                    || this.state.error
-                                }
+                                    || this.state.error,
+                                )}
                             />
                         </View>
                     </View>
