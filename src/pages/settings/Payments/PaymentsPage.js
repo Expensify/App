@@ -174,9 +174,9 @@ class PaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
-        if (this.state.selectedPaymentMethodType === 'bankAccount') {
+        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             PaymentMethods.setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
-        } else if (this.state.selectedPaymentMethodType === 'card') {
+        } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
         }
     }
@@ -184,9 +184,9 @@ class PaymentsPage extends React.Component {
     deletePaymentMethod() {
         if (this.state.selectedPaymentMethodType === 'payPalMe') {
             PaymentMethods.deletePayPalMe();
-        } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
+        } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
-        } else if (this.state.selectedPaymentMethodType === 'card') {
+        } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
         }
     }
