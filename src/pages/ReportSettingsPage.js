@@ -122,7 +122,8 @@ class ReportSettingsPage extends Component {
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex3]}>
                                 <RoomNameInput
-                                    onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
+                                    onChangeText={newRoomName => this.setState({newRoomName})}
+                                    onChangeError={error => this.setState({error})}
                                     initialValue={this.state.newRoomName}
                                     disabled={shouldDisableRename}
                                     policyID={linkedWorkspace && linkedWorkspace.id}
