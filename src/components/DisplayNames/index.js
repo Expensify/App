@@ -103,7 +103,7 @@ class DisplayNames extends PureComponent {
                                 {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
                                 <Text ref={el => this.childRefs[index] = el}>
-                                    <EmojiText>{displayName}</EmojiText> 
+                                    <EmojiText>{displayName}</EmojiText>
                                 </Text>
                             </Tooltip>
                             {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}

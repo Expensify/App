@@ -1,10 +1,10 @@
+import React from 'react';
 import _ from 'underscore';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import Text from '../components/Text';
-import React from 'react';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -157,7 +157,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 
-let emojiTextCache = {};
+const emojiTextCache = {};
 
 function replaceEmojiInText(text) {
     const matchedEmojis = text.match(CONST.REGEX.EMOJIS);
@@ -177,13 +177,13 @@ function replaceEmojiInText(text) {
 
         const emojiText = text.substring(indexOfEmoji, indexOfEmoji + currentEmoji.length);
         elements.push((<Text key={indexOfEmoji} style={{fontWeight: 'normal'}}>{emojiText}</Text>));
-    
+
         lastIndex = indexOfEmoji + emojiText.length;
     }
 
     const textEnd = text.substring(lastIndex);
     elements.push((textEnd));
-    
+
     return elements;
 }
 
