@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 
 import com.expensify.chat.R;
 import com.facebook.react.bridge.Promise;
@@ -27,15 +26,8 @@ import java.util.TimerTask;
 public class BootSplashModule extends ReactContextBaseJavaModule {
 
   public static final String MODULE_NAME = "BootSplash";
-  private static final int ANIMATION_DURATION = 220;
-
-  private enum Status {
-    VISIBLE,
-    HIDDEN
-  }
-
   private static int mDrawableResId = -1;
-  private static Status mStatus = Status.HIDDEN;
+  private static boolean mSplashVisible = false;
 
   public BootSplashModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -44,19 +36,6 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return MODULE_NAME;
-  }
-
-  private static LinearLayout getLayout(@NonNull Activity activity, LayoutParams params) {
-    LinearLayout layout = new LinearLayout(activity);
-    View view = new View(activity);
-
-    view.setBackgroundResource(mDrawableResId);
-    layout.setId(R.id.bootsplash_layout_id);
-    layout.setLayoutTransition(null);
-    layout.setOrientation(LinearLayout.VERTICAL);
-    layout.addView(view, params);
-
-    return layout;
   }
 
   protected static void init(final @DrawableRes int drawableResId, final Activity activity) {
@@ -70,16 +49,39 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
         }
 
         mDrawableResId = drawableResId;
-        mStatus = Status.VISIBLE;
+        mSplashVisible = true;
+
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setId(R.id.bootsplash_layout_id);
+        layout.setLayoutTransition(null);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        View view = new View(activity);
+        view.setBackgroundResource(mDrawableResId);
 
         LayoutParams params = new LayoutParams(
             LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        activity.addContentView(getLayout(activity, params), params);
+
+        layout.addView(view, params);
+        activity.addContentView(layout, params);
       }
     });
   }
 
-  private void hideActivity() {
+  private void waitAndHide() {
+    final Timer timer = new Timer();
+
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        hide();
+        timer.cancel();
+      }
+    }, 250);
+  }
+
+  @ReactMethod
+  public void hide() {
     if (mDrawableResId == -1)
       return;
 
@@ -89,7 +91,7 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
         final Activity activity = getReactApplicationContext().getCurrentActivity();
 
         if (activity == null || activity.isFinishing()) {
-          waitAndHideActivity();
+          waitAndHide();
           return;
         }
 
@@ -102,7 +104,7 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
 
         layout
             .animate()
-            .setDuration(ANIMATION_DURATION)
+            .setDuration(250)
             .alpha(0.0f)
             .setInterpolator(new AccelerateInterpolator())
             .setListener(new AnimatorListenerAdapter() {
@@ -113,39 +115,16 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
                 if (parent != null)
                   parent.removeView(layout);
 
-                mStatus = Status.HIDDEN;
+                mDrawableResId = -1;
+                mSplashVisible = false;
               }
             }).start();
       }
     });
   }
 
-  private void waitAndHideActivity() {
-    final Timer timer = new Timer();
-
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        hideActivity();
-        timer.cancel();
-      }
-    }, 250);
-  }
-
-  @ReactMethod
-  public void hide() {
-    hideActivity();
-  }
-
   @ReactMethod
   public void getVisibilityStatus(final Promise promise) {
-    switch (mStatus) {
-      case VISIBLE:
-        promise.resolve("visible");
-        break;
-      case HIDDEN:
-        promise.resolve("hidden");
-        break;
-    }
+    promise.resolve(mSplashVisible ? "visible" : "hidden");
   }
 }
