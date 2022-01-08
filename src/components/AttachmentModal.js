@@ -74,19 +74,7 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
-        this.getSplitFileName = this.getSplitFileName.bind(this);
-    }
-
-    /**
-     * Returns the filename split into leading and trailing text
-     * @returns {Object}
-     */
-    getSplitFileName() {
-        const fileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
-        const splittedFileName = fileName.split('.');
-        const trailingText = splittedFileName.pop();
-        const leadingText = splittedFileName.join('.');
-        return {leadingText, trailingText};
+        this.splitExtensionFromFileName = this.splitExtensionFromFileName.bind(this);
     }
 
     /**
@@ -102,6 +90,19 @@ class AttachmentModal extends PureComponent {
             : CONST.MODAL.MODAL_TYPE.CENTERED;
         return modalType;
     }
+
+    /**
+     * Returns the filename split into leading and trailing text
+     * @returns {Object}
+     */
+    splitExtensionFromFileName() {
+        const fullFileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
+        const splittedFileName = fullFileName.split('.');
+        const fileExtension = splittedFileName.pop();
+        const fileName = splittedFileName.join('.');
+        return {fileName, fileExtension};
+    }
+
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -144,7 +145,7 @@ class AttachmentModal extends PureComponent {
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
 
-        const {leadingText, trailingText} = this.getSplitFileName();
+        const {fileName, fileExtension} = this.splitExtensionFromFileName();
         return (
             <>
                 <Modal
@@ -166,8 +167,8 @@ class AttachmentModal extends PureComponent {
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(
                             <TextWithEllipsis
-                                leadingText={leadingText.trim()}
-                                trailingText={trailingText ? `.${trailingText.trim()}` : ''}
+                                leadingText={fileName.trim()}
+                                trailingText={fileExtension ? `.${fileExtension.trim()}` : ''}
                                 wrapperStyle={styles.w100}
                                 textStyle={styles.mutedTextLabel}
                             />
