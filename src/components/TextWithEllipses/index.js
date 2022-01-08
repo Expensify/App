@@ -40,10 +40,7 @@ const TextWithEllipses = (props) => {
     return (
         <View style={[styles.flexRow, ...wrapperStyles]}>
             <View style={[styles.flexShrink1, ...leadingTextParentStyles]}>
-                <Text
-                    style={props.textStyle}
-                    numberOfLines={1}
-                >
+                <Text style={props.textStyle} numberOfLines={1}>
                     {props.leadingText}
                 </Text>
             </View>
