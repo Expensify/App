@@ -18,6 +18,7 @@ import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,7 +56,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!this.input || !this.props.isVisible) {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
             return;
         }
         this.input.focus();
