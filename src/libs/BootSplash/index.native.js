@@ -10,5 +10,5 @@ function hide() {
 
 export default {
     hide,
-    getVisibilityStatus: () => BootSplash.getVisibilityStatus(),
+    getVisibilityStatus: BootSplash.getVisibilityStatus,
 };
