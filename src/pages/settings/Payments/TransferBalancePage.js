@@ -112,7 +112,7 @@ class TransferBalancePage extends React.Component {
         );
 
         const accountID = this.props.walletTransfer.selectedAccountID || lodashGet(this.props, 'userWallet.walletLinkedAccountID', '');
-        return _.find(paymentMethods, method => method.id === accountID);
+        return _.find(paymentMethods, method => method.methodID === accountID);
     }
 
     /**
@@ -210,7 +210,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={this.transferBalance}
+                            onPress={() => this.transferBalance(selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
