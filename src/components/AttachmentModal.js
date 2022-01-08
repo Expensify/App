@@ -16,6 +16,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
+import TextWithEllipses from './TextWithEllipses';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -121,6 +122,16 @@ class AttachmentModal extends PureComponent {
         return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
     }
 
+    renderFileNamePreview() {
+        const fileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
+        const splittedFileName = fileName.split('.');
+        const trailingText = splittedFileName.pop();
+        const leadingText = splittedFileName.join('.');
+        return (
+            <TextWithEllipses leadingText={leadingText} trailingText={trailingText ? `.${trailingText}` : ''} wrapperStyle={styles.w100} />
+        );
+    }
+
     render() {
         const sourceURL = this.props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
@@ -148,7 +159,7 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '')}
+                        subtitle={this.renderFileNamePreview()}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
