@@ -34,6 +34,16 @@ class RoomNameInput extends Component {
             roomName: props.initialValue,
             error: '',
         };
+
+        this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
+    }
+
+    /**
+     * Whether this component has an error at the moment
+     * @returns {Boolean}
+     */
+    hasError() {
+        return Boolean(this.state.error);
     }
 
     /**
@@ -91,4 +101,4 @@ RoomNameInput.propTypes = propTypes;
 RoomNameInput.defaultProps = defaultProps;
 
 
-export default withLocalize(RoomNameInpt);
+export default withLocalize(RoomNameInput);
