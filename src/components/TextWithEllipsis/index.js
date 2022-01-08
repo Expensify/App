@@ -7,36 +7,31 @@ import styles from '../../styles/styles';
 import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
-    /** leading text, first text of the group */
+    /** Leading text before the ellipsis */
     leadingText: PropTypes.string.isRequired,
 
-    /** trailing text, second text of the group */
+    /** Text after the ellipsis */
     trailingText: PropTypes.string.isRequired,
 
-    /** styling for leading and trailing text */
+    /** Styles for leading and trailing text */
     textStyle: stylePropTypes,
 
-    /** styling for leading text View */
+    /** Styles for leading text View */
     leadingTextParentStyle: stylePropTypes,
 
-    /** styling for trailing text View */
-    trailingTextParentStyle: stylePropTypes,
-
-    /** styling for parent View */
+    /** Styles for parent View */
     wrapperStyle: stylePropTypes,
 };
 
 const defaultProps = {
     textStyle: {},
     leadingTextParentStyle: {},
-    trailingTextParentStyle: {},
     wrapperStyle: {},
 };
 
 const TextWithEllipsis = (props) => {
     const wrapperStyles = _.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle];
     const leadingTextParentStyles = _.isArray(props.leadingTextParentStyle) ? props.leadingTextParentStyle : [props.leadingTextParentStyle];
-    const trailingTextParentStyles = _.isArray(props.trailingTextParentStyle) ? props.trailingTextParentStyle : [props.trailingTextParentStyle];
     return (
         <View style={[styles.flexRow, ...wrapperStyles]}>
             <View style={[styles.flexShrink1, ...leadingTextParentStyles]}>
@@ -44,7 +39,7 @@ const TextWithEllipsis = (props) => {
                     {props.leadingText}
                 </Text>
             </View>
-            <View style={[styles.flexShrink0, ...trailingTextParentStyles]}>
+            <View style={styles.flexShrink0}>
                 <Text style={props.textStyle}>
                     {props.trailingText}
                 </Text>
