@@ -128,7 +128,12 @@ class AttachmentModal extends PureComponent {
         const trailingText = splittedFileName.pop();
         const leadingText = splittedFileName.join('.');
         return (
-            <TextWithEllipses leadingText={leadingText} trailingText={trailingText ? `.${trailingText}` : ''} wrapperStyle={styles.w100} />
+            <TextWithEllipses
+                leadingText={leadingText.trim()}
+                trailingText={trailingText ? `.${trailingText.trim()}` : ''}
+                wrapperStyle={styles.w100}
+                textStyle={styles.mutedTextLabel}
+            />
         );
     }
 
