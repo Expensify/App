@@ -84,7 +84,7 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)onContentDidAppear {
-  [NSTimer scheduledTimerWithTimeInterval:5.0 // Safety call
+  [NSTimer scheduledTimerWithTimeInterval:10.0 // Safety call
                                   repeats:false
                                     block:^(NSTimer * _Nonnull timer) {
     [timer invalidate];
