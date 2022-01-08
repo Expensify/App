@@ -3,6 +3,8 @@ import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import CONST from '../CONST';
 import * as User from './actions/User';
+import Text from '../components/Text';
+import React from 'react';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -155,6 +157,45 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 
+let emojiTextCache = {};
+
+function replaceEmojiInText(text) {
+    const matchedEmojis = text.match(CONST.REGEX.EMOJIS);
+
+    if (matchedEmojis == null) {
+        return text;
+    }
+
+    const elements = [];
+    let lastIndex = 0;
+    for (let i = 0; i < matchedEmojis.length; i++) {
+        const currentEmoji = matchedEmojis[i];
+        const indexOfEmoji = text.indexOf(currentEmoji, lastIndex);
+
+        const textWithoutEmojis = text.substring(lastIndex, indexOfEmoji);
+        elements.push((textWithoutEmojis));
+
+        const emojiText = text.substring(indexOfEmoji, indexOfEmoji + currentEmoji.length);
+        elements.push((<Text key={indexOfEmoji} style={{fontWeight: 'normal'}}>{emojiText}</Text>));
+    
+        lastIndex = indexOfEmoji + emojiText.length;
+    }
+
+    const textEnd = text.substring(lastIndex);
+    elements.push((textEnd));
+    
+    return elements;
+}
+
+
+function escapeEmojiFromText(text) {
+    if (_.isUndefined(emojiTextCache[text])) {
+        emojiTextCache[text] = replaceEmojiInText(text);
+    }
+    return emojiTextCache[text];
+}
+
+
 export {
     getEmojiUnicode,
     trimEmojiUnicode,
@@ -163,4 +204,5 @@ export {
     getDynamicSpacing,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
+    escapeEmojiFromText,
 };
