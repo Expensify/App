@@ -76,6 +76,7 @@ class ReportSettingsPage extends Component {
 
         this.state = {
             newRoomName: this.props.report.reportName,
+            error: '',
         };
     }
 
@@ -138,7 +139,11 @@ class ReportSettingsPage extends Component {
                                 style={[styles.ml2]}
                                 textStyles={[styles.label]}
                                 buttonStyles={[styles.reportSettingsChangeNameButton]}
-                                isDisabled={shouldDisableRename || this.state.newRoomName === this.props.report.reportName}
+                                isDisabled={
+                                    shouldDisableRename
+                                    || this.state.newRoomName === this.props.report.reportName
+                                    || this.state.error
+                                }
                             />
                         </View>
                     </View>

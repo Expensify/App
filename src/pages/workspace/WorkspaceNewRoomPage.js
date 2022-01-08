@@ -49,6 +49,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.state = {
             roomName: '',
+            error: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             workspaceOptions: [],
@@ -76,13 +77,11 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
-     * Called when a workspace is selected. Also calls checkAndModifyRoomName,
-     * which displays an error if the given roomName exists on the newly selected workspace.
+     * Called when a workspace is selected.
      * @param {String} policyID
      */
     onWorkspaceSelect(policyID) {
         this.setState({policyID});
-        this.roomNameInput.checkAndModifyRoomName(this.state.roomName);
     }
 
     /**
@@ -98,7 +97,7 @@ class WorkspaceNewRoomPage extends React.Component {
             Navigation.dismissModal();
             return null;
         }
-        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || (this.roomNameInput && this.roomNameInput.hasError()));
+        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
@@ -116,7 +115,6 @@ class WorkspaceNewRoomPage extends React.Component {
                         <View style={styles.mb5}>
                             <Text style={[styles.formLabel]}>{this.props.translate('newRoomPage.roomName')}</Text>
                             <RoomNameInput
-                                ref={ref => this.roomNameInput = ref}
                                 onChangeText={(roomName) => { this.setState({roomName}); }}
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
