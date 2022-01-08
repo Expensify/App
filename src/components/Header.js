@@ -23,7 +23,7 @@ const defaultProps = {
 };
 const Header = props => (
     <View style={[styles.flex1, styles.flexRow]}>
-        <View style={styles.w100}>
+        <View style={styles.mw100}>
             <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
                 {props.title}
             </Text>
