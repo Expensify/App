@@ -119,6 +119,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 ref={ref => this.roomNameInput = ref}
                                 onChangeText={(roomName) => { this.setState({roomName}); }}
                                 initialValue={this.state.roomName}
+                                policyID={this.state.policyID}
                             />
                         </View>
                         <View style={styles.mb5}>

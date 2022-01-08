@@ -125,6 +125,7 @@ class ReportSettingsPage extends Component {
                                     onChangeText={(roomName) => { this.setState({newRoomName: roomName}); }}
                                     initialValue={this.state.newRoomName}
                                     disabled={shouldDisableRename}
+                                    policyID={linkedWorkspace && linkedWorkspace.id}
                                 />
                             </View>
                             <Button

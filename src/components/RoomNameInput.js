@@ -1,9 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
+import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 
 import TextInputWithPrefix from './TextInputWithPrefix';
 
@@ -17,13 +21,20 @@ const propTypes = {
     /** Whether we should show the input as disabled */
     disabled: PropTypes.bool,
 
+    /** ID of policy whose room names we should be checking for duplicates */
+    policyID: PropTypes.string,
+
     ...withLocalizePropTypes,
+    ...fullPolicyPropTypes,
 };
 
 const defaultProps = {
     onChangeText: () => {},
     initialValue: '',
     disabled: false,
+    policyID: '',
+
+    ...fullPolicyDefaultProps,
 };
 
 
@@ -35,6 +46,7 @@ class RoomNameInput extends Component {
             error: '',
         };
 
+        this.hasError = this.hasError.bind(this);
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
     }
 
@@ -66,7 +78,7 @@ class RoomNameInput extends Component {
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report && report.policyID === this.props.report.policyID && report.reportName === finalRoomName,
+            report => report && report.policyID === this.props.policyID && report.reportName === finalRoomName,
         );
         if (isExistingRoomName) {
             this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
@@ -101,4 +113,15 @@ RoomNameInput.propTypes = propTypes;
 RoomNameInput.defaultProps = defaultProps;
 
 
-export default withLocalize(RoomNameInput);
+export default compose(
+    withLocalize,
+    withFullPolicy,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(RoomNameInput);
