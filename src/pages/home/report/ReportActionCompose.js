@@ -396,7 +396,6 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -412,7 +411,7 @@ class ReportActionCompose extends React.Component {
             ]}
             >
                 {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} currentUserTimezone={currentUserTimezone} />}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
