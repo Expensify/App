@@ -92,17 +92,16 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * Returns the filename split into leading and trailing text
+     * Returns the filename split into fileName and fileExtension
      * @returns {Object}
      */
     splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '');
+        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
         const splittedFileName = fullFileName.split('.');
         const fileExtension = splittedFileName.pop();
         const fileName = splittedFileName.join('.');
         return {fileName, fileExtension};
     }
-
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -167,9 +166,9 @@ class AttachmentModal extends PureComponent {
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(
                             <TextWithEllipsis
-                                leadingText={fileName.trim()}
-                                trailingText={fileExtension ? `.${fileExtension.trim()}` : ''}
-                                wrapperStyle={styles.w100}
+                                leadingText={fileName}
+                                trailingText={fileExtension ? `.${fileExtension}` : ''}
+                                wrapperStyle={[styles.w100]}
                                 textStyle={styles.mutedTextLabel}
                             />
                         )}
