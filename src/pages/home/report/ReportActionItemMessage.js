@@ -6,6 +6,11 @@ import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
+import Text from '../../../components/Text';
+import themeColors from '../../../styles/themes/default';
+import * as ReportUtils from '../../../libs/reportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The report action */
@@ -16,6 +21,9 @@ const propTypes = {
         /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
+
+    /** localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -24,16 +32,20 @@ const defaultProps = {
 
 const ReportActionItemMessage = (props) => {
     const isUnsent = props.network.isOffline && props.action.loading;
+    const isDeleted = ReportUtils.isDeletedAction(props.action);
+
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
-            {_.map(_.compact(props.action.message), (fragment, index) => (
-                <ReportActionItemFragment
-                    key={`actionFragment-${props.action.sequenceNumber}-${index}`}
-                    fragment={fragment}
-                    isAttachment={props.action.isAttachment}
-                    loading={props.action.loading}
-                />
-            ))}
+            {isDeleted
+                ? <Text color={themeColors.textSupporting}>{`[${props.translate('common.deletedCommentMessage')}]`}</Text>
+                : _.map(_.compact(props.action.message), (fragment, index) => (
+                    <ReportActionItemFragment
+                            key={`actionFragment-${props.action.sequenceNumber}-${index}`}
+                            fragment={fragment}
+                            isAttachment={props.action.isAttachment}
+                            loading={props.action.loading}
+                    />
+                ))}
         </View>
     );
 };
@@ -42,4 +54,7 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withNetwork()(ReportActionItemMessage);
+export default compose(
+    withNetwork(),
+    withLocalize,
+)(ReportActionItemMessage);
