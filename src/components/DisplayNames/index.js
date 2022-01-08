@@ -5,6 +5,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
+import EmojiText from '../EmojiText';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -75,7 +76,7 @@ class DisplayNames extends PureComponent {
                     style={this.props.textStyles}
                     numberOfLines={this.props.numberOfLines}
                 >
-                    {this.props.fullTitle}
+                    <EmojiText>{this.props.fullTitle}</EmojiText>
                 </Text>
             );
         }
@@ -102,7 +103,7 @@ class DisplayNames extends PureComponent {
                                 {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
                                 <Text ref={el => this.childRefs[index] = el}>
-                                    {displayName}
+                                    <EmojiText>{displayName}</EmojiText> 
                                 </Text>
                             </Tooltip>
                             {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}

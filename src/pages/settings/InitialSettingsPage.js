@@ -21,6 +21,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
+import EmojiText from '../../components/EmojiText';
 
 const propTypes = {
     /* Onyx Props */
@@ -171,7 +172,7 @@ const InitialSettingsPage = (props) => {
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
                                 {props.myPersonalDetails.displayName
-                                    ? props.myPersonalDetails.displayName
+                                    ? <EmojiText>{props.myPersonalDetails.displayName}</EmojiText>
                                     : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>

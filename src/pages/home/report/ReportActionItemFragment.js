@@ -8,6 +8,7 @@ import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
+import EmojiText from '../../../components/EmojiText';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -93,7 +94,7 @@ class ReportActionItemFragment extends React.PureComponent {
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
-                            {Str.htmlDecode(this.props.fragment.text)}
+                            <EmojiText>{this.props.fragment.text}</EmojiText>
                         </Text>
                     </Tooltip>
                 );
