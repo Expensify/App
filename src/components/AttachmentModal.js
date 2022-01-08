@@ -16,7 +16,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
-import TextWithEllipses from './TextWithEllipses';
+import TextWithEllipsis from './TextWithEllipsis';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -165,7 +165,7 @@ class AttachmentModal extends PureComponent {
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(
-                            <TextWithEllipses
+                            <TextWithEllipsis
                                 leadingText={leadingText.trim()}
                                 trailingText={trailingText ? `.${trailingText.trim()}` : ''}
                                 wrapperStyle={styles.w100}

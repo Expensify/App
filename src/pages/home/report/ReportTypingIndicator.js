@@ -9,7 +9,7 @@ import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
-import TextWithEllipses from '../../../components/TextWithEllipses';
+import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -53,7 +53,7 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <TextWithEllipses
+                    <TextWithEllipsis
                         leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
                         trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         textStyle={[styles.chatItemComposeSecondaryRowSubText]}

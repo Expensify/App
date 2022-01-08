@@ -33,7 +33,7 @@ const defaultProps = {
     wrapperStyle: {},
 };
 
-const TextWithEllipses = (props) => {
+const TextWithEllipsis = (props) => {
     const wrapperStyles = _.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle];
     const leadingTextParentStyles = _.isArray(props.leadingTextParentStyle) ? props.leadingTextParentStyle : [props.leadingTextParentStyle];
     const trailingTextParentStyles = _.isArray(props.trailingTextParentStyle) ? props.trailingTextParentStyle : [props.trailingTextParentStyle];
@@ -53,8 +53,8 @@ const TextWithEllipses = (props) => {
     );
 };
 
-TextWithEllipses.propTypes = propTypes;
-TextWithEllipses.defaultProps = defaultProps;
-TextWithEllipses.displayName = 'TextWithEllipses';
+TextWithEllipsis.propTypes = propTypes;
+TextWithEllipsis.defaultProps = defaultProps;
+TextWithEllipsis.displayName = 'TextWithEllipsis';
 
-export default TextWithEllipses;
+export default TextWithEllipsis;
