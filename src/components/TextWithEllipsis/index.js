@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../Text';
+import TextWithOverflow from './TextWithOverflow';
 import styles from '../../styles/styles';
 import stylePropTypes from '../../styles/stylePropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -32,9 +33,9 @@ const defaultProps = {
 const TextWithEllipsis = props => (
     <View style={[styles.flexRow, ...StyleUtils.parseStyleAsArray(props.wrapperStyle)]}>
         <View style={[styles.flexShrink1, ...StyleUtils.parseStyleAsArray(props.leadingTextParentStyle)]}>
-            <Text style={[styles.textWithEllipsis, ...StyleUtils.parseStyleAsArray(props.textStyle)]} numberOfLines={1}>
+            <TextWithOverflow textStyle={props.textStyle} numberOfLines={1}>
                 {props.leadingText}
-            </Text>
+            </TextWithOverflow>
         </View>
         <View style={styles.flexShrink0}>
             <Text style={props.textStyle}>
