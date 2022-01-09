@@ -2346,6 +2346,13 @@ const styles = {
         backgroundColor: colors.black,
         flex: 1,
     },
+
+    textWithEllipsis: {
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        ...whiteSpace.noWrap,
+        ...display.dInline,
+    },
 };
 
 export default styles;
