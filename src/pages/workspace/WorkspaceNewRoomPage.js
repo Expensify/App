@@ -78,8 +78,23 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
+     * Called when the "Create Room" button is pressed.
+     */
+    onSubmit() {
+        if (!this.validate()) {
+            return;
+        }
+        Report.createPolicyRoom(
+            this.state.policyID,
+            this.state.roomName,
+            this.state.visibility,
+        );
+    }
+
+    /**
      * Called when the onSubmit() method is triggered.
      * which validates the form fields.
+     * @returns {Boolean}
      */
     validate() {
         const roomName = this.state.roomName.trim();
@@ -90,8 +105,8 @@ class WorkspaceNewRoomPage extends React.Component {
         if (!roomName || roomName === '#') {
             errors.roomName = 'Please enter a room name';
         } else if (
-            policyID &&
-            this.checkAndModifyRoomName(roomName).isExistingRoomName
+            policyID
+            && this.checkAndModifyRoomName(roomName).isExistingRoomName
         ) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExists');
         } else {
@@ -115,23 +130,10 @@ class WorkspaceNewRoomPage extends React.Component {
             return true;
         }
 
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
             errors: {...prevState.errors, ...errors},
         }));
         return false;
-    }
-
-    /**
-     * Called when the "Create Room" button is pressed.
-     */
-    onSubmit() {
-        if (this.validate()) {
-            Report.createPolicyRoom(
-                this.state.policyID, 
-                this.state.roomName, 
-                this.state.visibility
-            )
-        };
     }
 
     /**
@@ -141,7 +143,7 @@ class WorkspaceNewRoomPage extends React.Component {
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
             [inputKey]: value,
             errors: {
                 ...prevState.errors,
@@ -172,8 +174,8 @@ class WorkspaceNewRoomPage extends React.Component {
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report && report.policyID === this.state.policyID && 
-            report.reportName === modifiedRoomName,
+            report => report && report.policyID === this.state.policyID
+            && report.reportName === modifiedRoomName,
         );
 
         return {modifiedRoomName, isExistingRoomName};
@@ -216,7 +218,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                                 items={this.state.workspaceOptions}
                                 errorText={this.state.errors.policyID || ''}
-                                onChange={(policyID) => this.clearErrorAndSetValue('policyID', policyID)}
+                                onChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
                             />
                         </View>
                         <Picker
