@@ -450,7 +450,6 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        sessionExpired: 'Your session has expired. A new magic link is waiting for you in your emails.',
         verifyingAccount: 'Verifying account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,

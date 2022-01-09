@@ -99,22 +99,12 @@ class SetPasswordPage extends Component {
         Session.validateEmail(accountID, validateCode, this.props.credentials.login, this.props.userSignUp.authToken);
     }
 
-    /**
-     * Validate the form and then submit it
-     */
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
         }
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-
-        // do I need to move this business logic out of here like so?
-        // if (this.props.userSignUp.authToken) {
-        //     Session.changePasswordAndSignIn(this.props.userSignUp.authToken, this.state.password);
-        //     return;
-        // }
-        // Session.setPassword(this.state.password, validateCode, accountID);
         Session.setOrChangePassword(accountID, validateCode, this.state.password, this.props.userSignUp.authToken);
     }
 
@@ -153,7 +143,7 @@ class SetPasswordPage extends Component {
                             </View>
                         </>
                     )}
-                    {!_.isEmpty(error) && <ExpensifyText>{error}</ExpensifyText>}
+                    {!_.isEmpty(error) && <Text>{error}</Text>}
                 </SignInPageLayout>
             </SafeAreaView>
         );
