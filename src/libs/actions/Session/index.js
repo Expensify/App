@@ -297,7 +297,7 @@ function resetPassword() {
  */
 function setPassword(password, validateCode, accountID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
-
+    console.log('set password');
     API.SetPassword({
         password,
         validateCode,
@@ -324,6 +324,7 @@ function setPassword(password, validateCode, accountID) {
             if (login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
             }
+            console.log('nav home via set password');
             Navigation.navigate(ROUTES.HOME);
         })
         .finally(() => {
@@ -386,22 +387,51 @@ function clearAccountMessages() {
 /**
  * @param {String} authToken
  * @param {String} password
- * @param {String} login
  */
-function changePasswordAndSignIn(authToken, password, login) {
+function changePasswordAndSignIn(authToken, password) {
+    console.log('change password and sign in');
+    Onyx.merge(ONYXKEYS.ACCOUNT, {validateSessionExpired: false});
     API.ChangePassword({
         authToken,
         password,
     })
         .then((responsePassword) => {
             Onyx.merge(ONYXKEYS.SESSION, {authToken: undefined});
+            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: undefined});
             if (responsePassword.jsonCode === 200) {
                 signIn(password);
                 return;
             }
-            API.ResendValidateCode({email: login});
+            if (responsePassword.jsonCode === 407 && !credentials.login) {
+                // authToken has expired and we don't have the email set to request a new magic link. send user to login page to enter email.
+                Navigation.navigate(ROUTES.HOME);
+                return;
+            }
+            if (responsePassword.jsonCode === 407) {
+                // authToken has expired and we have the account email so we request  a new magic link.
+                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
+                resetPassword();
+                Navigation.navigate(ROUTES.HOME);
+                return;
+            }
             Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
         });
+}
+
+/**
+ * Call set or change password based on if we have an auth token
+ * @param {Number} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ * @param {String} authToken
+ */
+
+function setOrChangePassword(accountID, validateCode, password, authToken) {
+    if (authToken) {
+        changePasswordAndSignIn(authToken, password);
+        return;
+    }
+    setPassword(password, validateCode, accountID);
 }
 
 /**
@@ -410,25 +440,40 @@ function changePasswordAndSignIn(authToken, password, login) {
  * @param {String} login
  * @param {String} authToken
  */
-function validateEmail(accountID, validateCode, login, authToken) {
-    Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidatingEmail: true});
+function validateEmail(accountID, validateCode) {
+    Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
     API.ValidateEmail({
         accountID,
         validateCode,
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
+                console.log('email validated ');
                 Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: responseValidate.authToken});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email});
                 return;
             }
-            if (responseValidate.jsonCode === 666 && authToken) {
-                return;
+            if (responseValidate.jsonCode === 401) {
+                Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
-            if (responseValidate.jsonCode === 666) {
-                API.ResendValidateCode({email: login});
-            }
-            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
-        }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidatingEmail: false}));
+
+            // if (responseValidate.jsonCode === 666 && !authToken) {
+            //     Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
+            //     resetPassword({email: login});
+            //     Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
+            //     return;
+            // }
+            // if (responseValidate.jsonCode === 666 && !login) {
+            //     console.log('no email and invalid link');
+            //     Navigation.navigate(ROUTES.HOME);
+            //     return;
+            // }
+            // console.log('invalid link - new link requested');
+            // API.ResendValidateCode({email: login});
+            // Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
+        }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -492,6 +537,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 export {
     continueSessionFromECom,
     fetchAccountDetails,
+    setOrChangePassword,
     setPassword,
     signIn,
     signInWithShortLivedToken,

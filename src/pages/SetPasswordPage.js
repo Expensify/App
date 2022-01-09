@@ -29,7 +29,7 @@ const propTypes = {
         /** An error message to display to the user */
         error: PropTypes.string,
 
-        /** Whether or not a sign on form is loading (being submitted) */
+        /** Whether a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
@@ -93,6 +93,9 @@ class SetPasswordPage extends Component {
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        if (this.props.userSignUp.authToken) {
+            return;
+        }
         Session.validateEmail(accountID, validateCode, this.props.credentials.login, this.props.userSignUp.authToken);
     }
 
@@ -103,12 +106,20 @@ class SetPasswordPage extends Component {
         if (!this.state.isFormValid) {
             return;
         }
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        Session.changePasswordAndSignIn(this.props.userSignUp.authToken, this.state.password, this.props.credentials.login);
+        // do I need to move this business logic out of here like so?
+        // if (this.props.userSignUp.authToken) {
+        //     Session.changePasswordAndSignIn(this.props.userSignUp.authToken, this.state.password);
+        //     return;
+        // }
+        // Session.setPassword(this.state.password, validateCode, accountID);
+        Session.setOrChangePassword(accountID, validateCode, this.state.password, this.props.userSignUp.authToken);
     }
 
     buttonText() {
-        return this.props.userSignUp.isValidatingEmail ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
+        return this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
     }
 
     render() {
