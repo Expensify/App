@@ -50,11 +50,12 @@ class WorkspaceNewRoomPage extends React.Component {
             roomName: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
-            error: '',
+            errors: {},
             workspaceOptions: [],
         };
-        this.onWorkspaceSelect = this.onWorkspaceSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.validate = this.validate.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
     }
 
@@ -77,20 +78,76 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
-     * Called when a workspace is selected. Also calls checkAndModifyRoomName,
-     * which displays an error if the given roomName exists on the newly selected workspace.
-     * @param {String} policyID
+     * Called when the onSubmit() method is triggered.
+     * which validates the form fields.
      */
-    onWorkspaceSelect(policyID) {
-        this.setState({policyID});
-        this.checkAndModifyRoomName(this.state.roomName);
+    validate() {
+        const roomName = this.state.roomName.trim();
+        const policyID = this.state.policyID;
+        const visibility = this.state.visibility;
+        const errors = {};
+
+        if (!roomName || roomName === '#') {
+            errors.roomName = 'Please enter a room name';
+        } else if (
+            policyID &&
+            this.checkAndModifyRoomName(roomName).isExistingRoomName
+        ) {
+            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExists');
+        } else {
+            errors.roomName = '';
+        }
+
+        if (!policyID) {
+            errors.policyID = 'Please select a workspace';
+        } else {
+            errors.policyID = '';
+        }
+
+        if (!visibility) {
+            errors.visibility = 'Please select a visibility';
+        } else {
+            errors.visibility = '';
+        }
+
+        if (!errors.roomName && !errors.policyID && !errors.visibility) {
+            this.setState({errors: {}});
+            return true;
+        }
+
+        this.setState((prevState) => ({
+            errors: {...prevState.errors, ...errors},
+        }));
+        return false;
     }
 
     /**
      * Called when the "Create Room" button is pressed.
      */
     onSubmit() {
-        Report.createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility);
+        if (this.validate()) {
+            Report.createPolicyRoom(
+                this.state.policyID, 
+                this.state.roomName, 
+                this.state.visibility
+            )
+        };
+    }
+
+    /**
+     * Clear the errors associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setState((prevState) => ({
+            [inputKey]: value,
+            errors: {
+                ...prevState.errors,
+                [inputKey]: false,
+            },
+        }));
     }
 
     /**
@@ -98,10 +155,12 @@ class WorkspaceNewRoomPage extends React.Component {
      * - Max length 80 characters
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
-     * Also checks to see if this room name already exists, and displays an error message if so.
+     * provides the modified room name and a boolean indicating if the room name is already existing or not.
      * @param {String} roomName
      *
-     * @returns {String}
+     * @returns {Object} data
+     * @returns {String} data.modifiedRoomName
+     * @returns {Boolean} data.isExistingRoomName
      */
     checkAndModifyRoomName(roomName) {
         const modifiedRoomNameWithoutHash = roomName.substr(1)
@@ -109,18 +168,15 @@ class WorkspaceNewRoomPage extends React.Component {
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
+        const modifiedRoomName = `#${modifiedRoomNameWithoutHash}`;
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report && report.policyID === this.state.policyID && report.reportName === finalRoomName,
+            report => report && report.policyID === this.state.policyID && 
+            report.reportName === modifiedRoomName,
         );
-        if (isExistingRoomName) {
-            this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
-        } else {
-            this.setState({error: ''});
-        }
-        return finalRoomName;
+
+        return {modifiedRoomName, isExistingRoomName};
     }
 
     render() {
@@ -129,7 +185,6 @@ class WorkspaceNewRoomPage extends React.Component {
             Navigation.dismissModal();
             return null;
         }
-        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
@@ -149,9 +204,9 @@ class WorkspaceNewRoomPage extends React.Component {
                             prefixCharacter="#"
                             placeholder={this.props.translate('newRoomPage.social')}
                             containerStyles={[styles.mb5]}
-                            onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
+                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.checkAndModifyRoomName(roomName).modifiedRoomName)}
                             value={this.state.roomName.substr(1)}
-                            errorText={this.state.error}
+                            errorText={this.state.errors.roomName || ''}
                             autoCapitalize="none"
                         />
                         <View style={styles.mb5}>
@@ -160,20 +215,21 @@ class WorkspaceNewRoomPage extends React.Component {
                                 label={this.props.translate('workspace.common.workspace')}
                                 placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                                 items={this.state.workspaceOptions}
-                                onChange={this.onWorkspaceSelect}
+                                errorText={this.state.errors.policyID || ''}
+                                onChange={(policyID) => this.clearErrorAndSetValue('policyID', policyID)}
                             />
                         </View>
                         <Picker
                             value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            onChange={visibility => this.setState({visibility})}
+                            errorText={this.state.errors.visibility || ''}
+                            onChange={visibility => this.clearErrorAndSetValue('visibility', visibility)}
                         />
                     </ScrollView>
                     <FixedFooter>
                         <Button
                             isLoading={this.props.isLoadingCreatePolicyRoom}
-                            isDisabled={shouldDisableSubmit}
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}
