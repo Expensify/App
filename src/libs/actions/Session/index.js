@@ -297,7 +297,6 @@ function resetPassword() {
  */
 function setPassword(password, validateCode, accountID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
-    console.log('set password');
     API.SetPassword({
         password,
         validateCode,
@@ -324,7 +323,6 @@ function setPassword(password, validateCode, accountID) {
             if (login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
             }
-            console.log('nav home via set password');
             Navigation.navigate(ROUTES.HOME);
         })
         .finally(() => {
@@ -389,7 +387,6 @@ function clearAccountMessages() {
  * @param {String} password
  */
 function changePasswordAndSignIn(authToken, password) {
-    console.log('change password and sign in');
     Onyx.merge(ONYXKEYS.ACCOUNT, {validateSessionExpired: false});
     API.ChangePassword({
         authToken,
@@ -449,7 +446,6 @@ function validateEmail(accountID, validateCode) {
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                console.log('email validated ');
                 Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: responseValidate.authToken});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email});
@@ -458,21 +454,6 @@ function validateEmail(accountID, validateCode) {
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
-
-            // if (responseValidate.jsonCode === 666 && !authToken) {
-            //     Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
-            //     resetPassword({email: login});
-            //     Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
-            //     return;
-            // }
-            // if (responseValidate.jsonCode === 666 && !login) {
-            //     console.log('no email and invalid link');
-            //     Navigation.navigate(ROUTES.HOME);
-            //     return;
-            // }
-            // console.log('invalid link - new link requested');
-            // API.ResendValidateCode({email: login});
-            // Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
         }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
 }
 
