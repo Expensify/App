@@ -422,6 +422,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
@@ -512,7 +513,6 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
@@ -523,6 +523,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraPermissionsNotGranted: 'Camera permissions not granted',
+        cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
