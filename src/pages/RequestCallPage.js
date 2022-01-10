@@ -123,6 +123,7 @@ class RequestCallPage extends Component {
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumberExtension: this.state.phoneExtension,
             email: this.props.session.email,
         });
     }
@@ -239,14 +240,16 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
+        const phoneExtensionError = this.getPhoneExtensionError();
         const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
             lastNameError,
             phoneNumberError,
+            phoneExtensionError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
     }
 
     render() {

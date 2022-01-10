@@ -16,7 +16,7 @@ import * as Report from './Report';
  * @param {String} email
  */
 function requestInboxCall({
-    taskID, policyID, firstName, lastName, phoneNumber, email,
+    taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension, email,
 }) {
     Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
     API.Inbox_CallUser({
@@ -24,6 +24,7 @@ function requestInboxCall({
         firstName,
         lastName,
         phoneNumber,
+        phoneNumberExtension,
         taskID,
     })
         .then((result) => {
