@@ -20,8 +20,9 @@ import * as Inbox from '../libs/actions/Inbox';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
+import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import RequestCallIcon from '../../assets/images/request-call.svg';
+import * as Illustrations from '../components/Icon/Illustrations';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
 
@@ -210,35 +211,36 @@ class RequestCallPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
-                            <RequestCallIcon width={160} height={100} style={styles.flex1} />
-                        </View>
-                        <Text style={[styles.mb4]}>
-                            {this.props.translate('requestCallPage.description')}
-                        </Text>
-                        <FullNameInputRow
-                            firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
-                            lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
-                            onChangeFirstName={firstName => this.setState({firstName})}
-                            onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mv4]}
-                        />
-                        <View style={styles.mt4}>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.phoneNumber')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                value={this.state.phoneNumber}
-                                placeholder="2109400803"
-                                errorText={this.state.phoneNumberError}
-                                onBlur={this.validatePhoneInput}
-                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                    <ScrollView style={styles.flex1}>
+                        <Section
+                            title={this.props.translate('requestCallPage.subtitle')}
+                            icon={Illustrations.ConciergeExclamation}
+                        >
+                            <Text style={[styles.mb4]}>
+                                {this.props.translate('requestCallPage.description')}
+                            </Text>
+                            <FullNameInputRow
+                                firstName={this.state.firstName}
+                                firstNameError={this.state.firstNameError}
+                                lastName={this.state.lastName}
+                                lastNameError={this.state.lastNameError}
+                                onChangeFirstName={firstName => this.setState({firstName})}
+                                onChangeLastName={lastName => this.setState({lastName})}
+                                style={[styles.mv4]}
                             />
-                        </View>
+                            <View style={styles.mt4}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('common.phoneNumber')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    value={this.state.phoneNumber}
+                                    placeholder="2109400803"
+                                    errorText={this.state.phoneNumberError}
+                                    onBlur={this.validatePhoneInput}
+                                    onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                />
+                            </View>
+                        </Section>
                     </ScrollView>
                     <FixedFooter>
                         <Button
