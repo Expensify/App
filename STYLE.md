@@ -511,6 +511,48 @@ const propTypes = {
 }
 ```
 
+## Binding methods
+
+For class components, methods should be bound if be passed directly a prop or needing to be accessed via the component instance from outside of the component's execution context. Do not simply bind all methods in the constructor without reason. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
+
+```javascript
+// Bad
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind();
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // No need to bind this since arrow function is used
+            <Button onPress={() => this.myMethod()} />
+        );
+    }
+}
+
+// Good
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind();
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // Passed directly to Button so this should be bound to the component
+            <Button onPress={this.myMethod} />
+        );
+    }
+}
+```
+
 ## Inline Ternarys
 * Use inline ternary statements when rendering optional pieces of templates. Notice the white space and formatting of the ternary.
 
