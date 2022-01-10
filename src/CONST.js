@@ -72,6 +72,7 @@ const CONST = {
         },
         REGEX: {
             IBAN: /^[A-Za-z0-9]{2,30}$/,
+            US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
