@@ -521,7 +521,7 @@ class SomeComponent {
     constructor(props) {
         super(props);
 
-        this.myMethod = this.myMethod.bind();
+        this.myMethod = this.myMethod.bind(this);
     }
 
     myMethod() {...}
@@ -539,7 +539,7 @@ class SomeComponent {
     constructor(props) {
         super(props);
 
-        this.myMethod = this.myMethod.bind();
+        this.myMethod = this.myMethod.bind(this);
     }
 
     myMethod() {...}
