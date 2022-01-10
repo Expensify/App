@@ -760,7 +760,7 @@ function SetPassword(parameters) {
  */
 function SetWalletLinkedAccount(parameters) {
     const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, SetWalletLinkedAccount);
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
