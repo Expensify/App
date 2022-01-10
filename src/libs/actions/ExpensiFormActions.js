@@ -20,12 +20,12 @@ function setIsSubmitting(formName, isSubmitting) {
  * @param {String} formName
  * @param {Object} draft
  */
-function saveDraftValues(formName, draftValues) {
+function setDraftValues(formName, draftValues) {
     Onyx.merge(`${formName}DraftValues`, draftValues);
 }
 
 export {
-    saveDraftValues,
-    setServerErrorMessage,
     setIsSubmitting,
+    setServerErrorMessage,
+    setDraftValues,
 };

@@ -1,26 +1,53 @@
 import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import * as FormAction from '../libs/actions/ExpensiFormActions';
+import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as ExpensiFormActions from '../libs/actions/ExpensiFormActions';
 import {ScrollView, View} from 'react-native';
 import styles from '../styles/styles';
-import {withOnyx} from 'react-native-onyx';
-import ExpensiFormFormAlertWithSubmitButton from './ExpensiFormFormAlertWithSubmitButton';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 
 const propTypes = {
+    /** A unique Onyx key identifying the form */
     name: PropTypes.string.isRequired,
+
+    /** Text to be displayed in the submit button */    
+    buttonText: PropTypes.string.isRequired,
+
+    /** Callback validate the form */
+    validate: PropTypes.func.isRequired,
+
+    /** Callback to submit the form */
+    onSubmit: PropTypes.func.isRequired,
+    
     children: PropTypes.node.isRequired,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    defaultValues: PropTypes.object,
+    /* Onyx Props */
 
-    validate: PropTypes.func.isRequired,
-    shouldSaveDraft: PropTypes.bool,
+    /** Contains the form state that must be accessed outside of the component */
+    formState: PropTypes.shape({
+
+        /** Controls the loading state of the form */
+        isSubmitting: PropTypes.bool,
+
+        /** Server side error message */
+        serverErrorMessage: PropTypes.string,
+    }),
+
+    // eslint-disable-next-line react/forbid-prop-types
+    draftValues: PropTypes.object(),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    defaultValues: {},
-    shouldSaveDraft: true,
+    formState: {
+        isSubmitting: false,
+        serverErrorMessage: '',
+    },
+    draftValues: {},
 };
 
 class ExpensiForm extends React.Component {
@@ -28,94 +55,78 @@ class ExpensiForm extends React.Component {
         super(props);
 
         this.state = {
-            isLoading: false,
             errors: {},
-            alert: {},
         };
 
         this.inputRefs = {};
+        this.touchedInputs = {};
 
-        this.getFormValues = this.getFormValues.bind(this);
-        this.saveDraft = this.saveDraft.bind(this);
+        this.getValues = this.getValues.bind(this);
+        this.getErrorText = this.getErrorText.bind(this);
+        this.setTouchedInput = this.setTouchedInput.bind(this);
+        this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.validateForm = this.validateForm.bind(this);
-        this.validateInput = this.validateInput.bind(this);
-        this.clearInputErrors = this.clearInputErrors.bind(this);
-        this.setLoading = this.setLoading.bind(this);
-        this.setFormAlert = this.setFormAlert.bind(this);
     }
 
-    getFormValues() {
-        const formData = {};
+    getValues() {
+        const values = {};
         _.each(_.keys(this.inputRefs), (key) => {
-            formData[key] = this.inputRefs[key].value;
+            values[key] = this.inputRefs[key].value;
         });
-        return formData;
+        return values;
     }
 
-    saveDraft(draft) {
-        if (!this.props.shouldSaveDraft) {
-            return;
+    getErrorText(inputName) {
+        if (_.isEmpty(this.state.errors[inputName])) {
+            return '';
         }
-        FormAction.saveFormDraft(`${this.props.name}_draft`, {...draft});
+
+        const translatedErrors = _.map(this.state.errors[inputName], (translationKey) => (
+            this.props.translate(translationKey)
+        ));
+        return _.join(translatedErrors, ' ');
     }
 
-    validateInput(inputName) {
-        const inputError = this.props.validate({[inputName]: this.inputRefs[inputName].value})[inputName];
-        this.setState(prevState => ({
-            errors: {
-                ...prevState.errors,
-                [inputName]: inputError,
-            }
-        }));
-    }
-
-    validateForm() {
-        const values = this.getFormValues();
-        // validate takes in form values and returns errors object in the format
-        // {username: 'form.errors.required', name: 'form.errors.tooShort', ...}
-        // how do we handle multiple errors in this case???
-        const errors = this.props.validate(values);
-        const alert = {};
-        if (!_.isEmpty(errors)) {
-            alert['firstErrorToFix'] = this.inputRefs[_.keys(errors)[0]];
+    setTouchedInput(inputName) {
+        this.touchedInputs = {
+            ...this.touchedInputs,
+            [inputName]: true,
         }
-        this.setState({
-            errors,
-            alert,
-        });
+    }
+
+    validate(values) {
+        ExpensiFormActions.setServerErrorMessage(this.props.name, '');
+        const validationErrors = this.props.validate(values);
+        const errors = _.filter(_.keys(validationErrors), (inputName) => (
+            Boolean(this.touchedInputs[inputName])
+        ));
+        this.setState({errors});
         return errors;
     }
 
-    // Should be called onFocus
-    clearInputErrors(inputName) {
-        this.setState(prevState => ({
-            errors: {
-                ...prevState.errors,
-                [inputName]: undefined,
-            },
-        }));
-    }
-
-    setLoading(value) {
-        this.setState({isLoading: value})
-    }
-
-    setFormAlert(alert) {
-        this.setState({alert});
-    }
-
     onSubmit() {
-        const values = this.getFormValues();
-        const errors = this.validateForm();
-        if (!_.isEmpty(errors)) {
+        // Return early if the form is already submitting to avoid duplicate submission
+        if (this.props.formState.isSubmitting) {
             return;
         }
-        this.props.onSubmit(values, {setLoading: this.setLoading, setFormAlert: this.setFormAlert})
+
+        // Touches all form inputs so we can validate the entire form
+        _.each(_.keys(this.inputRefs), (inputName) => (
+            this.touchedInput[inputName] = true
+        ));
+
+        // Validate form and return early if any errors are found
+        const values = this.getValues();
+        if (!_.isEmpty(this.validate(values))) {
+            return;
+        }
+
+        // Set loading state and call submit handler
+        ExpensiFormActions.setIsSubmitting(this.props.name, true);
+        this.props.onSubmit(values);
     }
 
     render() {
-        console.log(this.props.draft)
         const childrenWrapperWithProps = children => (
             React.Children.map(children, (child) => {
                 // Do nothing if child is not a valid React element
@@ -130,30 +141,31 @@ class ExpensiForm extends React.Component {
                     });
                 }
 
-                // We check if the component has the EXPENSIFORM_COMPATIBLE_INPUT static property enabled,
-                // as we don't want to pass form props to non form components, e.g. View, Text, etc
-                if (!child.type.EXPENSIFORM_COMPATIBLE_INPUT && !child.type.EXPENSIFORM_SUBMIT_INPUT) {
+                // We check if the child has the isExpensiFormInput prop,
+                // since we we don't want to pass form props to non form components, e.g. View, Text, etc
+                if (!child.props.isExpensiFormInput) {
                     return child;
-                }
-
-                // // We clone the child passing down all submit input props
-                if (child.type.EXPENSIFORM_SUBMIT_INPUT) {
-                    return React.cloneElement(child, {
-                        onSubmit: this.onSubmit,
-                        alert: this.state.alert,
-                        isLoading: this.state.isLoading,
-                    });
                 }
 
                 // We clone the child passing down all form props
                 // We should only pass refs to class components!
+                const inputName = child.props.name;
                 return React.cloneElement(child, {
-                    ref: node => this.inputRefs[child.props.name] = node,
-                    saveDraft: this.saveDraft,
-                    validateInput: this.validateInput,
-                    clearInputErrors: this.clearInputErrors,
-                    defaultValue: this.props.draft[child.props.name],
-                    errorText: this.state.errors[child.props.name],
+                    ref: node => this.inputRefs[inputName] = node,
+                    defaultValue: this.props.draftValues[inputName] || child.props.defaultValue,
+                    errorText: this.getErrorText(inputName),
+                    onBlur: (inputName) => {
+                        this.setTouchedInput(inputName);
+                        this.validate(this.getValues());
+                    },
+                    onChange: (value) => {
+                        if (child.props.shouldSaveDraft) {
+                            ExpensiFormActions.setDraftValues(this.props.name, {[inputName]: value})
+                        }
+                        if (this.touchedInputs[inputName]) {
+                            this.validate(this.getValues());
+                        }
+                    },
                 });
             })
         );
@@ -165,14 +177,17 @@ class ExpensiForm extends React.Component {
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Form elements */}
                     <View style={[this.props.style]}>
                         {childrenWrapperWithProps(this.props.children)}
-                        <ExpensiFormFormAlertWithSubmitButton
+                        <FormAlertWithSubmitButton
                             buttonText={this.props.buttonText}
-                            isLoading={this.state.isLoading}
-                            alert={this.state.alert}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
+                            isLoading={this.props.formState.isSubmitting}
+                            message={this.props.formState.serverErrorMessage}
                             onSubmit={this.onSubmit}
+                            onFixTheErrorsLinkPressed={() => {
+                                this.inputRefs[_.first(_.keys(this.state.errors))].focus();
+                            }}
                         />
                     </View>
                 </ScrollView>
@@ -184,8 +199,14 @@ class ExpensiForm extends React.Component {
 ExpensiForm.propTypes = propTypes;
 ExpensiForm.defaultProps = defaultProps;
 
-export default withOnyx({
-    draft: {
-        key: ({name}) => `${name}_draft`,
-    }
-})(ExpensiForm);;
+export default compose(
+    withLocalize,
+    withOnyx({
+        formState: {
+            key: props => props.name,
+        },
+        draftValues: {
+            key: props => `${props.name}DraftValues`,
+        }
+    }),
+)(ExpensiForm);
