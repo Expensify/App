@@ -136,10 +136,10 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
+        welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -275,7 +275,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Seguridad',
@@ -422,12 +422,14 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
+        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
         unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
         newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
@@ -511,7 +513,6 @@ export default {
         selfSelect: 'Personalízalo',
         callMeByMyName: 'Llámame por mi nombre',
     },
-    cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
@@ -522,6 +523,8 @@ export default {
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
+        cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
+        cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
@@ -842,6 +845,7 @@ export default {
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
+            copy: 'Copiar comentario',
         },
     },
     guides: {

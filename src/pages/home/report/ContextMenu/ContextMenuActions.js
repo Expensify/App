@@ -1,12 +1,13 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import CONST from '../../../../CONST';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -41,7 +42,7 @@ export default [
         icon: Expensicons.Clipboard,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
+        shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -49,7 +50,12 @@ export default [
         onPress: (closePopover, {reportAction, selection}) => {
             const message = _.last(lodashGet(reportAction, 'message', null));
             const html = lodashGet(message, 'html', '');
-            const text = Str.htmlDecode(selection || lodashGet(message, 'text', ''));
+
+            const parser = new ExpensiMark();
+            const reportMarkdown = parser.htmlToMarkdown(html);
+
+            const text = selection || reportMarkdown;
+
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(text);

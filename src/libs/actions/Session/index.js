@@ -134,6 +134,7 @@ function fetchAccountDetails(login) {
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
+                    validateCodeExpired: false,
                 });
 
                 if (!response.accountExists) {
@@ -281,7 +282,7 @@ function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});
         });
 }
 
@@ -295,7 +296,7 @@ function resetPassword() {
  * @param {String} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
 
     API.SetPassword({
         password,
@@ -316,7 +317,14 @@ function setPassword(password, validateCode, accountID) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('setPasswordPage.accountNotValidated')});
+            const login = lodashGet(response, 'data.email', null);
+            Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
+
+            // The login might not be set if the user hits a url in a new session. We set it here to ensure calls to resendValidationLink() will succeed.
+            if (login) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+            }
+            Navigation.navigate(ROUTES.HOME);
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
