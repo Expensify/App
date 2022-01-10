@@ -433,6 +433,7 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
         },
     },
     resendValidationForm: {
