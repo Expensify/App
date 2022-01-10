@@ -16,8 +16,8 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
+import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -159,6 +159,7 @@ class BankAccountStep extends React.Component {
             isSavings: params.account.isSavings,
             bankName: params.bankName,
             addressName: params.account.addressName,
+            mask: params.account.mask,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
             country: CONST.COUNTRY.US,
@@ -171,7 +172,7 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI;
+        const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
 
         return (
@@ -267,7 +268,7 @@ class BankAccountStep extends React.Component {
                             style={[styles.exampleCheckImage, styles.mb5]}
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
@@ -275,7 +276,7 @@ class BankAccountStep extends React.Component {
                             disabled={shouldDisableInputs}
                             errorText={this.getErrorText('routingNumber')}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}

@@ -26,14 +26,18 @@ Onyx.connect({
  *
  * @param {String} locale
  * @param {Number} timestamp
+ * @param {String} [currentSelectedTimezone]
  *
  * @returns  {Moment}
  *
  * @private
  */
-function getLocalMomentFromTimestamp(locale, timestamp) {
+function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
-    return moment.unix(timestamp).tz(timezone.selected);
+    if (!timestamp) {
+        return moment.tz(currentSelectedTimezone);
+    }
+    return moment.unix(timestamp).tz(currentSelectedTimezone);
 }
 
 /**
@@ -136,6 +140,7 @@ const DateUtils = {
     startCurrentDateUpdater,
     updateTimezone,
     throttledUpdateTimezone,
+    getLocalMomentFromTimestamp,
 };
 
 export default DateUtils;

@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import SettlementButton from './SettlementButton';
@@ -23,6 +23,9 @@ import Log from '../libs/Log';
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
+
+    /** Callback to to parent modal to send money */
+    onSendMoney: PropTypes.func.isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -149,7 +152,7 @@ class IOUConfirmationList extends Component {
     onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onConfirm();
+            this.props.onSendMoney(value);
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
@@ -365,7 +368,7 @@ class IOUConfirmationList extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
@@ -387,7 +390,7 @@ class IOUConfirmationList extends Component {
                             onPress={this.onPress}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
-                            currency={this.props.localCurrencyCode}
+                            currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
                         <ButtonWithMenu

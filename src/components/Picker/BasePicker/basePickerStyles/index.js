@@ -1,6 +1,6 @@
-import CONST from '../../../CONST';
-import getBrowser from '../../../libs/getBrowser';
-import styles from '../../../styles/styles';
+import CONST from '../../../../CONST';
+import getBrowser from '../../../../libs/getBrowser';
+import styles from '../../../../styles/styles';
 
 const pickerStylesWeb = () => {
     if (CONST.BROWSER.FIREFOX === getBrowser()) {
@@ -12,9 +12,9 @@ const pickerStylesWeb = () => {
 };
 
 const pickerStyles = (disabled, error, focused) => ({
-    ...styles.expensiPicker(disabled, error, focused),
+    ...styles.picker(disabled, error, focused),
     inputWeb: {
-        ...styles.expensiPicker(disabled, error, focused).inputWeb,
+        ...styles.picker(disabled, error, focused).inputWeb,
         ...pickerStylesWeb(),
     },
 });

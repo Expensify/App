@@ -542,6 +542,7 @@ function Graphite_Timer(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayIOU(parameters) {
@@ -553,6 +554,7 @@ function PayIOU(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
@@ -980,7 +982,7 @@ function BankAccount_SetupWithdrawal(parameters) {
         'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
         'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
 
         // data from company step:

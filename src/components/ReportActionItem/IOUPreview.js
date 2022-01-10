@@ -35,6 +35,12 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
+    /** Callback for the preview pressed */
+    onPreviewPressed: PropTypes.func,
+
+    /** Extra styles to pass to View wrapper */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     /* Onyx Props */
 
     /** Active IOU Report for current report */
@@ -72,6 +78,8 @@ const defaultProps = {
     iouReport: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
+    onPreviewPressed: () => {},
+    containerStyles: [],
 };
 
 const IOUPreview = (props) => {
@@ -103,7 +111,7 @@ const IOUPreview = (props) => {
     const cachedTotal = props.iouReport.cachedTotal ? props.iouReport.cachedTotal.replace(/[()]/g, '') : '';
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
-            <View style={styles.iouPreviewBox}>
+            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                 {reportIsLoading
                     ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
                     : (
