@@ -87,7 +87,6 @@ class BankAccountStep extends React.Component {
     validate() {
         const errors = {};
 
-        // These are taken from BankCountry.js in Web-Secure
         if (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
