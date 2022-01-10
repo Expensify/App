@@ -305,8 +305,10 @@ class IOUModal extends Component {
             requestorPhoneNumber: this.state.participants[0].phoneNumber,
             comment,
             newIOUReportDetails,
-            shouldRedirectToChatReport: true,
-        });
+        })
+            .finally(() => {
+                Navigation.navigate(ROUTES.REPORT);
+            });
     }
 
     /**
