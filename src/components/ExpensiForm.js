@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import * as FormAction from '../libs/actions/ExpensiForm';
+import * as FormAction from '../libs/actions/ExpensiFormActions';
 import {ScrollView, View} from 'react-native';
 import styles from '../styles/styles';
 import {withOnyx} from 'react-native-onyx';
