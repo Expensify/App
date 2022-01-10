@@ -7,7 +7,7 @@ import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Wether we should wait before focusing the TextInput, useful when using transitions  */
@@ -203,7 +203,7 @@ class OptionsSelector extends Component {
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}

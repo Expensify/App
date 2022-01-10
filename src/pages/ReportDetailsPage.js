@@ -101,7 +101,8 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(this.props.report, this.props.policies);
+        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
@@ -129,7 +130,7 @@ class ReportDetailsPage extends Component {
                             style={styles.reportDetailsTitleContainer}
                         >
                             <Avatar
-                                isDefaultChatRoom={ReportUtils.isDefaultRoom(this.props.report)}
+                                isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
@@ -142,7 +143,7 @@ class ReportDetailsPage extends Component {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.mb2]}
-                                    shouldUseFullTitle={ReportUtils.isDefaultRoom(this.props.report)}
+                                    shouldUseFullTitle={isChatRoom}
                                 />
                                 <Text
                                     style={[
@@ -153,7 +154,7 @@ class ReportDetailsPage extends Component {
                                     ]}
                                     numberOfLines={1}
                                 >
-                                    {defaultRoomSubtitle}
+                                    {chatRoomSubtitle}
                                 </Text>
                             </View>
                         </View>
