@@ -1,11 +1,11 @@
 import React from 'react';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ExpensiFormActions from '../libs/actions/ExpensiFormActions';
-import {ScrollView, View} from 'react-native';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 
@@ -13,7 +13,7 @@ const propTypes = {
     /** A unique Onyx key identifying the form */
     name: PropTypes.string.isRequired,
 
-    /** Text to be displayed in the submit button */    
+    /** Text to be displayed in the submit button */
     buttonText: PropTypes.string.isRequired,
 
     /** Callback validate the form */
@@ -21,7 +21,7 @@ const propTypes = {
 
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
-    
+
     children: PropTypes.node.isRequired,
 
     /* Onyx Props */
@@ -68,42 +68,6 @@ class ExpensiForm extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    getValues() {
-        const values = {};
-        _.each(_.keys(this.inputRefs), (key) => {
-            values[key] = this.inputRefs[key].value;
-        });
-        return values;
-    }
-
-    getErrorText(inputName) {
-        if (_.isEmpty(this.state.errors[inputName])) {
-            return '';
-        }
-
-        const translatedErrors = _.map(this.state.errors[inputName], (translationKey) => (
-            this.props.translate(translationKey)
-        ));
-        return _.join(translatedErrors, ' ');
-    }
-
-    setTouchedInput(inputName) {
-        this.touchedInputs = {
-            ...this.touchedInputs,
-            [inputName]: true,
-        }
-    }
-
-    validate(values) {
-        ExpensiFormActions.setServerErrorMessage(this.props.name, '');
-        const validationErrors = this.props.validate(values);
-        const errors = _.filter(_.keys(validationErrors), (inputName) => (
-            Boolean(this.touchedInputs[inputName])
-        ));
-        this.setState({errors});
-        return errors;
-    }
-
     onSubmit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isSubmitting) {
@@ -111,7 +75,7 @@ class ExpensiForm extends React.Component {
         }
 
         // Touches all form inputs so we can validate the entire form
-        _.each(_.keys(this.inputRefs), (inputName) => (
+        _.each(_.keys(this.inputRefs), inputName => (
             this.touchedInput[inputName] = true
         ));
 
@@ -126,8 +90,45 @@ class ExpensiForm extends React.Component {
         this.props.onSubmit(values);
     }
 
+    getValues() {
+        const values = {};
+        _.each(_.keys(this.inputRefs), (key) => {
+            values[key] = this.inputRefs[key].value;
+        });
+        return values;
+    }
+
+    getErrorText(inputName) {
+        if (_.isEmpty(this.state.errors[inputName])) {
+            return '';
+        }
+
+        const translatedErrors = _.map(this.state.errors[inputName], translationKey => (
+            this.props.translate(translationKey)
+        ));
+        return _.join(translatedErrors, ' ');
+    }
+
+    setTouchedInput(inputName) {
+        this.touchedInputs = {
+            ...this.touchedInputs,
+            [inputName]: true,
+        };
+    }
+
+    validate(values) {
+        ExpensiFormActions.setServerErrorMessage(this.props.name, '');
+        const validationErrors = this.props.validate(values);
+        const errors = _.filter(_.keys(validationErrors), inputName => (
+            Boolean(this.touchedInputs[inputName])
+        ));
+        this.setState({errors});
+        return errors;
+    }
+
     render() {
         const childrenWrapperWithProps = children => (
+            // eslint-disable-next-line rulesdir/prefer-underscore-method
             React.Children.map(children, (child) => {
                 // Do nothing if child is not a valid React element
                 if (!React.isValidElement(child)) {
@@ -136,7 +137,7 @@ class ExpensiForm extends React.Component {
 
                 // Depth first traversal of the render tree as the form element is likely to be the last node
                 if (child.props.children) {
-                    child = React.cloneElement(child, {
+                    return React.cloneElement(child, {
                         children: childrenWrapperWithProps(child.props.children),
                     });
                 }
@@ -154,13 +155,13 @@ class ExpensiForm extends React.Component {
                     ref: node => this.inputRefs[inputName] = node,
                     defaultValue: this.props.draftValues[inputName] || child.props.defaultValue,
                     errorText: this.getErrorText(inputName),
-                    onBlur: (inputName) => {
-                        this.setTouchedInput(inputName);
+                    onBlur: (key) => {
+                        this.setTouchedInput(key);
                         this.validate(this.getValues());
                     },
                     onChange: (value) => {
                         if (child.props.shouldSaveDraft) {
-                            ExpensiFormActions.setDraftValues(this.props.name, {[inputName]: value})
+                            ExpensiFormActions.setDraftValues(this.props.name, {[inputName]: value});
                         }
                         if (this.touchedInputs[inputName]) {
                             this.validate(this.getValues());
@@ -207,6 +208,6 @@ export default compose(
         },
         draftValues: {
             key: props => `${props.name}DraftValues`,
-        }
+        },
     }),
 )(ExpensiForm);
