@@ -172,7 +172,7 @@ const InitialSettingsPage = (props) => {
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
                                 {props.myPersonalDetails.displayName
-                                    ? <EmojiText>{props.myPersonalDetails.displayName}</EmojiText>
+                                    ? <EmojiText style={[styles.displayName]}>{props.myPersonalDetails.displayName}</EmojiText>
                                     : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>

@@ -94,7 +94,7 @@ class ReportActionItemFragment extends React.PureComponent {
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
-                            <EmojiText>{this.props.fragment.text}</EmojiText>
+                            <EmojiText style={[styles.chatItemMessageHeaderSender]}>{this.props.fragment.text}</EmojiText>
                         </Text>
                     </Tooltip>
                 );

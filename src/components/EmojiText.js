@@ -8,14 +8,19 @@ import * as EmojiUtils from '../libs/EmojiUtils';
 const propTypes = {
     /** Text to display */
     children: PropTypes.string,
+
+    /** Styles to apply */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
 };
 
 const defaultProps = {
     children: null,
+    style: {},
 };
 
 const EmojiText = props => (
-    <Text>{EmojiUtils.escapeEmojiFromText(props.children)}</Text>
+    <Text style={props.style}>{EmojiUtils.escapeEmojiFromText(props.children)}</Text>
 );
 
 EmojiText.propTypes = propTypes;
