@@ -86,7 +86,7 @@ class CloseAccountPage extends Component {
                             {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
                         <TextInput
-                            autoCapitalize='none'
+                            autoCapitalize="none"
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
                             label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
