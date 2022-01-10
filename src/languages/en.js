@@ -422,6 +422,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
