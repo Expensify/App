@@ -52,11 +52,7 @@ class CloseAccountPage extends Component {
     }
 
     render() {
-        const confirmInputLabel = this.props.translate('closeAccountPage.typeToConfirmPart1')
-            + ' '
-            + Str.removeSMSDomain(this.props.session.email)
-            + ' '
-            + this.props.translate('closeAccountPage.typeToConfirmPart2');
+        const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -84,15 +80,15 @@ class CloseAccountPage extends Component {
                         />
                         <Text style={[styles.mt5]}>
                             <Text style={[styles.textStrong]}>
-                                {this.props.translate('closeAccountPage.closeAccountWarningPart1')}
+                                {this.props.translate('closeAccountPage.closeAccountWarning')}
                             </Text>
                             {' '}
-                            {this.props.translate('closeAccountPage.closeAccountWarningPart2')}
+                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
                         <TextInput
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail})}
-                            label={confirmInputLabel}
+                            label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
                             containerStyles={[styles.mt5]}
                         />
                     </ScrollView>
@@ -103,7 +99,7 @@ class CloseAccountPage extends Component {
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                            isDisabled={Str.removeSMSDomain(this.props.session.email) !== this.state.phoneOrEmail}
+                            isDisabled={Str.removeSMSDomain(userEmailOrPhone) !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
                     <ConfirmModal
@@ -112,7 +108,7 @@ class CloseAccountPage extends Component {
                         confirmText={this.props.translate('closeAccountPage.okayGotIt')}
                         prompt={(
                             <Text>
-                                {this.props.translate('closeAccountPage.closeAccountActionRequiredPart1')}
+                                {this.props.translate('closeAccountPage.closeAccountActionRequired')}
                                 {' '}
                                 <Text
                                     style={styles.link}
@@ -121,7 +117,7 @@ class CloseAccountPage extends Component {
                                     {this.props.translate('common.here')}
                                 </Text>
                                 {' '}
-                                {this.props.translate('closeAccountPage.closeAccountActionRequiredPart2')}
+                                {this.props.translate('closeAccountPage.closeAccountTryAgainAfter')}
                             </Text>
                         )}
                         onConfirm={CloseAccountActions.hideCloseAccountModal}
