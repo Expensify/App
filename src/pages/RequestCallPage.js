@@ -102,6 +102,10 @@ class RequestCallPage extends Component {
         this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
     }
 
+    componentDidMount() {
+        Inbox.getInboxCallWaitTime();
+    }
+
     onSubmit() {
         if (!this.validateInputs()) {
             return;
@@ -193,6 +197,29 @@ class RequestCallPage extends Component {
         return {firstName, lastName};
     }
 
+    getWaitTimeMessageKey(minutes) {
+        if (!minutes) {
+            return 'requestCallPage.waitTime.calculating';
+        }
+        if (minutes > 300) {
+            // The wait time is longer than 5 hours, so just say that.
+            return 'requestCallPage.waitTime.fiveHoursPlus';
+        }
+
+        if (minutes > 60) {
+            // The wait time is between 1 and 5 hours, so lets convert to hours and minutes.
+            return 'requestCallPage.waitTime.hoursAndMinutes';
+        }
+
+        // The wait time is less than an hour so just give minutes.
+        return 'requestCallPage.waitTime.minutes';
+    }
+
+    getWaitTimeMessage() {
+        const waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
+        return `${this.props.translate(waitTimeKey)} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+    }
+
     validatePhoneInput() {
         this.setState({phoneNumberError: this.getPhoneNumberError()});
     }
@@ -278,6 +305,7 @@ class RequestCallPage extends Component {
                                 />
                             </View>
                         </View>
+                        <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                     </ScrollView>
                     <FixedFooter>
                         <Button
@@ -315,6 +343,9 @@ export default compose(
         requestCallForm: {
             key: ONYXKEYS.REQUEST_CALL_FORM,
             initWithStoredValues: false,
+        },
+        inboxCallUserWaitTime: {
+            key: ONYXKEYS.INBOX_CALL_USER_WAIT_TIME,
         },
     }),
 )(RequestCallPage);

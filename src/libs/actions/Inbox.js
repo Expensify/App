@@ -41,5 +41,14 @@ function requestInboxCall({
         });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {requestInboxCall};
+function getInboxCallWaitTime() {
+    API.Inbox_CallUser_WaitTime()
+        .then((data) => {
+            Onyx.set(ONYXKEYS.INBOX_CALL_USER_WAIT_TIME, data.waitTime);
+        });
+}
+
+export {
+    requestInboxCall,
+    getInboxCallWaitTime,
+};

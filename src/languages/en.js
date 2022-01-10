@@ -815,6 +815,13 @@ export default {
         growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        waitTime: {
+            calculating: 'Calculating wait time...',
+            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
+            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
+            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
+        },
         error: {
             phoneExtension: 'Please enter a valid phone extension number',
         },

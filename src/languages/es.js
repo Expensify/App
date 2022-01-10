@@ -817,8 +817,15 @@ export default {
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        waitTime: {
+            calculating: 'Cálculo del tiempo de espera...',
+            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
+            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
+            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
+        },
         error: {
-            phoneExtension: 'Ingrese un número de extensión de teléfono válido',
+            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
         },
     },
     emojiPicker: {
