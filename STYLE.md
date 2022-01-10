@@ -513,7 +513,7 @@ const propTypes = {
 
 ## Binding methods
 
-For class components, methods should be bound if be passed directly a prop or needing to be accessed via the component instance from outside of the component's execution context. Do not simply bind all methods in the constructor without reason. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
+For class components, methods should be bound in the `constructor()` if passed directly as a prop or needing to be accessed via the component instance from outside of the component's execution context. Binding all methods in the constructor is unnecessary. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
 
 ```javascript
 // Bad
