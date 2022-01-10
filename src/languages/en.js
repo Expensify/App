@@ -817,7 +817,6 @@ export default {
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
     },

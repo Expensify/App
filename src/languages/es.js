@@ -819,7 +819,6 @@ export default {
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
