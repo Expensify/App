@@ -246,8 +246,6 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
             if (_.isEmpty(responseACHData)) {
                 Log.info('[SetupWithdrawalAccount] No achData in response. Navigating to next step based on currently stored values.', 0, {nextStep});
                 navigation.goToWithdrawalAccountSetupStep(nextStep, updatedACHData);
