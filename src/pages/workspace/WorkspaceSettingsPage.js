@@ -18,7 +18,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
@@ -166,7 +166,7 @@ class WorkspaceSettingsPage extends React.Component {
                         />
 
                         <View style={[styles.mt4]}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('workspace.editor.currencyInputLabel')}
                                 onChange={currency => this.setState({currency})}
                                 items={this.getCurrencyItems()}

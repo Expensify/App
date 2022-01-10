@@ -10,6 +10,10 @@ import StatePicker from '../../components/StatePicker';
 import Text from '../../components/Text';
 
 const propTypes = {
+
+    /** Translate key for Street name */
+    streetTranslationKey: PropTypes.string.isRequired,
+
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func.isRequired,
 
@@ -47,7 +51,7 @@ const defaultProps = {
 const AddressForm = props => (
     <>
         <AddressSearch
-            label={props.translate('common.personalAddress')}
+            label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
             value={props.values.street}
             onChange={props.onFieldChange}

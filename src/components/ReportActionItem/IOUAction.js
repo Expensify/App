@@ -7,6 +7,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** All the data of the action */
@@ -50,6 +51,7 @@ const IOUAction = (props) => {
                         chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
+                        containerStyles={[styles.cursorPointer]}
                     />
             )}
         </>

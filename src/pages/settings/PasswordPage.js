@@ -172,6 +172,7 @@ class PasswordPage extends Component {
                                 returnKeyType="done"
                                 hasError={this.state.errors.currentPassword}
                                 errorText={this.getErrorText('currentPassword')}
+                                onSubmitEditing={this.submit}
                             />
                         </View>
                         <View style={styles.mb6}>
