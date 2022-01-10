@@ -818,7 +818,7 @@ export default {
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
         waitTime: {
-            calculating: 'Cálculo del tiempo de espera...',
+            calculating: 'Calculando el tiempo de espera...',
             fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
             hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
             minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
