@@ -297,7 +297,7 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        typeToConfirm: ({emailOrPhone}) => `Type ${emailOrPhone} to confirm`,
+        typeToConfirm: ({emailOrPhone}) => `Introduce ${emailOrPhone} para confirmar`,
         okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
