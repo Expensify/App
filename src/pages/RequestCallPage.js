@@ -23,7 +23,6 @@ import Text from '../components/Text';
 import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
@@ -223,9 +222,9 @@ class RequestCallPage extends Component {
                             </Text>
                             <FullNameInputRow
                                 firstName={this.state.firstName}
-                                firstNameError={this.state.firstNameError}
+                                firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
                                 lastName={this.state.lastName}
-                                lastNameError={this.state.lastNameError}
+                                lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
                                 onChangeFirstName={firstName => this.setState({firstName})}
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
