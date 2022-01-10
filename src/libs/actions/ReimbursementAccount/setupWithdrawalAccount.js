@@ -75,7 +75,7 @@ function getNextStep(updatedACHData) {
  * @param {String} verificationsError
  * @param {Object} updatedACHData
  */
-function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData, formFunctions) {
+function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData) {
     let error = verificationsError;
     let isErrorHTML = false;
     const responseACHData = lodashGet(response, 'achData', {});
@@ -100,8 +100,8 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
     }
 
     if (error) {
-        formFunctions.setFormAlert({message: response.htmlMessage, isMessageHtml: isErrorHTML});
-        formFunctions.setLoading(false);
+        errors.showBankAccountFormValidationError(error);
+        errors.showBankAccountErrorModal(error, isErrorHTML);
     }
 
     const nextStep = response.jsonCode === 200 && !error ? getNextStep(updatedACHData) : updatedACHData.currentStep;
@@ -203,9 +203,8 @@ function mergeParamsWithLocalACHData(data) {
  * @param {Boolean} [params.certifyTrueInformation]
  * @param {Array} [params.beneficialOwners]
  */
-function setupWithdrawalAccount(params, formFunctions) {
-    // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
-    formFunctions.setLoading(true);
+function setupWithdrawalAccount(params) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
     const updatedACHData = mergeParamsWithLocalACHData(params);
     API.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
@@ -213,8 +212,8 @@ function setupWithdrawalAccount(params, formFunctions) {
             const currentStep = updatedACHData.currentStep;
             const responseACHData = lodashGet(response, 'achData', {});
             const verificationsError = lodashGet(responseACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
-            if (response.jsonCode === 200 || verificationsError) {
-                showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData, formFunctions);
+            if (response.jsonCode !== 200 || verificationsError) {
+                showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData);
                 return;
             }
 
@@ -248,20 +247,18 @@ function setupWithdrawalAccount(params, formFunctions) {
 
             // Go to next step
             navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
-            // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
             if (_.isEmpty(responseACHData)) {
                 Log.info('[SetupWithdrawalAccount] No achData in response. Navigating to next step based on currently stored values.', 0, {nextStep});
                 navigation.goToWithdrawalAccountSetupStep(nextStep, updatedACHData);
             } else {
                 navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             }
-            formFunctions.setLoading(false);
         })
         .catch((response) => {
-            // Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
             console.error(response.stack);
             errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
-            formFunctions.setLoading(false);
         });
 }
 

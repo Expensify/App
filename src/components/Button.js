@@ -96,7 +96,6 @@ class Button extends Component {
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         this.renderContent = this.renderContent.bind(this);
-        this.onPress = this.onPress.bind(this);
     }
 
     componentDidMount() {
@@ -111,8 +110,7 @@ class Button extends Component {
             if (this.props.isDisabled || this.props.isLoading) {
                 return;
             }
-            // this.props.onPress();
-            this.props.onSubmit();
+            this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
@@ -168,18 +166,10 @@ class Button extends Component {
         return textComponent;
     }
 
-    onPress() {
-        if (this.props.onSubmit) {
-            this.props.onSubmit();
-        } else {
-            this.props.onPress();
-        }
-    }
-
     render() {
         return (
             <Pressable
-                onPress={this.onPress}
+                onPress={this.props.onPress}
                 onLongPress={this.props.onLongPress}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
@@ -215,7 +205,6 @@ class Button extends Component {
     }
 }
 
-Button.EXPENSIFORM_COMPATIBLE_INPUT = true;
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 

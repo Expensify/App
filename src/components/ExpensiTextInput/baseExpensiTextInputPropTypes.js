@@ -19,6 +19,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Should the input be styled for errors  */
+    hasError: PropTypes.bool,
+
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -29,8 +32,6 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
-
-    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -49,7 +50,6 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
-    shouldSaveDraft: true,
 };
 
 export {propTypes, defaultProps};
