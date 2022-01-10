@@ -86,8 +86,9 @@ class CloseAccountPage extends Component {
                             {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
                         <TextInput
+                            autoCapitalize='none'
                             value={this.state.phoneOrEmail}
-                            onChangeText={phoneOrEmail => this.setState({phoneOrEmail})}
+                            onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
                             label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
                             containerStyles={[styles.mt5]}
                         />
@@ -99,7 +100,7 @@ class CloseAccountPage extends Component {
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                            isDisabled={Str.removeSMSDomain(userEmailOrPhone) !== this.state.phoneOrEmail}
+                            isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
                         />
                     </FixedFooter>
                     <ConfirmModal
