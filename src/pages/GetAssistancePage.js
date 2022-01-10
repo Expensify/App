@@ -5,7 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import PageSectionWithIcon from '../components/PageSectionWithIcon';
+import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import Text from '../components/Text';
@@ -35,7 +35,7 @@ const GetAssistancePage = props => (
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <PageSectionWithIcon
+            <Section
                 title={props.translate('getAssistancePage.subtitle')}
                 icon={Illustrations.ConciergeExclamation}
                 menuItems={[
@@ -56,7 +56,7 @@ const GetAssistancePage = props => (
                 <View style={[styles.mv4]}>
                     <Text>{props.translate('getAssistancePage.description')}</Text>
                 </View>
-            </PageSectionWithIcon>
+            </Section>
         </KeyboardAvoidingView>
     </ScreenWrapper>
 );

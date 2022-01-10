@@ -7,14 +7,14 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import * as Link from '../../../libs/actions/Link';
-import PageSectionWithIcon from '../../../components/PageSectionWithIcon';
+import Section from '../../../components/Section';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 const WorkspaceCardVBAWithECardView = props => (
-    <PageSectionWithIcon
+    <Section
         title={props.translate('workspace.card.headerWithEcard')}
         icon={Illustrations.CreditCardsBlue}
         menuItems={[
@@ -46,7 +46,7 @@ const WorkspaceCardVBAWithECardView = props => (
                 props.translate('workspace.card.benefit4'),
             ]}
         />
-    </PageSectionWithIcon>
+    </Section>
 );
 
 WorkspaceCardVBAWithECardView.propTypes = propTypes;

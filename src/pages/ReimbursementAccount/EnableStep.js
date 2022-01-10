@@ -19,7 +19,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
-import PageSectionWithIcon from '../../components/PageSectionWithIcon';
+import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
@@ -95,7 +95,7 @@ class EnableStep extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1]}>
-                    <PageSectionWithIcon
+                    <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
                         // eslint-disable-next-line max-len
                         IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
@@ -116,7 +116,7 @@ class EnableStep extends React.Component {
                                 ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
-                    </PageSectionWithIcon>
+                    </Section>
                     {this.props.user.isCheckingDomain && (
                         <Text style={[styles.formError, styles.m5]}>
                             {this.props.translate('workspace.card.checkingDomain')}

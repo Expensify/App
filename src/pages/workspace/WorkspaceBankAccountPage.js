@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import PageSectionWithIcon from '../../components/PageSectionWithIcon';
+import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
@@ -98,7 +98,7 @@ class WorkspaceBankAccountPage extends React.Component {
                     shouldShowBackButton
                 />
                 <ScrollView style={styles.flex1}>
-                    <PageSectionWithIcon
+                    <Section
                         title={this.props.translate('workspace.bankAccount.almostDone')}
                         icon={Illustrations.BankArrowPink}
                         menuItems={[
@@ -119,7 +119,7 @@ class WorkspaceBankAccountPage extends React.Component {
                         <Text>
                             {this.props.translate('workspace.bankAccount.youreAlmostDone')}
                         </Text>
-                    </PageSectionWithIcon>
+                    </Section>
                 </ScrollView>
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>

@@ -31,7 +31,7 @@ const defaultProps = {
     IconComponent: null,
 };
 
-const PageSectionWithIcon = (props) => {
+const Section = (props) => {
     const IconComponent = props.IconComponent;
     return (
         <>
@@ -56,8 +56,8 @@ const PageSectionWithIcon = (props) => {
     );
 };
 
-PageSectionWithIcon.displayName = 'PageSectionWithIcon';
-PageSectionWithIcon.propTypes = propTypes;
-PageSectionWithIcon.defaultProps = defaultProps;
+Section.displayName = 'Section';
+Section.propTypes = propTypes;
+Section.defaultProps = defaultProps;
 
-export default PageSectionWithIcon;
+export default Section;
