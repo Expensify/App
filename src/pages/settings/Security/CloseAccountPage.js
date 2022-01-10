@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Linking, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -97,7 +98,7 @@ class CloseAccountPage extends Component {
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                            isDisabled={this.props.session.email !== this.state.phoneOrEmail}
+                            isDisabled={Str.removeSMSDomain(this.props.session.email) !== this.state.phoneOrEmail}
                         />
                     </FixedFooter>
                     <ConfirmModal
