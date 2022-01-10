@@ -100,20 +100,21 @@ class RequestCallPage extends Component {
             return;
         }
 
-        // If there's a lastAccessedWorkspacePolicyID in Onyx then use that as the policy for the call, otherwise use the personal policy
-        const policyForCall = this.props.lastAccessedWorkspacePolicyID
-            ? this.props.lastAccessedWorkspacePolicyID : _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
+        const policyForCall = _.find(this.props.policies, (policy) => {
+            if (!policy) {
+                return;
+            }
 
-        if (!policyForCall) {
-            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
-            return;
-        }
+            if (this.props.lastAccessedWorkspacePolicyID) {
+                return policy.id === this.props.lastAccessedWorkspacePolicyID;
+            }
 
-        const policyIDForCall = _.isObject(policyForCall) ? policyForCall.id : policyForCall;
+            return policy.type === CONST.POLICY.TYPE.PERSONAL;
+        });
 
         Inbox.requestInboxCall({
             taskID: this.props.route.params.taskID,
-            policyID: policyIDForCall,
+            policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
