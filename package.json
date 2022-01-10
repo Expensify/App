@@ -159,7 +159,6 @@
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-jest": "^24.1.0",
     "flipper-plugin-bridgespy-client": "^0.1.9",
-    "flipper-plugin-react-native-performance": "^0.6.0",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.5.2",
     "jest-circus": "^26.5.2",
