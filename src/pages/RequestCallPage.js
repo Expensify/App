@@ -23,8 +23,9 @@ import TextInput from '../components/TextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
+import * as ValidationUtils from '../libs/ValidationUtils';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -82,10 +83,10 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
-            firstNameError: '',
+            hasFirstNameError: false,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
-            lastNameError: '',
+            hasLastNameError: false,
             phoneNumberError: '',
         };
 
@@ -189,14 +190,13 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
-
+        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName]);
         this.setState({
-            firstNameError,
-            lastNameError,
+            hasFirstNameError,
+            hasLastNameError,
             phoneNumberError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && !hasFirstNameError && !hasLastNameError;
     }
 
     render() {
@@ -222,9 +222,9 @@ class RequestCallPage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
+                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
+                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mv4]}
