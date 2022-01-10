@@ -1,10 +1,10 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import * as expensiTextInputLabelPropTypes from './expensiTextInputLabelPropTypes';
+import * as TextInputLabelPropTypes from './TextInputLabelPropTypes';
 import * as styleConst from '../styleConst';
 
-class ExpensiTextInputLabel extends PureComponent {
+class TextInputLabel extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
@@ -19,8 +19,8 @@ class ExpensiTextInputLabel extends PureComponent {
                     this.setState({width: nativeEvent.layout.width});
                 }}
                 style={[
-                    styles.expensiTextInputLabel,
-                    styles.expensiTextInputLabelTransformation(
+                    styles.textInputLabel,
+                    styles.textInputLabelTransformation(
                         this.props.labelTranslateY,
                         this.props.labelScale.interpolate({
                             inputRange: [styleConst.ACTIVE_LABEL_SCALE, styleConst.INACTIVE_LABEL_SCALE],
@@ -36,7 +36,7 @@ class ExpensiTextInputLabel extends PureComponent {
     }
 }
 
-ExpensiTextInputLabel.propTypes = expensiTextInputLabelPropTypes.propTypes;
-ExpensiTextInputLabel.defaultProps = expensiTextInputLabelPropTypes.defaultProps;
+TextInputLabel.propTypes = TextInputLabelPropTypes.propTypes;
+TextInputLabel.defaultProps = TextInputLabelPropTypes.defaultProps;
 
-export default ExpensiTextInputLabel;
+export default TextInputLabel;

@@ -143,7 +143,7 @@ function getChatReportName(fullReport, chatType) {
     }
 
     // For a basic policy room, return its original name
-    if (ReportUtils.isPolicyRoom({chatType})) {
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return fullReport.reportName;
     }
 
@@ -187,7 +187,7 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 

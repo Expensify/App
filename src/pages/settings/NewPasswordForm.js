@@ -7,7 +7,7 @@ import withLocalize, {
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -69,7 +69,7 @@ class NewPasswordForm extends React.Component {
     render() {
         return (
             <View style={styles.mb6}>
-                <ExpensiTextInput
+                <TextInput
                     label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                     secureTextEntry
                     autoCompleteType="password"

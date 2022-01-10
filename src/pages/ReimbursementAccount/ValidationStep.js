@@ -10,7 +10,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
@@ -197,7 +197,7 @@ class ValidationStep extends React.Component {
                             </Text>
                         </View>
                         <View style={[styles.mv5, styles.flex1]}>
-                            <ExpensiTextInput
+                            <TextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
@@ -205,7 +205,7 @@ class ValidationStep extends React.Component {
                                 onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
                                 errorText={this.getErrorText('amount1')}
                             />
-                            <ExpensiTextInput
+                            <TextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
@@ -213,7 +213,7 @@ class ValidationStep extends React.Component {
                                 onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
                                 errorText={this.getErrorText('amount2')}
                             />
-                            <ExpensiTextInput
+                            <TextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"

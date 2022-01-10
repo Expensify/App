@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -60,7 +60,7 @@ const AddressForm = props => (
         <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
-                <ExpensiTextInput
+                <TextInput
                     label={props.translate('common.city')}
                     value={props.values.city}
                     onChangeText={value => props.onFieldChange({city: value})}
@@ -76,7 +76,7 @@ const AddressForm = props => (
                 />
             </View>
         </View>
-        <ExpensiTextInput
+        <TextInput
             label={props.translate('common.zip')}
             containerStyles={[styles.mt4]}
             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
