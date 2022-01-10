@@ -297,6 +297,8 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequiredPart1: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountActionRequiredPart2: 'e intenta nuevamente',
+        typeToConfirmPart1: 'Type', // todo
+        typeToConfirmPart2: 'to confirm', // todo
         okayGotIt: 'Ok, entendido',
     },
     passwordPage: {

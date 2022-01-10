@@ -52,6 +52,11 @@ class CloseAccountPage extends Component {
     }
 
     render() {
+        const confirmInputLabel = this.props.translate('closeAccountPage.typeToConfirmPart1')
+            + ' '
+            + Str.removeSMSDomain(this.props.session.email)
+            + ' '
+            + this.props.translate('closeAccountPage.typeToConfirmPart2');
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -87,7 +92,7 @@ class CloseAccountPage extends Component {
                         <TextInput
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail})}
-                            label={this.props.translate('loginForm.phoneOrEmail')}
+                            label={confirmInputLabel}
                             containerStyles={[styles.mt5]}
                         />
                     </ScrollView>
