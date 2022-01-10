@@ -39,6 +39,7 @@ const defaultProps = {
     name: '',
     errorText: '',
     placeholder: '',
+    hasError: false,
     containerStyles: [],
     inputStyle: [],
     autoFocus: false,

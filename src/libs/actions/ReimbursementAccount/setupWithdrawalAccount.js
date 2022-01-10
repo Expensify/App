@@ -254,6 +254,7 @@ function setupWithdrawalAccount(params) {
             } else {
                 navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             }
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
