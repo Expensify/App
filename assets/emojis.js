@@ -50,7 +50,7 @@ const skinTones = [{
 
 const emojis = [
     {
-        code: 'Smileys & People',
+        code: 'smileysAndPeople',
         header: true,
     },
     {
@@ -2801,7 +2801,7 @@ const emojis = [
         ],
     },
     {
-        code: 'Animals & Nature',
+        code: 'animalsAndNature',
         header: true,
     },
     {
@@ -4378,7 +4378,7 @@ const emojis = [
         code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'Travel & Places',
+        code: 'travelAndPlaces',
         header: true,
     },
     {
@@ -6248,7 +6248,7 @@ const emojis = [
         code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'Activities',
+        code: 'activities',
         header: true,
     },
     {
@@ -7023,7 +7023,7 @@ const emojis = [
         code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'Objects',
+        code: 'objects',
         header: true,
     },
     {
@@ -8473,7 +8473,7 @@ const emojis = [
         code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'Symbols',
+        code: 'symbols',
         header: true,
     },
     {
@@ -10111,7 +10111,7 @@ const emojis = [
         code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'Flags',
+        code: 'flags',
         header: true,
     },
     {
