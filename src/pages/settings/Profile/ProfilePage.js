@@ -280,6 +280,7 @@ class ProfilePage extends Component {
                             onPress={this.updatePersonalDetails}
                             style={[styles.w100]}
                             text={this.props.translate('common.save')}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
