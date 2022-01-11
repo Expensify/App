@@ -90,7 +90,7 @@ class PaymentsPage extends React.Component {
                     icon: Expensicons.PayPal,
                 };
                 Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            } else if (accountType === 'bankAccount') {
+            } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: Expensicons.Bank,
