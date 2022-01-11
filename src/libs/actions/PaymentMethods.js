@@ -36,7 +36,7 @@ function deleteDebitCard(fundID) {
 function deletePayPalMe() {
     NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
     Onyx.set(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.ERROR, 3000);
+    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**
