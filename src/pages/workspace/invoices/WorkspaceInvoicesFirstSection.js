@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
@@ -17,7 +17,7 @@ const propTypes = {
 };
 
 const WorkspaceInvoicesFirstSection = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
         icon={Illustrations.MoneyEnvelopeBlue}
         menuItems={[
@@ -44,7 +44,7 @@ const WorkspaceInvoicesFirstSection = props => (
                 {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
             </Text>
         </View>
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
