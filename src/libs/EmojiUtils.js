@@ -112,7 +112,7 @@ function getDynamicSpacing(emojiCount, suffix) {
  */
 function addSpacesToEmojiCategories(emojis) {
     let updatedEmojis = [];
-    emojis.forEach((emoji, index) => {
+    _.each(emojis, (emoji, index) => {
         if (emoji.header) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
         } else {
@@ -175,11 +175,8 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 
 
 export {
-    getEmojiUnicode,
-    trimEmojiUnicode,
     isSingleEmoji,
     getDynamicHeaderIndices,
-    getDynamicSpacing,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
 };
