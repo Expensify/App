@@ -177,10 +177,7 @@ const InitialSettingsPage = (props) => {
                             </Text>
                         </Pressable>
                         {props.myPersonalDetails.displayName && (
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mt1]}
-                                numberOfLines={1}
-                            >
+                            <Text style={[styles.textLabelSupporting, styles.mt1]} numberOfLines={1}>
                                 {Str.removeSMSDomain(props.session.email)}
                             </Text>
                         )}
