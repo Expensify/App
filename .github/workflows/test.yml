@@ -36,3 +36,10 @@ jobs:
       - run: npm run test
         env:
           CI: true
+
+      - name: Set up git for DummyBotify
+        run: |
+          git config --global user.name DummyBotify
+          git config --global user.email dummybotify@expensify.com
+
+      - run: tests/unit/getPullRequestsMergedBetweenTest.sh
