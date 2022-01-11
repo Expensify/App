@@ -821,14 +821,14 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
-            frequentlyUsed: 'Frequently Used',
-            smileysAndPeople: 'Smileys & People',
-            animalsAndNature: 'Animals & Nature',
-            travelAndPlaces: 'Travel & Places',
-            activities: 'Activities',
-            objects: 'Objects',
-            symbols: 'Symbols',
-            flags: 'Flags',
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Simbolos',
+            flags: 'Banderas',
         },
     },
     newRoomPage: {
