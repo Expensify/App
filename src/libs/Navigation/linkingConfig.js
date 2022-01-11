@@ -40,6 +40,10 @@ export default {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
+                    Settings_Close: {
+                        path: ROUTES.SETTINGS_CLOSE,
+                        exact: true,
+                    },
                     Settings_Password: {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
