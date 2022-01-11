@@ -15,6 +15,7 @@ import Checkmark from '../../../assets/images/checkmark.svg';
 import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
@@ -86,6 +87,7 @@ export {
     CircleHourglass,
     Clipboard,
     Close,
+    ClosedSign,
     Concierge,
     CreditCard,
     DownArrow,

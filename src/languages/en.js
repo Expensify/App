@@ -288,6 +288,18 @@ export default {
             phrase4: 'privacy policy',
         },
     },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        enterMessageHere: 'Enter message here',
+        closeAccountWarning: 'Closing your account cannot be undone.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountTryAgainAfter: 'and try again after.',
+        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        okayGotIt: 'Okay, Got it',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
@@ -422,6 +434,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
