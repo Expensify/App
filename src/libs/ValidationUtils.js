@@ -286,14 +286,6 @@ function isNumericWithSpecialChars(input) {
     return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
-/**
- * Checks whether a given first or last name is valid length
- * @param {String} name
- * @returns {Boolean}
- */
-function isValidLengthForFirstOrLastName(name) {
-    return name.length <= 50;
-}
 
 /**
  * Checks the given number is a valid US Routing Number
@@ -317,6 +309,18 @@ function isValidRoutingNumber(number) {
     return false;
 }
 
+/**
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit.
+ *
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
+function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value.length > maxLength);
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -336,8 +340,8 @@ export {
     isValidPassword,
     isPositiveInteger,
     isNumericWithSpecialChars,
-    isValidLengthForFirstOrLastName,
     isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
+    doesFailCharacterLimit,
 };

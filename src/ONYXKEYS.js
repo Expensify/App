@@ -172,7 +172,12 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
+    // Is close acount modal open?
+    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
+    // The policyID of the last workspace whose settings were accessed by the user
+    LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 };

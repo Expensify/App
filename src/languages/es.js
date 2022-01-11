@@ -288,6 +288,18 @@ export default {
             phrase4: 'política de privacidad',
         },
     },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        enterMessageHere: 'Ingresa el mensaje aquí',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
+        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountSuccess: 'Cuenta cerrada exitosamente',
+        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
+        closeAccountTryAgainAfter: 'e intenta nuevamente',
+        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        okayGotIt: 'Ok, entendido',
+    },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de Nuevo Expensify.',
@@ -422,6 +434,7 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
         },
     },
     resendValidationForm: {
@@ -806,6 +819,14 @@ export default {
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
+    getAssistancePage: {
+        title: 'Obtener ayuda',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
+        chatWithConcierge: 'Chatear con Concierge',
+        requestSetupCall: 'Llámame por teléfono',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+    },
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
@@ -814,7 +835,6 @@ export default {
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
         waitTime: {

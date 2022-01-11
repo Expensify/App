@@ -15,9 +15,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import WorkspaceSection from './WorkspaceSection';
+import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -92,10 +93,12 @@ class WorkspaceBankAccountPage extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 <ScrollView style={styles.flex1}>
-                    <WorkspaceSection
+                    <Section
                         title={this.props.translate('workspace.bankAccount.almostDone')}
                         icon={Illustrations.BankArrowPink}
                         menuItems={[
@@ -116,7 +119,7 @@ class WorkspaceBankAccountPage extends React.Component {
                         <Text>
                             {this.props.translate('workspace.bankAccount.youreAlmostDone')}
                         </Text>
-                    </WorkspaceSection>
+                    </Section>
                 </ScrollView>
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>

@@ -751,6 +751,16 @@ function UpdateAccount(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function User_Delete(parameters) {
+    const commandName = 'User_Delete';
+    return Network.post(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function User_GetBetas() {
@@ -1195,6 +1205,7 @@ export {
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
+    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,

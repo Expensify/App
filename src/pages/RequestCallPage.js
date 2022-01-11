@@ -18,26 +18,21 @@ import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
-import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import TextInput from '../components/TextInput';
 import Text from '../components/Text';
+import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import RequestCallIcon from '../../assets/images/request-call.svg';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import * as Illustrations from '../components/Icon/Illustrations';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The personal details of the person who is logged in */
     myPersonalDetails: personalDetailsPropType.isRequired,
-
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }).isRequired,
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -73,6 +68,9 @@ const propTypes = {
 
     /** The number of minutes the user has to wait for an inbox call */
     inboxCallUserWaitTime: PropTypes.number,
+
+    /** The policyID of the last workspace whose settings the user accessed */
+    lastAccessedWorkspacePolicyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -80,6 +78,7 @@ const defaultProps = {
         loading: false,
     },
     inboxCallUserWaitTime: null,
+    lastAccessedWorkspacePolicyID: '',
 };
 
 class RequestCallPage extends Component {
@@ -88,12 +87,12 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
-            firstNameError: '',
+            hasFirstNameError: false,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
-            lastNameError: '',
+            hasLastNameError: false,
             phoneNumberError: '',
             onTheWeekend: false,
         };
@@ -124,20 +123,25 @@ class RequestCallPage extends Component {
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
-        if (!personalPolicy) {
-            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
-            return;
-        }
+        const policyForCall = _.find(this.props.policies, (policy) => {
+            if (!policy) {
+                return;
+            }
+
+            if (this.props.lastAccessedWorkspacePolicyID) {
+                return policy.id === this.props.lastAccessedWorkspacePolicyID;
+            }
+
+            return policy.type === CONST.POLICY.TYPE.PERSONAL;
+        });
 
         Inbox.requestInboxCall({
             taskID: this.props.route.params.taskID,
-            policyID: personalPolicy.id,
+            policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
-            email: this.props.session.email,
         });
     }
 
@@ -258,15 +262,15 @@ class RequestCallPage extends Component {
 
         const phoneNumberError = this.getPhoneNumberError();
         const phoneExtensionError = this.getPhoneExtensionError();
-        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
+        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName]);
         this.setState({
-            firstNameError,
-            lastNameError,
+            hasFirstNameError,
+            hasLastNameError,
             phoneNumberError,
             phoneExtensionError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && !hasFirstNameError && !hasLastNameError;
     }
 
     render() {
@@ -276,56 +280,54 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
-                            this.props.session.email,
-                            CONST.EMAIL.CONCIERGE,
-                        ], true)}
+                        onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
-                            <RequestCallIcon width={160} height={100} style={styles.flex1} />
-                        </View>
-                        <Text style={[styles.mb4]}>
-                            {this.props.translate('requestCallPage.description')}
-                        </Text>
-                        <FullNameInputRow
-                            firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
-                            lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
-                            onChangeFirstName={firstName => this.setState({firstName})}
-                            onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mv4]}
-                        />
-                        <View style={[styles.mt4, styles.flexRow]}>
-                            <View style={styles.flex1}>
-                                <TextInput
-                                    label={this.props.translate('common.phoneNumber')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    value={this.state.phoneNumber}
-                                    placeholder="2109400803"
-                                    errorText={this.state.phoneNumberError}
-                                    onBlur={this.validatePhoneInput}
-                                    onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                />
+                    <ScrollView style={styles.flex1}>
+                        <Section
+                            title={this.props.translate('requestCallPage.subtitle')}
+                            icon={Illustrations.ConciergeExclamation}
+                        >
+                            <Text style={styles.mb4}>
+                                {this.props.translate('requestCallPage.description')}
+                            </Text>
+                            <FullNameInputRow
+                                firstName={this.state.firstName}
+                                firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
+                                lastName={this.state.lastName}
+                                lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
+                                onChangeFirstName={firstName => this.setState({firstName})}
+                                onChangeLastName={lastName => this.setState({lastName})}
+                                style={[styles.mv4]}
+                            />
+                            <View style={[styles.mt4, styles.flexRow]}>
+                                <View style={styles.mt4}>
+                                    <TextInput
+                                        label={this.props.translate('common.phoneNumber')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        value={this.state.phoneNumber}
+                                        placeholder="2109400803"
+                                        errorText={this.state.phoneNumberError}
+                                        onBlur={this.validatePhoneInput}
+                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                    />
+                                </View>
+                                <View style={[styles.flex1, styles.ml2]}>
+                                    <TextInput
+                                        label={this.props.translate('requestCallPage.extension')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        value={this.state.phoneExtension}
+                                        placeholder="100"
+                                        errorText={this.state.phoneExtensionError}
+                                        onBlur={this.validatePhoneExtensionInput}
+                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                    />
+                                </View>
                             </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <TextInput
-                                    label={this.props.translate('requestCallPage.extension')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    value={this.state.phoneExtension}
-                                    placeholder="100"
-                                    errorText={this.state.phoneExtensionError}
-                                    onBlur={this.validatePhoneExtensionInput}
-                                    onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                />
-                            </View>
-                        </View>
-                        <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
+                            <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
+                        </Section>
                     </ScrollView>
                     <FixedFooter>
                         <Button
@@ -351,9 +353,6 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         user: {
             key: ONYXKEYS.USER,
         },
@@ -367,6 +366,9 @@ export default compose(
         inboxCallUserWaitTime: {
             key: ONYXKEYS.INBOX_CALL_USER_WAIT_TIME,
             initWithStoredValues: false,
+        },
+        lastAccessedWorkspacePolicyID: {
+            key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
         },
     }),
 )(RequestCallPage);
