@@ -384,10 +384,19 @@ const CONST = {
     },
 
     WALLET: {
-        TRANSFER_BALANCE_FEE: 30,
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
+        },
+        TRANSFER_METHOD_TYPE_FEE: {
+            INSTANT: {
+                RATE: 1.5,
+                MINIMUM_FEE: 30,
+            },
+            ACH: {
+                RATE: 0,
+                MINIMUM_FEE: 0,
+            },
         },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
