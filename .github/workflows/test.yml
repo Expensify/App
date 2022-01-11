@@ -42,5 +42,6 @@ jobs:
           git config --global user.name DummyBotify
           git config --global user.email dummybotify@expensify.com
           git config --global commit.gpgsign false
+          git config --global tag.gpgpsign false
 
       - run: tests/unit/getPullRequestsMergedBetweenTest.sh
