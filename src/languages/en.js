@@ -338,7 +338,7 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         setDefaultFailure: 'Failed to set default payment method.',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deleteBankAccountSucess: 'Bank account successfully deleted',
+        deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         allSet: 'All Set!',
