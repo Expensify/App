@@ -86,7 +86,7 @@ function canUseWallet(betas) {
  */
 
 function canUsePolicyRooms(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.POLICY_ROOMS);
 }
 
 export default {
