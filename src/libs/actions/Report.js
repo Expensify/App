@@ -1271,11 +1271,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
     const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
 
-    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
-    // doing an unnecessary server call if the last read is the same one we had already
-    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
-        return;
-    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items

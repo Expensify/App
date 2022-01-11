@@ -21,12 +21,16 @@ const propTypes = {
     /** Username for PayPal.Me */
     payPalMeUsername: PropTypes.string,
 
+    /** Should we show the Paypal option */
+    shouldShowPaypal: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     anchorPosition: {},
     payPalMeUsername: '',
+    shouldShowPaypal: true,
 };
 
 const AddPaymentMethodMenu = props => (
@@ -47,7 +51,7 @@ const AddPaymentMethodMenu = props => (
             onPress={() => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD)}
             wrapperStyle={styles.pr15}
         />
-        {!props.payPalMeUsername && (
+        {props.shouldShowPaypal && !props.payPalMeUsername && (
             <MenuItem
                 title={props.translate('common.payPalMe')}
                 icon={Expensicons.PayPal}
