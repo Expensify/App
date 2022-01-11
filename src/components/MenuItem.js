@@ -3,7 +3,7 @@ import React from 'react';
 import {
     View, Pressable,
 } from 'react-native';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
@@ -91,7 +91,7 @@ const MenuItem = props => (
                         </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <ExpensifyText
+                        <Text
                             style={[
                                 styles.popoverMenuText,
                                 styles.ml3,
@@ -100,23 +100,25 @@ const MenuItem = props => (
                             numberOfLines={1}
                         >
                             {props.title}
-                        </ExpensifyText>
+                        </Text>
                         {props.description && (
-                            <ExpensifyText style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {props.description}
-                            </ExpensifyText>
+                            </Text>
                         )}
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-                    {props.subtitle && (
+
+                    {/* Since subtitle can be of type number, we should allow 0 to be shown */}
+                    {(props.subtitle || props.subtitle === 0) && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
-                            <ExpensifyText
+                            <Text
                                 style={styles.textLabelSupporting}
                             >
                                 {props.subtitle}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     )}
                     {props.shouldShowRightIcon && (

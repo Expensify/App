@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import styles from '../../styles/styles';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -23,13 +23,15 @@ const ActivateStep = props => (
         <HeaderWithCloseButton
             title={props.translate('activateStep.headerTitle')}
             onCloseButtonPress={() => Navigation.dismissModal()}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
         />
         <View style={[styles.mh5, styles.flex1]}>
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && (
-                <ExpensifyText>{props.translate('activateStep.activated')}</ExpensifyText>
+                <Text>{props.translate('activateStep.activated')}</Text>
             )}
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
-                <ExpensifyText>{props.translate('activateStep.checkBackLater')}</ExpensifyText>
+                <Text>{props.translate('activateStep.checkBackLater')}</Text>
             )}
         </View>
     </ScreenWrapper>

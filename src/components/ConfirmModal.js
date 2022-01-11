@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Button from './Button';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */
@@ -34,6 +34,9 @@ const propTypes = {
     /** Modal content text/element */
     prompt: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
+    /** Whether we should use the success button color */
+    success: PropTypes.bool,
+
     /** Is the action destructive */
     danger: PropTypes.bool,
 
@@ -49,6 +52,7 @@ const defaultProps = {
     confirmText: '',
     cancelText: '',
     prompt: '',
+    success: true,
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
@@ -70,13 +74,13 @@ const ConfirmModal = props => (
 
             {_.isString(props.prompt)
                 ? (
-                    <ExpensifyText>
+                    <Text>
                         {props.prompt}
-                    </ExpensifyText>
+                    </Text>
                 ) : (props.prompt)}
 
             <Button
-                success
+                success={props.success}
                 danger={props.danger}
                 style={[styles.mt4]}
                 onPress={props.onConfirm}

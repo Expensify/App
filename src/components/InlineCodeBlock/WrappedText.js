@@ -3,7 +3,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 
 /**
  * Breaks the text into matrix
@@ -59,7 +59,7 @@ const WrappedText = (props) => {
                                     colIndex === rowText.length - 1 && styles.codeLastWordStyle,
                                 ]}
                             >
-                                <ExpensifyText style={props.textStyles}>{colText}</ExpensifyText>
+                                <Text style={props.textStyles}>{colText}</Text>
                             </View>
                         </View>
                     ))}

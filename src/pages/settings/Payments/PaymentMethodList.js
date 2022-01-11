@@ -6,14 +6,14 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
-import PaymentUtils from '../../../libs/PaymentUtils';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
 
@@ -124,11 +124,11 @@ class PaymentMethodList extends Component {
         }
 
         return (
-            <ExpensifyText
+            <Text
                 style={[styles.popoverMenuItem]}
             >
                 {item.text}
-            </ExpensifyText>
+            </Text>
         );
     }
 

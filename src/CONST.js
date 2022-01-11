@@ -9,7 +9,7 @@ const CONST = {
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
-    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
+    AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -123,6 +123,8 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+        WEB: 'web',
+        DESKTOP: 'desktop',
     },
     KEYBOARD_SHORTCUT_MODIFIERS: {
         CTRL: {
@@ -158,6 +160,11 @@ const CONST = {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+        },
+        COPY: {
+            descriptionKey: 'copy',
+            shortcutKey: 'C',
+            modifiers: ['CTRL'],
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
@@ -337,6 +344,8 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ADD_PAYMENT_MENU_POSITION_Y: 226,
+    ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: 320,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
@@ -421,6 +430,10 @@ const CONST = {
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
+            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
+            // eslint-disable-next-line max-len
+            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 

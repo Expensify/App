@@ -530,6 +530,7 @@ function Graphite_Timer(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayIOU(parameters) {
@@ -541,6 +542,7 @@ function PayIOU(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
@@ -745,6 +747,16 @@ function SetPassword(parameters) {
 function UpdateAccount(parameters) {
     const commandName = 'UpdateAccount';
     requireParameters(['subscribed'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function User_Delete(parameters) {
+    const commandName = 'User_Delete';
     return Network.post(commandName, parameters);
 }
 
@@ -955,7 +967,7 @@ function BankAccount_SetupWithdrawal(parameters) {
         'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
         'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
 
         // data from company step:
@@ -1183,6 +1195,7 @@ export {
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
+    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,

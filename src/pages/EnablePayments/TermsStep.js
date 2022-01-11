@@ -13,7 +13,7 @@ import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 
@@ -70,12 +70,12 @@ class TermsStep extends React.Component {
                         isChecked={this.state.hasAcceptedDisclosure}
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
-                            <ExpensifyText>
+                            <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')}`}
                                 <TextLink href="https://use.expensify.com/esignagreement">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
-                            </ExpensifyText>
+                            </Text>
                         )}
                     />
                     <CheckboxWithLabel
@@ -84,15 +84,15 @@ class TermsStep extends React.Component {
                         onPress={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <>
-                                <ExpensifyText>
+                                <Text>
                                     {`${this.props.translate('termsStep.agreeToThe')} `}
-                                </ExpensifyText>
+                                </Text>
 
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {`${this.props.translate('common.privacyPolicy')} `}
                                 </TextLink>
 
-                                <ExpensifyText>{`${this.props.translate('common.and')} `}</ExpensifyText>
+                                <Text>{`${this.props.translate('common.and')} `}</Text>
 
                                 <TextLink href="https://use.expensify.com/walletagreement">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
@@ -101,9 +101,9 @@ class TermsStep extends React.Component {
                         )}
                     />
                     {this.state.error && (
-                        <ExpensifyText style={[styles.formError, styles.mb2]}>
+                        <Text style={[styles.formError, styles.mb2]}>
                             {this.props.translate('termsStep.termsMustBeAccepted')}
-                        </ExpensifyText>
+                        </Text>
                     )}
                     <Button
                         success

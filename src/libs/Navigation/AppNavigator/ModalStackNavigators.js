@@ -17,9 +17,9 @@ import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
+import SettingsCloseAccountPage from '../../../pages/settings/Security/CloseAccountPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
-import SettingsAddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -40,6 +40,7 @@ import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage'
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
+import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 
@@ -100,13 +101,33 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
     name: 'IOU_Send_Currency',
 },
 {
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Send_Add_Bank_Account',
+},
+{
+    Component: AddDebitCardPage,
+    name: 'IOU_Send_Add_Debit_Card',
+},
+{
     Component: EnablePaymentsPage,
-    name: 'IOU_Enable_Payments',
+    name: 'IOU_Send_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
     Component: IOUDetailsModal,
     name: 'IOU_Details_Root',
+},
+{
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Details_Add_Bank_Account',
+},
+{
+    Component: AddDebitCardPage,
+    name: 'IOU_Details_Add_Debit_Card',
+},
+{
+    Component: EnablePaymentsPage,
+    name: 'IOU_Details_Enable_Payments',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{
@@ -167,6 +188,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsCloseAccountPage,
+        name: 'Settings_Close',
+    },
+    {
         Component: SettingsSecurityPage,
         name: 'Settings_Security',
     },
@@ -195,7 +220,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Add_Paypal_Me',
     },
     {
-        Component: SettingsAddDebitCardPage,
+        Component: AddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
     },
     {
