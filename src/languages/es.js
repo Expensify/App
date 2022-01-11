@@ -365,6 +365,7 @@ export default {
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
+        defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',

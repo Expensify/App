@@ -130,7 +130,7 @@ class PaymentMethodList extends Component {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    badgeText={item.isDefault ? 'Default' : null}
+                    badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
                 />
             );
