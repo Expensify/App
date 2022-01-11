@@ -24,7 +24,7 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
@@ -188,11 +188,13 @@ class BankAccountStep extends React.Component {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 {!subStep && (
                     <ScrollView style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <Section
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />
