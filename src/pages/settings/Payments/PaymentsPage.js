@@ -238,7 +238,6 @@ class PaymentsPage extends React.Component {
                                     title={this.state.formattedSelectedPaymentMethod.title}
                                     icon={Expensicons.Bank}
                                     description={this.state.formattedSelectedPaymentMethod.description}
-                                    onPress={() => {}}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
                                 />
                             )}
