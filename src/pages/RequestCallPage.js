@@ -65,7 +65,7 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
-    /** The policy id of the last workspace whose settings the user accessed */
+    /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
 };
 
