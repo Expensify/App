@@ -5,7 +5,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 import * as Report from '../../../libs/actions/Report';
 
@@ -14,7 +14,7 @@ const propTypes = {
 };
 
 const WorkspaceTravelVBAView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.travel.packYourBags')}
         icon={Illustrations.RocketOrange}
         menuItems={[
@@ -45,7 +45,7 @@ const WorkspaceTravelVBAView = props => (
         <View style={[styles.mv4]}>
             <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceTravelVBAView.propTypes = propTypes;

@@ -40,6 +40,10 @@ export default {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
+                    Settings_Close: {
+                        path: ROUTES.SETTINGS_CLOSE,
+                        exact: true,
+                    },
                     Settings_Password: {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
@@ -124,6 +128,9 @@ export default {
                     ReimbursementAccount: {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
+                    },
+                    GetAssistance: {
+                        path: ROUTES.GET_ASSISTANCE,
                     },
                 },
             },

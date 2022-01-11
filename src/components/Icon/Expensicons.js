@@ -15,6 +15,7 @@ import Checkmark from '../../../assets/images/checkmark.svg';
 import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
@@ -52,6 +53,7 @@ import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
+import QuestionMark from '../../../assets/images/question-mark-circle.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
@@ -86,6 +88,7 @@ export {
     CircleHourglass,
     Clipboard,
     Close,
+    ClosedSign,
     Concierge,
     CreditCard,
     DownArrow,
@@ -123,6 +126,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QuestionMark,
     Receipt,
     ReceiptSearch,
     RotateLeft,

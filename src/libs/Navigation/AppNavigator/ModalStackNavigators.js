@@ -6,6 +6,7 @@ import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
+import GetAssistancePage from '../../../pages/GetAssistancePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import IOUSendPage from '../../../pages/iou/IOUSendPage';
@@ -17,6 +18,7 @@ import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
+import SettingsCloseAccountPage from '../../../pages/settings/Security/CloseAccountPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
@@ -187,6 +189,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsCloseAccountPage,
+        name: 'Settings_Close',
+    },
+    {
         Component: SettingsSecurityPage,
         name: 'Settings_Security',
     },
@@ -270,6 +276,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+    },
+    {
+        Component: GetAssistancePage,
+        name: 'GetAssistance',
     },
 ]);
 
