@@ -220,7 +220,17 @@ class EmojiPickerMenu extends Component {
                 );
                 break;
             case 'ArrowLeft':
-                move(-1, () => this.state.highlightedIndex - 1 < firstNonHeaderIndex);
+                move(-1,
+                    () => this.state.highlightedIndex - 1 < firstNonHeaderIndex,
+                    () => {
+                        if (!this.searchInput) {
+                            return;
+                        }
+
+                        // Reaching start of the list, arrow up set the focus to searchInput.
+                        this.searchInput.focus();
+                        newIndex = -1;
+                    });
                 break;
             case 'ArrowRight':
                 move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
