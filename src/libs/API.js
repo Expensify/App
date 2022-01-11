@@ -1090,6 +1090,7 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
+ * Get the current wait time in minutes for an inbox call
  * @returns {Promise}
  */
 function Inbox_CallUser_WaitTime() {
