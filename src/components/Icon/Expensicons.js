@@ -53,6 +53,7 @@ import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
+import QuestionMark from '../../../assets/images/question-mark-circle.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
@@ -125,6 +126,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QuestionMark,
     Receipt,
     ReceiptSearch,
     RotateLeft,

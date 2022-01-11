@@ -175,4 +175,6 @@ export default {
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
+    // The policyID of the last workspace whose settings were accessed by the user
+    LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 };

@@ -819,6 +819,14 @@ export default {
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
+    getAssistancePage: {
+        title: 'Obtener ayuda',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
+        chatWithConcierge: 'Chatear con Concierge',
+        requestSetupCall: 'Llámame por teléfono',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+    },
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
@@ -826,7 +834,6 @@ export default {
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
