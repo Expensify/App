@@ -301,7 +301,7 @@ class RequestCallPage extends Component {
                                 style={[styles.mv4]}
                             />
                             <View style={[styles.mt4, styles.flexRow]}>
-                                <View style={styles.mt4}>
+                                <View style={styles.flex1}>
                                     <TextInput
                                         label={this.props.translate('common.phoneNumber')}
                                         autoCompleteType="off"
