@@ -342,7 +342,7 @@ class EmojiPickerMenu extends Component {
         if (header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {code}
+                    {this.props.translate(`emojiPicker.headers.${code}`)}
                 </Text>
             );
         }

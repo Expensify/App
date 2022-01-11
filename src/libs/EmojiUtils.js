@@ -116,7 +116,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
 
     let allEmojis = [{
         header: true,
-        code: 'Frequently Used',
+        code: 'frequentlyUsed',
     }];
 
     allEmojis = allEmojis.concat(getDynamicSpacing(allEmojis.length));
