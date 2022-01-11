@@ -87,18 +87,21 @@ class PaymentsPage extends React.Component {
                     title: 'PayPal.me',
                     icon: Expensicons.PayPal,
                     description: account.username,
+                    type: CONST.PAYMENT_METHODS.PAYPAL,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: Expensicons.Bank,
                     description: `${this.props.translate('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
+                    type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: Expensicons.CreditCard,
                     description: `${this.props.translate('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`,
+                    type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
             this.setState({
@@ -185,6 +188,7 @@ class PaymentsPage extends React.Component {
     }
 
     render() {
+        const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -249,9 +253,10 @@ class PaymentsPage extends React.Component {
                                         passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
                                     });
                                 }}
-                                style={[styles.button, styles.alignSelfCenter, styles.w100]}
+                                style={[styles.button, isPayPalMeSelected && styles.buttonDisable, styles.alignSelfCenter, styles.w100]}
+                                disabled={isPayPalMeSelected}
                             >
-                                <Text style={[styles.buttonText]}>
+                                <Text style={[styles.buttonText, isPayPalMeSelected && styles.disabledText]}>
                                     {this.props.translate('paymentsPage.setDefaultConfirmation')}
                                 </Text>
                             </TouchableOpacity>
