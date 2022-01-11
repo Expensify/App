@@ -822,6 +822,7 @@ export default {
             fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
             hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
             minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
             guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
         },
         error: {

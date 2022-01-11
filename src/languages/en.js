@@ -820,6 +820,7 @@ export default {
             fiveHoursPlus: 'The current wait time is longer than 5 hours.',
             hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
             minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
             guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
         },
         error: {

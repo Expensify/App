@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
+import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -94,6 +95,7 @@ class RequestCallPage extends Component {
             phoneExtensionError: '',
             lastNameError: '',
             phoneNumberError: '',
+            onTheWeekend: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
@@ -107,6 +109,13 @@ class RequestCallPage extends Component {
     }
 
     componentDidMount() {
+        // If it is the weekend don't check the wait time
+        if (moment().day() === 0 || moment().day() === 6) {
+            this.setState({
+                onTheWeekend: true,
+            });
+            return;
+        }
         Inbox.getInboxCallWaitTime();
     }
 
@@ -222,7 +231,10 @@ class RequestCallPage extends Component {
     }
 
     getWaitTimeMessage() {
-        const waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
+        let waitTimeKey = 'requestCallPage.waitTime.weekend';
+        if (!this.state.onTheWeekend) {
+            waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
+        }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
     }
 
