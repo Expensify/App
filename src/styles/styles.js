@@ -1708,6 +1708,10 @@ const styles = {
         paddingHorizontal: 20,
     },
 
+    reportSettingsVisibilityText: {
+        textTransform: 'capitalize',
+    },
+
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
