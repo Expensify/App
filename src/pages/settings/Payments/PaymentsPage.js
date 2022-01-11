@@ -65,7 +65,6 @@ class PaymentsPage extends React.Component {
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
-        this.callPasswordCallbackAndHidePopover = this.callPasswordCallbackAndHidePopover.bind(this);
     }
 
     componentDidMount() {
@@ -167,11 +166,6 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowPasswordPrompt: false});
     }
 
-    callPasswordCallbackAndHidePopover(password) {
-        this.hidePasswordPrompt();
-        this.state.passwordFormCallback(password);
-    }
-
     makeDefaultPaymentMethod(password) {
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             PaymentMethods.setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
@@ -254,7 +248,6 @@ class PaymentsPage extends React.Component {
                                         shouldShowPasswordPrompt: true,
                                         shouldShowDefaultDeleteMenu: false,
                                         passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                        passwordFormCallback: this.makeDefaultPaymentMethod,
                                     });
                                 }}
                                 style={[styles.button, styles.alignSelfCenter, styles.w100]}
@@ -291,7 +284,10 @@ class PaymentsPage extends React.Component {
                             top: this.state.anchorPositionTop,
                             left: this.state.anchorPositionLeft,
                         }}
-                        onSubmit={this.callPasswordCallbackAndHidePopover}
+                        onSubmit={(password) => {
+                            this.hidePasswordPrompt();
+                            this.makeDefaultPaymentMethod(password);
+                        }}
                         submitButtonText={this.state.passwordButtonText}
                         isDangerousAction
                     />
