@@ -9,6 +9,7 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import Log from '../Log';
+import ROUTES from '../../ROUTES';
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
