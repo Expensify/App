@@ -3,7 +3,6 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -82,14 +81,6 @@ const DetailsPage = (props) => {
         pronouns = props.translate(`pronouns.${localeKey}`);
     }
 
-    const menuItems = [
-        {
-            translationKey: 'common.message',
-            icon: Expensicons.ChatBubble,
-            action: () => Report.fetchOrCreateChatReport([props.session.email, details.login]),
-        },
-    ];
-
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -161,17 +152,13 @@ const DetailsPage = (props) => {
                                 </View>
                             ) : null}
                         </View>
-                        {_.map(menuItems, item => (
-                            <MenuItem
-                                key={item.translationKey}
-                                title={`${props.translate(item.translationKey)}${details.displayName}`}
-                                icon={item.icon}
-                                iconRight={item.iconRight}
-                                onPress={() => item.action()}
-                                shouldShowRightIcon
-                                wrapperStyle={styles.breakAll}
-                            />
-                        ))}
+                        <MenuItem
+                            title={`${props.translate('common.message')}${details.displayName}`}
+                            icon={Expensicons.ChatBubble}
+                            onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
+                            wrapperStyle={styles.breakAll}
+                            shouldShowRightIcon
+                        />
                     </ScrollView>
                 ) : null}
             </View>
