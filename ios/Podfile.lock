@@ -206,9 +206,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (20.1.0)
-  - onfido-react-native-sdk (1.3.3):
-    - Onfido (= 20.1.0)
+  - Onfido (22.3.0)
+  - onfido-react-native-sdk (2.2.0):
+    - Onfido (= 22.3.0)
     - React
   - OpenSSL-Universal (1.1.180)
   - Permission-LocationAccuracy (3.0.1):
@@ -907,8 +907,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: 116a268e4cb8b767c15285e8071c2e8304673cdf
-  onfido-react-native-sdk: b8f1b7cbe1adab6479d735275772390161630dcd
+  Onfido: e4a69434fc8ea8369d01ce77e5c2bdfa675dc40e
+  onfido-react-native-sdk: f68229759cc52aee2a577f866852ffae8430ec83
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
   Permission-LocationAccuracy: 76669f87b4c276f5ae803cc0ddd1862a4c0e9dd8
   Permission-LocationAlways: a274bc04bb386068782468dbdaca3859f51634ca
