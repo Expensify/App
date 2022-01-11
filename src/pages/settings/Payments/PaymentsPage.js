@@ -196,7 +196,7 @@ class PaymentsPage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('common.payments')}
+                        title={this.props.translateLocal('common.payments')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -208,7 +208,7 @@ class PaymentsPage extends React.Component {
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
-                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                            {this.props.translateLocal('paymentsPage.paymentMethodsTitle')}
                         </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
@@ -254,14 +254,14 @@ class PaymentsPage extends React.Component {
                                     this.setState({
                                         shouldShowPasswordPrompt: true,
                                         shouldShowDefaultDeleteMenu: false,
-                                        passwordButtonText: 'Make Default Payment Method',
+                                        passwordButtonText: this.props.translateLocal('paymentsPage.setDefaultConfirmation'),
                                         passwordFormCallback: this.makeDefaultPaymentMethod,
                                     });
                                 }}
                                 style={[styles.button, styles.alignSelfCenter, styles.w100]}
                             >
                                 <Text style={[styles.buttonText]}>
-                                    Make Default Payment Method
+                                    {this.props.translateLocal('paymentsPage.setDefaultConfirmation')}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -280,7 +280,7 @@ class PaymentsPage extends React.Component {
                                 ]}
                             >
                                 <Text style={[styles.buttonText, styles.textWhite]}>
-                                    {this.props.translate('common.delete')}
+                                    {this.props.translateLocal('common.delete')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -298,7 +298,7 @@ class PaymentsPage extends React.Component {
                     />
                     <ConfirmPopover
                         isVisible={this.state.shouldShowConfirmPopover}
-                        title="Are you sure you want to delete this account?"
+                        title={this.props.translateLocal('paymentsPage.deleteConfirmation')}
                         confirmText="Delete"
                         cancelText="Cancel"
                         anchorPosition={{

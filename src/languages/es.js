@@ -334,8 +334,12 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
-        setDefaultSuccess: '¡Método de pago configurado!',
+        setDefaultConfirmation: 'Marcar como método de pago predeterminado',
+        setDefaultSuccess: 'Método de pago configurado',
         setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
+        deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
+        deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',

@@ -334,8 +334,12 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        setDefaultFailure: 'Failed to set default payment method. Please try again later.',
+        setDefaultFailure: 'Failed to set default payment method.',
+        deleteConfirmation: 'Are you sure that you want to delete this account?',
+        deleteBankAccountSucess: 'Bank account successfully deleted',
+        deleteDebitCardSuccess: 'Debit Card successfully deleted',
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
