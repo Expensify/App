@@ -95,6 +95,7 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        message: 'Message ',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',

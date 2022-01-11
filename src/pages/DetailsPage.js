@@ -3,6 +3,7 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -18,6 +19,9 @@ import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/reportUtils';
 import DateUtils from '../libs/DateUtils';
+import * as Expensicons from '../components/Icon/Expensicons';
+import MenuItem from '../components/MenuItem';
+import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -77,6 +81,14 @@ const DetailsPage = (props) => {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
         pronouns = props.translate(`pronouns.${localeKey}`);
     }
+
+    const menuItems = [
+        {
+            translationKey: 'common.message',
+            icon: Expensicons.ChatBubble,
+            action: () => Report.fetchOrCreateChatReport([props.session.email, details.login]),
+        },
+    ];
 
     return (
         <ScreenWrapper>
@@ -149,6 +161,16 @@ const DetailsPage = (props) => {
                                 </View>
                             ) : null}
                         </View>
+                        {_.map(menuItems, item => (
+                            <MenuItem
+                                key={item.translationKey}
+                                title={`${props.translate(item.translationKey)}${details.displayName}`}
+                                icon={item.icon}
+                                iconRight={item.iconRight}
+                                onPress={() => item.action()}
+                                shouldShowRightIcon
+                            />
+                        ))}
                     </ScrollView>
                 ) : null}
             </View>
@@ -162,6 +184,9 @@ DetailsPage.displayName = 'DetailsPage';
 export default compose(
     withLocalize,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
