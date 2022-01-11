@@ -53,8 +53,7 @@ class WorkspaceNewRoomPage extends React.Component {
             errors: {},
             workspaceOptions: [],
         };
-        this.onSubmit = this.onSubmit.bind(this);
-        this.validate = this.validate.bind(this);
+        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.modifyRoomName = this.modifyRoomName.bind(this);
     }
@@ -77,10 +76,7 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    /**
-     * Called when the "Create Room" button is pressed.
-     */
-    onSubmit() {
+    validateAndCreatePolicyRoom() {
         if (!this.validate()) {
             return;
         }
@@ -92,58 +88,36 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
-     * Called when the onSubmit() method is triggered.
-     * which validates the form fields.
      * @returns {Boolean}
      */
     validate() {
-        const roomName = this.state.roomName.trim();
-        const policyID = this.state.policyID;
-        const visibility = this.state.visibility;
         const errors = {};
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
             report => report && report.policyID === this.state.policyID
-            && report.reportName === this.modifyRoomName(roomName),
+            && report.reportName === this.state.roomName,
         );
 
-        if (!roomName || roomName === '#') {
+        if (!this.state.roomName || this.state.roomName === CONST.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        } else if (
-            policyID && isExistingRoomName
-        ) {
+        } else if (this.state.policyID && isExistingRoomName) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExists');
-        } else {
-            errors.roomName = '';
         }
 
-        if (!policyID) {
+        if (!this.state.policyID) {
             errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
-        } else {
-            errors.policyID = '';
         }
 
-        if (!visibility) {
+        if (!this.state.visibility) {
             errors.visibility = this.props.translate('newRoomPage.pleaseSelectVisibility');
-        } else {
-            errors.visibility = '';
         }
 
-        if (!errors.roomName && !errors.policyID && !errors.visibility) {
-            this.setState({errors: {}});
-            return true;
-        }
-
-        this.setState(prevState => ({
-            errors: {...prevState.errors, ...errors},
-        }));
-        return false;
+        this.setState({errors});
+        return Boolean(_.isEmpty(errors));
     }
 
     /**
-     * Clear the errors associated to inputKey if found and store the inputKey new value in the state.
-     *
      * @param {String} inputKey
      * @param {String} value
      */
@@ -173,7 +147,7 @@ class WorkspaceNewRoomPage extends React.Component {
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        const modifiedRoomName = `#${modifiedRoomNameWithoutHash}`;
+        const modifiedRoomName = `${CONST.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 
         return modifiedRoomName;
     }
@@ -200,7 +174,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <TextInputWithLabel
                             label={this.props.translate('newRoomPage.roomName')}
-                            prefixCharacter="#"
+                            prefixCharacter={CONST.ROOM_PREFIX}
                             placeholder={this.props.translate('newRoomPage.social')}
                             containerStyles={[styles.mb5]}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
@@ -231,7 +205,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             isLoading={this.props.isLoadingCreatePolicyRoom}
                             success
                             pressOnEnter
-                            onPress={this.onSubmit}
+                            onPress={this.validateAndCreatePolicyRoom}
                             style={[styles.w100]}
                             text={this.props.translate('newRoomPage.createRoom')}
                         />
