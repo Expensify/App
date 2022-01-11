@@ -5,6 +5,7 @@ import moment from 'moment';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import Text from '../components/Text';
+import styles from '../styles/styles';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -176,7 +177,7 @@ function replaceEmojiInText(text) {
         elements.push((textWithoutEmojis));
 
         const emojiText = text.substring(indexOfEmoji, indexOfEmoji + currentEmoji.length);
-        elements.push((<Text key={indexOfEmoji} style={{fontWeight: 'normal'}}>{emojiText}</Text>));
+        elements.push((<Text key={indexOfEmoji} style={[styles.fwNormal]}>{emojiText}</Text>));
 
         lastIndex = indexOfEmoji + emojiText.length;
     }

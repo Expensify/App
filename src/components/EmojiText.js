@@ -9,9 +9,8 @@ const propTypes = {
     /** Text to display */
     children: PropTypes.string,
 
-    /** Styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    /** Styles to be assigned to Container */
+    style: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
