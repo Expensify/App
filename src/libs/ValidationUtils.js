@@ -274,7 +274,7 @@ function isValidPassword(password) {
  * @returns {Boolean}
  */
 function isPositiveInteger(input) {
-    return /^\d+$/.test(input);
+    return CONST.REGEX.POSITIVE_INTEGER.test(input);
 }
 
 /**
