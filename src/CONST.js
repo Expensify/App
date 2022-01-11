@@ -1,5 +1,8 @@
+import lodashGet from 'lodash/get';
+import Config from 'react-native-config';
+
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const expensifyCashURL = lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com');
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -13,7 +16,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
+        DESKTOP: `${expensifyCashURL}/NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -194,7 +197,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
