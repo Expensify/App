@@ -22,6 +22,7 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
+      android:resizeableActivity="false"
       android:theme="@style/AppTheme">
 
       <activity
