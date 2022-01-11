@@ -79,7 +79,7 @@ class EmojiPickerMenu extends Component {
      */
     renderItem({item}) {
         const {code, types} = item;
-        if (item.code === CONST.EMOJI_SPACER) {
+        if (item.spacer) {
             return null;
         }
 

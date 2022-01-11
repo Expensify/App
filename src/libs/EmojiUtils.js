@@ -89,19 +89,39 @@ function getDynamicHeaderIndices(emojis) {
 /**
  * Get number of empty spaces to be filled to get equal emojis for every row
  * @param {Number} emojiCount
+ * @param {Number} suffix
  * @returns {Object[]}
  */
-function getDynamicSpacing(emojiCount) {
+function getDynamicSpacing(emojiCount, suffix) {
     const spacerEmojis = [];
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
     while (modLength > 0) {
         spacerEmojis.push({
-            code: CONST.EMOJI_SPACER,
+            code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
+            spacer: true,
         });
         modLength -= 1;
     }
     return spacerEmojis;
 }
+
+/**
+ * Add dynamic spaces to emoji categories
+ * @param {Object[]} emojis
+ * @returns {Object[]}
+ */
+function addSpacesToEmojiCategories(emojis) {
+    let updatedEmojis = [];
+    emojis.forEach((emoji, index) => {
+        if (emoji.header) {
+            updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
+        } else {
+            updatedEmojis.push(emoji);
+        }
+    });
+    return updatedEmojis;
+}
+
 
 /**
  * Get a merged array with frequently used emojis
@@ -119,9 +139,8 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
         code: 'frequentlyUsed',
     }];
 
-    allEmojis = allEmojis.concat(getDynamicSpacing(allEmojis.length));
-    allEmojis = allEmojis.concat(frequentlyUsedEmojis, getDynamicSpacing(frequentlyUsedEmojis.length));
-    allEmojis = allEmojis.concat(emojis);
+    allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
+    allEmojis = addSpacesToEmojiCategories(emojis);
     return allEmojis;
 }
 
