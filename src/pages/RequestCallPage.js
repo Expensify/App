@@ -202,6 +202,7 @@ class RequestCallPage extends Component {
         if (!minutes) {
             return 'requestCallPage.waitTime.calculating';
         }
+
         if (minutes > 300) {
             // The wait time is longer than 5 hours, so just say that.
             return 'requestCallPage.waitTime.fiveHoursPlus';
