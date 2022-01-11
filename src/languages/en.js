@@ -822,6 +822,7 @@ export default {
             frequentlyUsed: 'Frequently Used',
             smileysAndPeople: 'Smileys & People',
             animalsAndNature: 'Animals & Nature',
+            foodAndDrinks: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',
             activities: 'Activities',
             objects: 'Objects',
