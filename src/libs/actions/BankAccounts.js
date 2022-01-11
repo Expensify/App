@@ -98,6 +98,11 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
         });
 }
 
+/**
+ * Deletes a bank account
+ *
+ * @param {Number} bankAccountID
+ */
 function deleteBankAccount(bankAccountID) {
     API.DeleteBankAccount({
         bankAccountID,

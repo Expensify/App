@@ -11,6 +11,13 @@ import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import NameValuePair from './NameValuePair';
 
+/**
+ * Deletes a debit card
+ *
+ * @param {Number} fundID
+ *
+ * @returns {Promise}
+ */
 function deleteDebitCard(fundID) {
     return API.DeleteFund({fundID})
         .then((response) => {
@@ -61,6 +68,15 @@ function getPaymentMethods() {
         });
 }
 
+/**
+ * Sets the default bank account or debit card for an Expensify Wallet
+ *
+ * @param {String} password
+ * @param {Number} bankAccountID
+ * @param {Number} fundID
+ *
+ * @returns {Promise}
+ */
 function setWalletLinkedAccount(password, bankAccountID, fundID) {
     return API.SetWalletLinkedAccount({
         password,
