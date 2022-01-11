@@ -12,8 +12,12 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
+import Growl from '../Growl';
+import * as Localize from '../Localize';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 
 let sessionAuthToken = '';
@@ -57,6 +61,26 @@ function changePasswordAndNavigate(oldPassword, password) {
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
+}
+
+/**
+ * Attempt to close the user's account
+ *
+ * @param {String} message optional reason for closing account
+ */
+function closeAccount(message) {
+    API.User_Delete({message}).then((response) => {
+        console.debug('User_Delete: ', JSON.stringify(response));
+
+        if (response.jsonCode === 200) {
+            Growl.show(Localize.translateLocal('closeAccountPage.closeAccountSuccess'), CONST.GROWL.SUCCESS);
+            redirectToSignIn();
+            return;
+        }
+
+        // Inform user that they are currently unable to close their account
+        CloseAccountActions.showCloseAccountModal();
+    });
 }
 
 function getBetas() {
@@ -369,6 +393,7 @@ function joinScreenShare(accessToken, roomName) {
 
 export {
     changePasswordAndNavigate,
+    closeAccount,
     getBetas,
     getUserDetails,
     resendValidateCode,

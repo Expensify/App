@@ -106,8 +106,6 @@ PODS:
     - OpenSSL-Universal (= 1.1.180)
   - Flipper-Glog (0.3.6)
   - Flipper-PeerTalk (0.0.4)
-  - flipper-plugin-react-native-performance (0.6.0):
-    - React
   - Flipper-RSocket (1.4.3):
     - Flipper-Folly (~> 2.6)
   - FlipperKit (0.99.0):
@@ -623,7 +621,6 @@ DEPENDENCIES:
   - Flipper-Folly (= 2.6.7)
   - Flipper-Glog (= 0.3.6)
   - Flipper-PeerTalk (= 0.0.4)
-  - flipper-plugin-react-native-performance (from `../node_modules/flipper-plugin-react-native-performance/ios`)
   - Flipper-RSocket (= 1.4.3)
   - FlipperKit (= 0.99.0)
   - FlipperKit/Core (= 0.99.0)
@@ -753,8 +750,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
-  flipper-plugin-react-native-performance:
-    :path: "../node_modules/flipper-plugin-react-native-performance/ios"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   onfido-react-native-sdk:
@@ -901,7 +896,6 @@ SPEC CHECKSUMS:
   Flipper-Folly: 83af37379faa69497529e414bd43fbfc7cae259a
   Flipper-Glog: 1dfd6abf1e922806c52ceb8701a3599a79a200a6
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
-  flipper-plugin-react-native-performance: 82e0d9bf8f330d2e256ff018978e2a19b86fec17
   Flipper-RSocket: d9d9ade67cbecf6ac10730304bf5607266dd2541
   FlipperKit: d8d346844eca5d9120c17d441a2f38596e8ed2b9
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9

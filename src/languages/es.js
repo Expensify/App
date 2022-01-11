@@ -288,6 +288,18 @@ export default {
             phrase4: 'política de privacidad',
         },
     },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        enterMessageHere: 'Ingresa el mensaje aquí',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
+        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountSuccess: 'Cuenta cerrada exitosamente',
+        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
+        closeAccountTryAgainAfter: 'e intenta nuevamente',
+        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        okayGotIt: 'Ok, entendido',
+    },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de Nuevo Expensify.',
