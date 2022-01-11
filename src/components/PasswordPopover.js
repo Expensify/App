@@ -70,7 +70,7 @@ class PasswordPopover extends Component {
                 <View
                     style={[
                         styles.m5,
-                        !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
+                        !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
                     ]}
                 >
                     <Text

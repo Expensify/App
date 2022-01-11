@@ -63,7 +63,7 @@ const ConfirmPopover = props => (
             style={[
                 styles.m5,
                 styles.alignItemsCenter,
-                !props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
+                !props.isSmallScreenWidth ? styles.sidebarPopover : '',
             ]}
         >
             <Text

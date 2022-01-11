@@ -230,7 +230,7 @@ class PaymentsPage extends React.Component {
                         <View
                             style={[
                                 styles.m5,
-                                !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
+                                !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
                             ]}
                         >
                             {this.props.isSmallScreenWidth && (

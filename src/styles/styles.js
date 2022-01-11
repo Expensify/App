@@ -2078,6 +2078,13 @@ const styles = {
         height: '120%',
     },
 
+    fullscreenCardWebCentered: {
+        left: '0',
+        right: '0',
+        top: '0',
+        height: '60%',
+    },
+
     fullscreenCardMobile: {
         left: '-20%',
         top: '-30%',
@@ -2172,7 +2179,7 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    defaultDeletePopover: {
+    sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
 
