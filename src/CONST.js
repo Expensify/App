@@ -393,7 +393,7 @@ const CONST = {
         TRANSFER_METHOD_TYPE_FEE: {
             INSTANT: {
                 RATE: 1.5,
-                MINIMUM_FEE: 30,
+                MINIMUM_FEE: 25,
             },
             ACH: {
                 RATE: 0,

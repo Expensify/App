@@ -79,7 +79,7 @@ class TransferBalancePage extends React.Component {
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
                     amount: this.props.numberFormat(
-                        0.25,
+                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE / 100,
                         {style: 'currency', currency: 'USD'},
                     ),
                 }),
