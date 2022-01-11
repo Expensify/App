@@ -24,6 +24,7 @@ export default {
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SECURITY: 'settings/security',
+    SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_PASSWORD: 'settings/security/password',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
@@ -79,6 +80,8 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    GET_ASSISTANCE: 'get-assistance/:taskID',
+    getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
