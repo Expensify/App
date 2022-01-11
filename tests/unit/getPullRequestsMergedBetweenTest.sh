@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail immediately if there is an error thrown
+set -e
+
 TEST_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
@@ -221,8 +224,8 @@ success "Bumped version to 1.1.1 on main!"
 info "Cherry picking PR #7 and the version bump to staging..."
 git checkout staging
 git checkout -b cherry-pick-staging-7
-git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
-git cherry-pick -S -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
+git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
+git cherry-pick -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
 git checkout staging
 git merge cherry-pick-staging-7 --no-ff -m "Merge pull request #9 from Expensify/cherry-pick-staging-7"
 git branch -d cherry-pick-staging-7
