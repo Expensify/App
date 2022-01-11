@@ -182,7 +182,7 @@ class PaymentsPage extends React.Component {
     }
 
     deletePaymentMethod() {
-        if (this.state.selectedPaymentMethodType === 'payPalMe') {
+        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
             PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
