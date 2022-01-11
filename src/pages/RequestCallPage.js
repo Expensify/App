@@ -366,6 +366,7 @@ export default compose(
         },
         inboxCallUserWaitTime: {
             key: ONYXKEYS.INBOX_CALL_USER_WAIT_TIME,
+            initWithStoredValues: false,
         },
     }),
 )(RequestCallPage);
