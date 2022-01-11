@@ -1,9 +1,24 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import BankAccount from './models/BankAccount';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+
+/**
+ * Check to see if user has either a debit card or personal bank account added
+ *
+ * @param {Array} [cardList]
+ * @param {Array} [bankAccountList]
+ * @returns {Boolean}
+ */
+function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
+    return _.some(cardList, card => card) || _.some(bankAccountList, (bankAccountJSON) => {
+        const bankAccount = new BankAccount(bankAccountJSON);
+        return bankAccount.isDefaultCredit();
+    });
+}
 
 /**
  * Get the PaymentMethods list
@@ -74,6 +89,7 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', use
     return combinedPaymentMethods;
 }
 
-export default {
+export {
+    hasExpensifyPaymentMethod,
     getPaymentMethods,
 };

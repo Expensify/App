@@ -4,7 +4,6 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
-import Navigation from '../Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PaymentMethods from './PaymentMethods';
 import Growl from '../Growl';
@@ -82,7 +81,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
             if (response.jsonCode === 200) {
                 PaymentMethods.getPaymentMethods()
                     .then(() => {
-                        Navigation.goBack();
+                        PaymentMethods.continueSetup();
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                     });
                 return;
