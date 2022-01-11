@@ -69,12 +69,16 @@ const propTypes = {
     requestCallForm: PropTypes.shape({
         loading: PropTypes.bool,
     }),
+
+    /** The number of minutes the user has to wait for an inbox call */
+    inboxCallUserWaitTime: PropTypes.number,
 };
 
 const defaultProps = {
     requestCallForm: {
         loading: false,
     },
+    inboxCallUserWaitTime: null,
 };
 
 class RequestCallPage extends Component {
