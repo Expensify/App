@@ -227,7 +227,7 @@ class EmojiPickerMenu extends Component {
                             return;
                         }
 
-                        // Reaching start of the list, arrow up set the focus to searchInput.
+                        // Reaching start of the list, arrow left set the focus to searchInput.
                         this.searchInput.focus();
                         newIndex = -1;
                     });
