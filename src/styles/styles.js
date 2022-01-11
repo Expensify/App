@@ -16,6 +16,7 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import text from './utilities/text';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -140,6 +141,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...text,
 
     webViewStyles,
 
