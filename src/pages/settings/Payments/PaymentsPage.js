@@ -86,8 +86,8 @@ class PaymentsPage extends React.Component {
                 formattedSelectedPaymentMethod = {
                     title: 'PayPal.me',
                     icon: Expensicons.PayPal,
+                    description: account.username,
                 };
-                Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,

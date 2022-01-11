@@ -83,6 +83,9 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', use
             icon: Expensicons.PayPal,
             key: 'payPalMePaymentMethod',
             accountType: CONST.PAYMENT_METHODS.PAYPAL,
+            accountData: {
+                username: payPalMeUsername,
+            },
         });
     }
 
