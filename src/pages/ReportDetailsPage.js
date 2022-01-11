@@ -67,16 +67,22 @@ class ReportDetailsPage extends Component {
     constructor(props) {
         super(props);
 
+        this.menuItems = [];
         if (ReportUtils.isArchivedRoom(this.props.report)) {
-            this.menuItems = [];
-        } else if (ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems = [
-                {
-                    translationKey: 'common.members',
-                    icon: Expensicons.Users,
-                    subtitle: props.report.participants.length,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-                },
+            return;
+        }
+
+        // All nonarchived chats should let you see their members
+        this.menuItems.push({
+            translationKey: 'common.members',
+            icon: Expensicons.Users,
+            subtitle: props.report.participants.length,
+            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+        });
+
+        // Chat rooms will allow you to more things than typical chats so they have extra options
+        if (ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems = this.menuItems.concat([
                 {
                     translationKey: 'common.settings',
                     icon: Expensicons.Gear,
@@ -92,16 +98,7 @@ class ReportDetailsPage extends Component {
                     icon: Expensicons.Exit,
                     action: () => { /* Placeholder for when leaving rooms is built in */ },
                 },
-            ];
-        } else {
-            this.menuItems = [
-                {
-                    translationKey: 'common.members',
-                    icon: Expensicons.Users,
-                    subtitle: props.report.participants.length,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-                },
-            ];
+            ]);
         }
     }
 
