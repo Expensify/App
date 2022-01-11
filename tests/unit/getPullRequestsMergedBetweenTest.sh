@@ -56,6 +56,8 @@ fi
 
 info "Initializing Git repo..."
 git init -b main
+git config user.email "test@test.com"
+git config user.name "test"
 git add package.json package-lock.json
 git commit -m "Initial commit"
 
