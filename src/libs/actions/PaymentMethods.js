@@ -137,6 +137,13 @@ function saveWalletTransferAccountAndResetData(selectedAccountID) {
 }
 
 /**
+ * @param {Number} transferAmount
+ */
+function saveWalletTransferTransferredAmount(transferAmount) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
+}
+
+/**
  * Close the ConfirmModal of Wallet balance transfer
  */
 function dismissWalletConfirmModal() {
@@ -149,5 +156,6 @@ export {
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
     saveWalletTransferAccountAndResetData,
+    saveWalletTransferTransferredAmount,
     dismissWalletConfirmModal,
 };

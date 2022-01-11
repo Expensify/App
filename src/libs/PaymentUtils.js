@@ -65,15 +65,16 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
 }
 
 /**
- * Substract the transfer fee from the balance that is being transferred
  * @param {Number} currentBalance
+ * @param {String} methodType
  * @returns {Number}
  */
-function subtractWalletTransferBalanceFee(currentBalance) {
-    return currentBalance - CONST.WALLET.TRANSFER_BALANCE_FEE;
+function calculateWalletTransferBalanceFee(currentBalance, methodType) {
+    const calculateFee = (currentBalance * CONST.WALLET.TRANSFER_METHOD_TYPE_FEE[methodType].RATE) / 100;
+    return Math.max(calculateFee, CONST.WALLET.TRANSFER_METHOD_TYPE_FEE[methodType].MINIMUM_FEE);
 }
 
 export default {
     formatPaymentMethods,
-    subtractWalletTransferBalanceFee,
+    calculateWalletTransferBalanceFee,
 };

@@ -95,8 +95,7 @@ class TransferBalancePage extends React.Component {
             },
         ];
 
-        this.transferBalance = this.transferBalance.bind(this);
-
+        this.saveTransferAmountAndtransferBalance = this.saveTransferAmountAndtransferBalance.bind(this);
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         PaymentMethods.saveWalletTransferAccountAndResetData(selectedAccount ? selectedAccount.id : '');
     }
@@ -116,10 +115,11 @@ class TransferBalancePage extends React.Component {
     }
 
     /**
-     * Transfer Wallet balance
+     * @param {Number} transferAmount
      * @param {Object} selectedAccount
      */
-    transferBalance(selectedAccount) {
+    saveTransferAmountAndtransferBalance(transferAmount, selectedAccount) {
+        PaymentUtils.saveWalletTransferTransferredAmount(transferAmount);
         PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
@@ -129,8 +129,9 @@ class TransferBalancePage extends React.Component {
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
-        const transferAmount = PaymentUtils.subtractWalletTransferBalanceFee(this.props.userWallet.currentBalance).toFixed(2);
-        const canTransfer = transferAmount > CONST.WALLET.TRANSFER_BALANCE_FEE;
+        const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(this.props.userWallet.currentBalance, selectedPaymentType);
+        const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
+        const canTransfer = transferAmount > calculatedFee;
         const isButtonDisabled = !canTransfer || !selectedAccount;
 
         return (
@@ -199,7 +200,7 @@ class TransferBalancePage extends React.Component {
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
-                                CONST.WALLET.TRANSFER_BALANCE_FEE,
+                                calculatedFee,
                                 {style: 'currency', currency: 'USD'},
                             )}
                         </Text>
@@ -210,7 +211,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={() => this.transferBalance(selectedAccount)}
+                            onPress={() => this.saveTransferAmountAndtransferBalance(transferAmount, selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
