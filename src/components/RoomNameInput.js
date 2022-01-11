@@ -49,7 +49,6 @@ const propTypes = {
         /** ID of the policy */
         id: PropTypes.string,
     }).isRequired,
-
 };
 
 const defaultProps = {
@@ -58,10 +57,8 @@ const defaultProps = {
     initialValue: '',
     disabled: false,
     policyID: '',
-
     ...fullPolicyDefaultProps,
 };
-
 
 class RoomNameInput extends Component {
     constructor(props) {
@@ -140,7 +137,6 @@ class RoomNameInput extends Component {
 
 RoomNameInput.propTypes = propTypes;
 RoomNameInput.defaultProps = defaultProps;
-
 
 export default compose(
     withLocalize,
