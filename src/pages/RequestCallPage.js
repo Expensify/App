@@ -203,7 +203,7 @@ class RequestCallPage extends Component {
     }
 
     getWaitTimeMessageKey(minutes) {
-        if (!minutes) {
+        if (minutes == null) {
             return 'requestCallPage.waitTime.calculating';
         }
 
@@ -223,7 +223,7 @@ class RequestCallPage extends Component {
 
     getWaitTimeMessage() {
         const waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
-        return `${this.props.translate(waitTimeKey)} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+        return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
     }
 
     validatePhoneInput() {
