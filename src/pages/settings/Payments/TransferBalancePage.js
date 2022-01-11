@@ -200,7 +200,7 @@ class TransferBalancePage extends React.Component {
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
-                                calculatedFee,
+                                calculatedFee / 100,
                                 {style: 'currency', currency: 'USD'},
                             )}
                         </Text>
