@@ -146,7 +146,7 @@ class ReportSettingsPage extends Component {
                                 }}
                                 style={[styles.ml2]}
                                 textStyles={[styles.label]}
-                                buttonStyles={[styles.reportSettingsChangeNameButton]}
+                                innerStyles={[styles.reportSettingsChangeNameButton]}
                                 isDisabled={Boolean(
                                     shouldDisableRename
                                     || this.state.newRoomName === this.props.report.reportName

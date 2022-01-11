@@ -51,7 +51,7 @@ const propTypes = {
     ]),
 
     /** Additional button styles. Specific to the OpacityView of button */
-    buttonStyles: PropTypes.arrayOf(PropTypes.object),
+    innerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Additional text styles */
     textStyles: PropTypes.arrayOf(PropTypes.object),
@@ -85,7 +85,7 @@ const defaultProps = {
     onPressOut: () => {},
     pressOnEnter: false,
     style: [],
-    buttonStyles: [],
+    innerStyles: [],
     textStyles: [],
     success: false,
     danger: false,
@@ -199,7 +199,7 @@ class Button extends Component {
                             (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                             this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                             this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                            ...this.props.buttonStyles,
+                            ...this.props.innerStyles,
                         ]}
                     >
                         {this.renderContent()}
