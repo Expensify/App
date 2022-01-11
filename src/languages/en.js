@@ -340,6 +340,7 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSucess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
+        deletePayPalSuccess: 'PayPal.me successfully deleted',
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
