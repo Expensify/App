@@ -1,14 +1,33 @@
+import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
-import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import Log from '../Log';
+
+/**
+ * Sets up a ref to an instance of the KYC Wall component.
+ */
+const kycWallRef = createRef();
+
+/**
+ * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
+ */
+function continueSetup() {
+    if (!kycWallRef.current || !kycWallRef.current.continue) {
+        Navigation.goBack();
+        return;
+    }
+
+    // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
+    Navigation.goBack();
+    kycWallRef.current.continue();
+}
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -74,7 +93,7 @@ function addBillingCard(params) {
             };
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
             Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+            continueSetup();
         } else {
             errorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
@@ -153,6 +172,8 @@ function dismissWalletConfirmModal() {
 export {
     getPaymentMethods,
     addBillingCard,
+    kycWallRef,
+    continueSetup,
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
     saveWalletTransferAccountAndResetData,
