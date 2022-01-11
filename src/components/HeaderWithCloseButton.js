@@ -64,7 +64,7 @@ const propTypes = {
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
 
-    /** The guides call task ID to associate with the get assistance button, if we show it */
+    /** The guides call taskID to associate with the get assistance button, if we show it */
     guidesCallTaskID: PropTypes.string,
 
     /** Data to display a step counter in the header */

@@ -65,6 +65,7 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
+    /** The policy id of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
 };
 
@@ -217,7 +218,7 @@ class RequestCallPage extends Component {
                             title={this.props.translate('requestCallPage.subtitle')}
                             icon={Illustrations.ConciergeExclamation}
                         >
-                            <Text style={[styles.mb4]}>
+                            <Text style={styles.mb4}>
                                 {this.props.translate('requestCallPage.description')}
                             </Text>
                             <FullNameInputRow

@@ -41,19 +41,19 @@ const GetAssistancePage = props => (
                 menuItems={[
                     {
                         title: props.translate('getAssistancePage.chatWithConcierge'),
-                        onPress: () => (Report.navigateToConciergeChat()),
+                        onPress: () => Report.navigateToConciergeChat(),
                         icon: Expensicons.ChatBubble,
                         shouldShowRightIcon: true,
                     },
                     {
                         title: props.translate('getAssistancePage.requestSetupCall'),
-                        onPress: () => (Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID))),
+                        onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
                         icon: Expensicons.Phone,
                         shouldShowRightIcon: true,
                     },
                 ]}
             >
-                <View style={[styles.mv4]}>
+                <View style={styles.mv4}>
                     <Text>{props.translate('getAssistancePage.description')}</Text>
                 </View>
             </Section>
