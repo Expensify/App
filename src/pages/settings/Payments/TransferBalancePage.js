@@ -78,7 +78,8 @@ class TransferBalancePage extends React.Component {
                 key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
-                    amount: this.props.numberFormat(
+                    rate: this.props.numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+                    minAmount: this.props.numberFormat(
                         CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE / 100,
                         {style: 'currency', currency: 'USD'},
                     ),
@@ -95,7 +96,7 @@ class TransferBalancePage extends React.Component {
             },
         ];
 
-        this.saveTransferAmountAndtransferBalance = this.saveTransferAmountAndtransferBalance.bind(this);
+        this.saveTransferAmountAndBalance = this.saveTransferAmountAndBalance.bind(this);
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         PaymentMethods.saveWalletTransferAccountAndResetData(selectedAccount ? selectedAccount.id : '');
     }
@@ -118,8 +119,8 @@ class TransferBalancePage extends React.Component {
      * @param {Number} transferAmount
      * @param {Object} selectedAccount
      */
-    saveTransferAmountAndtransferBalance(transferAmount, selectedAccount) {
-        PaymentUtils.saveWalletTransferTransferredAmount(transferAmount);
+    saveTransferAmountAndBalance(transferAmount, selectedAccount) {
+        PaymentMethods.saveWalletTransferAmount(transferAmount);
         PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
@@ -211,7 +212,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={() => this.saveTransferAmountAndtransferBalance(transferAmount, selectedAccount)}
+                            onPress={() => this.saveTransferAmountAndBalance(transferAmount, selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
