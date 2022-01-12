@@ -103,6 +103,7 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
+        POLICY_ROOMS: 'policyRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
