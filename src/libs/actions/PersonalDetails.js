@@ -12,7 +12,6 @@ import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as ValidationUtils from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -66,19 +65,15 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns object with first and last name errors. If either are valid,
- * those errors get returned as empty strings.
+ * Returns max character error text if true.
  *
- * @param {String} firstName
- * @param {String} lastName
- * @returns {Object}
+ * @param {Boolean} isError
+ * @returns {String}
  */
-function getFirstAndLastNameErrors(firstName, lastName) {
-    return {
-        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : Localize.translateLocal('personalDetails.error.firstNameLength'),
-        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : Localize.translateLocal('personalDetails.error.lastNameLength'),
-    };
+function getMaxCharacterError(isError) {
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
+
 
 /**
  * Format personal details
@@ -345,10 +340,10 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
     fetchLocalCurrency,
     getCurrencyList,
+    getMaxCharacterError,
 };
