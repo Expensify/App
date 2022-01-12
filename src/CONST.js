@@ -476,7 +476,7 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
-        AMOUNT_INTEGER_PART_MAX_LEN: 10,
+        AMOUN_MAX_LEN: 10,
     },
 
     GROWL: {
