@@ -146,8 +146,8 @@ class IOUAmountPage extends React.Component {
 
         /*
         We return trailing zeroes plus absAmount which has value of the string with digits
-        after the decimal. In case of zeroes, we add the absolute amount to 2, which represents
-         places reserved  for digits after decimal.
+        after the decimal. In case of zeroes, we add the trailing zeroes length to 2, which 
+        represent places reserved for digits after decimal.
         */
         return trailingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
     }
