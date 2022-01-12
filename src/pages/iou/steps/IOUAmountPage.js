@@ -134,17 +134,22 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Return length of string
+     * Return length of Amount string without commas.
      *
      * @param {String} amount
      * @returns {Number}
      */
-
     amountLength(amount) {
         const trailingZeroes = amount.match(/^0+/);
         const trailingZeroesLength = trailingZeroes ? _.first(trailingZeroes).length : 0;
         const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
-        return trailingZeroesLength + (absAmount === '0' ? 1 + (amount.match(/0/) || []).length : absAmount.length);
+
+        /*
+        We return trailing zeroes plus absAmount which has value of the string with digits
+        after the decimal. In case of zeroes, we add the absolute amount to 2, which represents
+         places reserved  for digits after decimal.
+        */
+        return trailingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
     }
 
     /**
