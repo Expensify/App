@@ -92,7 +92,7 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
-export default {
+export {
     hasExpensifyPaymentMethod,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,

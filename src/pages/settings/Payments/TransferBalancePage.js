@@ -22,7 +22,7 @@ import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import PaymentUtils from '../../../libs/PaymentUtils';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
@@ -132,7 +132,7 @@ class TransferBalancePage extends React.Component {
 
         const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(this.props.userWallet.currentBalance, selectedPaymentType);
         const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
-        const canTransfer = transferAmount > calculatedFee;
+        const canTransfer = transferAmount > 0;
         const isButtonDisabled = !canTransfer || !selectedAccount;
 
         return (
