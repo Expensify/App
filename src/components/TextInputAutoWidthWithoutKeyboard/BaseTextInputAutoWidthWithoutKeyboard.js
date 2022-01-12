@@ -1,43 +1,45 @@
 import React from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import {
+    View,
+    AppState,
+    Keyboard,
+} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
-import TextInputFocusable from './TextInputFocusable';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
+import Text from '../Text';
+import TextInputFocusable from '../TextInputFocusable';
+import * as baseTextInputAutoWidthWithoutKeyboardPropTypes from './baseTextInputAutoWidthWithoutKeyboardPropTypes';
 
-const propTypes = {
-    /** The value of the comment box */
-    value: PropTypes.string.isRequired,
-
-    /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func.isRequired,
-
-    /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    inputStyle: PropTypes.object,
-
-    /** Styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyle: PropTypes.object.isRequired,
-
-    /** Optional placeholder to show when there is no value */
-    placeholder: PropTypes.string,
-};
-
-const defaultProps = {
-    inputStyle: {},
-    placeholder: '',
-};
-
-class TextInputAutoWidth extends React.Component {
+class BaseTextInputAutoWidthWithoutKeyboard extends React.Component {
     constructor(props) {
         super(props);
+        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
 
         this.state = {
             textInputWidth: 0,
         };
+    }
+
+    componentDidMount() {
+        this.appStateSubscription = AppState.addEventListener(
+            'change',
+            this.dismissKeyboardWhenBackgrounded,
+        );
+    }
+
+    componentWillUnmount() {
+        if (!this.appStateSubscription) {
+            return;
+        }
+        this.appStateSubscription.remove();
+    }
+
+    dismissKeyboardWhenBackgrounded(nextAppState) {
+        if (!nextAppState.match(/inactive|background/)) {
+            return;
+        }
+        Keyboard.dismiss();
     }
 
     render() {
@@ -48,6 +50,7 @@ class TextInputAutoWidth extends React.Component {
                     <TextInputFocusable
                         style={[this.props.inputStyle, StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth)]}
                         ref={this.props.forwardedRef}
+                        showSoftInputOnFocus={false}
                         /* eslint-disable-next-line react/jsx-props-no-spreading */
                         {...propsWithoutStyles}
                     />
@@ -69,10 +72,10 @@ class TextInputAutoWidth extends React.Component {
     }
 }
 
-TextInputAutoWidth.propTypes = propTypes;
-TextInputAutoWidth.defaultProps = defaultProps;
+BaseTextInputAutoWidthWithoutKeyboard.propTypes = baseTextInputAutoWidthWithoutKeyboardPropTypes.propTypes;
+BaseTextInputAutoWidthWithoutKeyboard.defaultProps = baseTextInputAutoWidthWithoutKeyboardPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInputAutoWidth {...props} forwardedRef={ref} />
+    <BaseTextInputAutoWidthWithoutKeyboard {...props} forwardedRef={ref} />
 ));
