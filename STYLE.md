@@ -226,7 +226,7 @@ Use `lodashGet()` to safely access object properties and `||` to short circuit n
 - Always document parameters and return values.
 - Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
 - Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
-- If a parameter accepts more than one type use `*` to denote there is no single type. Do not use a type union e.g. `{(number|boolean)}`.
+- If a parameter accepts more than one type use `*` to denote there is no single type.
 - Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
 - When specifying a return value use `@returns` instead of `@return`. If there is no return value do not include one in the doc.
 
@@ -235,6 +235,7 @@ Use `lodashGet()` to safely access object properties and `||` to short circuit n
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
 - Do not use record types e.g. `{Object.<string, number>}`.
 - Do not create `@typedef` to use in JSDocs.
+- Do not use type unions e.g. `{(number|boolean)}`.
 
 ```javascript
 // Bad
