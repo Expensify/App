@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        message: 'Message ',
+        leaveRoom: 'Leave room',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -136,10 +138,10 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -213,8 +215,9 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -275,7 +278,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Security',
@@ -287,6 +290,18 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        enterMessageHere: 'Enter message here',
+        closeAccountWarning: 'Closing your account cannot be undone.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountTryAgainAfter: 'and try again after.',
+        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -422,12 +437,14 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
         resendLink: 'Resend link',
+        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
         unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
         newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
@@ -511,7 +528,6 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
@@ -522,6 +538,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraPermissionsNotGranted: 'Camera permissions not granted',
+        cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -802,6 +820,14 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
+    getAssistancePage: {
+        title: 'Get assistance',
+        subtitle: 'Have questions, or need help?',
+        description: 'We have answers! Choose from the support options below:',
+        chatWithConcierge: 'Chat with Concierge',
+        requestSetupCall: 'Request a setup call',
+        questionMarkButtonTooltip: 'Get assistance from our team',
+    },
     requestCallPage: {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
@@ -809,7 +835,6 @@ export default {
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
     },
@@ -840,6 +865,7 @@ export default {
             escape: 'Escape Dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
+            copy: 'Copy comment',
         },
     },
     guides: {

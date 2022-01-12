@@ -47,11 +47,14 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
-    /** Additional styles to add after local styles */
+    /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
+
+    /** Additional button styles. Specific to the OpacityView of button */
+    innerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Additional text styles */
     textStyles: PropTypes.arrayOf(PropTypes.object),
@@ -86,6 +89,7 @@ const defaultProps = {
     onPressOut: () => {},
     pressOnEnter: false,
     style: [],
+    innerStyles: [],
     textStyles: [],
     success: false,
     danger: false,
@@ -201,6 +205,7 @@ class Button extends Component {
                             (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                             this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                             this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                            ...this.props.innerStyles,
                         ]}
                     >
                         {this.renderContent()}

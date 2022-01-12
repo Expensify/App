@@ -25,7 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../ROUTES';
 
 /**
@@ -78,9 +77,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
-    /** The user's current wallet status and step */
-    userWallet: userWalletPropTypes.userWallet,
-
     ...withLocalizePropTypes,
 };
 
@@ -93,7 +89,6 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -275,14 +270,6 @@ class IOUModal extends Component {
      * @param {String} paymentMethodType
      */
     sendMoney(paymentMethodType) {
-        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-
-        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
-        if (!hasGoldWallet) {
-            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
-            return;
-        }
-
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
@@ -305,8 +292,10 @@ class IOUModal extends Component {
             requestorPhoneNumber: this.state.participants[0].phoneNumber,
             comment,
             newIOUReportDetails,
-            shouldRedirectToChatReport: true,
-        });
+        })
+            .finally(() => {
+                Navigation.navigate(ROUTES.REPORT);
+            });
     }
 
     /**
@@ -481,9 +470,6 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);

@@ -16,15 +16,15 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
+import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
@@ -87,8 +87,7 @@ class BankAccountStep extends React.Component {
     validate() {
         const errors = {};
 
-        // These are taken from BankCountry.js in Web-Secure
-        if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(this.state.routingNumber.trim())) {
@@ -189,11 +188,13 @@ class BankAccountStep extends React.Component {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 {!subStep && (
                     <ScrollView style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <Section
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />
@@ -268,7 +269,7 @@ class BankAccountStep extends React.Component {
                             style={[styles.exampleCheckImage, styles.mb5]}
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
@@ -276,7 +277,7 @@ class BankAccountStep extends React.Component {
                             disabled={shouldDisableInputs}
                             errorText={this.getErrorText('routingNumber')}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}

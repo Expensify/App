@@ -79,7 +79,7 @@ jobs:
 
       - name: Set up git for Botify
         run: |
-          git config user.signingkey DBF63700F60F5530
+          git config user.signingkey 367811D53E34168C
           git config commit.gpgsign true
           git config user.name OSBotify
           git config user.email infra+osbotify@expensify.com
@@ -150,19 +150,12 @@ jobs:
           pr_body: '🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
           pr_label: automerge
 
-      - name: Check if pull request is mergeable
-        id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
-
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
         uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -171,7 +164,7 @@ jobs:
             Hourly
 
       - name: Assign the PR to the deployer
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
         uses: actions-ecosystem/action-add-assignees@a73fcabd82d847c5e7433fcfdd58ef9f7e8a3993
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -179,7 +172,7 @@ jobs:
           assignees: ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
 
       - name: If PR has merge conflicts, comment with instructions for assignee
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -202,12 +195,19 @@ jobs:
 
       - name: Check for an auto approve
         # Important: only auto-approve if there was no merge conflict!
-        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
         # Version: 2.0.0
         uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Check if pull request is mergeable
+        id: isPullRequestMergeable
+        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Check for an auto merge
         # Important: only auto-merge if there was no merge conflict!
