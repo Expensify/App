@@ -345,6 +345,7 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {

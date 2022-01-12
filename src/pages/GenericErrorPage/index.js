@@ -42,7 +42,7 @@ const GenericErrorPage = props => (
                 <View style={styles.mb5}>
                     <ErrorBodyText />
                     <Text>
-                        {props.translate('genericErrorPage.body.helpTextConcierge')}
+                        {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
                         <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
                             {CONST.EMAIL.CONCIERGE}
                         </TextLink>

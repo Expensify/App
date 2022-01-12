@@ -875,9 +875,9 @@ export default {
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
         body: {
-            helpTextMobile: 'Please try closing and reopening the app or switching to ',
+            helpTextMobile: 'Please try closing and reopening the app or switching to',
             helpTextWeb: 'web.',
-            helpTextConcierge: 'If the problem persists, reach out to ',
+            helpTextConcierge: 'If the problem persists, reach out to',
         },
         refresh: 'Refresh',
     },

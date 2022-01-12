@@ -11,7 +11,7 @@ const propTypes = {
 
 const ErrorBodyText = props => (
     <Text>
-        {props.translate('genericErrorPage.body.helpTextMobile')}
+        {`${props.translate('genericErrorPage.body.helpTextMobile')} `}
         <TextLink href={CONST.NEW_EXPENSIFY_URL} style={[styles.link]}>
             {props.translate('genericErrorPage.body.helpTextWeb')}
         </TextLink>

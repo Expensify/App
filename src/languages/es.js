@@ -877,9 +877,9 @@ export default {
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
-            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la ',
+            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la',
             helpTextWeb: 'web.',
-            helpTextConcierge: 'Si el problema persiste, comuníquese con ',
+            helpTextConcierge: 'Si el problema persiste, comuníquese con',
         },
         refresh: 'Refresh',
     },

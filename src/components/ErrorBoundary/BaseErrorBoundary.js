@@ -42,13 +42,13 @@ class BaseErrorBoundary extends React.Component {
         BootSplash.hide({fade: true});
     }
 
-    onRefresh() {
+    clearError() {
         this.setState({hasError: false});
     }
 
     render() {
         if (this.state.hasError) {
-            return <GenericErrorPage onRefresh={this.onRefresh} />;
+            return <GenericErrorPage onRefresh={this.clearError} />;
         }
 
         return this.props.children;
