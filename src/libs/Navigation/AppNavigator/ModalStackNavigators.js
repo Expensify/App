@@ -44,6 +44,7 @@ import CONST from '../../../CONST';
 import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
+import ReportSettingsPage from '../../../pages/ReportSettingsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -139,6 +140,11 @@ const DetailsModalStackNavigator = createModalStackNavigator([{
 const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     Component: ReportDetailsPage,
     name: 'Report_Details_Root',
+}]);
+
+const ReportSettingsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportSettingsPage,
+    name: 'Report_Settings_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
@@ -310,6 +316,7 @@ export {
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
