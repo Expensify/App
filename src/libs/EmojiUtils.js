@@ -131,7 +131,7 @@ function addSpacesToEmojiCategories(emojis) {
  */
 function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) {
     if (frequentlyUsedEmojis.length === 0) {
-        return emojis;
+        return addSpacesToEmojiCategories(emojis);
     }
 
     let allEmojis = [{
