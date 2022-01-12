@@ -27,7 +27,7 @@ class BaseErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
         this.state = {hasError: false};
-        this.onRefresh = this.onRefresh.bind(this);
+        this.clearError = this.clearError.bind(this);
     }
 
     static getDerivedStateFromError() {
