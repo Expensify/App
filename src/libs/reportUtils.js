@@ -221,18 +221,12 @@ function isDeletedAction(action) {
 }
 
 /**
- * Used before merging Report data.
- * For now cut last message text to specific length, because we don't need full last message
- *
+ * Trim the last message text to a fixed limit.
  * @param {String} lastMessageText
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    if (_.isString(lastMessageText) && lastMessageText.length > CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH) {
-        return lastMessageText.substr(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
-    }
-
-    return lastMessageText;
+    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 export {
