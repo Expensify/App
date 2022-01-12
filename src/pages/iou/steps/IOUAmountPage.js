@@ -145,8 +145,8 @@ class IOUAmountPage extends React.Component {
         const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
 
         /*
-        We return trailing zeroes plus absAmount which has value of the string with digits
-        after the decimal. In case of zeroes, we add the trailing zeroes length to 2, which 
+        We return sum of trailing zeroes length and absAmount length( which has value of the all digits after the decimal).
+        In case of zeroes, we add the trailing zeroes length to 2, which 
         represent places reserved for digits after decimal.
         */
         return trailingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
