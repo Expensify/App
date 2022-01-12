@@ -95,6 +95,7 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
