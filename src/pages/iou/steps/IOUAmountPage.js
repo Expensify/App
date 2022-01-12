@@ -6,6 +6,7 @@ import {
     AppState,
     Keyboard,
 } from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -80,7 +81,6 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
-
         this.state = {
             amount: props.selectedAmount,
         };
@@ -138,9 +138,23 @@ class IOUAmountPage extends React.Component {
      * @param {String} amount
      * @returns {Boolean}
      */
+
+    amountLength(amount) {
+        const trailingZeroes = amount.match(/^0+/);
+        const trailingZeroesLength = trailingZeroes ? _.first(trailingZeroes).length : 0;
+        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+        return trailingZeroesLength + (absAmount === '0' ? 1 + (amount.match(/0/) || []).length : absAmount.length);
+    }
+
+    /**
+     * Check if amount is a decimal upto 3 digits
+     *
+     * @param {String} amount
+     * @returns {Boolean}
+     */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && parseFloat((amount * 100).toFixed(2)).toString().length <= CONST.IOU.AMOUNT_INTEGER_PART_MAX_LEN);
+        return amount === '' || (decimalNumberRegex.test(amount) && this.amountLength(amount) <= CONST.IOU.AMOUNT_INTEGER_PART_MAX_LEN);
     }
 
     /**
