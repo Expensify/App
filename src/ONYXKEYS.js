@@ -157,6 +157,9 @@ export default {
     // Stores values for the request call form
     REQUEST_CALL_FORM: 'requestCallForm',
 
+    // The number of minutes a user has to wait for a call.
+    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
+
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
 

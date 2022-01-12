@@ -832,11 +832,23 @@ export default {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        waitTime: {
+            calculating: 'Calculating wait time...',
+            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
+            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
+            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
+            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Please enter a valid phone extension number',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
