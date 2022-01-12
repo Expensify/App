@@ -55,7 +55,7 @@ const GenericErrorPage = props => (
                             medium
                             onPress={props.onRefresh}
                             text={props.translate('genericErrorPage.refresh')}
-                            style={styles.mr4}
+                            style={styles.mr3}
                         />
                         <Button
                             medium
