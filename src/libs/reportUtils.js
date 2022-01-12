@@ -220,6 +220,21 @@ function isDeletedAction(action) {
     return action.message.length === 0 || action.message[0].html === '';
 }
 
+/**
+ * Used before merging Report data.
+ * For now cut last message text to specific length, because we don't need full last message
+ *
+ * @param {String} lastMessageText
+ * @returns {String}
+ */
+function formatReportLastMessageText(lastMessageText) {
+    if (_.isString(lastMessageText) && lastMessageText.length > CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH) {
+        return lastMessageText.substr(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    }
+
+    return lastMessageText;
+}
+
 export {
     getReportParticipantsTitle,
     isDeletedAction,
@@ -236,4 +251,5 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
+    formatReportLastMessageText,
 };

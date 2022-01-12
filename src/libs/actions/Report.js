@@ -116,17 +116,6 @@ function getUnreadActionCount(report) {
 }
 
 /**
- * Used before merging Report data.
- * Cut last message to specific length, because we don't need full last message
- *
- * @param {String} lastMessage
- * @returns {String}
- */
-function cutLastMessage(lastMessage) {
-    return lastMessage.substr(0, CONST.REPORT.MAX_LAST_MESSAGE_LENGTH);
-}
-
-/**
  * @param {Object} report
  * @return {String[]}
  */
@@ -192,6 +181,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
             .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
@@ -221,7 +211,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastMessageTimestamp,
-        lastMessageText: isLastMessageAttachment ? '[Attachment]' : cutLastMessage(lastMessageText),
+        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
         notificationPreference,
@@ -562,7 +552,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: cutLastMessage(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -608,11 +598,9 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
+        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
-
-    // Alwasy cut last message
-    updatedReportObject.lastMessageText = cutLastMessage(messageText);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
@@ -1113,7 +1101,7 @@ function addAction(reportID, text, file) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
-        lastMessageText: cutLastMessage(textForNewComment),
+        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
     });
 
