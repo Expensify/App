@@ -137,7 +137,7 @@ class IOUAmountPage extends React.Component {
      * Return length of string
      *
      * @param {String} amount
-     * @returns {Boolean}
+     * @returns {Number}
      */
 
     amountLength(amount) {
