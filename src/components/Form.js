@@ -14,7 +14,7 @@ const propTypes = {
     formID: PropTypes.string.isRequired,
 
     /** Text to be displayed in the submit button */
-    buttonText: PropTypes.string.isRequired,
+    submitButtonText: PropTypes.string.isRequired,
 
     /** Callback validate the form */
     validate: PropTypes.func.isRequired,
@@ -130,7 +130,7 @@ class Form extends React.Component {
         const childrenWrapperWithProps = children => (
             // eslint-disable-next-line rulesdir/prefer-underscore-method
             React.Children.map(children, (child) => {
-                // Do nothing if child is not a valid React element
+                // Do nothing if child is not a valid React element, e.g. text within a <Text> component
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -166,6 +166,9 @@ class Form extends React.Component {
                         if (this.touchedInputs[inputID]) {
                             this.validate(this.getValues());
                         }
+                        if (child.props.onChange) {
+                            child.props.onChange();
+                        }
                     },
                 });
             })
@@ -181,7 +184,7 @@ class Form extends React.Component {
                     <View style={[this.props.style]}>
                         {childrenWrapperWithProps(this.props.children)}
                         <FormAlertWithSubmitButton
-                            buttonText={this.props.buttonText}
+                            buttonText={this.props.submitButtonText}
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
                             isLoading={this.props.formState.isSubmitting}
                             message={this.props.formState.serverErrorMessage}
