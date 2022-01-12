@@ -751,6 +751,16 @@ function UpdateAccount(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function User_Delete(parameters) {
+    const commandName = 'User_Delete';
+    return Network.post(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function User_GetBetas() {
@@ -1090,6 +1100,15 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
+ * Get the current wait time in minutes for an inbox call
+ * @returns {Promise}
+ */
+function Inbox_CallUser_WaitTime() {
+    const commandName = 'Inbox_CallUser_WaitTime';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -1164,6 +1183,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
@@ -1185,6 +1205,7 @@ export {
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
+    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,

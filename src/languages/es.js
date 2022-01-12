@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        message: 'Chatear con ',
+        leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -213,8 +215,9 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
+    notificationPreferences: {
+        description: '¿Con qué frecuencia podemos notificarle si haya nuevos mensajes en esta sala de chat?',
+        label: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
@@ -287,6 +290,18 @@ export default {
             phrase3: 'y',
             phrase4: 'política de privacidad',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        enterMessageHere: 'Ingresa el mensaje aquí',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
+        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountSuccess: 'Cuenta cerrada exitosamente',
+        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
+        closeAccountTryAgainAfter: 'e intenta nuevamente',
+        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -422,6 +437,7 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
         },
     },
     resendValidationForm: {
@@ -806,19 +822,49 @@ export default {
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
+    getAssistancePage: {
+        title: 'Obtener ayuda',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
+        chatWithConcierge: 'Chatear con Concierge',
+        requestSetupCall: 'Llámame por teléfono',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+    },
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        waitTime: {
+            calculating: 'Calculando el tiempo de espera...',
+            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
+            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
+            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
+            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrinks: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',

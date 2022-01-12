@@ -91,6 +91,7 @@ export default function (WrappedComponent) {
 
         if (_.isString(policyID) && !_.isEmpty(policyID) && !isPreviousRouteInSameWorkspace(currentRoute.name, policyID)) {
             Policy.loadFullPolicy(policyID);
+            Policy.updateLastAccessedWorkspace(policyID);
         }
 
         previousRouteName = currentRoute.name;
