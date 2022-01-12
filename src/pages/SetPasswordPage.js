@@ -82,7 +82,6 @@ class SetPasswordPage extends Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.buttonText = this.buttonText.bind(this);
 
         this.state = {
             password: '',
@@ -108,11 +107,9 @@ class SetPasswordPage extends Component {
         Session.setOrChangePassword(accountID, validateCode, this.state.password, this.props.userSignUp.authToken);
     }
 
-    buttonText() {
-        return this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
-    }
 
     render() {
+        const buttonText = this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
         return (
@@ -135,7 +132,7 @@ class SetPasswordPage extends Component {
                                 <Button
                                     success
                                     style={[styles.mb2]}
-                                    text={this.buttonText()}
+                                    text={buttonText}
                                     isLoading={this.props.account.loading || this.props.userSignUp.isValidatingEmail}
                                     onPress={this.validateAndSubmitForm}
                                     isDisabled={!this.state.isFormValid}

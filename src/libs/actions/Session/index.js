@@ -383,6 +383,8 @@ function clearAccountMessages() {
 }
 
 /**
+ * Calls change password and signs if if successful. Otherwise, we request a new magic link
+ * if we know the account email. Otherwise or finally we redirect to the root of the nav.
  * @param {String} authToken
  * @param {String} password
  */
@@ -393,19 +395,19 @@ function changePasswordAndSignIn(authToken, password) {
         password,
     })
         .then((responsePassword) => {
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: undefined});
-            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: undefined});
+            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: null});
             if (responsePassword.jsonCode === 200) {
                 signIn(password);
                 return;
             }
             if (responsePassword.jsonCode === 407 && !credentials.login) {
-                // authToken has expired and we don't have the email set to request a new magic link. send user to login page to enter email.
+                // authToken has expired, and we don't have the email set to request a new magic link.
+                // send user to login page to enter email.
                 Navigation.navigate(ROUTES.HOME);
                 return;
             }
             if (responsePassword.jsonCode === 407) {
-                // authToken has expired and we have the account email so we request  a new magic link.
+                // authToken has expired, and we have the account email, so we request a new magic link.
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
                 resetPassword();
                 Navigation.navigate(ROUTES.HOME);
@@ -450,6 +452,9 @@ function validateEmail(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email});
                 return;
+            }
+            if (responseValidate.jsonCode === 666) {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
