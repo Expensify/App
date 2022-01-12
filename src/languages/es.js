@@ -847,7 +847,7 @@ export default {
             travelAndPlaces: 'Viajes y lugares',
             activities: 'Actividades',
             objects: 'Objetos',
-            symbols: 'Simbolos',
+            symbols: 'Símbolos',
             flags: 'Banderas',
         },
     },
