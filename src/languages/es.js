@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        message: 'Chatear con ',
+        leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -213,8 +215,9 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
+    notificationPreferences: {
+        description: '¿Con qué frecuencia podemos notificarle si haya nuevos mensajes en esta sala de chat?',
+        label: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
@@ -831,14 +834,37 @@ export default {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        waitTime: {
+            calculating: 'Calculando el tiempo de espera...',
+            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
+            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
+            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
+            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrinks: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',
