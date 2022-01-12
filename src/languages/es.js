@@ -95,6 +95,7 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -213,8 +214,9 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
+    notificationPreferences: {
+        description: '¿Con qué frecuencia podemos notificarle si haya nuevos mensajes en esta sala de chat?',
+        label: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',

@@ -194,6 +194,9 @@ function getSimplifiedReportObject(report) {
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
+    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
+    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
+
     return {
         reportID: report.reportID,
         reportName,
@@ -217,6 +220,7 @@ function getSimplifiedReportObject(report) {
         stateNum: report.state,
         statusNum: report.status,
         oldPolicyName,
+        visibility,
     };
 }
 
