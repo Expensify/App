@@ -28,6 +28,7 @@ const propTypes = {
     /** input style */
     inputStyle: PropTypes.arrayOf(PropTypes.object),
 
+    /** If present, this prop forces the label to remain in a position where it will not collide with input text */
     forceActiveLabel: PropTypes.bool,
 
     /** Should the input auto focus? */
