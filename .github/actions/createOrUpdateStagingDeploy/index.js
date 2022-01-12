@@ -195,7 +195,7 @@ const {execSync} = __nccwpck_require__(3129);
  * @returns {Object<{commit: String, subject: String}>}
  */
 function getMergeLogsAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}^...${toRef}`;
+    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const result = execSync(command).toString().trim();
