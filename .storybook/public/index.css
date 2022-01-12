@@ -16,4 +16,5 @@ a.sidebar-item > svg {
 
 #panel-tab-content :is(input:checked ~ span:last-of-type, input:not(:checked) ~ span:first-of-type) {
     background: #ff7101;
+    color: #fff;
 }
