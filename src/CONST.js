@@ -471,6 +471,11 @@ const CONST = {
         BANK_ACCOUNT: 'bankAccount',
     },
 
+    PAYMENT_METHOD_ID_KEYS: {
+        DEBIT_CARD: 'fundID',
+        BANK_ACCOUNT: 'bankAccountID',
+    },
+
     IOU: {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.

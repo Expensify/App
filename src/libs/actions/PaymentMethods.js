@@ -8,7 +8,6 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import Log from '../Log';
 import ROUTES from '../../ROUTES';
 
 /**
@@ -119,12 +118,15 @@ function clearDebitCardFormErrorAndSubmit() {
 /**
  * Call the API to transfer wallet balance.
  * @param {Object} paymentMethod
- * @param {String|Number} paymentMethod.methodID
- * @param {'bankAccount'|'debitCard'} paymentMethod.type
+ * @param {*} paymentMethod.methodID
+ * @param {String} paymentMethod.type
  */
 function transferWalletBalance(paymentMethod) {
+    const paymentMethodIDKey = paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+        ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
+        : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
     const parameters = {
-        [paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? 'bankAccountID' : 'fundID']: paymentMethod.methodID,
+        [paymentMethodIDKey]: paymentMethod.methodID,
     };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
@@ -136,8 +138,7 @@ function transferWalletBalance(paymentMethod) {
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).catch((error) => {
-            Log.alert(`[Payments] Failed to transfer wallet balance: ${error.message}`);
+        }).catch(() => {
             Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
         });
@@ -163,9 +164,6 @@ function saveWalletTransferAmount(transferAmount) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
 }
 
-/**
- * Close the ConfirmModal of Wallet balance transfer
- */
 function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
