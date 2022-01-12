@@ -353,7 +353,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
-        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        instantSummary: ({rate, minAmount}) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
