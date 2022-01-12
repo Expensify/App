@@ -222,13 +222,13 @@ Use `lodashGet()` to safely access object properties and `||` to short circuit n
    ```
 
 ## JSDocs
-- Avoid docs that don't add any additional information. Method descriptions should only be added when it's not obvious what the purpose of the method is by name or from looking at the code.
 - Always document parameters and return values.
+- Avoid docs that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
 - Avoid using block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
 - Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
 - Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
-- Do not document object parameters with record types e.g. `{Object.<string, number>}`.
+- Do not use record types e.g. `{Object.<string, number>}`.
 - Do not create `@typedef` to use in JSDocs.
 - If a parameter accepts more than one type use `*` to denote there is no single type. Do not use a type union e.g. `{(number|boolean)}`.
 - Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
