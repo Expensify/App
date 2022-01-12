@@ -854,6 +854,17 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrinks: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',

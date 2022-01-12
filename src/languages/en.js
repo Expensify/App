@@ -852,6 +852,17 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+        headers: {
+            frequentlyUsed: 'Frequently Used',
+            smileysAndPeople: 'Smileys & People',
+            animalsAndNature: 'Animals & Nature',
+            foodAndDrinks: 'Food & Drinks',
+            travelAndPlaces: 'Travel & Places',
+            activities: 'Activities',
+            objects: 'Objects',
+            symbols: 'Symbols',
+            flags: 'Flags',
+        },
     },
     newRoomPage: {
         newRoom: 'New Room',
