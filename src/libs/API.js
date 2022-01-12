@@ -191,16 +191,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Set an error state and signify we are done loading
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
-    // When the request should be retried add it back to the queue
-    // It will either get retried now, or later when we're back online
-    if (lodashGet(queuedRequest, 'data.shouldRetry')) {
-        Network.post(queuedRequest.command, queuedRequest.data, queuedRequest.type, queuedRequest.shouldUseSecure)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
-
-        return;
-    }
-
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
