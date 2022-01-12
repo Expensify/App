@@ -71,7 +71,7 @@ const CONST = {
             PLAID: 'plaid',
         },
         REGEX: {
-            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -103,6 +103,7 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
+        POLICY_ROOMS: 'policyRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -344,6 +345,8 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ADD_PAYMENT_MENU_POSITION_Y: 226,
+    ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: 320,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
@@ -544,6 +547,18 @@ const CONST = {
     PRONOUNS: {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
+    },
+    GUIDES_CALL_TASK_IDS: {
+        CONCIERGE_DM: 'NewExpensifyConciergeDM',
+        WORKSPACE_INITIAL: 'WorkspaceHome',
+        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_CARD: 'WorkspaceCorporateCards',
+        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
+        WORKSPACE_BILLS: 'WorkspacePayBills',
+        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
+        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
+        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
     },
     get EXPENSIFY_EMAILS() {
         return [

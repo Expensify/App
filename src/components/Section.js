@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
-import styles from '../../styles/styles';
-import MenuItemList from '../../components/MenuItemList';
-import Icon from '../../components/Icon';
-import menuItemPropTypes from '../../components/menuItemPropTypes';
+import Text from './Text';
+import styles from '../styles/styles';
+import MenuItemList from './MenuItemList';
+import Icon from './Icon';
+import menuItemPropTypes from './menuItemPropTypes';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
@@ -31,7 +31,7 @@ const defaultProps = {
     IconComponent: null,
 };
 
-const WorkspaceSection = (props) => {
+const Section = (props) => {
     const IconComponent = props.IconComponent;
     return (
         <>
@@ -56,8 +56,8 @@ const WorkspaceSection = (props) => {
     );
 };
 
-WorkspaceSection.displayName = 'WorkspaceSection';
-WorkspaceSection.propTypes = propTypes;
-WorkspaceSection.defaultProps = defaultProps;
+Section.displayName = 'Section';
+Section.propTypes = propTypes;
+Section.defaultProps = defaultProps;
 
-export default WorkspaceSection;
+export default Section;
