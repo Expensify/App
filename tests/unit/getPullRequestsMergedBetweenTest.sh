@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
 DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
 
