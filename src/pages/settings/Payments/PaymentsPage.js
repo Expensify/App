@@ -14,7 +14,6 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Popover from '../../../components/Popover';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import Text from '../../../components/Text';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
