@@ -2,12 +2,14 @@ import {create} from '@storybook/theming';
 import colors from '../src/styles/colors';
 
 export default create({
+    appBg: colors.dark,
+    barSelectedColor: colors.blue,
     base: 'light',
     brandTitle: 'Expensify UI Docs',
     brandImage: 'logomark.svg',
-    appBg: colors.dark,
-    textColor: 'rgba(255,255,255,0.9)',
-    textInverseColor: colors.black,
+    colorPrimary: colors.dark,
+    colorSecondary: colors.orange,
     fontBase: 'GTAmericaExp-Regular',
-    inputBg: colors.gray1,
+    fontCode: 'monospace',
+    textInverseColor: colors.black,
 });
