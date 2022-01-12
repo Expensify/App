@@ -115,9 +115,9 @@ function addSpacesToEmojiCategories(emojis) {
     _.each(emojis, (emoji, index) => {
         if (emoji.header) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
-        } else {
-            updatedEmojis.push(emoji);
+            return;
         }
+        updatedEmojis.push(emoji);
     });
     return updatedEmojis;
 }
