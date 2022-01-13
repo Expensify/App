@@ -872,9 +872,11 @@ export default {
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
         roomAlreadyExists: 'A room with this name already exists',
+        roomSuccessfullyRenamed: 'Policy room was successfully renamed!',
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
