@@ -81,7 +81,7 @@ const propTypes = {
 const defaultProps = {
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
-    contentContainerStyles: [styles.h100],
+    contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
     sections: [],
     focusedIndex: 0,
