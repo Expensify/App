@@ -1151,7 +1151,7 @@ function CreatePolicyRoom(parameters) {
  * @param {String} parameters.reportName
  * @return {Promise}
  */
- function RenameReport(parameters) {
+function RenameReport(parameters) {
     const commandName = 'RenameReport';
     requireParameters(['policyID', 'reportName'], parameters, commandName);
     return Network.post(commandName, parameters);

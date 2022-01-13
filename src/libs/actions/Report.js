@@ -1535,19 +1535,19 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * @param {String} policyID
  * @param {String} reportName
  */
- function renameReport(policyID, reportName) {
+function renameReport(policyID, reportName) {
     Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return API.RenameReport({policyID, reportName})
+    API.RenameReport({policyID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 Growl.error(response.message);
                 return;
             }
-            Growl.success(Localize.translateLocal('newRoomPage.roomSuccessfullyRenamed'))
+            Growl.success(Localize.translateLocal('newRoomPage.roomSuccessfullyRenamed'));
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
-        })
+        });
 }
 
 export {
