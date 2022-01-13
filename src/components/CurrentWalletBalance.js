@@ -17,11 +17,15 @@ const propTypes = {
         currentBalance: PropTypes.number,
     }),
 
+    /** Styles of the amount */
+    balanceStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+    balanceStyles: [],
 };
 
 const CurrentWalletBalance = (props) => {
@@ -41,7 +45,7 @@ const CurrentWalletBalance = (props) => {
     );
     return (
         <Text
-            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter]}
+            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, ...props.balanceStyles]}
         >
             {`${formattedBalance}`}
         </Text>

@@ -40,6 +40,10 @@ export default {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
+                    Settings_Close: {
+                        path: ROUTES.SETTINGS_CLOSE,
+                        exact: true,
+                    },
                     Settings_Password: {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
@@ -125,11 +129,19 @@ export default {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
+                    GetAssistance: {
+                        path: ROUTES.GET_ASSISTANCE,
+                    },
                 },
             },
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                },
+            },
+            Report_Settings: {
+                screens: {
+                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
                 },
             },
             NewGroup: {

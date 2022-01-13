@@ -6,6 +6,7 @@ import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
+import GetAssistancePage from '../../../pages/GetAssistancePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import IOUSendPage from '../../../pages/iou/IOUSendPage';
@@ -17,6 +18,7 @@ import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
+import SettingsCloseAccountPage from '../../../pages/settings/Security/CloseAccountPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
@@ -42,6 +44,7 @@ import CONST from '../../../CONST';
 import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
+import ReportSettingsPage from '../../../pages/ReportSettingsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -139,6 +142,11 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     name: 'Report_Details_Root',
 }]);
 
+const ReportSettingsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportSettingsPage,
+    name: 'Report_Settings_Root',
+}]);
+
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     {
         Component: ReportParticipantsPage,
@@ -185,6 +193,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsPasswordPage,
         name: 'Settings_Password',
+    },
+    {
+        Component: SettingsCloseAccountPage,
+        name: 'Settings_Close',
     },
     {
         Component: SettingsSecurityPage,
@@ -271,6 +283,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
+    {
+        Component: GetAssistancePage,
+        name: 'GetAssistance',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -300,6 +316,7 @@ export {
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
