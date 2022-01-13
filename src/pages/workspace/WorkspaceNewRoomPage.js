@@ -106,11 +106,11 @@ class WorkspaceNewRoomPage extends React.Component {
         }
 
         if (!this.state.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+            errors.policyID = this.props.translate('newRoomPage.pleaseChooseWorkspace');
         }
 
         if (!this.state.visibility) {
-            errors.visibility = this.props.translate('newRoomPage.pleaseSelectVisibility');
+            errors.visibility = this.props.translate('newRoomPage.pleaseChooseVisibility');
         }
 
         this.setState({errors});
