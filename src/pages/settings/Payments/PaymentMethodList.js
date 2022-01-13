@@ -45,6 +45,9 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
+    /** Whether the add Payment button be shown on the list */
+    shouldShowAddPaymentMethodButton: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -54,6 +57,7 @@ const defaultProps = {
     cardList: [],
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
+    shouldShowAddPaymentMethodButton: true,
 };
 
 class PaymentMethodList extends Component {
@@ -81,6 +85,10 @@ class PaymentMethodList extends Component {
             combinedPaymentMethods.push({
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
+        }
+
+        if (!this.props.shouldShowAddPaymentMethodButton) {
+            return combinedPaymentMethods;
         }
 
         combinedPaymentMethods.push({
@@ -119,6 +127,8 @@ class PaymentMethodList extends Component {
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
                     wrapperStyle={item.wrapperStyle}
+                    shouldShowSelectedState={this.props.shouldShowSelectedState}
+                    isSelected={this.props.selectedMethodID === item.methodID}
                 />
             );
         }
