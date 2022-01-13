@@ -2367,6 +2367,20 @@ const styles = {
         backgroundColor: colors.black,
         flex: 1,
     },
+
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
+
+    transferBalanceBalance: {
+        fontSize: 48,
+    },
 };
 
 export default styles;
