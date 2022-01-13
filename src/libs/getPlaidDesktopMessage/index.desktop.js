@@ -1,3 +1,1 @@
-export default () => {
-  return 'bankAccount.desktopConnection';
-};
+export default () => 'bankAccount.desktopConnection';
