@@ -5,8 +5,9 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
 #import <Firebase.h>
-#import "RCTStartupTimer.h"
+#import <GoogleMaps/GoogleMaps.h>
 
+#import "RCTStartupTimer.h"
 #import "RNBootSplash.h"
 
 #import <UserNotifications/UserNotifications.h>
@@ -34,6 +35,9 @@ static void InitializeFlipper(UIApplication *application) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  // Configure google maps
+  [GMSServices provideAPIKey:@"_YOUR_API_KEY_"];
+
   // Configure firebase
   [FIRApp configure];
 

@@ -180,4 +180,7 @@ export default {
 
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
+
+    // User's current location lat/lng
+    USER_LOCATION: 'userLocation',
 };

@@ -1,14 +1,27 @@
 import React from 'react';
-import * as Geolocation from '../libs/Geolocation';
+import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
+import * as GeoLocation from '../libs/actions/GeoLocation';
+import ONYXKEYS from '../ONYXKEYS';
+import Text from '../components/Text';
 
 class DistanceRequestPage extends React.Component {
     componentDidMount() {
-        Geolocation.requestPermission();
+        GeoLocation.getCurrentLocation();
     }
 
     render() {
-        return null;
+        return (
+            <View style={{margin: 100}}>
+                <Text>Geolocation test</Text>
+                <Text>{JSON.stringify(this.props.userLocation || '')}</Text>
+            </View>
+        );
     }
 }
 
-export default DistanceRequestPage;
+export default withOnyx({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+})(DistanceRequestPage);

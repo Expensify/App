@@ -1,7 +1,7 @@
-/* eslint-disable  import/prefer-default-export  */
 import Onyx from 'react-native-onyx';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../../API';
+import ONYXKEYS from '../../../ONYXKEYS';
+import getCurrentLocation from './getCurrentLocation';
 
 /**
  * Makes a request so that we can get the current country code by the users IP address.
@@ -15,4 +15,5 @@ function fetchCountryCodeByRequestIP() {
 
 export {
     fetchCountryCodeByRequestIP,
+    getCurrentLocation,
 };
