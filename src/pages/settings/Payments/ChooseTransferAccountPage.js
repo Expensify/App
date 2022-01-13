@@ -76,8 +76,8 @@ const ChooseTransferAccountPage = (props) => {
                 <MenuItem
                     onPress={navigateToAddPaymentMethodPage}
                     title={props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                        ? props.translate('paymentMethodList.addBankAccount')
-                        : props.translate('paymentMethodList.addDebitCard')}
+                        ? props.translate('paymentMethodList.addNewBankAccount')
+                        : props.translate('paymentMethodList.addNewDebitCard')}
                     icon={Expensicons.Plus}
                     disabled={props.isLoadingPaymentMethods}
                 />
