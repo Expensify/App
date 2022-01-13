@@ -49,7 +49,7 @@ const propTypes = {
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
     /** Type to filter the payment Method list */
-    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT]).isRequired,
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
     ...withLocalizePropTypes,
 };
@@ -61,6 +61,7 @@ const defaultProps = {
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
+    filterType: '',
 };
 
 class PaymentMethodList extends Component {
