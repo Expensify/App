@@ -64,7 +64,7 @@ const ChooseTransferAccountPage = (props) => {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.mt4, styles.flexShrink1, styles.flexBasisAuto]}>
+                <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
                     <PaymentMethodList
                         onPress={selectAccountAndNavigateBack}
                         shouldShowSelectedState
