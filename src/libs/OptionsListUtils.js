@@ -385,7 +385,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         sortProperty = ['reportName'];
     }
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+
+    // Move the archived Rooms to the last
+    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
