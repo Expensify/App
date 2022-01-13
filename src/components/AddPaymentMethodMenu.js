@@ -9,7 +9,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import Permissions from "../libs/Permissions";
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     isVisible: PropTypes.bool.isRequired,
@@ -35,6 +35,7 @@ const defaultProps = {
     anchorPosition: {},
     payPalMeUsername: '',
     shouldShowPaypal: true,
+    betas: [],
 };
 
 const AddPaymentMethodMenu = props => (
