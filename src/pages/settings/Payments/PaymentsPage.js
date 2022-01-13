@@ -269,21 +269,23 @@ class PaymentsPage extends React.Component {
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
                                 />
                             )}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    this.setState({
-                                        shouldShowPasswordPrompt: true,
-                                        shouldShowDefaultDeleteMenu: false,
-                                        passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                    });
-                                }}
-                                style={[styles.button, isPayPalMeSelected && styles.buttonDisable, styles.alignSelfCenter, styles.w100]}
-                                disabled={isPayPalMeSelected}
-                            >
-                                <Text style={[styles.buttonText, isPayPalMeSelected && styles.disabledText]}>
-                                    {this.props.translate('paymentsPage.setDefaultConfirmation')}
-                                </Text>
-                            </TouchableOpacity>
+                            {Permissions.canUseWallet(this.props.betas) && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        this.setState({
+                                            shouldShowPasswordPrompt: true,
+                                            shouldShowDefaultDeleteMenu: false,
+                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                        });
+                                    }}
+                                    style={[styles.button, isPayPalMeSelected && styles.buttonDisable, styles.alignSelfCenter, styles.w100]}
+                                    disabled={isPayPalMeSelected}
+                                >
+                                    <Text style={[styles.buttonText, isPayPalMeSelected && styles.disabledText]}>
+                                        {this.props.translate('paymentsPage.setDefaultConfirmation')}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                                 onPress={() => {
                                     this.setState({
@@ -294,7 +296,7 @@ class PaymentsPage extends React.Component {
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
-                                    styles.mt4,
+                                    Permissions.canUseWallet(this.props.betas) && styles.mt4,
                                     styles.alignSelfCenter,
                                     styles.w100,
                                 ]}
