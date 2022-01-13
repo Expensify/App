@@ -1536,7 +1536,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * @param {String} reportName
  */
 function renameReport(policyID, reportName) {
-    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
     API.RenameReport({policyID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
