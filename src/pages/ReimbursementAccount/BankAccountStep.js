@@ -201,9 +201,9 @@ class BankAccountStep extends React.Component {
                         <Text style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('bankAccount.toGetStarted')}
                         </Text>
-                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                            <TextLink href="https://use.expensify.com/privacy">
-                                {this.props.translate('common.privacy')}
+                        <View style={[styles.m2, styles.flexRow, styles.justifyContentBetween]}>
+                            <TextLink href="https://new.expensify.com/bank-account/">
+                                {this.props.translate('bankAccount.desktopConnection')}
                             </TextLink>
                         </View>
                         <MenuItem
