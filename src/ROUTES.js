@@ -13,6 +13,7 @@ const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
+const IOU_REQUEST_DISTANCE = `${IOU_REQUEST}/distance`;
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -52,6 +53,7 @@ export default {
     getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
     IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
+    IOU_REQUEST_DISTANCE: `${IOU_REQUEST_DISTANCE}/:reportID?`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,

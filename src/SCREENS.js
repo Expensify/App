@@ -7,4 +7,5 @@ export default {
     LOADING: 'Loading',
     REPORT: 'Report',
     LOG_IN_WITH_SHORT_LIVED_TOKEN: 'LogInWithShortLivedToken',
+    IOU_REQUEST_DISTANCE: 'IOU_Request_Distance',
 };

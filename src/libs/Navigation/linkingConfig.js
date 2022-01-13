@@ -174,6 +174,7 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                    [SCREENS.IOU_REQUEST_DISTANCE]: ROUTES.IOU_REQUEST_DISTANCE,
                 },
             },
             IOU_Bill: {

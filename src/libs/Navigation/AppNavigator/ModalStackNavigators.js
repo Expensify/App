@@ -45,6 +45,8 @@ import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage'
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 import ReportSettingsPage from '../../../pages/ReportSettingsPage';
+import DistanceRequestPage from '../../../pages/DistanceRequestPage';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -92,7 +94,12 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
 {
     Component: IOUCurrencySelection,
     name: 'IOU_Request_Currency',
-}]);
+},
+{
+    Component: DistanceRequestPage,
+    name: SCREENS.IOU_REQUEST_DISTANCE,
+},
+]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{
     Component: IOUSendPage,
