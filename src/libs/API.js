@@ -1145,6 +1145,18 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+ function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['policyID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
