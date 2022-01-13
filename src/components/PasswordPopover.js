@@ -3,11 +3,11 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
-import TextInputFocusable from './TextInputFocusable';
 import Popover from './Popover';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import withWindowDimensions from './withWindowDimensions';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Is the popover currently showing? */
@@ -76,22 +76,23 @@ class PasswordPopover extends Component {
                     <Text
                         style={[
                             styles.alignSelfCenter,
+                            styles.mb3,
                         ]}
                     >
                         {this.props.translate('passwordForm.pleaseFillPassword')}
                     </Text>
-                    <TextInputFocusable
-                        style={[
-                            styles.textInput,
-                            styles.border,
-                            styles.w100,
-                            styles.mt3,
-                        ]}
-                        onChangeText={password => this.setState({password})}
+                    <TextInput
+                        label={this.props.translate('common.password')}
                         ref={el => this.passwordInput = el}
-                        onSubmitEditing={() => this.props.onSubmit(this.state.password)}
-                        autoFocus
                         secureTextEntry
+                        autoCompleteType="password"
+                        textContentType="password"
+                        value={this.state.currentPassword}
+                        onChangeText={password => this.setState({password})}
+                        returnKeyType="done"
+                        onSubmitEditing={() => this.props.onSubmit(this.state.password)}
+                        style={styles.mt3}
+                        autoFocus
                     />
                     <TouchableOpacity
                         onPress={() => this.props.onSubmit(this.state.password)}
