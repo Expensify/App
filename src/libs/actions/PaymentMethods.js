@@ -164,6 +164,20 @@ function saveWalletTransferAmount(transferAmount) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
 }
 
+/**
+ * @param {String} selectedAccountID
+ */
+function saveWalletTransferAccount(selectedAccountID) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountID});
+}
+
+/**
+ * @param {String} filterPaymentMethodType
+ */
+function saveWalletTransferMethodType(filterPaymentMethodType) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {filterPaymentMethodType});
+}
+
 function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
@@ -177,5 +191,7 @@ export {
     transferWalletBalance,
     saveWalletTransferAccountAndResetData,
     saveWalletTransferAmount,
+    saveWalletTransferAccount,
+    saveWalletTransferMethodType,
     dismissWalletConfirmModal,
 };
