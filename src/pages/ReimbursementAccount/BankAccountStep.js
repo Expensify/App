@@ -173,6 +173,7 @@ class BankAccountStep extends React.Component {
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
+        const plaidDesktopConnection =
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -198,10 +199,10 @@ class BankAccountStep extends React.Component {
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />
-                        <Text style={[styles.mh5, styles.mb5]}>
+                        <Text style={[styles.mh5, styles.mb1]}>
                             {this.props.translate('bankAccount.toGetStarted')}
                         </Text>
-                        <View style={[styles.m2, styles.flexRow, styles.justifyContentBetween]}>
+                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
                             <TextLink href="https://new.expensify.com/bank-account/">
                                 {this.props.translate('bankAccount.desktopConnection')}
                             </TextLink>
