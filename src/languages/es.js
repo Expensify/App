@@ -874,11 +874,11 @@ export default {
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExists: 'Ya existe una sala con este nombre',
-        roomSuccessfullyRenamed: 'Your room was successfully renamed!',
+        roomSuccessfullyRenamed: '¡Espacio de trabajo renombrado con éxito!',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
-        growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
+        growlMessageOnRenameError: 'No ha sido posible cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
