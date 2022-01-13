@@ -130,7 +130,7 @@ function transferWalletBalance(paymentMethod) {
     };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    API.TransferWalletBalance(parameters)
+    API.Wallet_TransferBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);

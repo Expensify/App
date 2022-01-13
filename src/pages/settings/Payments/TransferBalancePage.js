@@ -97,7 +97,6 @@ class TransferBalancePage extends React.Component {
             },
         ];
 
-        this.saveTransferAmountAndBalance = this.saveTransferAmountAndBalance.bind(this);
         PaymentMethods.resetWalletTransferData();
     }
 
@@ -119,7 +118,7 @@ class TransferBalancePage extends React.Component {
      * @param {Number} transferAmount
      * @param {Object} selectedAccount
      */
-    saveTransferAmountAndBalance(transferAmount, selectedAccount) {
+    saveTransferAmountAndStartTransfer(transferAmount, selectedAccount) {
         PaymentMethods.saveWalletTransferAmount(transferAmount);
         PaymentMethods.transferWalletBalance(selectedAccount);
     }
@@ -133,6 +132,7 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
+        this.props.userWallet.currentBalance = 125;
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
@@ -222,7 +222,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={() => this.saveTransferAmountAndBalance(transferAmount, selectedAccount)}
+                            onPress={() => this.saveTransferAmountAndStartTransfer(transferAmount, selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
