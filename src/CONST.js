@@ -390,10 +390,19 @@ const CONST = {
     },
 
     WALLET: {
-        TRANSFER_BALANCE_FEE: 0.30,
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
+        },
+        TRANSFER_METHOD_TYPE_FEE: {
+            INSTANT: {
+                RATE: 1.5,
+                MINIMUM_FEE: 25,
+            },
+            ACH: {
+                RATE: 0,
+                MINIMUM_FEE: 0,
+            },
         },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
@@ -464,6 +473,11 @@ const CONST = {
         PAYPAL: 'payPalMe',
         DEBIT_CARD: 'debitCard',
         BANK_ACCOUNT: 'bankAccount',
+    },
+
+    PAYMENT_METHOD_ID_KEYS: {
+        DEBIT_CARD: 'fundID',
+        BANK_ACCOUNT: 'bankAccountID',
     },
 
     IOU: {
