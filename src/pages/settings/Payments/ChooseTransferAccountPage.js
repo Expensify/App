@@ -22,25 +22,21 @@ const propTypes = {
     /** Wallet transfer propTypes */
     walletTransfer: walletTransferPropTypes,
 
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     walletTransfer: {},
-    isLoadingPaymentMethods: false,
 };
 
 const ChooseTransferAccountPage = (props) => {
     /**
-     * Go back to TransferPage with the selected bank account
+     * Go back to transfer balance screen with the selected bank account set
      * @param {Object} event Click event object
      * @param {String} accountID of the selected account.
      */
     const selectAccountAndNavigateBack = (event, accountID) => {
-        PaymentMethods.saveWalletTransferAccount(accountID);
+        PaymentMethods.saveWalletTransferAccountID(accountID);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 
@@ -79,7 +75,6 @@ const ChooseTransferAccountPage = (props) => {
                         ? props.translate('paymentMethodList.addNewBankAccount')
                         : props.translate('paymentMethodList.addNewDebitCard')}
                     icon={Expensicons.Plus}
-                    disabled={props.isLoadingPaymentMethods}
                 />
             </KeyboardAvoidingView>
         </ScreenWrapper>
@@ -95,10 +90,6 @@ export default compose(
     withOnyx({
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
-        },
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
         },
     }),
 )(ChooseTransferAccountPage);

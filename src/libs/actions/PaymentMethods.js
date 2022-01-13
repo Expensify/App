@@ -163,11 +163,12 @@ function saveWalletTransferAmount(transferAmount) {
 /**
  * @param {String} selectedAccountID
  */
-function saveWalletTransferAccount(selectedAccountID) {
+function saveWalletTransferAccountID(selectedAccountID) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountID});
 }
 
 /**
+ * Toggles the user's selected type of payment method (bank account or debit card) on the wallet transfer balance screen.
  * @param {String} filterPaymentMethodType
  */
 function saveWalletTransferMethodType(filterPaymentMethodType) {
@@ -187,7 +188,7 @@ export {
     transferWalletBalance,
     resetWalletTransferData,
     saveWalletTransferAmount,
-    saveWalletTransferAccount,
+    saveWalletTransferAccountID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
 };

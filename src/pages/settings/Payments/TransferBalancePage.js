@@ -132,7 +132,6 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
-        this.props.userWallet.currentBalance = 125;
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
