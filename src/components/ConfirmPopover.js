@@ -68,7 +68,7 @@ const ConfirmPopover = props => (
         >
             <Text
                 style={[
-                    styles.alignSelfCenter,
+                    styles.mb5,
                 ]}
             >
                 {props.title}
