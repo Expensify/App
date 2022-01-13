@@ -2,9 +2,6 @@ import {useCallback, useEffect} from 'react';
 import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
-import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
-import * as Localize from '../../libs/Localize';
 
 const PlaidLink = (props) => {
     const onSuccess = useCallback((publicToken, metadata) => {

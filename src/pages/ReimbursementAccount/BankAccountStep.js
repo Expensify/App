@@ -27,6 +27,7 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
+import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -173,7 +174,7 @@ class BankAccountStep extends React.Component {
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
-        const plaidDesktopConnection =
+        const plaidDesktopConnection = getPlaidDesktopMessage();
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -202,11 +203,13 @@ class BankAccountStep extends React.Component {
                         <Text style={[styles.mh5, styles.mb1]}>
                             {this.props.translate('bankAccount.toGetStarted')}
                         </Text>
-                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                            <TextLink href="https://new.expensify.com/bank-account/">
-                                {this.props.translate('bankAccount.desktopConnection')}
-                            </TextLink>
-                        </View>
+                        {plaidDesktopConnection && (
+                            <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                                <TextLink href="https://new.expensify.com/bank-account/">
+                                    {this.props.translate(plaidDesktopConnection)}
+                                </TextLink>
+                            </View>
+                        )}
                         <MenuItem
                             icon={Expensicons.Bank}
                             title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
