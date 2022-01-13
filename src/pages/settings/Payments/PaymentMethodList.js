@@ -48,6 +48,9 @@ const propTypes = {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
+    /** Type to filter the payment Method list */
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT]).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -74,6 +77,11 @@ class PaymentMethodList extends Component {
      */
     createPaymentMethodList() {
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+
+        if (!_.isEmpty(this.props.filterType)) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.type === this.props.filterType);
+        }
+
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
