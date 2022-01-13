@@ -1,3 +1,14 @@
 import React from 'react';
+import * as Geolocation from '../libs/Geolocation';
 
-export default () => null;
+class DistanceRequestPage extends React.Component {
+    componentDidMount() {
+        Geolocation.requestPermission();
+    }
+
+    render() {
+        return null;
+    }
+}
+
+export default DistanceRequestPage;
