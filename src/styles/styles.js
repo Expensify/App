@@ -1577,6 +1577,10 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    pointerEventsNone: {
+        pointerEvents: 'none',
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
