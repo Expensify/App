@@ -422,7 +422,6 @@ function CreateLogin(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.fundID
  * @returns {Promise}
- * @constructor
  */
 function DeleteFund(parameters) {
     const commandName = 'DeleteFund';
