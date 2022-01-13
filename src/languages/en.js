@@ -475,7 +475,7 @@ export default {
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Connect online with Plaid',
         connectManually: 'Connect manually',
-        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to use a browser tab instead.',
+        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
