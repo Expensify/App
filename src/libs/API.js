@@ -1145,6 +1145,7 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * Renames a user create policy room
  * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {String} parameters.reportName
@@ -1183,6 +1184,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
     DeleteLogin,
     DeleteBankAccount,
     Get,
