@@ -1542,7 +1542,7 @@ function renameReport(reportID, reportName) {
                 Growl.error(response.message);
                 return;
             }
-            Growl.success(Localize.translateLocal('newRoomPage.roomSuccessfullyRenamed'));
+            Growl.success(Localize.translateLocal('newRoomPage.roomRenamed'));
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
