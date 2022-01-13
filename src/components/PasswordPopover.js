@@ -75,7 +75,6 @@ class PasswordPopover extends Component {
                 >
                     <Text
                         style={[
-                            styles.alignSelfCenter,
                             styles.mb3,
                         ]}
                     >
