@@ -1703,6 +1703,15 @@ const styles = {
         ...flex.alignItemsCenter,
     },
 
+    reportSettingsChangeNameButton: {
+        height: 42,
+        paddingHorizontal: 20,
+    },
+
+    reportSettingsVisibilityText: {
+        textTransform: 'capitalize',
+    },
+
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
@@ -2356,6 +2365,20 @@ const styles = {
     iPhoneXSafeArea: {
         backgroundColor: colors.black,
         flex: 1,
+    },
+
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
+
+    transferBalanceBalance: {
+        fontSize: 48,
     },
 };
 

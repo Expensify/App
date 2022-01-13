@@ -28,7 +28,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * @param {Object} userWallet
  * @returns {Array<PaymentMethod>}
  */
-function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -93,7 +93,21 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', use
     return combinedPaymentMethods;
 }
 
+/**
+ * @param {Number} currentBalance
+ * @param {String} methodType
+ * @returns {Number}
+ */
+function calculateWalletTransferBalanceFee(currentBalance, methodType) {
+    const transferMethodTypeFeeStructure = methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT
+        ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT
+        : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
+    const calculateFee = (currentBalance * transferMethodTypeFeeStructure.RATE) / 100;
+    return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
+}
+
 export {
     hasExpensifyPaymentMethod,
-    getPaymentMethods,
+    formatPaymentMethods,
+    calculateWalletTransferBalanceFee,
 };

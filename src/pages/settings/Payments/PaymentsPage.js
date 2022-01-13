@@ -25,19 +25,29 @@ import Permissions from '../../../libs/Permissions';
 import ConfirmPopover from '../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import walletTransferPropTypes from './walletTransferPropTypes';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
+    /** Wallet balance transfer props */
+    walletTransfer: walletTransferPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    walletTransfer: {
+        shouldShowConfirmModal: false,
+    },
     betas: [],
     isLoadingPaymentMethods: true,
 };
@@ -64,6 +74,7 @@ class PaymentsPage extends React.Component {
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
+        this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
     }
 
     componentDidMount() {
@@ -186,6 +197,10 @@ class PaymentsPage extends React.Component {
         }
     }
 
+    navigateToTransferBalancePage() {
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
+    }
+
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
         return (
@@ -198,9 +213,19 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View style={styles.flex1}>
-                        {
-                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
-                        }
+                        {Permissions.canUseWallet(this.props.betas) && (
+                            <>
+                                <View style={[styles.mv5]}>
+                                    <CurrentWalletBalance />
+                                </View>
+                                <MenuItem
+                                    title={this.props.translate('common.transferBalance')}
+                                    icon={Expensicons.Transfer}
+                                    onPress={this.navigateToTransferBalancePage}
+                                    shouldShowRightIcon
+                                />
+                            </>
+                        )}
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -315,6 +340,19 @@ class PaymentsPage extends React.Component {
                         shouldShowCancelButton
                         danger
                     />
+                    <ConfirmModal
+                        title={this.props.translate('paymentsPage.allSet')}
+                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
+                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
+                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
+                            amount: this.props.numberFormat(
+                                this.props.walletTransfer.transferAmount / 100,
+                                {style: 'currency', currency: 'USD'},
+                            ),
+                        })}
+                        confirmText={this.props.translate('paymentsPage.gotIt')}
+                        shouldShowCancelButton={false}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -330,6 +368,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,

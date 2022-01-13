@@ -415,6 +415,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
+        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+            return;
+        }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
