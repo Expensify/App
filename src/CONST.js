@@ -1,8 +1,9 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
+import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com');
+const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -16,7 +17,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
