@@ -144,13 +144,9 @@ function transferWalletBalance(paymentMethod) {
         });
 }
 
-/**
- * Set the transfer account and reset the transfer data for Wallet balance transfer
- * @param {String} selectedAccountID
- */
-function saveWalletTransferAccountAndResetData(selectedAccountID) {
+function resetWalletTransferData() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
-        selectedAccountID,
+        selectedAccountID: null,
         filterPaymentMethodType: null,
         loading: false,
         shouldShowConfirmModal: false,
@@ -189,7 +185,7 @@ export {
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
     transferWalletBalance,
-    saveWalletTransferAccountAndResetData,
+    resetWalletTransferData,
     saveWalletTransferAmount,
     saveWalletTransferAccount,
     saveWalletTransferMethodType,

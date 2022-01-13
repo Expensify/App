@@ -98,8 +98,7 @@ class TransferBalancePage extends React.Component {
         ];
 
         this.saveTransferAmountAndBalance = this.saveTransferAmountAndBalance.bind(this);
-        const selectedAccount = this.getSelectedPaymentMethodAccount();
-        PaymentMethods.saveWalletTransferAccountAndResetData(selectedAccount ? selectedAccount.id : '');
+        PaymentMethods.resetWalletTransferData();
     }
 
     /**
