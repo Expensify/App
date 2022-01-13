@@ -36,11 +36,12 @@ const defaultProps = {
 const ChooseTransferAccountPage = (props) => {
     /**
      * Go back to TransferPage with the selected bank account
+     * @param {Object} event Click event object
      * @param {String} accountID of the selected account.
      */
-    const selectAccountAndNavigateBack = (accountID) => {
-        PaymentMethods.saveWalletTransferAccount({selectedAccountID: accountID});
-        Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
+    const selectAccountAndNavigateBack = (event, accountID) => {
+        PaymentMethods.saveWalletTransferAccount(accountID);
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 
     /**

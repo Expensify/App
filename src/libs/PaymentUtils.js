@@ -48,6 +48,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             icon,
             iconSize,
             key: `bankAccount-${bankAccount.bankAccountID}`,
+            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
         });
     });
 
@@ -63,6 +64,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             icon,
             iconSize,
             key: `card-${card.cardNumber}`,
+            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         });
     });
 
@@ -73,6 +75,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             description: payPalMeUsername,
             icon: Expensicons.PayPal,
             key: 'payPalMePaymentMethod',
+            type: CONST.PAYMENT_METHODS.PAYPAL,
         });
     }
 
