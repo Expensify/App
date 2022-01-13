@@ -23,6 +23,8 @@ const ActivateStep = props => (
         <HeaderWithCloseButton
             title={props.translate('activateStep.headerTitle')}
             onCloseButtonPress={() => Navigation.dismissModal()}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
         />
         <View style={[styles.mh5, styles.flex1]}>
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && (

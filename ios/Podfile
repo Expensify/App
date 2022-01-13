@@ -6,7 +6,7 @@ platform :ios, '11.0'
 target 'NewExpensify' do
   permissions_path = '../node_modules/react-native-permissions/ios'
 
-  pod 'Plaid', '~> 2.2.0'
+  pod 'Plaid', '~> 2.3.1'
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
@@ -30,6 +30,7 @@ target 'NewExpensify' do
 
   post_install do |installer|
     react_native_post_install(installer)
+    __apply_Xcode_12_5_M1_post_install_workaround(installer)
 
     installer.pods_project.build_configurations.each do |config|
       config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"

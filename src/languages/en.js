@@ -95,6 +95,7 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        leaveRoom: 'Leave room',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -213,8 +214,9 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -287,6 +289,18 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        enterMessageHere: 'Enter message here',
+        closeAccountWarning: 'Closing your account cannot be undone.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountTryAgainAfter: 'and try again after.',
+        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -422,6 +436,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
@@ -512,7 +527,6 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
@@ -523,6 +537,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraPermissionsNotGranted: 'Camera permissions not granted',
+        cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -803,6 +819,14 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
+    getAssistancePage: {
+        title: 'Get assistance',
+        subtitle: 'Have questions, or need help?',
+        description: 'We have answers! Choose from the support options below:',
+        chatWithConcierge: 'Chat with Concierge',
+        requestSetupCall: 'Request a setup call',
+        questionMarkButtonTooltip: 'Get assistance from our team',
+    },
     requestCallPage: {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
@@ -810,7 +834,6 @@ export default {
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
     },
