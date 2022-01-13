@@ -2392,6 +2392,19 @@ const styles = {
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
+
+    transferBalanceBalance: {
+        fontSize: 48,
+    },
 };
 
 export default styles;

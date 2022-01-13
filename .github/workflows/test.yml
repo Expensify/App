@@ -33,6 +33,10 @@ jobs:
           max_attempts: 5
           command: npm ci
 
-      - run: npm run test
+      - name: Jest Unit Tests
+        run: npm run test
         env:
           CI: true
+
+      - name: Pull Request Tests
+        run: tests/unit/getPullRequestsMergedBetweenTest.sh

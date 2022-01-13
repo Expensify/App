@@ -1,8 +1,9 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
+import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com');
+const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -16,7 +17,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -152,7 +153,7 @@ const CONST = {
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
-            shortcutKey: '?',
+            shortcutKey: 'I',
             modifiers: ['CTRL'],
         },
         ESCAPE: {
@@ -390,10 +391,19 @@ const CONST = {
     },
 
     WALLET: {
-        TRANSFER_BALANCE_FEE: 0.30,
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
+        },
+        TRANSFER_METHOD_TYPE_FEE: {
+            INSTANT: {
+                RATE: 1.5,
+                MINIMUM_FEE: 25,
+            },
+            ACH: {
+                RATE: 0,
+                MINIMUM_FEE: 0,
+            },
         },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
@@ -466,6 +476,11 @@ const CONST = {
         BANK_ACCOUNT: 'bankAccount',
     },
 
+    PAYMENT_METHOD_ID_KEYS: {
+        DEBIT_CARD: 'fundID',
+        BANK_ACCOUNT: 'bankAccountID',
+    },
+
     IOU: {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -527,6 +542,7 @@ const CONST = {
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,

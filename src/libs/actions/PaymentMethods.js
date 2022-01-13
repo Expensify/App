@@ -8,6 +8,7 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
+import ROUTES from '../../ROUTES';
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
@@ -114,10 +115,67 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
+/**
+ * Call the API to transfer wallet balance.
+ * @param {Object} paymentMethod
+ * @param {*} paymentMethod.methodID
+ * @param {String} paymentMethod.type
+ */
+function transferWalletBalance(paymentMethod) {
+    const paymentMethodIDKey = paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+        ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
+        : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
+    const parameters = {
+        [paymentMethodIDKey]: paymentMethod.methodID,
+    };
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
+
+    API.TransferWalletBalance(parameters)
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
+            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        }).catch(() => {
+            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
+        });
+}
+
+/**
+ * Set the transfer account and reset the transfer data for Wallet balance transfer
+ * @param {String} selectedAccountID
+ */
+function saveWalletTransferAccountAndResetData(selectedAccountID) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
+        selectedAccountID,
+        filterPaymentMethodType: null,
+        loading: false,
+        shouldShowConfirmModal: false,
+    });
+}
+
+/**
+ * @param {Number} transferAmount
+ */
+function saveWalletTransferAmount(transferAmount) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
+}
+
+function dismissWalletConfirmModal() {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
+}
+
 export {
     getPaymentMethods,
     addBillingCard,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
+    transferWalletBalance,
+    saveWalletTransferAccountAndResetData,
+    saveWalletTransferAmount,
+    dismissWalletConfirmModal,
 };
