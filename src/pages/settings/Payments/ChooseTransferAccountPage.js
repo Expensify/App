@@ -39,7 +39,7 @@ const ChooseTransferAccountPage = (props) => {
      * @param {String} accountID of the selected account.
      */
     const selectAccountAndNavigateBack = (accountID) => {
-        PaymentMethods.updateWalletTransferData({selectedAccountID: accountID});
+        PaymentMethods.saveWalletTransferAccount({selectedAccountID: accountID});
         Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
     };
 
@@ -63,7 +63,7 @@ const ChooseTransferAccountPage = (props) => {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.flexShrink1, styles.flexBasisAuto]}>
+                <View style={[styles.mt4, styles.flexShrink1, styles.flexBasisAuto]}>
                     <PaymentMethodList
                         onPress={selectAccountAndNavigateBack}
                         shouldShowSelectedState
@@ -74,7 +74,7 @@ const ChooseTransferAccountPage = (props) => {
                 </View>
                 <MenuItem
                     onPress={navigateToAddPaymentMethodPage}
-                    title={props.filterType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                    title={props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
                         ? props.translate('paymentMethodList.addBankAccount')
                         : props.translate('paymentMethodList.addDebitCard')}
                     icon={Expensicons.Plus}

@@ -24,6 +24,7 @@ import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** User's wallet information */
@@ -124,6 +125,14 @@ class TransferBalancePage extends React.Component {
         PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
+    /**
+     * @param {String} filterPaymentMethodType
+     */
+    navigateToChooseTransferAccount(filterPaymentMethodType) {
+        PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
+    }
+
     render() {
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
@@ -164,6 +173,7 @@ class TransferBalancePage extends React.Component {
                                     ...(selectedPaymentType === paymentType.key
                                         && styles.transferBalanceSelectedPayment),
                                 }}
+                                onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
                             />
                         ))}
                         <Text
@@ -184,6 +194,7 @@ class TransferBalancePage extends React.Component {
                                         ...styles.mrn5,
                                         ...styles.ph0,
                                     }}
+                                    onPress={() => this.navigateToChooseTransferAccount(selectedAccount.type)}
                                 />
                             )}
                         <Text
