@@ -28,6 +28,8 @@ import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
+import CONFIG from '../../CONFIG';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -175,6 +177,7 @@ class BankAccountStep extends React.Component {
         const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
+        const bankAccountRoute = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH}${ROUTES.BANK_ACCOUNT}`;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -205,7 +208,7 @@ class BankAccountStep extends React.Component {
                         </Text>
                         {plaidDesktopMessage && (
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href="https://new.expensify.com/bank-account/">
+                                <TextLink href={bankAccountRoute}>
                                     {this.props.translate(plaidDesktopMessage)}
                                 </TextLink>
                             </View>
