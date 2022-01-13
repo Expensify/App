@@ -1,5 +1,8 @@
+import lodashGet from 'lodash/get';
+import Config from 'react-native-config';
+
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com');
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -13,7 +16,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -71,7 +74,7 @@ const CONST = {
             PLAID: 'plaid',
         },
         REGEX: {
-            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -103,6 +106,7 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
+        POLICY_ROOMS: 'policyRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -148,7 +152,7 @@ const CONST = {
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
-            shortcutKey: '?',
+            shortcutKey: 'I',
             modifiers: ['CTRL'],
         },
         ESCAPE: {
@@ -194,7 +198,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
@@ -537,6 +541,7 @@ const CONST = {
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -560,6 +565,18 @@ const CONST = {
     PRONOUNS: {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
+    },
+    GUIDES_CALL_TASK_IDS: {
+        CONCIERGE_DM: 'NewExpensifyConciergeDM',
+        WORKSPACE_INITIAL: 'WorkspaceHome',
+        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_CARD: 'WorkspaceCorporateCards',
+        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
+        WORKSPACE_BILLS: 'WorkspacePayBills',
+        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
+        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
+        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
     },
     get EXPENSIFY_EMAILS() {
         return [
