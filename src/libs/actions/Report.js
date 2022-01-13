@@ -1532,11 +1532,11 @@ function createPolicyRoom(policyID, reportName, visibility) {
 
 /**
  * Renames a user created Policy Room.
- * @param {String} policyID
+ * @param {String} reportID
  * @param {String} reportName
  */
-function renameReport(policyID, reportName) {
-    API.RenameReport({policyID, reportName})
+function renameReport(reportID, reportName) {
+    API.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 Growl.error(response.message);

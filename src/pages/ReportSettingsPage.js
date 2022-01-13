@@ -91,7 +91,6 @@ class ReportSettingsPage extends Component {
     render() {
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
-        const policyID = linkedWorkspace && linkedWorkspace.id;
 
         return (
             <ScreenWrapper>
@@ -136,13 +135,13 @@ class ReportSettingsPage extends Component {
                                     onChangeError={error => this.setState({error})}
                                     initialValue={this.state.newRoomName}
                                     disabled={shouldDisableRename}
-                                    policyID={policyID}
+                                    policyID={linkedWorkspace && linkedWorkspace.id}
                                 />
                             </View>
                             <Button
                                 success={!shouldDisableRename}
                                 text={this.props.translate('common.save')}
-                                onPress={() => Report.renameReport(policyID, this.state.newRoomName)}
+                                onPress={() => Report.renameReport(this.props.report.reportID, this.state.newRoomName)}
                                 style={[styles.ml2]}
                                 textStyles={[styles.label]}
                                 innerStyles={[styles.reportSettingsChangeNameButton]}
