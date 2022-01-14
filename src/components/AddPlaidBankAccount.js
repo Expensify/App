@@ -16,13 +16,13 @@ import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiPicker from './ExpensiPicker';
+import Picker from './Picker';
 import Text from './Text';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -241,7 +241,7 @@ class AddPlaidBankAccount extends React.Component {
                             <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
                         <View style={[styles.mb5]}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                                 onChange={(index) => {
                                     this.setState({selectedIndex: Number(index)});
@@ -258,7 +258,7 @@ class AddPlaidBankAccount extends React.Component {
                         </View>
                         {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
                             <View style={[styles.mb5]}>
-                                <ExpensiTextInput
+                                <TextInput
                                     label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
                                     secureTextEntry
                                     value={this.state.password}

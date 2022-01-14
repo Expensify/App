@@ -100,6 +100,8 @@ class ResendValidationForm extends React.Component {
                 login,
                 loginType,
             });
+        } else if (this.props.account.validateCodeExpired) {
+            message = this.props.translate('resendValidationForm.validationCodeFailedMessage');
         } else if (isOldUnvalidatedAccount) {
             message = this.props.translate('resendValidationForm.unvalidatedAccount');
         } else {
@@ -137,6 +139,7 @@ class ResendValidationForm extends React.Component {
                         </Text>
                     </TouchableOpacity>
                     <Button
+                        medium
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}

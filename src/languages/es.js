@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        message: 'Chatear con ',
+        leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -136,10 +138,10 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
+        welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -166,9 +168,11 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
-        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada ',
+        beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
         beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
@@ -213,9 +217,10 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
-        always: 'Siempre',
+    notificationPreferences: {
+        description: '¿Cuán seguido quieres que te notifiquemos acerca de nuevos mensajes en esta sala de chat?',
+        label: 'Avisar sobre nuevos mensajes',
+        immediately: 'Inmediatamente',
         daily: 'Cada día',
         mute: 'Nunca',
     },
@@ -275,7 +280,7 @@ export default {
                 label: 'iOS',
             },
             desktop: {
-                label: 'Desktop',
+                label: 'macOS',
             },
         },
         security: 'Seguridad',
@@ -287,6 +292,18 @@ export default {
             phrase3: 'y',
             phrase4: 'política de privacidad',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        enterMessageHere: 'Ingresa el mensaje aquí',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
+        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountSuccess: 'Cuenta cerrada exitosamente',
+        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
+        closeAccountTryAgainAfter: 'e intenta nuevamente',
+        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -341,7 +358,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
-        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        instantSummary: ({rate, minAmount}) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
@@ -422,12 +439,14 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
+        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
         unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
         newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
@@ -458,6 +477,7 @@ export default {
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo sitio.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
@@ -511,7 +531,6 @@ export default {
         selfSelect: 'Personalízalo',
         callMeByMyName: 'Llámame por mi nombre',
     },
-    cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
@@ -522,6 +541,8 @@ export default {
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
+        cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
+        cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
@@ -804,19 +825,49 @@ export default {
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
+    getAssistancePage: {
+        title: 'Obtener ayuda',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
+        chatWithConcierge: 'Chatear con Concierge',
+        requestSetupCall: 'Llámame por teléfono',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+    },
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        waitTime: {
+            calculating: 'Calculando el tiempo de espera...',
+            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
+            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
+            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
+            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrinks: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',
@@ -842,10 +893,20 @@ export default {
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
+            copy: 'Copiar comentario',
         },
     },
     guides: {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    genericErrorPage: {
+        title: '¡Uh-oh, algo salió mal!',
+        body: {
+            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'Si el problema persiste, comuníquese con',
+        },
+        refresh: 'Refresh',
     },
 };

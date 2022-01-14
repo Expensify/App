@@ -15,9 +15,10 @@ import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,7 +56,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!this.input) {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
             return;
         }
         this.input.focus();
@@ -107,7 +108,7 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mv3]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
@@ -135,7 +136,7 @@ class PasswordForm extends React.Component {
 
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
