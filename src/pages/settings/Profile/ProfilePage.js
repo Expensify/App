@@ -161,7 +161,10 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName.trim(), this.state.lastName.trim(), this.state.pronouns.trim()]);
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+            50,
+            [this.state.firstName.trim(), this.state.lastName.trim(), this.state.pronouns.trim()],
+        );
         this.setState({
             hasFirstNameError,
             hasLastNameError,
