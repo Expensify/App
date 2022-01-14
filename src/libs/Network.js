@@ -225,7 +225,16 @@ function processNetworkRequestQueue() {
         onRequest(queuedRequest, finalParameters);
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
-            .catch(error => onError(queuedRequest, error));
+            .catch((error) => {
+                // When the request did not reach its destination add it back the queue to be retried
+                const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+                if (shouldRetry) {
+                    networkRequestQueue.push(queuedRequest);
+                    return;
+                }
+
+                onError(queuedRequest, error);
+            });
     });
 
     // We should clear the NETWORK_REQUEST_QUEUE when we have loaded the persisted requests & they are processed.
