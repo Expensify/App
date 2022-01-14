@@ -9,7 +9,6 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 import TextInputWithPrefix from './TextInputWithPrefix';
-import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
