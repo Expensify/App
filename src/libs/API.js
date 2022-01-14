@@ -12,7 +12,6 @@ import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
-import withAPIResponseHandler from './handleAPIResponseDetails';
 import handleAPIResponseDetails from './handleAPIResponseDetails';
 import APICommandMap from './APICommandMap';
 
