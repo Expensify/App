@@ -5,6 +5,7 @@ import _ from 'underscore';
 import React from 'react';
 import Text from '../Text';
 import styles from '../../styles/styles';
+import InlineErrorText from '../InlineErrorText';
 
 const propTypes = {
     /** Prefix character */
@@ -31,24 +32,31 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
     // eslint-disable-next-line react/jsx-props-no-spreading
     ? <TextInput {..._.omit(props, ['prefixCharacter', 'errorText'])} />
     : (
-        <View
-                style={[
-                    styles.textInputWithPrefix.container,
-                    props.disabled ? styles.inputDisabled : undefined,
-                    props.errorText ? styles.errorOutline : undefined,
-                ]}
-        >
-            <Text style={styles.textInputWithPrefix.prefix}>{props.prefixCharacter}</Text>
-            <TextInput
-                style={[
-                    styles.textInputWithPrefix.textInput,
-                    styles.noOutline,
-                ]}
-                onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
-            />
-        </View>
+        <>
+            <View
+                    style={[
+                        styles.textInputWithPrefix.container,
+                        props.disabled ? styles.inputDisabled : undefined,
+                        props.errorText ? styles.errorOutline : undefined,
+                    ]}
+            >
+                <Text style={styles.textInputWithPrefix.prefix}>{props.prefixCharacter}</Text>
+                <TextInput
+                    style={[
+                        styles.textInputWithPrefix.textInput,
+                        styles.noOutline,
+                    ]}
+                    onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
+                />
+            </View>
+            {!_.isEmpty(props.errorText) && (
+                    <InlineErrorText>
+                        {props.errorText}
+                    </InlineErrorText>
+            )}
+        </>
     ));
 
 TextInputWithPrefix.propTypes = propTypes;
