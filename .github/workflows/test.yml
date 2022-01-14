@@ -10,6 +10,13 @@ jobs:
     if: github.actor != 'OSBotify'
     runs-on: ubuntu-latest
     steps:
+      - name: Check Provisioning Style
+        run: |
+          if grep -q 'ProvisioningStyle = Automatic;' ios/NewExpensify.xcodeproj/project.pbxproj; then
+            echo "Error: Automatic provisioning style is not allowed!"
+            exit 1
+          fi
+
       - uses: actions/checkout@v2
 
       - name: Use Node.js
