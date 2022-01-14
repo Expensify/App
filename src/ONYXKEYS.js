@@ -145,9 +145,6 @@ export default {
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
-    // Notifies all tabs that they should sign out and clear storage.
-    SHOULD_SIGN_OUT: 'shouldSignOut',
-
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 

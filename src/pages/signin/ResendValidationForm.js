@@ -139,6 +139,7 @@ class ResendValidationForm extends React.Component {
                         </Text>
                     </TouchableOpacity>
                     <Button
+                        medium
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
