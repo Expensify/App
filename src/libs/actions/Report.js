@@ -1522,6 +1522,11 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons})
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
