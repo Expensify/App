@@ -168,9 +168,11 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'This is the beginning of your chat history with',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
+        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
