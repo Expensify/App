@@ -52,9 +52,9 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                 />
             </View>
             {!_.isEmpty(props.errorText) && (
-                    <InlineErrorText>
-                        {props.errorText}
-                    </InlineErrorText>
+                <InlineErrorText>
+                    {props.errorText}
+                </InlineErrorText>
             )}
         </>
     ));

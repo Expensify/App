@@ -51,12 +51,12 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
                 />
-                {!_.isEmpty(this.state.error) && (
-                        <InlineErrorText>
-                            {this.state.error}
-                        </InlineErrorText>
-                    )}
             </View>
+            {!_.isEmpty(this.state.error) && (
+                <InlineErrorText>
+                    {this.state.error}
+                </InlineErrorText>
+            )}
         </>
 
     ));
