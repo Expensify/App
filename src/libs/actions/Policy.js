@@ -276,7 +276,8 @@ function removeMembers(members, policyID) {
 
             // Show the user feedback that the removal failed
             console.error(data.message);
-            Growl.show(Localize.translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+            const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
+            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
         });
 }
 
