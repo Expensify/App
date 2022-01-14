@@ -114,7 +114,7 @@ class RoomNameInput extends Component {
         }
 
         // Certain names reserved for default rooms should not be used for policy rooms
-        if (_.contains(['#admins', '#announce'], finalRoomName)) {
+        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
             error = this.props.translate('newRoomPage.roomNameReserved');
         }
 
