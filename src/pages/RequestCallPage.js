@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
+import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -65,6 +66,9 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
+    /** The number of minutes the user has to wait for an inbox call */
+    inboxCallUserWaitTime: PropTypes.number,
+
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
 };
@@ -73,6 +77,7 @@ const defaultProps = {
     requestCallForm: {
         loading: false,
     },
+    inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
 };
 
@@ -85,16 +90,32 @@ class RequestCallPage extends Component {
             hasFirstNameError: false,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            phoneExtension: '',
+            phoneExtensionError: '',
             hasLastNameError: false,
             phoneNumberError: '',
+            onTheWeekend: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
+        this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
         this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
+        this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
+    }
+
+    componentDidMount() {
+        // If it is the weekend don't check the wait time
+        if (moment().day() === 0 || moment().day() === 6) {
+            this.setState({
+                onTheWeekend: true,
+            });
+            return;
+        }
+        Inbox.getInboxCallWaitTime();
     }
 
     onSubmit() {
@@ -120,6 +141,7 @@ class RequestCallPage extends Component {
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumberExtension: this.state.phoneExtension,
         });
     }
 
@@ -143,6 +165,20 @@ class RequestCallPage extends Component {
         const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
+        }
+        return '';
+    }
+
+    /**
+     * Gets the phone extension error message depending on the phoneExtension input value.
+     * @returns {String}
+     */
+    getPhoneExtensionError() {
+        if (_.isEmpty(this.state.phoneExtension)) {
+            return '';
+        }
+        if (!ValidationUtils.isPositiveInteger(this.state.phoneExtension)) {
+            return this.props.translate('requestCallPage.error.phoneExtension');
         }
         return '';
     }
@@ -179,8 +215,39 @@ class RequestCallPage extends Component {
         return {firstName, lastName};
     }
 
+    getWaitTimeMessageKey(minutes) {
+        if (minutes == null) {
+            return 'requestCallPage.waitTime.calculating';
+        }
+
+        if (minutes > 300) {
+            // The wait time is longer than 5 hours, so just say that.
+            return 'requestCallPage.waitTime.fiveHoursPlus';
+        }
+
+        if (minutes > 60) {
+            // The wait time is between 1 and 5 hours, so lets convert to hours and minutes.
+            return 'requestCallPage.waitTime.hoursAndMinutes';
+        }
+
+        // The wait time is less than an hour so just give minutes.
+        return 'requestCallPage.waitTime.minutes';
+    }
+
+    getWaitTimeMessage() {
+        let waitTimeKey = 'requestCallPage.waitTime.weekend';
+        if (!this.state.onTheWeekend) {
+            waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
+        }
+        return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+    }
+
     validatePhoneInput() {
         this.setState({phoneNumberError: this.getPhoneNumberError()});
+    }
+
+    validatePhoneExtensionInput() {
+        this.setState({phoneExtensionError: this.getPhoneExtensionError()});
     }
 
     /**
@@ -194,13 +261,16 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
+        const phoneExtensionError = this.getPhoneExtensionError();
+
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName]);
         this.setState({
             hasFirstNameError,
             hasLastNameError,
             phoneNumberError,
+            phoneExtensionError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && !hasFirstNameError && !hasLastNameError;
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && !hasFirstNameError && !hasLastNameError;
     }
 
     render() {
@@ -230,18 +300,33 @@ class RequestCallPage extends Component {
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
                             />
-                            <View style={styles.mt4}>
-                                <TextInput
-                                    label={this.props.translate('common.phoneNumber')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    value={this.state.phoneNumber}
-                                    placeholder="2109400803"
-                                    errorText={this.state.phoneNumberError}
-                                    onBlur={this.validatePhoneInput}
-                                    onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                />
+                            <View style={[styles.mt4, styles.flexRow]}>
+                                <View style={styles.flex1}>
+                                    <TextInput
+                                        label={this.props.translate('common.phoneNumber')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        value={this.state.phoneNumber}
+                                        placeholder="2109400803"
+                                        errorText={this.state.phoneNumberError}
+                                        onBlur={this.validatePhoneInput}
+                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                    />
+                                </View>
+                                <View style={[styles.flex1, styles.ml2]}>
+                                    <TextInput
+                                        label={this.props.translate('requestCallPage.extension')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        value={this.state.phoneExtension}
+                                        placeholder="100"
+                                        errorText={this.state.phoneExtensionError}
+                                        onBlur={this.validatePhoneExtensionInput}
+                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                    />
+                                </View>
                             </View>
+                            <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
                     </ScrollView>
                     <FixedFooter>
@@ -276,6 +361,10 @@ export default compose(
         },
         requestCallForm: {
             key: ONYXKEYS.REQUEST_CALL_FORM,
+            initWithStoredValues: false,
+        },
+        inboxCallUserWaitTime: {
+            key: ONYXKEYS.INBOX_CALL_USER_WAIT_TIME,
             initWithStoredValues: false,
         },
         lastAccessedWorkspacePolicyID: {

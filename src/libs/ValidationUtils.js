@@ -270,6 +270,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isPositiveInteger(input) {
+    return CONST.REGEX.POSITIVE_INTEGER.test(input);
+}
+
+/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
@@ -330,6 +338,7 @@ export {
     isValidURL,
     validateIdentity,
     isValidPassword,
+    isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
     isValidRoutingNumber,
