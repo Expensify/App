@@ -43,7 +43,7 @@ const ChooseTransferAccountPage = (props) => {
      * @param {String} paymentType
      */
     const navigateToAddPaymentMethodPage = () => {
-        if (props.filterType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        if (props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }

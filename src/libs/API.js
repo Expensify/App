@@ -1151,7 +1151,7 @@ function CreatePolicyRoom(parameters) {
  * @param {String} [parameters.fundID]
  * @returns {Promise}
  */
-function Wallet_TransferBalance(parameters) {
+function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
     if (!parameters.bankAccountID && !parameters.fundID) {
         throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
@@ -1218,7 +1218,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    Wallet_TransferBalance,
+    TransferWalletBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
