@@ -875,6 +875,7 @@ export default {
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExists: 'Ya existe una sala con este nombre',
+        roomNameReserved: 'Este nombre está reservado y no puede usarse',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
