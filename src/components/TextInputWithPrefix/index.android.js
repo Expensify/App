@@ -55,7 +55,6 @@ const TextInputWithPrefix = props => (
             </InlineErrorText>
         )}
     </>
-
 );
 
 TextInputWithPrefix.propTypes = propTypes;
