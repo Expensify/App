@@ -5,6 +5,7 @@ import _ from 'underscore';
 import React from 'react';
 import Text from '../Text';
 import styles from '../../styles/styles';
+import InlineErrorText from '../InlineErrorText';
 
 const propTypes = {
     /** Prefix character */
