@@ -1543,6 +1543,7 @@ function renameReport(reportID, reportName) {
                 return;
             }
             Growl.success(Localize.translateLocal('newRoomPage.roomRenamed'));
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
