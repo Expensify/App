@@ -105,12 +105,13 @@ class RoomNameInput extends Component {
             report => report && report.policyID === this.props.policyID && report.reportName === finalRoomName,
         );
 
+        let error = '';
+
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        let error = isExistingRoomName && finalRoomName !== this.originalRoomName
-            ? this.props.translate('newRoomPage.roomAlreadyExists')
-            : '';
-
+        if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
+            error = this.props.translate('newRoomPage.roomAlreadyExists');
+        }
         if (_.contains(['#admins', '#announce'], finalRoomName)) {
             error = this.props.translate('newRoomPage.roomNameReserved');
         }
