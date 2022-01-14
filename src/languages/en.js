@@ -873,6 +873,7 @@ export default {
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
         roomAlreadyExists: 'A room with this name already exists',
+        roomNameReserved: 'This name is reserved and cannot be used',
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',

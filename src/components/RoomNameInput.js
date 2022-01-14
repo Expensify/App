@@ -111,6 +111,10 @@ class RoomNameInput extends Component {
             ? this.props.translate('newRoomPage.roomAlreadyExists')
             : '';
 
+        if (_.contains(['#admins', '#announce'], finalRoomName)) {
+            error = this.props.translate('newRoomPage.roomNameReserved');
+        }
+
         this.setState({
             roomName: finalRoomName,
             error,
