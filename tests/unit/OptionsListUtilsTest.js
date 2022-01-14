@@ -249,7 +249,6 @@ describe('OptionsListUtils', () => {
                     total: '1000',
                 },
             },
-            registerStorageEventListener: () => {},
         });
         Onyx.registerLogger(() => {});
         return waitForPromisesToResolve();
