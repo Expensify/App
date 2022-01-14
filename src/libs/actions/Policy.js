@@ -275,7 +275,6 @@ function removeMembers(members, policyID) {
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
-            console.error(data.message);
             const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
             Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
         });
