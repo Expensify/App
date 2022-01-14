@@ -29,12 +29,16 @@ const propTypes = {
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 
+    /** Show header for action */
+    showHeader: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
+    showHeader: true,
 };
 
 const showUserDetails = (email) => {
@@ -65,7 +69,7 @@ const ReportActionItemSingle = (props) => {
                 />
             </Pressable>
             <View style={[styles.chatItemRight]}>
-                <View style={[styles.chatItemMessageHeader]}>
+                {this.props.showHeader ? <View style={[styles.chatItemMessageHeader]}>
                     <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
                         {_.map(personArray, (fragment, index) => (
                             <ReportActionItemFragment
@@ -79,7 +83,7 @@ const ReportActionItemSingle = (props) => {
                         ))}
                     </Pressable>
                     <ReportActionItemDate timestamp={props.action.timestamp} />
-                </View>
+                </View> : null}
                 {props.children}
             </View>
         </View>
