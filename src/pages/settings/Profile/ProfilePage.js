@@ -177,7 +177,7 @@ class ProfilePage extends Component {
         }));
 
         // Determines if the pronouns/selected pronouns have changed
-        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
+        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns.trim();
 
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
