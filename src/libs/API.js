@@ -12,6 +12,9 @@ import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
+import withAPIResponseHandler from './handleAPIResponseDetails';
+import handleAPIResponseDetails from './handleAPIResponseDetails';
+import APICommandMap from './APICommandMap';
 
 let isAuthenticating;
 let credentials;
@@ -915,11 +918,14 @@ function BankAccount_Get(parameters) {
  * @returns {Promise}
  */
 function Policy_Employees_Merge(parameters) {
-    const commandName = 'Policy_Employees_Merge';
+    const commandName = APICommandMap.Policy_Employees_Merge;
     requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
 
     // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
-    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+    return handleAPIResponseDetails(
+        Network.post(commandName, {...parameters, returnPersonalDetails: true}),
+        commandName,
+    );
 }
 
 /**

@@ -316,13 +316,6 @@ function invite(logins, welcomeNote, policyID) {
             // If the operation failed, undo the optimistic addition
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
             policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
-
-            // Show the user feedback that the addition failed
-            policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
-            if (data.jsonCode === 402) {
-                policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
-            }
-
             Onyx.set(key, policyDataWithoutLogin);
         });
 }

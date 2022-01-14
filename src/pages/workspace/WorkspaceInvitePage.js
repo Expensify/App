@@ -22,6 +22,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import APICommandMap from '../../libs/APICommandMap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -122,7 +123,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
-        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage', '').length > 0;
+        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.mergeEmployeesResponseDetails, 'jsonCode') !== 200;
     }
 
     /**
@@ -230,6 +231,22 @@ class WorkspaceInvitePage extends React.Component {
         return _.size(errors) <= 0;
     }
 
+    getAlertMessage() {
+        const {jsonCode} = lodashGet(this.props, 'mergeEmployeesResponseDetails', {jsonCode: 200});
+
+        if (jsonCode === 200) {
+            return;
+        }
+
+        let message = this.props.translate('workspace.invite.genericFailureMessage');
+
+        if (jsonCode === 402) {
+            message += ` ${this.props.translate('workspace.invite.pleaseEnterValidLogin')}`;
+        }
+
+        return message;
+    }
+
     render() {
         const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -308,7 +325,7 @@ class WorkspaceInvitePage extends React.Component {
                                 buttonText={this.props.translate('common.invite')}
                                 onSubmit={this.inviteUser}
                                 onFixTheErrorsLinkPressed={() => {}}
-                                message={this.props.policy.alertMessage}
+                                message={this.getAlertMessage()}
                                 containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />
                             <Pressable
@@ -350,6 +367,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        mergeEmployeesResponseDetails: {
+            key: APICommandMap.Policy_Employees_Merge,
+            initWithStoredValues: false,
         },
     }),
 )(WorkspaceInvitePage);
