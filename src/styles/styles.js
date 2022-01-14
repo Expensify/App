@@ -237,11 +237,8 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
-    textXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeXLarge,
-        fontWeight: fontWeightBold,
+    textXXLarge: {
+        fontSize: variables.fontSizeXXLarge,
     },
 
     textXXXLarge: {
@@ -331,6 +328,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonMedium: {
+        borderRadius: variables.componentBorderRadiusNormal,
+        height: variables.componentSizeNormal,
+        paddingTop: 6,
+        paddingRight: 12,
+        paddingBottom: 6,
+        paddingLeft: 12,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonLarge: {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
@@ -338,10 +345,18 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonMediumText: {
+        fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -2372,6 +2387,23 @@ const styles = {
     iPhoneXSafeArea: {
         backgroundColor: colors.black,
         flex: 1,
+    },
+
+    errorPageContainer: {
+        backgroundColor: themeColors.componentBG,
+    },
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
+
+    transferBalanceBalance: {
+        fontSize: 48,
     },
 };
 
