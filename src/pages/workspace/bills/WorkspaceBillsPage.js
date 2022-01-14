@@ -4,6 +4,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -22,6 +23,7 @@ const WorkspaceBillsPage = props => (
     <WorkspacePageWithSections
         headerText={props.translate('workspace.common.bills')}
         route={props.route}
+        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
     >
         {(hasVBA, policyID) => (
             <>

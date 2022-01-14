@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        message: 'Message ',
+        leaveRoom: 'Leave room',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -213,8 +215,9 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -288,6 +291,18 @@ export default {
             phrase4: 'privacy policy',
         },
     },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        enterMessageHere: 'Enter message here',
+        closeAccountWarning: 'Closing your account cannot be undone.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountTryAgainAfter: 'and try again after.',
+        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        okayGotIt: 'Okay, Got it',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
@@ -341,7 +356,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit Card)',
-        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        instantSummary: ({rate, minAmount}) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business Days (Bank Account)',
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
@@ -422,6 +437,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
@@ -804,19 +820,49 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
+    getAssistancePage: {
+        title: 'Get assistance',
+        subtitle: 'Have questions, or need help?',
+        description: 'We have answers! Choose from the support options below:',
+        chatWithConcierge: 'Chat with Concierge',
+        requestSetupCall: 'Request a setup call',
+        questionMarkButtonTooltip: 'Get assistance from our team',
+    },
     requestCallPage: {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        waitTime: {
+            calculating: 'Calculating wait time...',
+            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
+            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
+            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
+            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Please enter a valid phone extension number',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+        headers: {
+            frequentlyUsed: 'Frequently Used',
+            smileysAndPeople: 'Smileys & People',
+            animalsAndNature: 'Animals & Nature',
+            foodAndDrinks: 'Food & Drinks',
+            travelAndPlaces: 'Travel & Places',
+            activities: 'Activities',
+            objects: 'Objects',
+            symbols: 'Symbols',
+            flags: 'Flags',
+        },
     },
     newRoomPage: {
         newRoom: 'New Room',

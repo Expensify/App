@@ -1,18 +1,33 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import BankAccount from './models/BankAccount';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 
 /**
+ * Check to see if user has either a debit card or personal bank account added
+ *
+ * @param {Array} [cardList]
+ * @param {Array} [bankAccountList]
+ * @returns {Boolean}
+ */
+function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
+    return _.some(cardList, card => card) || _.some(bankAccountList, (bankAccountJSON) => {
+        const bankAccount = new BankAccount(bankAccountJSON);
+        return bankAccount.isDefaultCredit();
+    });
+}
+
+/**
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername='']
- * @returns {Array<PaymentMethod>}
+ * @returns {Array<Object>}
  */
-function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -64,6 +79,21 @@ function getPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
     return combinedPaymentMethods;
 }
 
-export default {
-    getPaymentMethods,
+/**
+ * @param {Number} currentBalance
+ * @param {String} methodType
+ * @returns {Number}
+ */
+function calculateWalletTransferBalanceFee(currentBalance, methodType) {
+    const transferMethodTypeFeeStructure = methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT
+        ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT
+        : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
+    const calculateFee = (currentBalance * transferMethodTypeFeeStructure.RATE) / 100;
+    return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
+}
+
+export {
+    hasExpensifyPaymentMethod,
+    formatPaymentMethods,
+    calculateWalletTransferBalanceFee,
 };
