@@ -375,19 +375,6 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     };
 }
 
-/**
- * Gives the minWidth for Resend Link Button
- *
- * @param {String} currentLocale
- * @returns {Object}
- */
-function getResendLinkStyle(currentLocale) {
-    return {
-        minWidth: currentLocale === CONST.DEFAULT_LOCALE ? 108 : 139,
-    };
-}
-
-
 export {
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -410,5 +397,4 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
-    getResendLinkStyle,
 };

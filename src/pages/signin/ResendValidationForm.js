@@ -14,7 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -144,7 +143,7 @@ class ResendValidationForm extends React.Component {
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
-                        style={[StyleUtils.getResendLinkStyle(this.props.preferredLocale)]}
+                        style={styles.resendLinkButton}
                     />
                 </View>
             </>
