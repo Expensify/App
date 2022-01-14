@@ -46,6 +46,7 @@ import TransferBalancePage from '../../../pages/settings/Payments/TransferBalanc
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 import ReportSettingsPage from '../../../pages/ReportSettingsPage';
 import DistanceRequestPage from '../../../pages/DistanceRequestPage';
+import DistanceAddressEntryPage from '../../../pages/DistanceAddressEntryPage';
 import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
@@ -87,18 +88,23 @@ const IOUBillStackNavigator = createModalStackNavigator([{
     name: 'IOU_Bill_Currency',
 }]);
 
-const IOURequestModalStackNavigator = createModalStackNavigator([{
-    Component: IOURequestPage,
-    name: 'IOU_Request_Root',
-},
-{
-    Component: IOUCurrencySelection,
-    name: 'IOU_Request_Currency',
-},
-{
-    Component: DistanceRequestPage,
-    name: SCREENS.IOU_REQUEST_DISTANCE,
-},
+const IOURequestModalStackNavigator = createModalStackNavigator([
+    {
+        Component: IOURequestPage,
+        name: 'IOU_Request_Root',
+    },
+    {
+        Component: IOUCurrencySelection,
+        name: 'IOU_Request_Currency',
+    },
+    {
+        Component: DistanceRequestPage,
+        name: SCREENS.IOU_REQUEST_DISTANCE,
+    },
+    {
+        Component: DistanceAddressEntryPage,
+        name: 'IOU_Request_Distance_Address',
+    },
 ]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{

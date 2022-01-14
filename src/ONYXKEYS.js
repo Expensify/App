@@ -183,4 +183,6 @@ export default {
 
     // User's current location lat/lng
     USER_LOCATION: 'userLocation',
+
+    DISTANCE_REQUEST: 'distanceRequest',
 };

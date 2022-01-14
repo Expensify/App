@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
@@ -53,6 +54,8 @@ const AddressSearch = (props) => {
             return;
         }
 
+        const coordinates = props.shouldReturnLocation ? lodashGet(details, 'geometry.location') : undefined;
+
         // Gather the values from the Google details
         const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
         const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
@@ -81,6 +84,9 @@ const AddressSearch = (props) => {
         }
         if (state) {
             values.state = state;
+        }
+        if (coordinates) {
+            values.coordinates = coordinates;
         }
         if (_.size(values) === 0) {
             return;

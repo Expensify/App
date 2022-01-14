@@ -54,6 +54,7 @@ export default {
     IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
     IOU_REQUEST_DISTANCE: `${IOU_REQUEST_DISTANCE}/:reportID?`,
+    IOU_REQUEST_DISTANCE_ADDRESS_ENTRY: `${IOU_REQUEST_DISTANCE}/address/:index?/:reportID?`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,

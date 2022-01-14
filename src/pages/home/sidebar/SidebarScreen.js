@@ -178,7 +178,7 @@ class SidebarScreen extends Component {
                                     {
                                         icon: Expensicons.MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
-                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST_DISTANCE),
                                     },
                                 ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [

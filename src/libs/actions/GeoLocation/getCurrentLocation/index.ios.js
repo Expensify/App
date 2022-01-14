@@ -4,12 +4,13 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Log from '../../../Log';
 
 export default function getCurrentLocation() {
-    console.debug('iOS getting location');
+    Onyx.merge(ONYXKEYS.USER_LOCATION, {loading: true});
+
     Geolocation.requestAuthorization('whenInUse')
         .then((authorizationResult) => {
             if (authorizationResult !== 'granted') {
                 Log.info('[Geolocation] iOS user denied location permission');
-                Onyx.set(ONYXKEYS.USER_LOCATION, {});
+                Onyx.merge(ONYXKEYS.USER_LOCATION, {loading: false, longitude: 0, latitude: 0});
                 return;
             }
 
@@ -17,11 +18,11 @@ export default function getCurrentLocation() {
                 (position) => {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
-                    Onyx.set(ONYXKEYS.USER_LOCATION, {latitude, longitude});
+                    Onyx.merge(ONYXKEYS.USER_LOCATION, {loading: false, longitude, latitude});
                 },
                 (error) => {
                     Log.info('[Geolocation] Unable to get user location', false, {error});
-                    Onyx.set(ONYXKEYS.USER_LOCATION, {});
+                    Onyx.merge(ONYXKEYS.USER_LOCATION, {loading: false, longitude: 0, latitude: 0});
                 },
                 {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
             );

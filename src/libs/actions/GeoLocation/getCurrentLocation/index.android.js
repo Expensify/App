@@ -4,6 +4,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Log from '../../../Log';
 
 export default function getCurrentLocation() {
+    console.debug('Android getting location');
     Geolocation.getCurrentPosition(
         (position) => {
             const latitude = position.coords.latitude;
