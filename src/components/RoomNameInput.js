@@ -126,24 +126,17 @@ class RoomNameInput extends Component {
 
     render() {
         return (
-            <>
-                <TextInputWithPrefix
-                    disabled={this.props.disabled}
-                    label={this.props.translate('newRoomPage.roomName')}
-                    prefixCharacter="#"
-                    placeholder={this.props.translate('newRoomPage.social')}
-                    containerStyles={[styles.mb5]}
-                    onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
-                    value={this.state.roomName.substring(1)}
-                    errorText={this.state.error}
-                    autoCapitalize="none"
-                />
-                {!_.isEmpty(this.state.error) && (
-                    <InlineErrorText>
-                        {this.state.error}
-                    </InlineErrorText>
-                )}
-            </>
+            <TextInputWithPrefix
+                disabled={this.props.disabled}
+                label={this.props.translate('newRoomPage.roomName')}
+                prefixCharacter="#"
+                placeholder={this.props.translate('newRoomPage.social')}
+                containerStyles={[styles.mb5]}
+                onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
+                value={this.state.roomName.substring(1)}
+                errorText={this.state.error}
+                autoCapitalize="none"
+            />
         );
     }
 }

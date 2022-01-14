@@ -4,6 +4,7 @@ import {TextInput, View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
 import Text from '../Text';
+import InlineErrorText from '../InlineErrorText';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -50,6 +51,11 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
             />
+            {!_.isEmpty(this.state.error) && (
+                <InlineErrorText>
+                    {this.state.error}
+                </InlineErrorText>
+            )}
         </View>
     ));
 
