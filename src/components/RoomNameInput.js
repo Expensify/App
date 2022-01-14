@@ -107,7 +107,7 @@ class RoomNameInput extends Component {
 
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        const error = isExistingRoomName && finalRoomName !== this.originalRoomName
+        let error = isExistingRoomName && finalRoomName !== this.originalRoomName
             ? this.props.translate('newRoomPage.roomAlreadyExists')
             : '';
 
