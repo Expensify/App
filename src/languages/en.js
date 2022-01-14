@@ -220,7 +220,7 @@ export default {
     notificationPreferences: {
         description: 'How often should we notify you when there are new messages to catch up on in this room?',
         label: 'Notify me about new messages',
-        always: 'Always',
+        immediately: 'Immediately',
         daily: 'Daily',
         mute: 'Mute',
     },
