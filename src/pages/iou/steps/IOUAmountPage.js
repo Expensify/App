@@ -6,7 +6,6 @@ import {
     AppState,
     Keyboard,
 } from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -134,22 +133,19 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Return length of Amount string without commas.
-     *
      * @param {String} amount
      * @returns {Number}
      */
-    amountLength(amount) {
-        const trailingZeroes = amount.match(/^0+/);
-        const trailingZeroesLength = trailingZeroes ? _.first(trailingZeroes).length : 0;
+    calculateAmountLength(amount) {
+        const leadingZeroes = amount.match(/^0+/);
+        const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
         const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
 
         /*
-        We return sum of trailing zeroes length and absAmount length( which has value of the all digits after the decimal).
-        In case of zeroes, we add the trailing zeroes length to 2, which
-        represent places reserved for digits after decimal.
+        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
         */
-        return trailingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+        return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
     }
 
     /**
@@ -160,7 +156,7 @@ class IOUAmountPage extends React.Component {
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && this.amountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
     /**
