@@ -27,7 +27,8 @@ const propTypes = {
 /**
   * See https://github.com/react-native-image-picker/react-native-image-picker/#options
   * for ImagePicker configuration options
-  * maxWidth and maxHeight to avoid android crash when with large images
+  * maxWidth and maxHeight  options resize images with width or height more than there value .
+  * to avoid android crash with large images
   */
 const imagePickerOptions = {
     includeBase64: false,
