@@ -95,7 +95,7 @@ class SetPasswordPage extends Component {
         if (this.props.userSignUp.authToken) {
             return;
         }
-        Session.validateEmail(accountID, validateCode, this.props.credentials.login, this.props.userSignUp.authToken);
+        Session.validateEmail(accountID, validateCode);
     }
 
     validateAndSubmitForm() {
@@ -118,7 +118,7 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
-                    {_.isEmpty(error) && (
+                    {_.isEmpty(error) ? (
                         <>
                             <View style={[styles.mb4]}>
                                 <NewPasswordForm
@@ -139,8 +139,8 @@ class SetPasswordPage extends Component {
                                 />
                             </View>
                         </>
-                    )}
-                    {!_.isEmpty(error) && <Text>{error}</Text>}
+                    )
+                        : (<Text>{error}</Text>)}
                 </SignInPageLayout>
             </SafeAreaView>
         );

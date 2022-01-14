@@ -459,7 +459,8 @@ function validateEmail(accountID, validateCode) {
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
-        }).finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
+        })
+        .finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
