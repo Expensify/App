@@ -110,12 +110,12 @@ class RoomNameInput extends Component {
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
         if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
-            error = this.props.translate('newRoomPage.roomAlreadyExists');
+            error = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names reserved for default rooms should not be used for policy rooms
         if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
-            error = this.props.translate('newRoomPage.roomNameReserved');
+            error = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
         this.setState({
