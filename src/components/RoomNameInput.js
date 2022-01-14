@@ -8,8 +8,8 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
-
 import TextInputWithPrefix from './TextInputWithPrefix';
+import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -126,17 +126,24 @@ class RoomNameInput extends Component {
 
     render() {
         return (
-            <TextInputWithPrefix
-                disabled={this.props.disabled}
-                label={this.props.translate('newRoomPage.roomName')}
-                prefixCharacter="#"
-                placeholder={this.props.translate('newRoomPage.social')}
-                containerStyles={[styles.mb5]}
-                onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
-                value={this.state.roomName.substring(1)}
-                errorText={this.state.error}
-                autoCapitalize="none"
-            />
+            <>
+                <TextInputWithPrefix
+                    disabled={this.props.disabled}
+                    label={this.props.translate('newRoomPage.roomName')}
+                    prefixCharacter="#"
+                    placeholder={this.props.translate('newRoomPage.social')}
+                    containerStyles={[styles.mb5]}
+                    onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
+                    value={this.state.roomName.substring(1)}
+                    errorText={this.state.error}
+                    autoCapitalize="none"
+                />
+                {!_.isEmpty(this.state.error) && (
+                    <InlineErrorText>
+                        {this.state.error}
+                    </InlineErrorText>
+                )}
+            </>
         );
     }
 }
