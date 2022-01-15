@@ -106,7 +106,7 @@
     "react-native-safe-area-context": "^3.1.4",
     "react-native-screens": "^3.0.0",
     "react-native-svg": "^12.1.0",
-    "react-native-web": "git+https://github.com/Expensify/react-native-web.git#947191f0fd5d43fcb5731e60fc3652e40fc7315d",
+    "react-native-web": "git+https://github.com/Expensify/react-native-web.git#3cd81b5af5916dca1dbdfef6b4e9ad261772afe6",
     "react-pdf": "^5.2.0",
     "react-plaid-link": "^3.2.0",
     "react-web-config": "^1.0.0",
