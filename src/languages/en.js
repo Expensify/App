@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        message: 'Message ',
+        leaveRoom: 'Leave room',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -166,9 +168,11 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'This is the beginning of your chat history with',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
+        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -213,9 +217,10 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
-        always: 'Always',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
+        immediately: 'Immediately',
         daily: 'Daily',
         mute: 'Mute',
     },
@@ -353,7 +358,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit Card)',
-        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        instantSummary: ({rate, minAmount}) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business Days (Bank Account)',
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
@@ -472,6 +477,7 @@ export default {
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Connect online with Plaid',
         connectManually: 'Connect manually',
+        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
@@ -829,14 +835,37 @@ export default {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        waitTime: {
+            calculating: 'Calculating wait time...',
+            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
+            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
+            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
+            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Please enter a valid phone extension number',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+        headers: {
+            frequentlyUsed: 'Frequently Used',
+            smileysAndPeople: 'Smileys & People',
+            animalsAndNature: 'Animals & Nature',
+            foodAndDrinks: 'Food & Drinks',
+            travelAndPlaces: 'Travel & Places',
+            activities: 'Activities',
+            objects: 'Objects',
+            symbols: 'Symbols',
+            flags: 'Flags',
+        },
     },
     newRoomPage: {
         newRoom: 'New Room',
@@ -845,7 +874,8 @@ export default {
         restrictedDescription: 'People in your workspace are able to find this room using Search',
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
-        roomAlreadyExists: 'A room with this name already exists',
+        roomAlreadyExistsError: 'A room with this name already exists',
+        roomNameReservedError: 'This name is reserved and cannot be used',
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
@@ -868,5 +898,14 @@ export default {
     guides: {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
+    },
+    genericErrorPage: {
+        title: 'Uh-oh, something went wrong!',
+        body: {
+            helpTextMobile: 'Please try closing and reopening the app or switching to',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'If the problem persists, reach out to',
+        },
+        refresh: 'Refresh',
     },
 };

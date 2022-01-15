@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Ingresar manualmente',
+        message: 'Chatear con ',
+        leaveRoom: 'Salir de la sala de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -166,9 +168,11 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
-        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada ',
+        beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
         beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
@@ -213,9 +217,10 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
-        always: 'Siempre',
+    notificationPreferences: {
+        description: '¿Cuán seguido quieres que te notifiquemos acerca de nuevos mensajes en esta sala de chat?',
+        label: 'Avisar sobre nuevos mensajes',
+        immediately: 'Inmediatamente',
         daily: 'Cada día',
         mute: 'Nunca',
     },
@@ -353,7 +358,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
-        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
+        instantSummary: ({rate, minAmount}) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
@@ -472,6 +477,7 @@ export default {
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo sitio.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
@@ -831,14 +837,37 @@ export default {
         title: 'Llámame por teléfono',
         subtitle: '¿Tienes preguntas o necesitas ayuda?',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        waitTime: {
+            calculating: 'Calculando el tiempo de espera...',
+            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
+            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
+            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
+            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
+            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndPeople: 'Emoticonos y personas',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrinks: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',
@@ -847,7 +876,8 @@ export default {
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala a través de "Buscar"',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
-        roomAlreadyExists: 'Ya existe una sala con este nombre',
+        roomAlreadyExistsError: 'Ya existe una sala con este nombre',
+        roomNameReservedError: 'Este nombre está reservado y no puede usarse',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
@@ -870,5 +900,14 @@ export default {
     guides: {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    genericErrorPage: {
+        title: '¡Uh-oh, algo salió mal!',
+        body: {
+            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'Si el problema persiste, comuníquese con',
+        },
+        refresh: 'Refresh',
     },
 };

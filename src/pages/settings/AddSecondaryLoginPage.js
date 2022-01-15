@@ -153,6 +153,7 @@ class AddSecondaryLoginPage extends Component {
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}
                             onPress={this.submitForm}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

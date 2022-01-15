@@ -14,7 +14,7 @@ import Navigation from '../Navigation/Navigation';
  * @param {String} phoneNumber
  */
 function requestInboxCall({
-    taskID, policyID, firstName, lastName, phoneNumber,
+    taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
     Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
     API.Inbox_CallUser({
@@ -22,6 +22,7 @@ function requestInboxCall({
         firstName,
         lastName,
         phoneNumber,
+        phoneNumberExtension,
         taskID,
     })
         .then((result) => {
@@ -39,5 +40,14 @@ function requestInboxCall({
         });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {requestInboxCall};
+function getInboxCallWaitTime() {
+    API.Inbox_CallUser_WaitTime()
+        .then((data) => {
+            Onyx.set(ONYXKEYS.INBOX_CALL_USER_WAIT_TIME, data.waitTime);
+        });
+}
+
+export {
+    requestInboxCall,
+    getInboxCallWaitTime,
+};

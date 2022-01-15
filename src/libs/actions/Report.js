@@ -194,6 +194,9 @@ function getSimplifiedReportObject(report) {
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
+    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
+    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
+
     return {
         reportID: report.reportID,
         reportName,
@@ -217,6 +220,7 @@ function getSimplifiedReportObject(report) {
         stateNum: report.state,
         statusNum: report.status,
         oldPolicyName,
+        visibility,
     };
 }
 
@@ -1079,7 +1083,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
@@ -1158,8 +1162,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: commentText,
         file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do

@@ -222,11 +222,20 @@ Use `lodashGet()` to safely access object properties and `||` to short circuit n
    ```
 
 ## JSDocs
-- Avoid docs that don't add any additional information.
+
 - Always document parameters and return values.
-- Method descriptions are optional and should be added when it's not obvious what the purpose of the method is.
-- Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc)
+- Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
+- Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
+- If a parameter accepts more than one type use `*` to denote there is no single type.
+- Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
 - When specifying a return value use `@returns` instead of `@return`. If there is no return value do not include one in the doc.
+
+- Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
+- Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
+- Do not document default parameters. They are already documented by adding them to a declared function's arguments.
+- Do not use record types e.g. `{Object.<string, number>}`.
+- Do not create `@typedef` to use in JSDocs.
+- Do not use type unions e.g. `{(number|boolean)}`.
 
 ```javascript
 // Bad
@@ -508,6 +517,48 @@ const propTypes = {
         /** User email or phone number */
         login: PropTypes.string,
     }),
+}
+```
+
+## Binding methods
+
+For class components, methods should be bound in the `constructor()` if passed directly as a prop or needing to be accessed via the component instance from outside of the component's execution context. Binding all methods in the constructor is unnecessary. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
+
+```javascript
+// Bad
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind(this);
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // No need to bind this since arrow function is used
+            <Button onPress={() => this.myMethod()} />
+        );
+    }
+}
+
+// Good
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind(this);
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // Passed directly to Button so this should be bound to the component
+            <Button onPress={this.myMethod} />
+        );
+    }
 }
 ```
 

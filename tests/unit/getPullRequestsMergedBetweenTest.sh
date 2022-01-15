@@ -1,6 +1,9 @@
 #!/bin/bash
 
-TEST_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+# Fail immediately if there is an error thrown
+set -e
+
+TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
 DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
 
@@ -53,6 +56,8 @@ fi
 
 info "Initializing Git repo..."
 git init -b main
+git config user.email "test@test.com"
+git config user.name "test"
 git add package.json package-lock.json
 git commit -m "Initial commit"
 
@@ -125,7 +130,7 @@ git tag "$(print_version)"
 git checkout main
 success "Created new tag $(print_version)"
 
-# Verify output
+# Verify output for checklist and deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
 assert_equal "$output" "[ '1' ]"
@@ -165,10 +170,15 @@ git checkout staging
 git tag "$(print_version)"
 success "Successfully created tag $(print_version)"
 
-# Verify output
+# Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.0"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.0')
 assert_equal "$output" "[ '1' ]"
+
+# Verify output for deploy comment
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
+assert_equal "$output" "[]"
 
 success "Scenario #2 completed successfully!"
 
@@ -221,8 +231,8 @@ success "Bumped version to 1.1.1 on main!"
 info "Cherry picking PR #7 and the version bump to staging..."
 git checkout staging
 git checkout -b cherry-pick-staging-7
-git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
-git cherry-pick -S -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
+git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
+git cherry-pick -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
 git checkout staging
 git merge cherry-pick-staging-7 --no-ff -m "Merge pull request #9 from Expensify/cherry-pick-staging-7"
 git branch -d cherry-pick-staging-7
@@ -234,10 +244,15 @@ git checkout staging
 git tag "$(print_version)"
 success "Created tag $(print_version)"
 
-# Verify output
+# Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.1')
 assert_equal "$output" "[ '9', '7', '1' ]"
+
+# Verify output for deploy comment
+info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
+output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
+assert_equal "$output" "[ '9', '7' ]"
 
 success "Scenario #4 completed successfully!"
 
@@ -255,6 +270,7 @@ info "Merged PR #10 into production"
 git branch -d update-production-from-staging
 success "Updated production from staging!"
 
+# Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.1')
 assert_equal "$output" "[ '9', '7', '1' ]"
@@ -290,9 +306,10 @@ git checkout staging
 git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
+# Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.2"
 output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.2')
-assert_equal "$output" "[ '9', '6' ]"
+assert_equal "$output" "[ '6' ]"
 
 success "Scenario #5B completed successfully!"
 
@@ -338,9 +355,15 @@ git checkout staging
 git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
+# Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.3"
 output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.3')
-assert_equal "$output" "[ '13', '9', '6' ]"
+assert_equal "$output" "[ '13', '6' ]"
+
+# Verify output for deploy comment
+info "Checking output of getPullRequestsMergedBetween 1.1.2 1.1.3"
+output=$(node "$getPullRequestsMergedBetween" '1.1.2' '1.1.3')
+assert_equal "$output" "[ '13' ]"
 
 success "Scenario #6 completed successfully!"
 
