@@ -98,6 +98,8 @@ class TransferBalancePage extends React.Component {
         ];
 
         PaymentMethods.resetWalletTransferData();
+        const selectedAccount = this.getSelectedPaymentMethodAccount();
+        PaymentMethods.saveWalletTransferAccountID(selectedAccount ? selectedAccount.methodID : '');
     }
 
     /**
