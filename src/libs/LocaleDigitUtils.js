@@ -32,17 +32,6 @@ const getLocaleDigits = _.memoize((locale) => {
 });
 
 /**
- * Checks whether the given character is a valid locale digit.
- *
- * @param {String} locale
- * @param {String} char A single character
- * @returns {Boolean}
- */
-function isValidLocaleDigit(locale, char) {
-    return getLocaleDigits(locale).includes(char);
-}
-
-/**
  * Gets the locale digit corresponding to a standard digit.
  *
  * @param {String} locale
@@ -79,7 +68,6 @@ function fromLocaleDigit(locale, localeDigit) {
 }
 
 export {
-    isValidLocaleDigit,
     toLocaleDigit,
     fromLocaleDigit,
 };

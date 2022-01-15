@@ -96,10 +96,6 @@ class IOUAmountPage extends React.Component {
         this.focusTextInput();
     }
 
-    get formattedAmount() {
-        return this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
-    }
-
     /**
      * Focus text input
      */
@@ -220,7 +216,7 @@ class IOUAmountPage extends React.Component {
                         textStyle={styles.iouAmountText}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
-                        value={this.formattedAmount}
+                        value={this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit)}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                     />

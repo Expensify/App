@@ -31,9 +31,6 @@ const withLocalizePropTypes = {
     /** Returns an internationally converted phone number with the country code */
     fromLocalPhone: PropTypes.func.isRequired,
 
-    /** Checks whether the given character is a valid locale digit */
-    isValidLocaleDigit: PropTypes.func.isRequired,
-
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
 
@@ -66,7 +63,6 @@ class LocaleContextProvider extends React.Component {
             timestampToDateTime: this.timestampToDateTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
-            isValidLocaleDigit: this.isValidLocaleDigit.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
@@ -126,10 +122,6 @@ class LocaleContextProvider extends React.Component {
      */
     fromLocalPhone(number) {
         return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
-    }
-
-    isValidLocaleDigit(digit) {
-        return LocaleDigitUtils.isValidLocaleDigit(this.props.preferredLocale, digit);
     }
 
     toLocaleDigit(digit) {
