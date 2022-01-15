@@ -8,8 +8,15 @@ import '@formatjs/intl-numberformat/polyfill';
 import '@formatjs/intl-numberformat/locale-data/en';
 import '@formatjs/intl-numberformat/locale-data/es';
 
-function numberFormat(locale, number, options) {
+function format(locale, number, options) {
     return new Intl.NumberFormat(locale, options).format(number);
 }
 
-export default numberFormat;
+function formatToParts(locale, number, options) {
+    return new Intl.NumberFormat(locale, options).formatToParts(number);
+}
+
+export {
+    format,
+    formatToParts,
+};

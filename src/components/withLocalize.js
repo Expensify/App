@@ -6,7 +6,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
-import numberFormat from '../libs/numberFormat';
+import * as NumberFormatUtils from '../libs/NumberFormatUtils';
+import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
 
 const LocaleContext = createContext(null);
@@ -29,6 +30,15 @@ const withLocalizePropTypes = {
 
     /** Returns an internationally converted phone number with the country code */
     fromLocalPhone: PropTypes.func.isRequired,
+
+    /** Checks whether the given character is a valid locale digit */
+    isValidLocaleDigit: PropTypes.func.isRequired,
+
+    /** Gets the standard digit corresponding to a locale digit */
+    fromLocaleDigit: PropTypes.func.isRequired,
+
+    /** Gets the locale digit corresponding to a standard digit */
+    toLocaleDigit: PropTypes.func.isRequired,
 };
 
 const localeProviderPropTypes = {
@@ -56,6 +66,9 @@ class LocaleContextProvider extends React.Component {
             timestampToDateTime: this.timestampToDateTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
+            isValidLocaleDigit: this.isValidLocaleDigit.bind(this),
+            fromLocaleDigit: this.fromLocaleDigit.bind(this),
+            toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
         };
     }
@@ -75,7 +88,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     numberFormat(number, options) {
-        return numberFormat(this.props.preferredLocale, number, options);
+        return NumberFormatUtils.format(this.props.preferredLocale, number, options);
     }
 
     /**
@@ -113,6 +126,18 @@ class LocaleContextProvider extends React.Component {
      */
     fromLocalPhone(number) {
         return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
+    }
+
+    isValidLocaleDigit(digit) {
+        return LocaleDigitUtils.isValidLocaleDigit(this.props.preferredLocale, digit);
+    }
+
+    toLocaleDigit(digit) {
+        return LocaleDigitUtils.toLocaleDigit(this.props.preferredLocale, digit);
+    }
+
+    fromLocaleDigit(localeDigit) {
+        return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
     }
 
     render() {
