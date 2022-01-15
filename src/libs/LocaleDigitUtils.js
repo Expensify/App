@@ -1,4 +1,3 @@
-import invariant from 'invariant';
 import _ from 'underscore';
 
 import * as NumberFormatUtils from './NumberFormatUtils';
@@ -55,7 +54,9 @@ function isValidLocaleDigit(locale, char) {
  */
 function toLocaleDigit(locale, digit) {
     const index = _.indexOf(STANDARD_DIGITS, digit);
-    invariant(index > -1, `"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
+    if (index < 0) {
+        throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
+    }
     return getLocaleDigits(locale)[index];
 }
 
@@ -71,7 +72,9 @@ function toLocaleDigit(locale, digit) {
  */
 function fromLocaleDigit(locale, localeDigit) {
     const index = _.indexOf(getLocaleDigits(locale), localeDigit);
-    invariant(index > -1, `"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
+    if (index < 0) {
+        throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
+    }
     return STANDARD_DIGITS[index];
 }
 
