@@ -193,6 +193,7 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
+        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
             <>
                 <View style={[
@@ -216,7 +217,7 @@ class IOUAmountPage extends React.Component {
                         textStyle={styles.iouAmountText}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
-                        value={this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit)}
+                        value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                     />
