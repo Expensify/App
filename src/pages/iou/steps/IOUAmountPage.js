@@ -160,7 +160,7 @@ class IOUAmountPage extends React.Component {
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
-     * @param {String} text Changed text from user input
+     * @param {String} text - Changed text from user input
      */
     updateAmount(text) {
         this.setState((prevState) => {
@@ -176,7 +176,7 @@ class IOUAmountPage extends React.Component {
      * the original character will be preserved.
      *
      * @param {String} text
-     * @param {Function} convertFn `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
+     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
      * @returns {String}
      */
     replaceAllDigits(text, convertFn) {

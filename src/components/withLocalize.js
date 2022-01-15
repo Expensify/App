@@ -124,10 +124,18 @@ class LocaleContextProvider extends React.Component {
         return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
     }
 
+    /**
+     * @param {String} digit
+     * @returns {String}
+     */
     toLocaleDigit(digit) {
         return LocaleDigitUtils.toLocaleDigit(this.props.preferredLocale, digit);
     }
 
+    /**
+     * @param {String} localeDigit
+     * @returns {String}
+     */
     fromLocaleDigit(localeDigit) {
         return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
     }
