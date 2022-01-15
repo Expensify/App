@@ -184,14 +184,15 @@ class EmojiPickerMenu extends Component {
         document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
+    /**
+     * Focuses the search Input and has the text selected
+     */
     focusInputWithTextSelect() {
         if (!this.searchInput) {
             return;
         }
 
         this.setState({selectTextOnFocus: true});
-
-        // Reaching start of the list, arrow left/up set the focus to searchInput.
         this.searchInput.focus();
     }
 
@@ -202,9 +203,9 @@ class EmojiPickerMenu extends Component {
     highlightAdjacentEmoji(arrowKey) {
         const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
 
-        // Arrow Down enable arrow navigation when search is focused
+        // Arrow Down and Arrow Right enable arrow navigation when search is focused
         if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
-            if (['ArrowDown', 'ArrowRight'].indexOf(arrowKey) === -1) {
+            if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
                 return;
             }
 
@@ -258,6 +259,7 @@ class EmojiPickerMenu extends Component {
                 move(-1,
                     () => this.state.highlightedIndex - 1 < firstNonHeaderIndex,
                     () => {
+                        // Reaching start of the list, arrow left set the focus to searchInput.
                         this.focusInputWithTextSelect();
                         newIndex = -1;
                     });
@@ -270,6 +272,7 @@ class EmojiPickerMenu extends Component {
                     -this.numColumns,
                     () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex,
                     () => {
+                        // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
                         newIndex = -1;
                     },
