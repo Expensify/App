@@ -140,7 +140,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
     }];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
-    allEmojis = addSpacesToEmojiCategories(emojis);
+    allEmojis = addSpacesToEmojiCategories(allEmojis);
     return allEmojis;
 }
 
