@@ -116,8 +116,9 @@ const AboutPage = (props) => {
                         )}
                         {' '}
                         <Text
+                            accessibilityRole="link"
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.TERMS_URL}
+                            onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
@@ -129,8 +130,9 @@ const AboutPage = (props) => {
                         )}
                         {' '}
                         <Text
+                            accessibilityRole="link"
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.PRIVACY_URL}
+                            onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
