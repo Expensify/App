@@ -8,7 +8,6 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
-
 import TextInputWithPrefix from './TextInputWithPrefix';
 
 const propTypes = {
@@ -105,11 +104,18 @@ class RoomNameInput extends Component {
             report => report && report.policyID === this.props.policyID && report.reportName === finalRoomName,
         );
 
+        let error = '';
+
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        const error = isExistingRoomName && finalRoomName !== this.originalRoomName
-            ? this.props.translate('newRoomPage.roomAlreadyExists')
-            : '';
+        if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
+            error = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        }
+
+        // Certain names are reserved for default rooms and should not be used for policy rooms.
+        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
+            error = this.props.translate('newRoomPage.roomNameReservedError');
+        }
 
         this.setState({
             roomName: finalRoomName,

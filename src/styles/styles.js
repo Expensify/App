@@ -900,6 +900,10 @@ const styles = {
         height: '100%',
     },
 
+    resendLinkButton: {
+        minWidth: 124,
+    },
+
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
