@@ -353,6 +353,13 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        setDefaultConfirmation: 'Make default payment method',
+        setDefaultSuccess: 'Default payment method set!',
+        setDefaultFailure: 'Failed to set default payment method.',
+        deleteConfirmation: 'Are you sure that you want to delete this account?',
+        deleteBankAccountSuccess: 'Bank account successfully deleted',
+        deleteDebitCardSuccess: 'Debit Card successfully deleted',
+        deletePayPalSuccess: 'PayPal.me successfully deleted',
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
@@ -377,6 +384,7 @@ export default {
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
         mostRecent: 'Most recent',

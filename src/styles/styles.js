@@ -2215,7 +2215,7 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    defaultCloseAccountPopover: {
+    sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
 

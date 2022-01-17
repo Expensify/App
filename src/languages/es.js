@@ -353,6 +353,13 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        setDefaultConfirmation: 'Marcar como método de pago predeterminado',
+        setDefaultSuccess: 'Método de pago configurado',
+        setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
+        deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
+        deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
+        deletePayPalSuccess: 'PayPal.me eliminada correctamente',
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
@@ -377,6 +384,7 @@ export default {
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
+        defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
