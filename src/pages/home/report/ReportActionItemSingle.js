@@ -69,21 +69,23 @@ const ReportActionItemSingle = (props) => {
                 />
             </Pressable>
             <View style={[styles.chatItemRight]}>
-                {this.props.showHeader ? <View style={[styles.chatItemMessageHeader]}>
-                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
-                        {_.map(personArray, (fragment, index) => (
-                            <ReportActionItemFragment
-                                key={`person-${props.action.sequenceNumber}-${index}`}
-                                fragment={fragment}
-                                tooltipText={props.action.actorEmail}
-                                isAttachment={props.action.isAttachment}
-                                isLoading={props.action.loading}
-                                isSingleLine
-                            />
-                        ))}
-                    </Pressable>
-                    <ReportActionItemDate timestamp={props.action.timestamp} />
-                </View> : null}
+                {props.showHeader ? (
+                    <View style={[styles.chatItemMessageHeader]}>
+                        <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
+                            {_.map(personArray, (fragment, index) => (
+                                <ReportActionItemFragment
+                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    fragment={fragment}
+                                    tooltipText={props.action.actorEmail}
+                                    isAttachment={props.action.isAttachment}
+                                    isLoading={props.action.loading}
+                                    isSingleLine
+                                />
+                            ))}
+                        </Pressable>
+                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                    </View>
+                ) : null}
                 {props.children}
             </View>
         </View>
