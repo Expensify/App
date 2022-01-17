@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {withNavigation} from '@react-navigation/compat';
 import ButtonWithMenu from './ButtonWithMenu';
 import * as Expensicons from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
@@ -11,6 +12,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import KYCWall from './KYCWall';
 
 const propTypes = {
     /** Settlement currency type */
@@ -118,12 +120,28 @@ class SettlementButton extends React.Component {
 
     render() {
         return (
-            <ButtonWithMenu
-                isDisabled={this.props.isDisabled}
-                isLoading={this.props.isLoading}
-                onPress={this.props.onPress}
-                options={this.state.buttonOptions}
-            />
+            <KYCWall
+                onSuccessfulKYC={() => this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)}
+                enablePaymentsRoute={this.props.enablePaymentsRoute}
+                addBankAccountRoute={this.props.addBankAccountRoute}
+                addDebitCardRoute={this.props.addDebitCardRoute}
+            >
+                {triggerKYCFlow => (
+                    <ButtonWithMenu
+                        isDisabled={this.props.isDisabled}
+                        isLoading={this.props.isLoading}
+                        onPress={(event, iouPaymentType) => {
+                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                                triggerKYCFlow(event);
+                                return;
+                            }
+
+                            this.props.onPress(iouPaymentType);
+                        }}
+                        options={this.state.buttonOptions}
+                    />
+                )}
+            </KYCWall>
         );
     }
 }
@@ -132,6 +150,7 @@ SettlementButton.propTypes = propTypes;
 SettlementButton.defaultProps = defaultProps;
 
 export default compose(
+    withNavigation,
     withLocalize,
     withOnyx({
         betas: {

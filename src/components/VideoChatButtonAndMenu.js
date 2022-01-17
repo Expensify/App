@@ -34,6 +34,8 @@ class VideoChatButtonAndMenu extends Component {
     constructor(props) {
         super(props);
 
+        this.dimensionsEventListener = null;
+
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
@@ -63,11 +65,14 @@ class VideoChatButtonAndMenu extends Component {
     }
 
     componentDidMount() {
-        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     /**
@@ -104,7 +109,7 @@ class VideoChatButtonAndMenu extends Component {
                             onPress={() => {
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge) {
-                                    Navigation.navigate(ROUTES.getRequestCallRoute('NewExpensifyConciergeDM'));
+                                    Navigation.navigate(ROUTES.getRequestCallRoute(CONST.GUIDES_CALL_TASK_IDS.CONCIERGE_DM));
                                     return;
                                 }
                                 this.toggleVideoChatMenu();

@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -19,18 +19,28 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
 import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
 import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
+import walletTransferPropTypes from './walletTransferPropTypes';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    /** Wallet balance transfer props */
+    walletTransfer: walletTransferPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    walletTransfer: {
+        shouldShowConfirmModal: false,
+    },
     betas: [],
     isLoadingPaymentMethods: true,
 };
@@ -48,6 +58,7 @@ class PaymentsPage extends React.Component {
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
         this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
         this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
+        this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
     }
 
     componentDidMount() {
@@ -110,6 +121,10 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
+    navigateToTransferBalancePage() {
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -120,10 +135,20 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1}>
-                        {
-                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
-                        }
+                    <View style={styles.flex1}>
+                        {Permissions.canUseWallet(this.props.betas) && (
+                            <>
+                                <View style={[styles.mv5]}>
+                                    <CurrentWalletBalance />
+                                </View>
+                                <MenuItem
+                                    title={this.props.translate('common.transferBalance')}
+                                    icon={Expensicons.Transfer}
+                                    onPress={this.navigateToTransferBalancePage}
+                                    shouldShowRightIcon
+                                />
+                            </>
+                        )}
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -135,7 +160,7 @@ class PaymentsPage extends React.Component {
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
-                    </ScrollView>
+                    </View>
                     <AddPaymentMethodMenu
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
@@ -144,6 +169,19 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                    />
+                    <ConfirmModal
+                        title={this.props.translate('paymentsPage.allSet')}
+                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
+                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
+                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
+                            amount: this.props.numberFormat(
+                                this.props.walletTransfer.transferAmount / 100,
+                                {style: 'currency', currency: 'USD'},
+                            ),
+                        })}
+                        confirmText={this.props.translate('paymentsPage.gotIt')}
+                        shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
@@ -159,6 +197,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,

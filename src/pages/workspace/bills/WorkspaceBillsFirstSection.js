@@ -8,7 +8,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
@@ -35,7 +35,7 @@ const propTypes = {
 const WorkspaceBillsFirstSection = (props) => {
     const emailDomain = Str.extractEmailDomain(props.session.email);
     return (
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.bills.manageYourBills')}
             icon={Illustrations.InvoiceOrange}
             menuItems={[
@@ -68,7 +68,7 @@ const WorkspaceBillsFirstSection = (props) => {
                     <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
                 </Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     );
 };
 
