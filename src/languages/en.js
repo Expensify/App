@@ -336,6 +336,7 @@ export default {
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
+        expensifyPassword: 'Expensify password',
         error: {
             invalidName: 'Please enter a valid name',
             addressZipCode: 'Please enter a valid zip code',
@@ -347,6 +348,7 @@ export default {
             addressCity: 'Please enter a city',
             acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
+            password: 'Please enter your Expensify password',
         },
     },
     paymentsPage: {

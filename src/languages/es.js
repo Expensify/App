@@ -336,6 +336,7 @@ export default {
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
+        expensifyPassword: 'Contraseña de Expensify',
         error: {
             invalidName: 'Por favor ingrese un nombre válido',
             addressZipCode: 'Por favor ingrese un código postal válido',
@@ -347,6 +348,7 @@ export default {
             addressCity: 'Por favor ingrese una ciudad',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             genericFailureMessage: 'Se produjo un error al agregar su tarjeta. Vuelva a intentarlo',
+            password: 'Por favor ingrese tu contraseña de Expensify',
         },
     },
     paymentsPage: {
