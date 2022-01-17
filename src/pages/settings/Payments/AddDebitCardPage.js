@@ -22,6 +22,7 @@ import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitBu
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
+import * as ComponentUtils from '../../../libs/ComponentUtils';
 import FormScrollView from '../../../components/FormScrollView';
 
 const propTypes = {
@@ -57,6 +58,7 @@ class DebitCardPage extends Component {
             addressState: '',
             addressZipCode: '',
             acceptedTerms: false,
+            password: '',
             errors: {},
             shouldShowAlertPrompt: false,
         };
@@ -69,6 +71,7 @@ class DebitCardPage extends Component {
             'addressStreet',
             'addressState',
             'addressZipCode',
+            'password',
             'acceptedTerms',
         ];
 
@@ -82,6 +85,7 @@ class DebitCardPage extends Component {
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            password: 'addDebitCardPage.error.password',
         };
 
         this.submit = this.submit.bind(this);
@@ -139,6 +143,10 @@ class DebitCardPage extends Component {
 
         if (!this.state.addressState) {
             errors.addressState = true;
+        }
+
+        if (_.isEmpty(this.state.password.trim())) {
+            errors.password = true;
         }
 
         if (!this.state.acceptedTerms) {
@@ -265,6 +273,17 @@ class DebitCardPage extends Component {
                                         hasError={lodashGet(this.state.errors, 'addressState', false)}
                                     />
                                 </View>
+                            </View>
+                            <View style={[styles.mt4]}>
+                                <TextInput
+                                    label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                    onChangeText={password => this.clearErrorAndSetValue('password', password)}
+                                    value={this.state.password}
+                                    errorText={this.getErrorText('password')}
+                                    textContentType="password"
+                                    autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                                    secureTextEntry
+                                />
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}

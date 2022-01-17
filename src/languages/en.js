@@ -168,9 +168,11 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'This is the beginning of your chat history with',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
+        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -218,7 +220,7 @@ export default {
     notificationPreferences: {
         description: 'How often should we notify you when there are new messages to catch up on in this room?',
         label: 'Notify me about new messages',
-        always: 'Always',
+        immediately: 'Immediately',
         daily: 'Daily',
         mute: 'Mute',
     },
@@ -334,6 +336,7 @@ export default {
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
+        expensifyPassword: 'Expensify password',
         error: {
             invalidName: 'Please enter a valid name',
             addressZipCode: 'Please enter a valid zip code',
@@ -345,6 +348,7 @@ export default {
             addressCity: 'Please enter a city',
             acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
+            password: 'Please enter your Expensify password',
         },
     },
     paymentsPage: {
@@ -475,6 +479,7 @@ export default {
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Connect online with Plaid',
         connectManually: 'Connect manually',
+        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
@@ -871,7 +876,8 @@ export default {
         restrictedDescription: 'People in your workspace are able to find this room using Search',
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
-        roomAlreadyExists: 'A room with this name already exists',
+        roomAlreadyExistsError: 'A room with this name already exists',
+        roomNameReservedError: 'This name is reserved and cannot be used',
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
@@ -894,5 +900,14 @@ export default {
     guides: {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
+    },
+    genericErrorPage: {
+        title: 'Uh-oh, something went wrong!',
+        body: {
+            helpTextMobile: 'Please try closing and reopening the app or switching to',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'If the problem persists, reach out to',
+        },
+        refresh: 'Refresh',
     },
 };
