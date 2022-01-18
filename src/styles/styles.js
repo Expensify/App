@@ -2394,13 +2394,6 @@ const styles = {
         flex: 1,
     },
 
-    textWithEllipsis: {
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        ...whiteSpace.noWrap,
-        ...display.dInline,
-    },
-
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
