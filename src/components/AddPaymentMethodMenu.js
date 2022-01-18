@@ -67,6 +67,7 @@ const AddPaymentMethodMenu = props => (
                     title={props.translate('common.payPalMe')}
                     icon={Expensicons.PayPal}
                     onPress={() => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL)}
+                    wrapperStyle={styles.pr15}
                 />
             )}
         </View>
