@@ -94,7 +94,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return this.state.reportAction.reportActionID === actionID;
+        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
     }
 
     /**

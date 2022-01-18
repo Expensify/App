@@ -95,6 +95,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
+        this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
