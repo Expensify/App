@@ -175,9 +175,12 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
-
-const emojiTextCache = {};
-
+/**
+ * Extracts all emojis from a text and creates an array of elements
+ * containing text without emojis and emojis wrapped in Text component with custom style
+ * @param {string} text
+ * @returns {Object[] | String}
+ */
 function replaceEmojiInText(text) {
     const matchedEmojis = text.match(CONST.REGEX.EMOJIS);
 
@@ -192,27 +195,21 @@ function replaceEmojiInText(text) {
         const indexOfEmoji = text.indexOf(currentEmoji, lastIndex);
 
         const textWithoutEmojis = text.substring(lastIndex, indexOfEmoji);
-        elements.push((textWithoutEmojis));
+        elements.push(textWithoutEmojis);
 
         const emojiText = text.substring(indexOfEmoji, indexOfEmoji + currentEmoji.length);
-        elements.push((<Text key={indexOfEmoji} style={[styles.fwNormal]}>{emojiText}</Text>));
+        elements.push(<Text key={indexOfEmoji} style={[styles.fwNormal]}>{emojiText}</Text>);
 
         lastIndex = indexOfEmoji + emojiText.length;
     }
 
     const textEnd = text.substring(lastIndex);
-    elements.push((textEnd));
+    elements.push(textEnd);
 
     return elements;
 }
 
-
-function escapeEmojiFromText(text) {
-    if (_.isUndefined(emojiTextCache[text])) {
-        emojiTextCache[text] = replaceEmojiInText(text);
-    }
-    return emojiTextCache[text];
-}
+const escapeEmojiFromText = _.memoize(replaceEmojiInText);
 
 
 export {
