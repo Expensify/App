@@ -19,6 +19,7 @@ export default {
     fontSizeLarge: 17,
     fontSizeHero: 36,
     fontSizeh1: 19,
+    fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
     fontSizeNormalHeight: 20,
     lineHeightHero: 40,

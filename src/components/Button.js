@@ -23,6 +23,9 @@ const propTypes = {
     /** Large sized button */
     large: PropTypes.bool,
 
+    /** medium sized button */
+    medium: PropTypes.bool,
+
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
@@ -79,6 +82,7 @@ const defaultProps = {
     isDisabled: false,
     small: false,
     large: false,
+    medium: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -143,6 +147,7 @@ class Button extends Component {
                     styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
+                    this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
@@ -190,6 +195,7 @@ class Button extends Component {
                         style={[
                             styles.button,
                             this.props.small ? styles.buttonSmall : undefined,
+                            this.props.medium ? styles.buttonMedium : undefined,
                             this.props.large ? styles.buttonLarge : undefined,
                             this.props.success ? styles.buttonSuccess : undefined,
                             this.props.danger ? styles.buttonDanger : undefined,
