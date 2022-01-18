@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import listenToStorageEvents from '../libs/listenToStorageEvents';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
 
@@ -33,9 +32,6 @@ export default function () {
                 loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-        },
-        registerStorageEventListener: (onStorageEvent) => {
-            listenToStorageEvents(onStorageEvent);
         },
     });
 

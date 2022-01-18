@@ -168,9 +168,11 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
-        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada ',
+        beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
         beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
@@ -216,9 +218,9 @@ export default {
         },
     },
     notificationPreferences: {
-        description: '¿Con qué frecuencia podemos notificarle si haya nuevos mensajes en esta sala de chat?',
+        description: '¿Cuán seguido quieres que te notifiquemos acerca de nuevos mensajes en esta sala de chat?',
         label: 'Avisar sobre nuevos mensajes',
-        always: 'Siempre',
+        immediately: 'Inmediatamente',
         daily: 'Cada día',
         mute: 'Nunca',
     },
@@ -334,6 +336,7 @@ export default {
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
+        expensifyPassword: 'Contraseña de Expensify',
         error: {
             invalidName: 'Por favor ingrese un nombre válido',
             addressZipCode: 'Por favor ingrese un código postal válido',
@@ -345,10 +348,18 @@ export default {
             addressCity: 'Por favor ingrese una ciudad',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             genericFailureMessage: 'Se produjo un error al agregar su tarjeta. Vuelva a intentarlo',
+            password: 'Por favor ingrese tu contraseña de Expensify',
         },
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        setDefaultConfirmation: 'Marcar como método de pago predeterminado',
+        setDefaultSuccess: 'Método de pago configurado',
+        setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
+        deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
+        deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
+        deletePayPalSuccess: 'PayPal.me eliminada correctamente',
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
@@ -373,6 +384,7 @@ export default {
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
+        defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
@@ -475,6 +487,7 @@ export default {
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo sitio.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
@@ -873,7 +886,8 @@ export default {
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala a través de "Buscar"',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
-        roomAlreadyExists: 'Ya existe una sala con este nombre',
+        roomAlreadyExistsError: 'Ya existe una sala con este nombre',
+        roomNameReservedError: 'Este nombre está reservado y no puede usarse',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
@@ -896,5 +910,14 @@ export default {
     guides: {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    genericErrorPage: {
+        title: '¡Uh-oh, algo salió mal!',
+        body: {
+            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'Si el problema persiste, comuníquese con',
+        },
+        refresh: 'Refresh',
     },
 };

@@ -23,7 +23,6 @@ jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
-    registerStorageEventListener: () => {},
 });
 
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
