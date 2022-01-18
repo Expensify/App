@@ -887,6 +887,7 @@ export default {
         roomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'This name is reserved and cannot be used',
+        renamedRoom: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}.`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',

@@ -889,6 +889,7 @@ export default {
         roomRenamed: '¡Espacio de trabajo renombrado!',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Este nombre está reservado y no puede usarse',
+        renamedRoom: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}.`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
