@@ -32,10 +32,16 @@ const ChooseTransferAccountPage = (props) => {
     /**
      * Go back to transfer balance screen with the selected bank account set
      * @param {Object} event Click event object
-     * @param {String} accountID of the selected account.
+     * @param {String} accountType of the selected account type
+     * @param {Object} account of the selected account data
      */
-    const selectAccountAndNavigateBack = (event, accountID) => {
-        PaymentMethods.saveWalletTransferAccountID(accountID);
+    const selectAccountAndNavigateBack = (event, accountType, account) => {
+        PaymentMethods.saveWalletTransferAccountTypeAndID(
+            accountType,
+            accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                ? account.bankAccountID
+                : account.fundID,
+        );
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 

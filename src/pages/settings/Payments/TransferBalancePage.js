@@ -3,7 +3,6 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -99,7 +98,14 @@ class TransferBalancePage extends React.Component {
 
         PaymentMethods.resetWalletTransferData();
         const selectedAccount = this.getSelectedPaymentMethodAccount();
-        PaymentMethods.saveWalletTransferAccountID(selectedAccount ? selectedAccount.methodID : '');
+        if (!selectedAccount) {
+            return;
+        }
+
+        PaymentMethods.saveWalletTransferAccountTypeAndID(
+            selectedAccount.accountType,
+            selectedAccount.methodID,
+        );
     }
 
     /**
@@ -110,10 +116,13 @@ class TransferBalancePage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
+            '',
+            this.props.userWallet,
         );
 
-        const accountID = this.props.walletTransfer.selectedAccountID || lodashGet(this.props, 'userWallet.walletLinkedAccountID', '');
-        return _.find(paymentMethods, method => method.methodID === accountID);
+        return _.find(paymentMethods, method => (method.accountType === this.props.walletTransfer.selectedAccountType
+                && method.methodID === this.props.walletTransfer.selectedAccountID)
+                || method.isDefault);
     }
 
     /**
@@ -135,7 +144,7 @@ class TransferBalancePage extends React.Component {
 
     render() {
         const selectedAccount = this.getSelectedPaymentMethodAccount();
-        const selectedPaymentType = selectedAccount && selectedAccount.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+        const selectedPaymentType = selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
             : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
@@ -194,7 +203,7 @@ class TransferBalancePage extends React.Component {
                                         ...styles.mrn5,
                                         ...styles.ph0,
                                     }}
-                                    onPress={() => this.navigateToChooseTransferAccount(selectedAccount.type)}
+                                    onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
                                 />
                             )}
                         <Text

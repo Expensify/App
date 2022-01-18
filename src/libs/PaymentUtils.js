@@ -65,7 +65,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
         combinedPaymentMethods.push({
             title: card.addressName,
             description: formattedCardNumber,
-            methodID: card.cardNumber,
+            methodID: card.fundID,
             icon,
             iconSize,
             key: `card-${card.cardNumber}`,
