@@ -53,9 +53,6 @@ class WorkspaceNewRoomPage extends React.Component {
             errors: {},
             workspaceOptions: [],
         };
-        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.modifyRoomName = this.modifyRoomName.bind(this);
     }
 
     componentDidMount() {
@@ -99,22 +96,18 @@ class WorkspaceNewRoomPage extends React.Component {
             && report.reportName === this.state.roomName,
         );
 
-        if (!this.state.roomName || this.state.roomName === CONST.ROOM_PREFIX) {
+        if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        } else if (this.state.policyID && isExistingRoomName) {
+        } else if (isExistingRoomName) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExists');
         }
 
         if (!this.state.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseChooseWorkspace');
-        }
-
-        if (!this.state.visibility) {
-            errors.visibility = this.props.translate('newRoomPage.pleaseChooseVisibility');
+            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
         }
 
         this.setState({errors});
-        return Boolean(_.isEmpty(errors));
+        return _.isEmpty(errors);
     }
 
     /**
@@ -136,7 +129,6 @@ class WorkspaceNewRoomPage extends React.Component {
      * - Max length 80 characters
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
-     * provides the modified room name.
      * @param {String} roomName
      *
      * @returns {String}
@@ -147,7 +139,7 @@ class WorkspaceNewRoomPage extends React.Component {
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        const modifiedRoomName = `${CONST.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
+        const modifiedRoomName = `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 
         return modifiedRoomName;
     }
@@ -174,7 +166,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <TextInputWithLabel
                             label={this.props.translate('newRoomPage.roomName')}
-                            prefixCharacter={CONST.ROOM_PREFIX}
+                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                             placeholder={this.props.translate('newRoomPage.social')}
                             containerStyles={[styles.mb5]}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
@@ -196,8 +188,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            errorText={this.state.errors.visibility}
-                            onChange={visibility => this.clearErrorAndSetValue('visibility', visibility)}
+                            onChange={visibility => this.setState({visibility})}
                         />
                     </ScrollView>
                     <FixedFooter>
@@ -205,7 +196,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             isLoading={this.props.isLoadingCreatePolicyRoom}
                             success
                             pressOnEnter
-                            onPress={this.validateAndCreatePolicyRoom}
+                            onPress={() => this.validateAndCreatePolicyRoom()}
                             style={[styles.w100]}
                             text={this.props.translate('newRoomPage.createRoom')}
                         />

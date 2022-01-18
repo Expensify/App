@@ -492,9 +492,9 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
-    ROOM_PREFIX: '#',
 
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
