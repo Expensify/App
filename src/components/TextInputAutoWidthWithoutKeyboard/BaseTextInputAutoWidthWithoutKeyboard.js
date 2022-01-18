@@ -3,12 +3,15 @@ import {
     View,
     AppState,
     Keyboard,
+
+    // eslint-disable-next-line no-restricted-imports
+    TextInput as RNTextInput,
 } from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Text from '../Text';
-import TextInputFocusable from '../TextInputFocusable';
 import * as baseTextInputAutoWidthWithoutKeyboardPropTypes from './baseTextInputAutoWidthWithoutKeyboardPropTypes';
 
 class BaseTextInputAutoWidthWithoutKeyboard extends React.Component {
@@ -47,7 +50,8 @@ class BaseTextInputAutoWidthWithoutKeyboard extends React.Component {
         return (
             <>
                 <View>
-                    <TextInputFocusable
+                    <RNTextInput
+                        placeholderTextColor={themeColors.placeholderText}
                         style={[this.props.inputStyle, StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth)]}
                         ref={this.props.forwardedRef}
                         showSoftInputOnFocus={false}

@@ -154,6 +154,7 @@ class BaseInvertedFlatList extends Component {
                 maxToRenderPerBatch={1}
                 windowSize={15}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
+                maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
             />
         );
     }

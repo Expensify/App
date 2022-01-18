@@ -70,7 +70,7 @@ class ReportSettingsPage extends Component {
         this.notificationPreferencesOptions = {
             default: {
                 value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                label: this.props.translate('notificationPreferences.always'),
+                label: this.props.translate('notificationPreferences.immediately'),
             },
             daily: {
                 value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,

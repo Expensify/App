@@ -11,6 +11,7 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
 import compose from '../../../libs/compose';
+import scrollViewContentContainerStyles from './signInPageStyles';
 import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
 import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -40,7 +41,7 @@ const SignInPageContent = props => (
             !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
         ]}
         contentContainerStyle={[
-            styles.mnh100,
+            scrollViewContentContainerStyles,
             !props.isSmallScreenWidth && styles.ph6,
         ]}
     >
