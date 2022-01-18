@@ -142,7 +142,11 @@ class EmojiPickerMenu extends Component {
 
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code, this.state.filteredEmojis[this.state.highlightedIndex]);
+                const item = this.state.filteredEmojis[this.state.highlightedIndex];
+                const emoji = item.types && item.types[this.props.preferredSkinTone]
+                    ? item.types[this.props.preferredSkinTone]
+                    : item.code;
+                this.props.onEmojiSelected(emoji, item);
                 return;
             }
 
