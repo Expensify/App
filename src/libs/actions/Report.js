@@ -1537,6 +1537,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * @param {String} reportName
  */
 function renameReport(reportID, reportName) {
+    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
     API.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -1548,7 +1549,8 @@ function renameReport(reportID, reportName) {
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
-        });
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
 export {

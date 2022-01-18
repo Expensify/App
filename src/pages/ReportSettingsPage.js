@@ -89,7 +89,7 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report) || this.props.isLoadingRenamePolicyRoom;
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
         return (
@@ -142,7 +142,7 @@ class ReportSettingsPage extends Component {
                                 success={!shouldDisableRename}
                                 text={this.props.translate('common.save')}
                                 onPress={() => Report.renameReport(this.props.report.reportID, this.state.newRoomName)}
-                                style={[styles.ml2]}
+                                style={[styles.ml2, styles.flex1]}
                                 textStyles={[styles.label]}
                                 innerStyles={[styles.reportSettingsChangeNameButton]}
                                 isDisabled={Boolean(
@@ -150,6 +150,7 @@ class ReportSettingsPage extends Component {
                                     || this.state.newRoomName === this.props.report.reportName
                                     || this.state.error,
                                 )}
+                                isLoading={this.props.isLoadingRenamePolicyRoom}
                             />
                         </View>
                     </View>
@@ -197,6 +198,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        isLoadingRenamePolicyRoom: {
+            key: ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM,
         },
     }),
 )(ReportSettingsPage);
