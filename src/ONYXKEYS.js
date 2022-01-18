@@ -145,9 +145,6 @@ export default {
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
-    // Notifies all tabs that they should sign out and clear storage.
-    SHOULD_SIGN_OUT: 'shouldSignOut',
-
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
@@ -156,6 +153,9 @@ export default {
 
     // Stores values for the request call form
     REQUEST_CALL_FORM: 'requestCallForm',
+
+    // The number of minutes a user has to wait for a call.
+    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
