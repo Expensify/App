@@ -584,7 +584,10 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        messageText = lodashGet(reportAction, 'originalMessage.html', '');
+    }
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
