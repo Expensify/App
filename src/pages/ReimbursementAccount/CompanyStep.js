@@ -256,7 +256,7 @@ class CompanyStep extends React.Component {
                     <TextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
