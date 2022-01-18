@@ -12,6 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
+      - name: Check Provisioning Style
+        run: |
+          if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
+            exit 0
+          else
+            echo "Error: Automatic provisioning style is not allowed!"
+            exit 1
+          fi
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -33,23 +43,10 @@ jobs:
           max_attempts: 5
           command: npm ci
 
-      - run: npm run test
+      - name: Jest Unit Tests
+        run: npm run test
         env:
           CI: true
 
-      - name: Decrypt OSBotify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import OSBotify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for OSBotify
-        run: |
-          git config --global user.name OSBotify
-          git config --global user.email infra+osbotify@expensify.com
-          git config --global user.signingkey 367811D53E34168C
-          git config --global commit.gpgsign true
-
-      - run: tests/unit/getPullRequestsMergedBetweenTest.sh
+      - name: Pull Request Tests
+        run: tests/unit/getPullRequestsMergedBetweenTest.sh

@@ -28,6 +28,7 @@ import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -258,6 +259,8 @@ class WorkspaceMembersPage extends React.Component {
                     title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                 />
                 <ConfirmModal
@@ -273,13 +276,13 @@ class WorkspaceMembersPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
-                            small
+                            medium
                             success
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                         />
                         <Button
-                            small
+                            medium
                             danger
                             style={[styles.ml2]}
                             isDisabled={this.state.selectedEmployees.length === 0}
