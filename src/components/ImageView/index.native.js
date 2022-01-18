@@ -69,6 +69,13 @@ class ImageView extends PureComponent {
                 imageWidth = Math.round(this.props.windowWidth);
                 imageHeight = Math.round(imageWidth * aspectRatio);
             }
+            const maxZoomRatio = 11;
+            if (width > (this.props.windowWidth * maxZoomRatio)) {
+                imageWidth = (this.props.windowWidth * maxZoomRatio);
+            }
+            if (height > (this.props.windowHeight * maxZoomRatio)) {
+                imageHeight = (this.props.windowHeight * maxZoomRatio);
+            }
             this.setState({imageHeight, imageWidth});
         });
     }
