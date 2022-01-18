@@ -98,7 +98,10 @@ class TransferBalancePage extends React.Component {
 
         PaymentMethods.resetWalletTransferData();
         const selectedAccount = this.getSelectedPaymentMethodAccount();
-        if (!selectedAccount) {
+
+        // Select the default payment account when page is opened,
+        // so that user can see that preselected on choose transfer account page
+        if (!selectedAccount || !selectedAccount.isDefault) {
             return;
         }
 
