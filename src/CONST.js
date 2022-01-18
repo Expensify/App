@@ -248,8 +248,10 @@ const CONST = {
             RESTRICTED: 'restricted',
             PRIVATE: 'private',
         },
+        RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {

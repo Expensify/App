@@ -420,6 +420,17 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.fundID
+ * @returns {Promise}
+ */
+function DeleteFund(parameters) {
+    const commandName = 'DeleteFund';
+    requireParameters(['fundID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -741,6 +752,19 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
+ * @returns {Promise}
+ */
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.subscribed
  * @returns {Promise}
  */
@@ -1007,7 +1031,7 @@ function BankAccount_SetupWithdrawal(parameters) {
  */
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1185,6 +1209,7 @@ export {
     CreateLogin,
     CreatePolicyRoom,
     RenameReport,
+    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1216,6 +1241,7 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
+    SetWalletLinkedAccount,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
