@@ -58,7 +58,7 @@ class LoginForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input) {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
             return;
         }
         this.input.focus();

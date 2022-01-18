@@ -153,7 +153,7 @@ const CONST = {
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
-            shortcutKey: '?',
+            shortcutKey: 'I',
             modifiers: ['CTRL'],
         },
         ESCAPE: {
@@ -247,6 +247,7 @@ const CONST = {
             RESTRICTED: 'restricted',
             PRIVATE: 'private',
         },
+        RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
     },
@@ -391,10 +392,19 @@ const CONST = {
     },
 
     WALLET: {
-        TRANSFER_BALANCE_FEE: 0.30,
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
+        },
+        TRANSFER_METHOD_TYPE_FEE: {
+            INSTANT: {
+                RATE: 1.5,
+                MINIMUM_FEE: 25,
+            },
+            ACH: {
+                RATE: 0,
+                MINIMUM_FEE: 0,
+            },
         },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
@@ -467,6 +477,11 @@ const CONST = {
         BANK_ACCOUNT: 'bankAccount',
     },
 
+    PAYMENT_METHOD_ID_KEYS: {
+        DEBIT_CARD: 'fundID',
+        BANK_ACCOUNT: 'bankAccountID',
+    },
+
     IOU: {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -528,6 +543,7 @@ const CONST = {
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,

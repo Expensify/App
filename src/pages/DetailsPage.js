@@ -152,13 +152,15 @@ const DetailsPage = (props) => {
                                 </View>
                             ) : null}
                         </View>
-                        <MenuItem
-                            title={`${props.translate('common.message')}${details.displayName}`}
-                            icon={Expensicons.ChatBubble}
-                            onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
-                            wrapperStyle={styles.breakAll}
-                            shouldShowRightIcon
-                        />
+                        {details.login !== props.session.email && (
+                            <MenuItem
+                                title={`${props.translate('common.message')}${details.displayName}`}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 ) : null}
             </View>

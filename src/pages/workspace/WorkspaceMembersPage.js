@@ -276,13 +276,13 @@ class WorkspaceMembersPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
-                            small
+                            medium
                             success
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                         />
                         <Button
-                            small
+                            medium
                             danger
                             style={[styles.ml2]}
                             isDisabled={this.state.selectedEmployees.length === 0}

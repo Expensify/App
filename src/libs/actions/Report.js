@@ -1083,7 +1083,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
@@ -1162,8 +1162,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: commentText,
         file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
