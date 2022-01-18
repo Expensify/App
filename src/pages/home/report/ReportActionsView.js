@@ -372,6 +372,12 @@ class ReportActionsView extends React.Component {
             return false;
         }
 
+        // Do not group if previous action was a room renamed action
+        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return false;
+        }
+
         return currentAction.action.actorEmail === previousAction.action.actorEmail;
     }
 
