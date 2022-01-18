@@ -93,7 +93,7 @@ class PaymentMethodList extends Component {
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.type === this.props.filterType);
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
         }
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
