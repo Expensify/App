@@ -2,7 +2,6 @@ package com.expensify.chat;
 
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
-
 import com.expensify.chat.bootsplash.BootSplash;
 import com.facebook.react.ReactActivity;
 

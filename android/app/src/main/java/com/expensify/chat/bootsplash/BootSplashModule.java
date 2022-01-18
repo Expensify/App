@@ -8,9 +8,7 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-
 import androidx.annotation.DrawableRes;
-
 import com.expensify.chat.R;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -18,7 +16,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.module.annotations.ReactModule;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -97,8 +94,9 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
 
         final LinearLayout layout = activity.findViewById(R.id.bootsplash_layout_id);
 
+        // check if splash screen is already hidden
         if (layout == null)
-          return; // splash screen is already hidden
+          return;
 
         final ViewGroup parent = (ViewGroup) layout.getParent();
 

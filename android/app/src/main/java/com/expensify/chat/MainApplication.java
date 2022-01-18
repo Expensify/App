@@ -3,7 +3,6 @@ package com.expensify.chat;
 import android.content.Context;
 import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
-
 import com.expensify.chat.bootsplash.BootSplashPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;

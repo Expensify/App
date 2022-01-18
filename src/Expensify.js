@@ -128,6 +128,7 @@ class Expensify extends PureComponent {
 
             if (shouldHideSplash) {
                 BootSplash.hide();
+
                 // eslint-disable-next-line react/no-did-update-set-state
                 this.setState({isSplashShown: false});
             }

@@ -1,7 +1,6 @@
 package com.expensify.chat.bootsplash;
 
 import android.app.Activity;
-
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 
