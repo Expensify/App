@@ -189,6 +189,28 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_MORE_PINS = {
+        ...REPORTS,
+        13: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 1,
+            isPinned: true,
+            reportID: 13,
+            participants: ['d_email@email.com'],
+            reportName: 'D report name',
+            unreadActionCount: 0,
+        },
+        14: {
+            lastVisitedTimestamp: 1610666732302,
+            lastMessageTimestamp: 1,
+            isPinned: true,
+            reportID: 14,
+            participants: ['z_email@email.com'],
+            reportName: 'Z Report Name',
+            unreadActionCount: 0,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE = {
         ...PERSONAL_DETAILS,
 
@@ -227,7 +249,6 @@ describe('OptionsListUtils', () => {
                     total: '1000',
                 },
             },
-            registerStorageEventListener: () => {},
         });
         Onyx.registerLogger(() => {});
         return waitForPromisesToResolve();
@@ -494,7 +515,6 @@ describe('OptionsListUtils', () => {
             ]),
         );
 
-
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
             REPORTS_WITH_CHRONOS,
@@ -597,23 +617,39 @@ describe('OptionsListUtils', () => {
         () => Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value
-                const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
+                const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
                 // report that has no lastMessageTimestamp and the chat with Thor who's message is read
-                expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
+                expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_MORE_PINS) - 2);
 
                 // That no personalDetails are shown
                 expect(results.personalDetails.length).toBe(0);
 
-                // And Mister Fantastic is alphabetically the fourth report and has an unread message
-                // despite being pinned
-                expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
+                // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
+                // D report name (Alphabetically first among pinned reports)
+                expect(results.recentReports[0].login).toBe('d_email@email.com');
 
-                // And Black Panther is alphabetically the first report and has an unread message
-                expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
+                // Mister Fantastic report name (Alphabetically second among pinned reports)
+                expect(results.recentReports[1].login).toBe('reedrichards@expensify.com');
 
-                // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
-                expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
+                // Z report name (Alphabetically third among pinned reports)
+                expect(results.recentReports[2].login).toBe('z_email@email.com');
+
+                // Unpinned report name ordered alphabetically after pinned reports
+                // Black Panther report name has unread message
+                expect(results.recentReports[3].login).toBe('tchalla@expensify.com');
+
+                // Captain America report name has unread message
+                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+
+                // Invisible woman report name has unread message
+                expect(results.recentReports[5].login).toBe('suestorm@expensify.com');
+
+                // Mister Sinister report name has IOU debt
+                expect(results.recentReports[7].login).toBe('mistersinister@marauders.com');
+
+                // Spider-Man report name is last report and has unread message
+                expect(results.recentReports[8].login).toBe('peterparker@expensify.com');
             }));
 });
