@@ -184,10 +184,10 @@ function clearDebitCardFormErrorAndSubmit() {
  * Call the API to transfer wallet balance.
  * @param {Object} paymentMethod
  * @param {*} paymentMethod.methodID
- * @param {String} paymentMethod.type
+ * @param {String} paymentMethod.accountType
  */
 function transferWalletBalance(paymentMethod) {
-    const paymentMethodIDKey = paymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+    const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
         ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
     const parameters = {
