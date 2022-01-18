@@ -358,6 +358,8 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
+
+    // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
@@ -371,7 +373,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
-    const personalDetailsOptions = [];
+    let personalDetailsOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
 
@@ -383,7 +385,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         sortProperty = ['reportName'];
     }
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+
+    // Move the archived Rooms to the last
+    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
@@ -412,6 +417,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         }
 
         if (ReportUtils.isChatRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+            return;
+        }
+
+        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
             return;
         }
 
@@ -513,19 +522,6 @@ function getOptions(reports, personalDetails, activeReportID, {
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
-    // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (sortByReportTypeInSearch && searchValue !== '') {
-        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
-            if (option.isChatRoom || option.isArchivedRoom) {
-                return 3;
-            }
-            if (!option.login) {
-                return 2;
-            }
-            return 1;
-        }], ['asc']);
-    }
-
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -563,6 +559,22 @@ function getOptions(reports, personalDetails, activeReportID, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
+    }
+
+    // If we are prioritizing 1:1 chats in search, do it only once we started searching
+    if (sortByReportTypeInSearch && searchValue !== '') {
+        // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
+        recentReportOptions.push(...personalDetailsOptions);
+        personalDetailsOptions = [];
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+            if (option.isChatRoom || option.isArchivedRoom) {
+                return 3;
+            }
+            if (!option.login) {
+                return 2;
+            }
+            return 1;
+        }], ['asc']);
     }
 
     return {
@@ -686,7 +698,6 @@ function getSidebarOptions(
     betas,
 ) {
     let sideBarOptions = {
-        prioritizePinnedReports: true,
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
     };
@@ -704,6 +715,7 @@ function getSidebarOptions(
         maxRecentReportsToShow: 0, // Unlimited
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        prioritizePinnedReports: true,
         ...sideBarOptions,
     });
 }

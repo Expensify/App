@@ -25,6 +25,10 @@ export default {
         marginHorizontal: 4,
     },
 
+    mh2: {
+        marginHorizontal: 8,
+    },
+
     mh3: {
         marginHorizontal: 12,
     },
@@ -218,6 +222,10 @@ export default {
 
     pv5: {
         paddingVertical: 20,
+    },
+
+    pv10: {
+        paddingVertical: 40,
     },
 
     ph0: {

@@ -90,12 +90,18 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        const sections = [{
-            title: this.props.translate('common.recents'),
-            data: this.state.recentReports.concat(this.state.personalDetails),
-            shouldShow: true,
-            indexOffset: 0,
-        }];
+        const sections = [
+            {
+                data: this.state.recentReports,
+                shouldShow: true,
+                indexOffset: 0,
+            },
+            {
+                data: this.state.personalDetails,
+                shouldShow: true,
+                indexOffset: this.state.recentReports.length,
+            },
+        ];
 
         if (this.state.userToInvite) {
             sections.push(({
@@ -169,16 +175,16 @@ class SearchPage extends Component {
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
+                                <OptionsSelector
+                                    sections={sections}
+                                    value={this.state.searchValue}
+                                    onSelectRow={this.selectReport}
+                                    onChangeText={this.onChangeText}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    hideAdditionalOptionStates
+                                    showTitleTooltip
+                                />
                             )}
                         </View>
                         <KeyboardSpacer />

@@ -25,6 +25,12 @@ const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
  */
 const POLL_RATE = 10000;
 
+/**
+ * URL prefixed to a specific workflow run
+ * @type {string}
+ */
+const WORKFLOW_RUN_URL_PREFIX = 'https://github.com/Expensify/App/actions/runs/';
+
 const run = function () {
     const workflow = core.getInput('WORKFLOW', {required: true});
     const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
@@ -45,6 +51,7 @@ const run = function () {
     // 4) Then we can poll and wait for that new workflow run to conclude
     let previousWorkflowRunID;
     let newWorkflowRunID;
+    let newWorkflowRunURL;
     let hasNewWorkflowStarted = false;
     let workflowCompleted = false;
     return GithubUtils.getLatestWorkflowRunID(workflow)
@@ -79,6 +86,7 @@ const run = function () {
                         return GithubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
+                                newWorkflowRunURL = WORKFLOW_RUN_URL_PREFIX + newWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
 
                                 if (!hasNewWorkflowStarted) {
@@ -94,7 +102,7 @@ const run = function () {
                                         process.exit(1);
                                     }
                                 } else {
-                                    console.log(`\n🚀 New ${workflow} run with ID ${newWorkflowRunID} has started`);
+                                    console.log(`\n🚀 New ${workflow} run ${newWorkflowRunURL} has started`);
                                 }
                             })
                             .catch((err) => {
@@ -113,7 +121,7 @@ const run = function () {
                 () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
                 _.throttle(
                     () => {
-                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
+                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
                         return GithubUtils.octokit.actions.getWorkflowRun({
                             owner: GithubUtils.GITHUB_OWNER,
                             repo: GithubUtils.EXPENSIFY_CASH_REPO,
@@ -124,7 +132,7 @@ const run = function () {
                                 waitTimer += POLL_RATE;
                                 if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
                                     // eslint-disable-next-line max-len
-                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunID} did not complete.`);
+                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunURL} did not complete.`);
                                     console.error(err);
                                     core.setFailed(err);
                                     process.exit(1);
@@ -132,10 +140,10 @@ const run = function () {
                                 if (workflowCompleted) {
                                     if (data.conclusion === 'success') {
                                         // eslint-disable-next-line max-len
-                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
+                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunURL} completed successfully! 🎉`);
                                     } else {
                                         // eslint-disable-next-line max-len
-                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
+                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunURL} finished with conclusion ${data.conclusion}`);
                                         console.error(err.message);
                                         core.setFailed(err);
                                         process.exit(1);
