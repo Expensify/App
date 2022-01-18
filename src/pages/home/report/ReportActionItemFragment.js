@@ -93,7 +93,7 @@ const ReportActionItemFragment = (props) => {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        <EmojiText style={[styles.chatItemMessageHeaderSender]}>{Str.htmlDecode(props.fragment.text)}</EmojiText>
                     </Text>
                 </Tooltip>
             );
