@@ -13,11 +13,11 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AnnounceAction = props => {
-    const displayName = lodashGet(props.action, 'message[0].text');
+const AnnounceAction = (props) => {
+    const displayName = lodashGet(props.action, ['message', 0, 'text']);
     const oldName = lodashGet(props.action, 'originalMessage.oldName', '');
     const newName = lodashGet(props.action, 'originalMessage.newName', '');
-    
+
     return (
         <Text style={[styles.pv2, styles.ph5, styles.textAlignCenter, styles.textLabelSupporting]}>
             <Text style={[styles.h4, styles.textLabelSupporting]}>
@@ -25,7 +25,8 @@ const AnnounceAction = props => {
             </Text>
             {props.translate('newRoomPage.renamedRoom', {oldName, newName})}
         </Text>
-)};
+    );
+};
 
 AnnounceAction.propTypes = propTypes;
 AnnounceAction.displayName = 'AnnounceAction';
