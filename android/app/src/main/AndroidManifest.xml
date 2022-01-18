@@ -15,7 +15,7 @@
         <data android:scheme="venmo"/>
       </intent>
     </queries>
-    <!-- disable hardwareAccelerated since it lead react-native-image-pan-zoom to crash with large images--> 
+    
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
