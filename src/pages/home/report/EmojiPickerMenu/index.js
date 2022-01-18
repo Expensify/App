@@ -242,7 +242,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Move in the prescribed direction until we reach an element that isn't a header
-            const isHeader = e => e.header || e.code === CONST.EMOJI_SPACER;
+            const isHeader = e => e.header || e.spacer;
             do {
                 newIndex += steps;
             } while (isHeader(this.state.filteredEmojis[newIndex]));
@@ -347,7 +347,7 @@ class EmojiPickerMenu extends Component {
         // Hence, we slice the array from the 1st index category onwards
         const newFilteredEmojiList = _.filter(this.emojis.slice(this.unfilteredHeaderIndices[1] * this.numColumns), emoji => (
             !emoji.header
-            && emoji.code !== CONST.EMOJI_SPACER
+            && !emoji.spacer
             && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
         ));
 
