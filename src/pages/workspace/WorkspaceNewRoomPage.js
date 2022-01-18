@@ -53,6 +53,8 @@ class WorkspaceNewRoomPage extends React.Component {
             errors: {},
             workspaceOptions: [],
         };
+
+        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
     }
 
     componentDidMount() {
@@ -196,7 +198,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             isLoading={this.props.isLoadingCreatePolicyRoom}
                             success
                             pressOnEnter
-                            onPress={() => this.validateAndCreatePolicyRoom()}
+                            onPress={this.validateAndCreatePolicyRoom}
                             style={[styles.w100]}
                             text={this.props.translate('newRoomPage.createRoom')}
                         />
