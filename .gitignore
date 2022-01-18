@@ -80,4 +80,5 @@ storybook-static
 *.asc
 
 # Jest coverage report
-coverage/
+/coverage.data
+/coverage/
