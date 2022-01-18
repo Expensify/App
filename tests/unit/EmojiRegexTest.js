@@ -61,4 +61,32 @@ describe('EmojiRegexTest', () => {
         expect(EmojiUtils.isSingleEmoji('🇮🇳')).toBe(true);
         expect(EmojiUtils.isSingleEmoji('🇺🇦️')).toBe(true);
     });
+
+    it('extracts text with emojis to array of elements', () => {
+        // Text containing various emojis of various lengths
+        const textWithEmojis1 = "Lorem 😪️ ipsum😎️😂 dolor 😋sit amet. 👨‍👩‍👦️ ";
+        const textWithEmojis2 = "😪️😎️😂Duis aute 😂irure dolor in 👩‍👩‍👧‍👦️reprehenderit.";
+        const textWithEmojis3 = "Excepteur 😂sint😂 occaecat cupidatat non proident.";
+        const textWithEmojis4 = "🇺🇲Egestas quis ipsum suspendisse ultrices gravida dictum fusce ut.🇺🇲";
+        const textWithEmojis5 = "Vestibulum ❤️lectus☠️ mauris ultrices eros in cursus.";
+        const textWithEmojis6 = "Ullamcorper morbi tincidunt ornare massa.😂";
+
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis1)).toHaveLength(11);
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis2)).toHaveLength(11);
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis3)).toHaveLength(5);
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis4)).toHaveLength(5);
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis5)).toHaveLength(5);
+        expect(EmojiUtils.escapeEmojiFromText(textWithEmojis6)).toHaveLength(3);
+    });
+
+    it ('returns same text if it doesnt contain emojis', () => {
+        // Text that doesn't contain any emojis
+        const textWithoutEmojis1 = "Vestibulum lectus mauris ultrices eros in cursus.";
+        const textWithoutEmojis2 = "Amet venenatis urna cursus eget nunc scelerisque viverra mauris in.";
+        const textWithoutEmojis3 = "Ullamcorper morbi tincidunt ornare massa.";
+
+        expect(EmojiUtils.escapeEmojiFromText(textWithoutEmojis1)).toBe(textWithoutEmojis1);
+        expect(EmojiUtils.escapeEmojiFromText(textWithoutEmojis2)).toBe(textWithoutEmojis2);
+        expect(EmojiUtils.escapeEmojiFromText(textWithoutEmojis3)).toBe(textWithoutEmojis3);
+    });
 });
