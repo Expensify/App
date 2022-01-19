@@ -53,7 +53,8 @@ class Tooltip extends PureComponent {
             return;
         }
 
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition())
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
+        this.getWrapperPositionPromise.promise
             .then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
     }
 
@@ -109,7 +110,8 @@ class Tooltip extends PureComponent {
 
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition())
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
+        this.getWrapperPositionPromise.promise
             .then(({
                 x, y, width, height,
             }) => {

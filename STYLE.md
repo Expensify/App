@@ -776,7 +776,8 @@ componentWillUnmount() {
 }
 
 doSomethingThenSetState() {
-    this.doSomethingPromise = makeCancellablePromise(this.doSomething())
+    this.doSomethingPromise = makeCancellablePromise(this.doSomething());
+    this.doSomethingPromise.promise
         .then((value) => this.setState({value}));
 }
 ```
