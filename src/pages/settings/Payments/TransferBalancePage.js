@@ -109,6 +109,7 @@ class TransferBalancePage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
+            this.props.userWallet,
         );
 
         const accountID = this.props.walletTransfer.selectedAccountID || lodashGet(this.props, 'userWallet.walletLinkedAccountID', '');
