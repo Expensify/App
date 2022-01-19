@@ -171,6 +171,8 @@ export default {
 
     p0: {
         padding: 0,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
     },
 
     p1: {
