@@ -207,9 +207,11 @@ class IOUAmountPage extends React.Component {
                     </TouchableOpacity>
                     <TextInput
                         disableKeyboard
-                        inputStyle={[styles.iouAmountTextInput, styles.p0]}
+                        autoGrow
+                        hideFocusedState
+                        inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         containerStyles={[styles.hAuto]}
-                        textInputContainerStyles={[styles.borderNone]}
+                        textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
                         value={this.state.amount}

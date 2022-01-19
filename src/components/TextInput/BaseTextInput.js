@@ -183,8 +183,8 @@ class BaseTextInput extends Component {
                                 style={[
                                     styles.textInputContainer,
                                     ...this.props.textInputContainerStyles,
-                                    this.props.disableKeyboard && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
-                                    !this.props.disableKeyboard && this.state.isFocused && styles.borderColorFocus,
+                                    this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+                                    !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
                                     (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                                 ]}
                             >
@@ -257,7 +257,7 @@ class BaseTextInput extends Component {
                     This text view is used to calculate width of the input value given textStyle in this component.
                     This Text component is intentionally positioned out of the screen.
                 */}
-                {this.props.disableKeyboard && (
+                {this.props.autoGrow && (
                     <Text
                         style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}

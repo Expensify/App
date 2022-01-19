@@ -40,6 +40,12 @@ const propTypes = {
     /** Disable the virtual keyboard from  */
     disableKeyboard: PropTypes.bool,
 
+    /** Autogrow input container size based on the entered text  */
+    autoGrow: PropTypes.bool,
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState: PropTypes.bool,
+
     /** Forward the inner ref */
     innerRef: PropTypes.func,
 };
@@ -63,6 +69,8 @@ const defaultProps = {
     defaultValue: undefined,
     forceActiveLabel: false,
     disableKeyboard: false,
+    autoGrow: false,
+    hideFocusedState: false,
     innerRef: () => {},
 };
 
