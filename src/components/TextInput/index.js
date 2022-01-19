@@ -6,7 +6,7 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
 class TextInput extends React.Component {
     componentDidMount() {
-        if (!this.props.disablekeyboard) {
+        if (!this.props.disableKeyboard) {
             return;
         }
         this.textInput.setNativeProps({inputmode: 'none'});
