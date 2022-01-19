@@ -781,7 +781,7 @@ doSomethingThenSetState() {
 }
 ```
 
-**Read more:** https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+**Read more:** [https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html](https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html)
 
 ## Composition vs Inheritance
 
