@@ -930,9 +930,9 @@ SPEC CHECKSUMS:
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
-  react-native-document-picker: ebcce6982dd91aa6d2b9a38b666895c381015f1d
-  react-native-flipper: cd9eabd8917104c1bbdca2621717cdca3b2addef
-  react-native-image-picker: f45729c43d4f854508ab25c0d0f0f711a2a8a267
+  react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
+  react-native-flipper: 169e8ba429b73ad637ce007337ce4b415e783799
+  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 3a61a486f2329f5884753fd5bab21450a535d97c
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
