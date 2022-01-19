@@ -1169,7 +1169,7 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
- * Renames a user create policy room
+ * Renames a user-created policy room
  * @param {Object} parameters
  * @param {String} parameters.reportID
  * @param {String} parameters.reportName
