@@ -23,7 +23,7 @@ const RenameAction = (props) => {
             <Text style={[styles.textLabelSupporting, styles.textStrong]}>
                 {displayName}
             </Text>
-            {props.translate('newRoomPage.renamedRoom', {oldName, newName})}
+            {props.translate('newRoomPage.renamedRoomAction', {oldName, newName})}
         </Text>
     );
 };

@@ -1547,7 +1547,7 @@ function renameReport(reportID, reportName) {
                 Growl.error(response.message);
                 return;
             }
-            Growl.success(Localize.translateLocal('newRoomPage.roomRenamed'));
+            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
             // Optimistically update the report name
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
