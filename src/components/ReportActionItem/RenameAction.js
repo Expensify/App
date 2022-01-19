@@ -20,7 +20,7 @@ const AnnounceAction = (props) => {
 
     return (
         <Text style={[styles.pv2, styles.ph5, styles.textAlignCenter, styles.textLabelSupporting]}>
-            <Text style={[styles.h4, styles.textLabelSupporting]}>
+            <Text style={[styles.textLabelSupporting, styles.textStrong]}>
                 {displayName}
             </Text>
             {props.translate('newRoomPage.renamedRoom', {oldName, newName})}
