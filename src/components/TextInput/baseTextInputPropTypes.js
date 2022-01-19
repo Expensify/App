@@ -33,6 +33,12 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
+
+    /** Disable the virtual keyboard from  */
+    disableKeyboard: PropTypes.bool,
+
+    /** Forward the inner ref */
+    innerRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -52,6 +58,8 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
+    disableKeyboard: false,
+    innerRef: () => {},
 };
 
 export {propTypes, defaultProps};
