@@ -179,7 +179,9 @@ function processNetworkRequestQueue() {
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
             const shouldRetry = lodashGet(request, 'data.shouldRetry');
             if (shouldRetry && request.data.persist) {
-                retryableRequests.push(request);
+                // exclude functions as they cannot be persisted
+                const requestToPersist = _.omit(request, val => _.isFunction(val));
+                retryableRequests.push(requestToPersist);
                 return true;
             }
         });

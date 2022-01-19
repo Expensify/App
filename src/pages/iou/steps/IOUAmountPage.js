@@ -113,6 +113,22 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * @param {String} amount
+     * @returns {Number}
+     */
+    calculateAmountLength(amount) {
+        const leadingZeroes = amount.match(/^0+/);
+        const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
+        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+
+        /*
+        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+        */
+        return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+    }
+
+    /**
      * Check if amount is a decimal upto 3 digits
      *
      * @param {String} amount
@@ -120,7 +136,7 @@ class IOUAmountPage extends React.Component {
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(2)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
+        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
     /**
@@ -219,7 +235,7 @@ class IOUAmountPage extends React.Component {
                         ref={el => this.textInput = el}
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>

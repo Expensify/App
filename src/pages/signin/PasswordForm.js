@@ -143,7 +143,7 @@ class PasswordForm extends React.Component {
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                         />
                     </View>
