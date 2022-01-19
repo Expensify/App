@@ -58,8 +58,8 @@ const propTypes = {
 
 const defaultProps = {
     payPalMeUsername: '',
-    bankAccountList: [],
-    cardList: [],
+    bankAccountList: {},
+    cardList: {},
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
@@ -91,6 +91,7 @@ class PaymentMethodList extends Component {
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {
             combinedPaymentMethods.push({
+                key: 'addFirstPaymentMethodHelpText',
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
         }
@@ -125,7 +126,6 @@ class PaymentMethodList extends Component {
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
-                    key={item.key}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
@@ -150,6 +150,7 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
+                keyExtractor={item => item.key}
             />
         );
     }

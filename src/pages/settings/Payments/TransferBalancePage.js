@@ -30,7 +30,7 @@ const propTypes = {
     userWallet: userWalletPropTypes.userWallet,
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
+    bankAccountList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc) */
         addressName: PropTypes.string,
 
@@ -45,7 +45,7 @@ const propTypes = {
     })),
 
     /** Array of card objects */
-    cardList: PropTypes.arrayOf(PropTypes.shape({
+    cardList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc) */
         cardName: PropTypes.string,
 
@@ -64,8 +64,8 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {},
-    bankAccountList: [],
-    cardList: [],
+    bankAccountList: {},
+    cardList: {},
     walletTransfer: {},
 };
 
@@ -97,6 +97,8 @@ class TransferBalancePage extends React.Component {
         ];
 
         this.saveTransferAmountAndBalance = this.saveTransferAmountAndBalance.bind(this);
+        this.getSelectedPaymentMethodAccount = this.getSelectedPaymentMethodAccount.bind(this);
+
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         PaymentMethods.saveWalletTransferAccountAndResetData(selectedAccount ? selectedAccount.id : '');
     }
@@ -106,12 +108,7 @@ class TransferBalancePage extends React.Component {
      * @returns {Object|undefined}
      */
     getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(
-            this.props.bankAccountList,
-            this.props.cardList,
-            this.props.userWallet,
-        );
-
+        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, '', this.props.userWallet);
         const accountID = this.props.walletTransfer.selectedAccountID || lodashGet(this.props, 'userWallet.walletLinkedAccountID', '');
         return _.find(paymentMethods, method => method.methodID === accountID);
     }
