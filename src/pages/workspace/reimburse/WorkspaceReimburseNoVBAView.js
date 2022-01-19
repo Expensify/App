@@ -10,7 +10,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
@@ -18,6 +18,7 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
+import withFullPolicy from '../withFullPolicy';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -40,6 +41,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
+
 
 class WorkspaceReimburseNoVBAView extends React.Component {
     unitItems = [
@@ -96,7 +98,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
     render() {
         return (
             <>
-                <WorkspaceSection
+                <Section
                     title={this.props.translate('workspace.reimburse.captureReceipts')}
                     icon={Illustrations.ReceiptYellow}
                     menuItems={[
@@ -119,9 +121,9 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                             <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                         </Text>
                     </View>
-                </WorkspaceSection>
+                </Section>
 
-                <WorkspaceSection
+                <Section
                     title={this.props.translate('workspace.reimburse.trackDistance')}
                     icon={Illustrations.GpsTrackOrange}
                 >
@@ -148,9 +150,9 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                             />
                         </View>
                     </View>
-                </WorkspaceSection>
+                </Section>
 
-                <WorkspaceSection
+                <Section
                     title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.JewelBoxGreen}
                     menuItems={[
@@ -165,7 +167,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                     <View style={[styles.mv4]}>
                         <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                     </View>
-                </WorkspaceSection>
+                </Section>
             </>
         );
     }
@@ -175,6 +177,7 @@ WorkspaceReimburseNoVBAView.propTypes = propTypes;
 WorkspaceReimburseNoVBAView.displayName = 'WorkspaceReimburseNoVBAView';
 
 export default compose(
+    withFullPolicy,
     withLocalize,
     withOnyx({
         policy: {

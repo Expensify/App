@@ -18,6 +18,9 @@ import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/reportUtils';
 import DateUtils from '../libs/DateUtils';
+import * as Expensicons from '../components/Icon/Expensicons';
+import MenuItem from '../components/MenuItem';
+import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -149,6 +152,15 @@ const DetailsPage = (props) => {
                                 </View>
                             ) : null}
                         </View>
+                        {details.login !== props.session.email && (
+                            <MenuItem
+                                title={`${props.translate('common.message')}${details.displayName}`}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 ) : null}
             </View>
@@ -162,6 +174,9 @@ DetailsPage.displayName = 'DetailsPage';
 export default compose(
     withLocalize,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

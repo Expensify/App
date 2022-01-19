@@ -480,6 +480,14 @@ function setCustomUnitRate(policyID, customUnitID, values) {
         });
 }
 
+/**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -496,4 +504,5 @@ export {
     createAndGetPolicyList,
     setCustomUnit,
     setCustomUnitRate,
+    updateLastAccessedWorkspace,
 };

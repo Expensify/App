@@ -19,6 +19,7 @@ import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -120,6 +121,8 @@ class WorkspaceInitialPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     shouldShowThreeDotsButton
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Plus,

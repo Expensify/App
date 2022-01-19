@@ -116,7 +116,8 @@ const AboutPage = (props) => {
                         )}
                         {' '}
                         <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            accessibilityRole="link"
+                            style={[styles.textMicroSupporting, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
                         >
                             {props.translate(
@@ -129,7 +130,8 @@ const AboutPage = (props) => {
                         )}
                         {' '}
                         <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            accessibilityRole="link"
+                            style={[styles.textMicroSupporting, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {props.translate(
