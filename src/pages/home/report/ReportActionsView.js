@@ -110,7 +110,7 @@ class ReportActionsView extends React.Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
-        this.scrollToListBottom = this.scrollToListBottom.bind(this);
+        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -193,8 +193,7 @@ class ReportActionsView extends React.Component {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
             }
-
-            this.scrollToListBottom();
+            ReportScrollManager.scrollToBottom();
         });
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
@@ -271,7 +270,7 @@ class ReportActionsView extends React.Component {
             // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
-                this.scrollToListBottom();
+                ReportScrollManager.scrollToBottom();
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -381,7 +380,6 @@ class ReportActionsView extends React.Component {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
-
     /**
      * Updates and sorts the report actions by sequence number
      *
@@ -443,7 +441,7 @@ class ReportActionsView extends React.Component {
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
-    scrollToListBottom() {
+    scrollToBottomAndUpdateLastRead() {
         ReportScrollManager.scrollToBottom();
         Report.updateLastReadActionID(this.props.reportID);
     }
@@ -459,7 +457,6 @@ class ReportActionsView extends React.Component {
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
         Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
-
 
     /**
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
@@ -623,7 +620,7 @@ class ReportActionsView extends React.Component {
                 <MarkerBadge
                     active={this.state.isMarkerActive}
                     count={this.state.localUnreadActionCount}
-                    onClick={this.scrollToListBottom}
+                    onClick={this.scrollToBottomAndUpdateLastRead}
                     onClose={this.hideMarker}
                 />
                 {/* <InvertedFlatList

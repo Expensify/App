@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
@@ -21,7 +21,7 @@ const WorkspaceBillsVBAView = props => (
     <>
         <WorkspaceBillsFirstSection policyID={props.policyID} />
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.bills.hassleFreeBills')}
             icon={Illustrations.MoneyMousePink}
             menuItems={[
@@ -37,7 +37,7 @@ const WorkspaceBillsVBAView = props => (
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.bills.VBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

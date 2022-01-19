@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import * as PaymentMethods from './PaymentMethods';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -140,8 +141,15 @@ function activateWallet(currentStep, parameters) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+            const userWallet = response.userWallet;
+            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet)
+                .then(() => {
+                    if (userWallet.currentStep !== CONST.WALLET.STEP.ACTIVATE || userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
+                        return;
+                    }
 
+                    PaymentMethods.continueSetup();
+                });
             if (currentStep === CONST.WALLET.STEP.ONFIDO) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {

@@ -9,6 +9,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     isVisible: PropTypes.bool.isRequired,
@@ -21,12 +22,20 @@ const propTypes = {
     /** Username for PayPal.Me */
     payPalMeUsername: PropTypes.string,
 
+    /** Should we show the Paypal option */
+    shouldShowPaypal: PropTypes.bool,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     anchorPosition: {},
     payPalMeUsername: '',
+    shouldShowPaypal: true,
+    betas: [],
 };
 
 const AddPaymentMethodMenu = props => (
@@ -41,13 +50,15 @@ const AddPaymentMethodMenu = props => (
             onPress={() => props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT)}
             wrapperStyle={styles.pr15}
         />
-        <MenuItem
-            title={props.translate('common.debitCard')}
-            icon={Expensicons.CreditCard}
-            onPress={() => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD)}
-            wrapperStyle={styles.pr15}
-        />
-        {!props.payPalMeUsername && (
+        {Permissions.canUseWallet(props.betas) && (
+            <MenuItem
+                title={props.translate('common.debitCard')}
+                icon={Expensicons.CreditCard}
+                onPress={() => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD)}
+                wrapperStyle={styles.pr15}
+            />
+        )}
+        {props.shouldShowPaypal && !props.payPalMeUsername && (
             <MenuItem
                 title={props.translate('common.payPalMe')}
                 icon={Expensicons.PayPal}
@@ -66,6 +77,9 @@ export default compose(
     withOnyx({
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(AddPaymentMethodMenu);

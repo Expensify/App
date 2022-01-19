@@ -1,0 +1,1 @@
+export default () => 'bankAccount.desktopConnection';

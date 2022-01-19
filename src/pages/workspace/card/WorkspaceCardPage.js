@@ -5,6 +5,7 @@ import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -23,6 +24,7 @@ const WorkspaceCardPage = props => (
     <WorkspacePageWithSections
         headerText={props.translate('workspace.common.card')}
         route={props.route}
+        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
     >
         {(hasVBA, policyID, isUsingECard) => (
             <>
