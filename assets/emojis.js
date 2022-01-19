@@ -50,29 +50,8 @@ const skinTones = [{
 
 const emojis = [
     {
-        code: 'Smileys & People',
+        code: 'smileysAndPeople',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '😀',
@@ -2801,29 +2780,8 @@ const emojis = [
         ],
     },
     {
-        code: 'Animals & Nature',
+        code: 'animalsAndNature',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🐵',
@@ -3616,6 +3574,10 @@ const emojis = [
         ],
     },
     {
+        code: 'foodAndDrinks',
+        header: true,
+    },
+    {
         code: '🍇',
         keywords: [
             'fruit',
@@ -4366,41 +4328,8 @@ const emojis = [
         ],
     },
     {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: 'Travel & Places',
+        code: 'travelAndPlaces',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🌍',
@@ -6227,50 +6156,8 @@ const emojis = [
         ],
     },
     {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: 'Activities',
+        code: 'activities',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🎃',
@@ -7011,41 +6898,8 @@ const emojis = [
         ],
     },
     {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: 'Objects',
+        code: 'objects',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🔇',
@@ -8455,47 +8309,8 @@ const emojis = [
         ],
     },
     {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: 'Symbols',
+        code: 'symbols',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🏧',
@@ -10093,47 +9908,8 @@ const emojis = [
         ],
     },
     {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: 'Flags',
+        code: 'flags',
         header: true,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🏁',

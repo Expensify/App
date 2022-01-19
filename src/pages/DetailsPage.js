@@ -3,7 +3,6 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -18,6 +17,10 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/reportUtils';
+import DateUtils from '../libs/DateUtils';
+import * as Expensicons from '../components/Icon/Expensicons';
+import MenuItem from '../components/MenuItem';
+import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -66,7 +69,7 @@ const DetailsPage = (props) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(props.route.params.reportID);
-    const timezone = moment().tz(details.timezone.selected);
+    const timezone = DateUtils.getLocalMomentFromTimestamp(props.preferredLocale, null, details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
     const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
@@ -149,6 +152,15 @@ const DetailsPage = (props) => {
                                 </View>
                             ) : null}
                         </View>
+                        {details.login !== props.session.email && (
+                            <MenuItem
+                                title={`${props.translate('common.message')}${details.displayName}`}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 ) : null}
             </View>
@@ -162,6 +174,9 @@ DetailsPage.displayName = 'DetailsPage';
 export default compose(
     withLocalize,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

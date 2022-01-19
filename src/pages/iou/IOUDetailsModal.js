@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import SettlementButton from '../../components/SettlementButton';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** URL Route params */
@@ -93,8 +94,8 @@ class IOUDetailsModal extends Component {
             paymentMethodType,
             amount: this.props.iouReport.total,
             currency: this.props.iouReport.currency,
-            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            submitterPhoneNumber: this.getSubmitterPhoneNumber(),
+            requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            requestorPhoneNumber: this.getSubmitterPhoneNumber(),
         });
     }
 
@@ -123,7 +124,6 @@ class IOUDetailsModal extends Component {
                                 userEmail={sessionEmail}
                             />
                         </ScrollView>
-
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
@@ -133,6 +133,9 @@ class IOUDetailsModal extends Component {
                                     recipientPhoneNumber={this.getSubmitterPhoneNumber()}
                                     shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                     currency={lodashGet(this.props, 'iouReport.currency')}
+                                    enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
                                 />
                             </View>
                         ))}
