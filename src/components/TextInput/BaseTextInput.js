@@ -182,6 +182,7 @@ class BaseTextInput extends Component {
                             <View
                                 style={[
                                     styles.textInputContainer,
+                                    ...this.props.textInputContainerStyles,
                                     this.props.disableKeyboard && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
                                     !this.props.disableKeyboard && this.state.isFocused && styles.borderColorFocus,
                                     (this.props.hasError || this.props.errorText) && styles.borderColorDanger,

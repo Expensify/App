@@ -23,6 +23,9 @@ const propTypes = {
     hasError: PropTypes.bool,
 
     /** Customize the TextInput container */
+    textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the main container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** input style */
@@ -48,6 +51,7 @@ const defaultProps = {
     placeholder: '',
     hasError: false,
     containerStyles: [],
+    textInputContainerStyles: [],
     inputStyle: [],
     autoFocus: false,
 
