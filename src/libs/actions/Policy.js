@@ -10,6 +10,7 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Report from './Report';
 
 const allPolicies = {};
 Onyx.connect({
@@ -110,6 +111,9 @@ function create(name = '') {
                 return;
             }
             res = response;
+
+            // Fetch the default reports on the policy
+            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
