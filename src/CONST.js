@@ -342,7 +342,6 @@ const CONST = {
     },
 
     KEYBOARD_TYPE: {
-        NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
     },
