@@ -216,7 +216,7 @@ class IOUAmountPage extends React.Component {
                         value={this.state.amount}
                         placeholder="0"
                         placeholderTextColor={themeColors.placeholderText}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
