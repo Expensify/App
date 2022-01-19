@@ -74,7 +74,6 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
-        this.splitExtensionFromFileName = this.splitExtensionFromFileName.bind(this);
     }
 
     /**
