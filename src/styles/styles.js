@@ -1594,6 +1594,10 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderNone: {
+        borderWidth: 0,
+    },
+
     borderRight: {
         borderRightWidth: 1,
         borderColor: themeColors.border,

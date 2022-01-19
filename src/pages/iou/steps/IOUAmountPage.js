@@ -9,6 +9,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -18,7 +19,7 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
-import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
+import TextInput from '../../../components/TextInput';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -204,13 +205,15 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
-                    <TextInputAutoWidthWithoutKeyboard
-                        inputStyle={styles.iouAmountTextInput}
-                        textStyle={styles.iouAmountText}
+                    <TextInput
+                        disableKeyboard
+                        inputStyle={[styles.iouAmountTextInput]}
+                        textInputContainerStyles={[styles.borderNone]}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
                         value={this.state.amount}
                         placeholder="0"
+                        placeholderTextColor={themeColors.placeholderText}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                     />
                 </View>
