@@ -2,6 +2,7 @@ import BankArrowPink from '../../../assets/images/product-illustrations/bank-arr
 import BankMouseGreen from '../../../assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '../../../assets/images/product-illustrations/bank-user--green.svg';
 import ConciergeBlue from '../../../assets/images/product-illustrations/concierge--blue.svg';
+import ConciergeExclamation from '../../../assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '../../../assets/images/product-illustrations/credit-cards--blue.svg';
 import InvoiceOrange from '../../../assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '../../../assets/images/product-illustrations/jewel-box--blue.svg';
@@ -19,6 +20,7 @@ export {
     BankMouseGreen,
     BankUserGreen,
     ConciergeBlue,
+    ConciergeExclamation,
     CreditCardsBlue,
     InvoiceOrange,
     JewelBoxBlue,

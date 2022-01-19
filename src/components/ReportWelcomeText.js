@@ -67,32 +67,45 @@ const ReportWelcomeText = (props) => {
         },
     );
     const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
-            <Text>
-                {!props.shouldIncludeParticipants
-                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
-                    : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
-            </Text>
-            {!props.shouldIncludeParticipants && <Text style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</Text>}
-            {!props.shouldIncludeParticipants && <Text>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</Text>}
-            {props.shouldIncludeParticipants
-            && (
-                <>
-                    {_.map(chatUsers, ({displayName, pronouns}, index) => (
-                        <Text key={displayName}>
-                            <Text style={[styles.textStrong]}>
-                                {displayName}
-                            </Text>
-                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                            {(index === chatUsers.length - 1) && <Text>.</Text>}
-                            {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                            {(index < chatUsers.length - 2) && <Text>, </Text>}
+            {!props.shouldIncludeParticipants
+                ? (
+                    <>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
                         </Text>
-                    ))}
-                </>
-            )}
+                        <Text style={[styles.textStrong]}>
+                            {lodashGet(chatUsers, '[0].displayName', '')}
+                        </Text>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        </Text>
+                    </>
+                ) : (
+                    <>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                        </Text>
+                        {_.map(chatUsers, ({displayName, pronouns}, index) => (
+                            <Text key={displayName}>
+                                <Text style={[styles.textStrong]}>
+                                    {displayName}
+                                </Text>
+                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {(index === chatUsers.length - 1) && <Text>.</Text>}
+                                {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                                {(index < chatUsers.length - 2) && <Text>, </Text>}
+                            </Text>
+                        ))}
+                    </>
+                )}
         </Text>
     );
 };

@@ -420,6 +420,17 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.fundID
+ * @returns {Promise}
+ */
+function DeleteFund(parameters) {
+    const commandName = 'DeleteFund';
+    requireParameters(['fundID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -741,6 +752,19 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
+ * @returns {Promise}
+ */
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.subscribed
  * @returns {Promise}
  */
@@ -1007,7 +1031,7 @@ function BankAccount_SetupWithdrawal(parameters) {
  */
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1100,6 +1124,15 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
+ * Get the current wait time in minutes for an inbox call
+ * @returns {Promise}
+ */
+function Inbox_CallUser_WaitTime() {
+    const commandName = 'Inbox_CallUser_WaitTime';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -1162,6 +1195,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1174,6 +1208,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
@@ -1192,6 +1227,7 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
+    SetWalletLinkedAccount,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,

@@ -3,8 +3,6 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
-    AppState,
-    Keyboard,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +11,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -21,6 +18,7 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
+import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -79,7 +77,6 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -88,10 +85,6 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
-        this.appStateSubscription = AppState.addEventListener(
-            'change',
-            this.dismissKeyboardWhenBackgrounded,
-        );
     }
 
     componentDidUpdate(prevProps) {
@@ -100,20 +93,6 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
-    }
-
-    componentWillUnmount() {
-        if (!this.appStateSubscription) {
-            return;
-        }
-        this.appStateSubscription.remove();
-    }
-
-    dismissKeyboardWhenBackgrounded(nextAppState) {
-        if (!nextAppState.match(/inactive|background/)) {
-            return;
-        }
-        Keyboard.dismiss();
     }
 
     /**
@@ -133,6 +112,22 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * @param {String} amount
+     * @returns {Number}
+     */
+    calculateAmountLength(amount) {
+        const leadingZeroes = amount.match(/^0+/);
+        const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
+        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+
+        /*
+        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+        */
+        return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+    }
+
+    /**
      * Check if amount is a decimal upto 3 digits
      *
      * @param {String} amount
@@ -140,7 +135,7 @@ class IOUAmountPage extends React.Component {
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(2)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
+        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
     /**
@@ -209,16 +204,14 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
-                    <TextInputAutoWidth
+                    <TextInputAutoWidthWithoutKeyboard
                         inputStyle={styles.iouAmountTextInput}
                         textStyle={styles.iouAmountText}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
                         value={this.state.amount}
                         placeholder="0"
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                        showSoftInputOnFocus={false}
-                        inputmode="none"
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>

@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
@@ -21,7 +21,7 @@ const propTypes = {
 
 const WorkspaceReimburseNoVBAView = props => (
     <>
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.reimburse.captureReceipts')}
             icon={Illustrations.ReceiptYellow}
             menuItems={[
@@ -44,9 +44,9 @@ const WorkspaceReimburseNoVBAView = props => (
                     <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                 </Text>
             </View>
-        </WorkspaceSection>
+        </Section>
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
             icon={Illustrations.JewelBoxGreen}
             menuItems={[
@@ -61,7 +61,7 @@ const WorkspaceReimburseNoVBAView = props => (
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

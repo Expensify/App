@@ -188,6 +188,8 @@ class CompanyStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -254,7 +256,7 @@ class CompanyStep extends React.Component {
                     <TextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
