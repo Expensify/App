@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import * as StyleUtils from '../../../../styles/StyleUtils';
@@ -142,7 +143,9 @@ class EmojiPickerMenu extends Component {
 
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code, this.state.filteredEmojis[this.state.highlightedIndex]);
+                const item = this.state.filteredEmojis[this.state.highlightedIndex];
+                const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
+                this.props.onEmojiSelected(emoji, item);
                 return;
             }
 
