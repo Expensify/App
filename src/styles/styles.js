@@ -1950,6 +1950,7 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
+        lineHeight: undefined,
     }, 0),
 
     iouPreviewBox: {

@@ -227,7 +227,7 @@ class BaseTextInput extends Component {
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
                                         name={this.props.name}
-                                        showSoftInputOnFocus={this.props.disableKeyboard}
+                                        showSoftInputOnFocus={!this.props.disableKeyboard}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable

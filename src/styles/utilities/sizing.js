@@ -43,8 +43,4 @@ export default {
     wAuto: {
         width: 'auto',
     },
-
-    hAuto: {
-        height: 'auto',
-    },
 };
