@@ -25,6 +25,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
+import PhoneTextInput from '../../components/PhoneTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -232,7 +233,7 @@ class AdditionalDetailsStep extends React.Component {
                                         {this.props.translate('common.noPO')}
                                     </Text>
                                 </View>
-                                <TextInput
+                                <PhoneTextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}

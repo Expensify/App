@@ -20,7 +20,7 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
-import LoginUtil from '../../libs/LoginUtil';
+import PhoneTextInput from '../../components/PhoneTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,10 +71,7 @@ class AddSecondaryLoginPage extends Component {
      * Add a secondary login to a user's account
      */
     submitForm() {
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
-        User.setSecondaryLoginAndNavigate(login, this.state.password);
+        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
     }
 
     /**
@@ -83,12 +80,8 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
-
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(login);
+        return !this.state.password || !validationMethod(this.state.login);
     }
 
     render() {
@@ -117,17 +110,29 @@ class AddSecondaryLoginPage extends Component {
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                         </Text>
                         <View style={styles.mb6}>
-                            <TextInput
-                                label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? 'common.phoneNumber'
-                                    : 'profilePage.emailAddress')}
-                                ref={el => this.phoneNumberInputRef = el}
-                                value={this.state.login}
-                                onChangeText={this.onSecondaryLoginChange}
-                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
-                                returnKeyType="done"
-                            />
+                            {this.formType === CONST.LOGIN_TYPE.PHONE
+                                ? (
+                                    <PhoneTextInput
+                                        label={this.props.translate('common.phoneNumber')}
+                                        ref={el => this.phoneNumberInputRef = el}
+                                        value={this.state.login}
+                                        onChangeText={this.onSecondaryLoginChange}
+                                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                        returnKeyType="done"
+                                    />
+                                )
+                                : (
+                                    <TextInput
+                                        label={this.props.translate('profilePage.emailAddress')}
+                                        ref={el => this.phoneNumberInputRef = el}
+                                        value={this.state.login}
+                                        onChangeText={this.onSecondaryLoginChange}
+                                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                        returnKeyType="done"
+                                    />
+                                )}
                         </View>
                         <View style={styles.mb6}>
                             <TextInput

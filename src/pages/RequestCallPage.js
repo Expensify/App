@@ -24,9 +24,9 @@ import Text from '../components/Text';
 import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
-import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import PhoneTextInput from '../components/PhoneTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -140,7 +140,7 @@ class RequestCallPage extends Component {
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: this.state.phoneNumber,
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -162,8 +162,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
-        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
+        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(this.state.phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
@@ -302,7 +301,7 @@ class RequestCallPage extends Component {
                             />
                             <View style={[styles.mt4, styles.flexRow]}>
                                 <View style={styles.flex1}>
-                                    <TextInput
+                                    <PhoneTextInput
                                         label={this.props.translate('common.phoneNumber')}
                                         autoCompleteType="off"
                                         autoCorrect={false}

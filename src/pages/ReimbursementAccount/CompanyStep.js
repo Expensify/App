@@ -25,6 +25,7 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import AddressForm from './AddressForm';
+import PhoneTextInput from '../../components/PhoneTextInput';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -236,7 +237,7 @@ class CompanyStep extends React.Component {
                             this.clearErrors(_.keys(renamedValues));
                         }}
                     />
-                    <TextInput
+                    <PhoneTextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
