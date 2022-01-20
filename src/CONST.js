@@ -250,6 +250,7 @@ const CONST = {
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -340,7 +341,6 @@ const CONST = {
     },
 
     KEYBOARD_TYPE: {
-        NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
     },

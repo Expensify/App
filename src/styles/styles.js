@@ -274,6 +274,10 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    textNoWrap: {
+        ...whiteSpace.noWrap,
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -1317,6 +1321,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
+        overflowX: 'hidden',
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
@@ -2214,7 +2219,7 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    defaultCloseAccountPopover: {
+    sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
 
