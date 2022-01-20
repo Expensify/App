@@ -59,7 +59,7 @@ const MenuItem = props => (
     >
         {({hovered, pressed}) => (
             <>
-                <View style={styles.flexRow}>
+                <View style={[styles.flexRow, styles.pointerEventsNone]}>
                     {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
@@ -108,7 +108,7 @@ const MenuItem = props => (
                         )}
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
 
                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
