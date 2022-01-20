@@ -198,7 +198,6 @@ class AttachmentPicker extends Component {
                     return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                 }
 
-                // Resolve with the first (and only) selected file
                 return resolve(response.assets);
             });
         });
