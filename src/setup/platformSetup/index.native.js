@@ -2,6 +2,16 @@ import PushNotification from '../../libs/Notification/PushNotification';
 import * as Report from '../../libs/actions/Report';
 import Performance from '../../libs/Performance';
 
+// we only need polyfills for Mobile.
+import '@formatjs/intl-getcanonicallocales/polyfill';
+import '@formatjs/intl-locale/polyfill';
+import '@formatjs/intl-pluralrules/polyfill';
+import '@formatjs/intl-numberformat/polyfill';
+
+// Load en & es Locale data
+import '@formatjs/intl-numberformat/locale-data/en';
+import '@formatjs/intl-numberformat/locale-data/es';
+
 export default function () {
     /*
      * Register callbacks for push notifications.
