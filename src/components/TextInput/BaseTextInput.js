@@ -76,6 +76,7 @@ class BaseTextInput extends Component {
         if (!this.props.disableKeyboard || !this.appStateSubscription) {
             return;
         }
+
         this.appStateSubscription.remove();
     }
 
@@ -143,6 +144,7 @@ class BaseTextInput extends Component {
         if (!nextAppState.match(/inactive|background/)) {
             return;
         }
+
         Keyboard.dismiss();
     }
 
@@ -211,7 +213,6 @@ class BaseTextInput extends Component {
                                         {...inputProps}
                                         value={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
-                                        placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
                                             styles.flex1,

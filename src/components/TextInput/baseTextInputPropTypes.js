@@ -37,7 +37,7 @@ const propTypes = {
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
 
-    /** Disable the virtual keyboard from  */
+    /** Disable the virtual keyboard  */
     disableKeyboard: PropTypes.bool,
 
     /** Autogrow input container size based on the entered text  */

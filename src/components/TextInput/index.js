@@ -9,6 +9,7 @@ class TextInput extends React.Component {
         if (!this.props.disableKeyboard) {
             return;
         }
+
         this.textInput.setNativeProps({inputmode: 'none'});
     }
 
@@ -22,11 +23,13 @@ class TextInput extends React.Component {
                     if (!this.props.innerRef) {
                         return;
                     }
+
                     if (_.isFunction(this.props.innerRef)) {
                         this.props.innerRef(el);
-                    } else {
-                        this.props.innerRef.current = el;
+                        return;
                     }
+
+                    this.props.innerRef.current = el;
                 }}
                 inputStyle={[styles.baseTextInput, styles.textInputDesktop, ...this.props.inputStyle]}
             />
