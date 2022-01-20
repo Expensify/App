@@ -343,7 +343,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        // Skip "Frequently Used" emojis to avoid duplicate results. 
+        // Skip "Frequently Used" emojis to avoid duplicate results.
         // Frequently used emojis are on the 0th index category. Hence, slice the array from the 1st index category onwards.
         const uniqueEmojis = _.isEmpty(this.props.frequentlyUsedEmojis) ? this.emojis : this.emojis.slice(this.unfilteredHeaderIndices[1] * this.numColumns);
         const newFilteredEmojiList = _.filter(uniqueEmojis, emoji => (
