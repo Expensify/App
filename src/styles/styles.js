@@ -2035,6 +2035,11 @@ const styles = {
         zIndex: 10,
     },
 
+    navigatorFullScreenLoading: {
+        backgroundColor: colors.gray1,
+        opacity: 1,
+    },
+
     reimbursementAccountFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
