@@ -79,7 +79,7 @@ const AddressForm = props => (
         <TextInput
             label={props.translate('common.zip')}
             containerStyles={[styles.mt4]}
-            keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
             value={props.values.zipCode}
             onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
