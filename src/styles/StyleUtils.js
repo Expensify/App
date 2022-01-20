@@ -375,6 +375,15 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     };
 }
 
+/**
+ * Parse styleParam and return Styles array
+ * @param {Object|Object[]} styleParam
+ * @returns {Object[]}
+ */
+function parseStyleAsArray(styleParam) {
+    return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
 export {
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -397,4 +406,5 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    parseStyleAsArray,
 };
