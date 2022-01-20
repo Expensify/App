@@ -9,6 +9,7 @@ import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
+import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -52,21 +53,13 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
-                        <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
-                            <Text
-                                style={[styles.chatItemComposeSecondaryRowSubText]}
-                                numberOfLines={1}
-                            >
-                                {PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexShrink0]}>
-                            <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
-                                {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                            </Text>
-                        </View>
-                    </View>
+                    <TextWithEllipsis
+                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
+                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                        wrapperStyle={styles.chatItemComposeSecondaryRow}
+                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+                    />
                 );
             default:
                 return (

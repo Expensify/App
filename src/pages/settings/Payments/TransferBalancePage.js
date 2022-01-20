@@ -29,8 +29,8 @@ const propTypes = {
     /** User's wallet information */
     userWallet: userWalletPropTypes.userWallet,
 
-    /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc) */
         addressName: PropTypes.string,
 
@@ -44,8 +44,8 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
-    /** Array of card objects */
-    cardList: PropTypes.arrayOf(PropTypes.shape({
+    /** List of card objects */
+    cardList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc) */
         cardName: PropTypes.string,
 
@@ -64,8 +64,8 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {},
-    bankAccountList: [],
-    cardList: [],
+    bankAccountList: {},
+    cardList: {},
     walletTransfer: {},
 };
 
