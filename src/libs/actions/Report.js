@@ -1184,7 +1184,7 @@ function addAction(reportID, text, file) {
             }
 
             if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
-                Growl.error('You are blocked from chatting with Concierge.');
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
