@@ -413,7 +413,7 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
         const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
@@ -563,19 +563,17 @@ class ReportActionsView extends React.Component {
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
      *
-     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-     *
      * @param {String} type
      * @param {Object} item
+     * @param {Number} index
      *
      * @returns {React.Component}
      */
-    renderItem(type, item) {
+    renderItem(type, item, index) {
         if (!_.contains(_.values(CONST.REPORT.ACTIONS.TYPE), type)) {
             return null;
         }
 
-        const index = item.action.sequenceNumber;
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
