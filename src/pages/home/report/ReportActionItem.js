@@ -163,7 +163,7 @@ class ReportActionItem extends Component {
                             >
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle action={this.props.action}>
+                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
                                             {children}
                                         </ReportActionItemSingle>
                                     )

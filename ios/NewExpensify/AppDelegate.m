@@ -5,9 +5,9 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
 #import <Firebase.h>
-#import "RCTStartupTimer.h"
 
-#import "RNBootSplash.h"
+#import "RCTBootSplash.h"
+#import "RCTStartupTimer.h"
 
 #import <UserNotifications/UserNotifications.h>
 
@@ -54,7 +54,7 @@ static void InitializeFlipper(UIApplication *application) {
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
-  [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // <- initialization using the storyboard file name
+  [RCTBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // <- initialization using the storyboard file name
 
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
