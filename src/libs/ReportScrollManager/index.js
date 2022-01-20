@@ -28,7 +28,7 @@ function scrollToBottom() {
         return;
     }
 
-    flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    flatListRef.current.scrollToEnd({animated: false});
 }
 
 export {

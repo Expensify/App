@@ -652,6 +652,7 @@ class ReportActionsView extends React.Component {
                 />
                 */}
                 <RecyclerListView
+                    ref={ReportScrollManager.flatListRef}
                     layoutProvider={this.layoutProvider}
                     dataProvider={this.state.dataProvider}
                     rowRenderer={this.renderItem}
