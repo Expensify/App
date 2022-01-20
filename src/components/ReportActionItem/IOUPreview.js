@@ -143,11 +143,21 @@ const IOUPreview = (props) => {
                                     />
                                 </View>
                             </View>
-                            <Text>
-                                {props.iouReport.hasOutstandingIOU
-                                    ? props.translate('iou.owes', {manager: managerName, owner: ownerName})
-                                    : props.translate('iou.paid', {manager: managerName, owner: ownerName})}
-                            </Text>
+                            {isCurrentUserManager
+                                ? (
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.youowe', {owner: ownerName})
+                                            : props.translate('iou.youpaid', {owner: ownerName})}
+                                    </Text>
+                                )
+                                : (
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.owesyou', {manager: managerName})
+                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                    </Text>
+                                )}
                             {(isCurrentUserManager
                                 && !props.shouldHidePayButton
                                 && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (

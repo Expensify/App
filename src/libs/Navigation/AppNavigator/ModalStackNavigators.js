@@ -227,6 +227,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Add_Paypal_Me',
     },
     {
+        Component: EnablePaymentsPage,
+        name: 'Settings_Payments_EnablePayments',
+    },
+    {
         Component: AddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
     },
