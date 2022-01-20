@@ -74,3 +74,5 @@ Text.defaultProps = defaultProps;
 Text.displayName = 'Text';
 
 export default Text;
+
+export {propTypes, defaultProps};
