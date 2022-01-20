@@ -384,6 +384,15 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
     return {width: !isSmallScreenWidth ? variables.sideBarWidth - (margin * 2) : undefined};
 }
 
+/**
+ * Parse styleParam and return Styles array
+ * @param {Object|Object[]} styleParam
+ * @returns {Object[]}
+ */
+function parseStyleAsArray(styleParam) {
+    return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
 export {
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -407,4 +416,5 @@ export {
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
+    parseStyleAsArray,
 };

@@ -51,8 +51,11 @@ const propTypes = {
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
 
-        /** Outstanding amount of this transaction */
-        cachedTotal: PropTypes.string,
+        /** Outstanding amount in cents of this transaction */
+        total: PropTypes.number,
+
+        /** Currency of outstanding amount of this transaction */
+        currency: PropTypes.string,
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
@@ -108,7 +111,11 @@ const IOUPreview = (props) => {
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
     const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
     const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
-    const cachedTotal = props.iouReport.cachedTotal ? props.iouReport.cachedTotal.replace(/[()]/g, '') : '';
+    const cachedTotal = props.iouReport.total && props.iouReport.currency
+        ? props.numberFormat(
+            props.iouReport.total / 100,
+            {style: 'currency', currency: props.iouReport.currency},
+        ) : '';
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
