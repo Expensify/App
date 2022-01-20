@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -9,6 +10,35 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
+import NameValuePair from './NameValuePair';
+
+/**
+ * Deletes a debit card
+ *
+ * @param {Number} fundID
+ *
+ * @returns {Promise}
+ */
+function deleteDebitCard(fundID) {
+    return API.DeleteFund({fundID})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
+                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+            } else {
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        })
+        .catch(() => {
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+        });
+}
+
+function deletePayPalMe() {
+    NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
+    Onyx.set(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
+    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+}
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
@@ -44,14 +74,47 @@ function getPaymentMethods() {
         excludeNotActivated: true,
     })
         .then((response) => {
+            // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
+            const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
+            const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
-                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: bankAccounts,
+                [ONYXKEYS.CARD_LIST]: debitCards,
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
                     lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
+        });
+}
+
+/**
+ * Sets the default bank account or debit card for an Expensify Wallet
+ *
+ * @param {String} password
+ * @param {Number} bankAccountID
+ * @param {Number} fundID
+ *
+ * @returns {Promise}
+ */
+function setWalletLinkedAccount(password, bankAccountID, fundID) {
+    return API.SetWalletLinkedAccount({
+        password,
+        bankAccountID,
+        fundID,
+    })
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.USER_WALLET, {
+                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                });
+                Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
+            } else {
+                Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+            }
+        })
+        .catch(() => {
+            Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
         });
 }
 
@@ -73,6 +136,8 @@ function addBillingCard(params) {
         addressName: params.nameOnCard,
         addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
+        isP2PDebitCard: true,
+        password: params.password,
     }).then(((response) => {
         let errorMessage = '';
         if (response.jsonCode === 200) {
@@ -169,7 +234,10 @@ function dismissWalletConfirmModal() {
 }
 
 export {
+    deleteDebitCard,
+    deletePayPalMe,
     getPaymentMethods,
+    setWalletLinkedAccount,
     addBillingCard,
     kycWallRef,
     continueSetup,

@@ -900,6 +900,10 @@ const styles = {
         height: '100%',
     },
 
+    resendLinkButton: {
+        minWidth: 124,
+    },
+
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1313,6 +1317,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
+        overflowX: 'hidden',
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
@@ -1597,6 +1602,10 @@ const styles = {
     borderLeft: {
         borderLeftWidth: 1,
         borderColor: themeColors.border,
+    },
+
+    pointerEventsNone: {
+        pointerEvents: 'none',
     },
 
     headerBar: {
@@ -2210,7 +2219,7 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    defaultCloseAccountPopover: {
+    sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
 

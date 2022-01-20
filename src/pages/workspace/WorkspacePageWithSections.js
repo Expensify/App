@@ -15,6 +15,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 const propTypes = {
     /** The text to display in the header */
@@ -70,24 +71,26 @@ class WorkspacePageWithSections extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.headerText}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={this.props.guidesCallTaskID}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView
-                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                >
-                    <View style={[styles.w100, styles.flex1]}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.headerText}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={this.props.guidesCallTaskID}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ScrollView
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={[styles.w100, styles.flex1]}>
 
-                        {this.props.children(hasVBA, policyID, isUsingECard)}
+                            {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                    </View>
-                </ScrollView>
-                {this.props.footer}
+                        </View>
+                    </ScrollView>
+                    {this.props.footer}
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

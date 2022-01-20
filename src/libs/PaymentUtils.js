@@ -25,9 +25,10 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername='']
- * @returns {Array<Object>}
+ * @param {Object} userWallet
+ * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -40,6 +41,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
             }`
             : null;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             title: bankAccount.addressName,
@@ -48,6 +50,9 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             icon,
             iconSize,
             key: `bankAccount-${bankAccount.bankAccountID}`,
+            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            accountData: _.extend({}, bankAccount, {icon}),
+            isDefault,
         });
     });
 
@@ -55,6 +60,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
         const formattedCardNumber = card.cardNumber
             ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
             : null;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.DEBIT_CARD && userWallet.walletLinkedAccountID === card.fundID;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
             title: card.addressName,
@@ -63,6 +69,9 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             icon,
             iconSize,
             key: `card-${card.cardNumber}`,
+            accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
+            accountData: _.extend({}, card, {icon}),
+            isDefault,
         });
     });
 
@@ -73,6 +82,11 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '') 
             description: payPalMeUsername,
             icon: Expensicons.PayPal,
             key: 'payPalMePaymentMethod',
+            accountType: CONST.PAYMENT_METHODS.PAYPAL,
+            accountData: {
+                username: payPalMeUsername,
+                icon: Expensicons.PayPal,
+            },
         });
     }
 

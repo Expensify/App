@@ -420,6 +420,17 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.fundID
+ * @returns {Promise}
+ */
+function DeleteFund(parameters) {
+    const commandName = 'DeleteFund';
+    requireParameters(['fundID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -741,6 +752,19 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
+ * @returns {Promise}
+ */
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.subscribed
  * @returns {Promise}
  */
@@ -1007,7 +1031,7 @@ function BankAccount_SetupWithdrawal(parameters) {
  */
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1151,7 +1175,7 @@ function CreatePolicyRoom(parameters) {
  * @param {String} [parameters.fundID]
  * @returns {Promise}
  */
-function Wallet_TransferBalance(parameters) {
+function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
     if (!parameters.bankAccountID && !parameters.fundID) {
         throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
@@ -1171,6 +1195,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1202,6 +1227,7 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
+    SetWalletLinkedAccount,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
@@ -1218,7 +1244,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    Wallet_TransferBalance,
+    TransferWalletBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

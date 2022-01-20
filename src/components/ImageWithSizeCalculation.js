@@ -3,6 +3,7 @@ import {Image} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
+import makeCancellablePromise from '../libs/MakeCancellablePromise';
 
 const propTypes = {
     /** Url for image to display */
@@ -28,15 +29,7 @@ const defaultProps = {
  * it can be appropriately resized.
  */
 class ImageWithSizeCalculation extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.isComponentMounted = false;
-    }
-
     componentDidMount() {
-        // If the component unmounts by the time getSize() is finished, it will throw a warning
-        // So this is to prevent setting state if the component isn't mounted
-        this.isComponentMounted = true;
         this.calculateImageSize();
     }
 
@@ -49,7 +42,25 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     componentWillUnmount() {
-        this.isComponentMounted = false;
+        if (!this.getImageSizePromise) {
+            return;
+        }
+
+        this.getImageSizePromise.cancel();
+    }
+
+    /**
+     * @param {String} url
+     * @returns {Promise}
+     */
+    getImageSize(url) {
+        return new Promise((resolve, reject) => {
+            Image.getSize(url, (width, height) => {
+                resolve(width, height);
+            }, (error) => {
+                reject(error);
+            });
+        });
     }
 
     calculateImageSize() {
@@ -57,16 +68,19 @@ class ImageWithSizeCalculation extends PureComponent {
             return;
         }
 
-        Image.getSize(this.props.url, (width, height) => {
-            if (!width || !height || !this.isComponentMounted) {
-                // Image didn't load properly or component unmounted before we got the result
-                return;
-            }
+        this.getImageSizePromise = makeCancellablePromise(this.getImageSize(this.props.url));
+        this.getImageSizePromise.promise
+            .then((width, height) => {
+                if (!width || !height) {
+                    // Image didn't load properly
+                    return;
+                }
 
-            this.props.onMeasure({width, height});
-        }, (error) => {
-            Log.hmmm('Unable to fetch image to calculate size', {error, url: this.props.url});
-        });
+                this.props.onMeasure({width, height});
+            })
+            .catch((error) => {
+                Log.hmmm('Unable to fetch image to calculate size', {error, url: this.props.url});
+            });
     }
 
     render() {

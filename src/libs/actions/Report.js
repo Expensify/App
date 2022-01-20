@@ -182,6 +182,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
             .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
@@ -556,7 +557,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -602,7 +603,7 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 
@@ -1084,7 +1085,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
@@ -1105,7 +1106,7 @@ function addAction(reportID, text, file) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
-        lastMessageText: textForNewComment,
+        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
     });
 
@@ -1163,8 +1164,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: commentText,
         file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
