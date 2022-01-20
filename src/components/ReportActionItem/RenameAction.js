@@ -19,7 +19,7 @@ const RenameAction = (props) => {
     const newName = lodashGet(props.action, 'originalMessage.newName', '');
 
     return (
-        <Text style={[styles.pv2, styles.ph5, styles.textAlignCenter, styles.textLabelSupporting]}>
+        <Text style={[styles.pv3, styles.ph5, styles.textAlignCenter, styles.textLabelSupporting]}>
             <Text style={[styles.textLabelSupporting, styles.textStrong]}>
                 {displayName}
             </Text>

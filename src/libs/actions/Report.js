@@ -1549,7 +1549,7 @@ function renameReport(reportID, reportName) {
             }
             Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
-            // Optimistically update the report name
+            // Update the report name so that the LHN and header display the updated name
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
         })
         .catch(() => {
