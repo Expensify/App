@@ -274,6 +274,10 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    textNoWrap: {
+        ...whiteSpace.noWrap,
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
