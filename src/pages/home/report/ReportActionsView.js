@@ -651,6 +651,7 @@ class ReportActionsView extends React.Component {
                     dataProvider={this.state.dataProvider}
                     rowRenderer={this.renderItem}
                     forceNonDeterministicRendering
+                    contentContainerStyle={styles.chatContentScrollView}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
             </>
