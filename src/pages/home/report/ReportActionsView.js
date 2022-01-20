@@ -25,8 +25,6 @@ import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
-// eslint-disable-next-line no-unused-vars
-import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -215,7 +213,15 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            // TODO: Clean this up to remove unnecessary duplicate calculations,
+            // Move side-effects out of shouldComponentUpdate
             this.updateSortedReportActions(nextProps.reportActions);
+            this.setState(prevState => ({
+                dataProvider: prevState.dataProvider.cloneWithRows(
+                    this.sortedReportActions,
+                    lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber'),
+                ),
+            }));
             this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
@@ -270,6 +276,7 @@ class ReportActionsView extends React.Component {
             // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
+                // TODO: Test that this works and scrolls to the bottom if you're not at the bottom when you send a new message
                 ReportScrollManager.scrollToBottom();
             }
 
