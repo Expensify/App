@@ -84,7 +84,7 @@
     "react-native": "0.66.4",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
-    "react-native-document-picker": "^7.1.1",
+    "react-native-document-picker": "^8.0.0",
     "react-native-fast-image": "^8.5.11",
     "react-native-gesture-handler": "1.9.0",
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#3bbd17d63e6c38d38d857b50f6037c1c0376ff06",
