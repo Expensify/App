@@ -670,11 +670,6 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    baseTextInputAndroidAutofillFix: {
-        paddingBottom: 10,
-        marginBottom: -2,
-    },
-
     textInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
