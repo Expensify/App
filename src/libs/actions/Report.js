@@ -1189,7 +1189,7 @@ function addAction(reportID, text, file) {
                     [optimisticReportActionID]: null,
                 });
 
-                // The fact that we're getting this error from the API means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's trigger an update
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
                 User.getUserDetails();
                 return;
             }
