@@ -26,7 +26,7 @@ const run = function () {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
 
             // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
-            const uncheckedBoxRegex = /-\s\[\s]/g;
+            const uncheckedBoxRegex = /-\s\[\s]\sQA/g;
             const matches = uncheckedBoxRegex.exec(data.body);
             if (matches !== null) {
                 console.log('An unverified PR or unresolved deploy blocker was found.');
