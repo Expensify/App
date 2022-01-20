@@ -1,41 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
-import fontFamily from '../styles/fontFamily';
-import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
+import fontFamily from '../../styles/fontFamily';
+import variables from '../../styles/variables';
+import {propTypes, defaultProps} from './baseTextPropTypes';
 
-const propTypes = {
-    /** The color of the text */
-    color: PropTypes.string,
-
-    /** The size of the text */
-    fontSize: PropTypes.number,
-
-    /** The alignment of the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textAlign: PropTypes.any,
-
-    /** Any children to display */
-    children: PropTypes.node,
-
-    /** The family of the font to use */
-    family: PropTypes.string,
-
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
-};
-const defaultProps = {
-    color: themeColors.text,
-    fontSize: variables.fontSizeNormal,
-    family: 'GTA',
-    textAlign: null,
-    children: null,
-    style: {},
-};
 
 const Text = React.forwardRef(({
     color,
@@ -74,5 +44,3 @@ Text.defaultProps = defaultProps;
 Text.displayName = 'Text';
 
 export default Text;
-
-export {propTypes, defaultProps};

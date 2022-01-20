@@ -1,5 +1,6 @@
 import React from 'react';
-import Text, {propTypes, defaultProps} from '../Text';
+import Text from '../Text';
+import {propTypes, defaultProps} from '../Text/baseTextPropTypes';
 
 // As this workaround is not needed on the native platform, we simply render Text  
 const EmojiText = props => (

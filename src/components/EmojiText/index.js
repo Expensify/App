@@ -1,5 +1,6 @@
 import React from 'react';
-import Text, {propTypes, defaultProps} from '../Text';
+import Text from '../Text';
+import {propTypes, defaultProps} from '../Text/baseTextPropTypes';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 
 // This is a workaround on the Chrome browser issue when rendering emojis with font-weight greater than 500
