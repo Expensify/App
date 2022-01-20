@@ -1,13 +1,9 @@
 import _ from 'underscore';
 import React, {useContext, useMemo} from 'react';
-import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
     defaultHTMLElementModels,
-    TNodeChildrenRenderer,
-    splitBoxModelStyle,
-    useRendererProps,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
@@ -72,6 +68,7 @@ const BaseHTMLEngineProvider = (props) => {
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
+                renderersProps={renderersProps}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
             >
                 {props.children}

@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+
 const MAX_IMG_DIMENSIONS = 512;
 
 /**
@@ -34,7 +36,25 @@ function isInsideComment(tnode) {
     return false;
 }
 
+/**
+ * Fid the reportActionID of the parent <comment> tag, or return null if none is found.
+ *
+ * @param {TNode} tnode
+ * @returns {String|null}
+ */
+function getReportActionID(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.domNode.name === 'comment') {
+            return lodashGet(currentNode, 'attributes.data-report-action-id', null);
+        }
+        currentNode = currentNode.parent;
+    }
+    return null;
+}
+
 export {
     computeEmbeddedMaxWidth,
     isInsideComment,
+    getReportActionID,
 };

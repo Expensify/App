@@ -600,8 +600,7 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = ReportUtils.getReportActionMessageText(reportAction);
-        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
+        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(ReportUtils.getReportActionMessageText(reportAction));
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 

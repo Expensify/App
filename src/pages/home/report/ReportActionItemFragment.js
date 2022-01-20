@@ -67,7 +67,9 @@ const ReportActionItemFragment = (props) => {
             return props.fragment.html !== props.fragment.text
                 ? (
                     <RenderHTML
-                        html={`<comment>${props.fragment.html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                        html={`<comment data-report-action-id="${props.reportActionID}">${props.fragment.html}${
+                            (props.fragment.isEdited ? '<edited></edited>' : '')
+                        }</comment>`}
                     />
                 ) : (
                     <Text
