@@ -123,9 +123,13 @@ class TransferBalancePage extends React.Component {
             this.props.userWallet,
         );
 
-        return _.find(paymentMethods, method => (method.accountType === this.props.walletTransfer.selectedAccountType
-                && method.methodID === this.props.walletTransfer.selectedAccountID)
-                || method.isDefault);
+        const defaultAccount = _.find(paymentMethods, method => method.isDefault);
+        const selectedAccount = _.find(
+            paymentMethods,
+            method => method.accountType === this.props.walletTransfer.selectedAccountType
+                && method.methodID === this.props.walletTransfer.selectedAccountID,
+        );
+        return selectedAccount || defaultAccount;
     }
 
     /**
