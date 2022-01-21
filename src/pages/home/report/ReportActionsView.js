@@ -131,31 +131,31 @@ class ReportActionsView extends React.Component {
         this.state = {
             isMarkerActive: false,
             localUnreadActionCount: this.props.report.unreadActionCount,
-
-            // TODO: Should we use ReportActionID instead? Need to have client-generated reportActionID first
-            dataProvider: new DataProvider(
-                (before, after) => {
-                    const reportActionBefore = before.action;
-                    const reportActionAfter = after.action;
-
-                    // TODO: Figure out all the cases where this can change and optimize this comparison instead of using slower deepequals
-                    if (!_.isEqual(reportActionBefore, reportActionAfter)) {
-                        return true;
-                    }
-
-                    if (this.context.has(reportActionAfter.reportActionID)) {
-                        this.context.delete(reportActionAfter.reportActionID);
-                        return true;
-                    }
-
-                    return false;
-                },
-            ).cloneWithRows(this.sortedReportActions),
         };
+
+        // TODO: Should we use ReportActionID instead? Need to have client-generated reportActionID first
+        this.dataProvider = new DataProvider(
+            (before, after) => {
+                const reportActionBefore = before.action;
+                const reportActionAfter = after.action;
+
+                // TODO: Figure out all the cases where this can change and optimize this comparison instead of using slower deepequals
+                if (!_.isEqual(reportActionBefore, reportActionAfter)) {
+                    return true;
+                }
+
+                if (this.context.has(reportActionAfter.reportActionID)) {
+                    this.context.delete(reportActionAfter.reportActionID);
+                    return true;
+                }
+
+                return false;
+            },
+        ).cloneWithRows(this.sortedReportActions);
 
         const layoutWidth = props.isSmallScreenWidth ? props.windowWidth : props.windowWidth - variables.sideBarWidth;
         this.layoutProvider = new FullWidthLayoutProvider(
-            i => this.state.dataProvider.getDataForIndex(i).action.actionName,
+            i => this.dataProvider.getDataForIndex(i).action.actionName,
             (actionName, dimension) => {
                 // TODO: smarter deterministic estimates for height
                 //  particularly, attachments should default to thumbnail height
@@ -216,12 +216,6 @@ class ReportActionsView extends React.Component {
             // TODO: Clean this up to remove unnecessary duplicate calculations,
             // Move side-effects out of shouldComponentUpdate
             this.updateSortedReportActions(nextProps.reportActions);
-            this.setState(prevState => ({
-                dataProvider: prevState.dataProvider.cloneWithRows(
-                    this.sortedReportActions,
-                    lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber'),
-                ),
-            }));
             this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
@@ -399,6 +393,13 @@ class ReportActionsView extends React.Component {
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT)
             .map((item, index) => ({action: item, index}))
             .value();
+
+        if (this.dataProvider) {
+            this.dataProvider = this.dataProvider.cloneWithRows(
+                this.sortedReportActions,
+                lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber'),
+            );
+        }
     }
 
     /**
@@ -654,7 +655,7 @@ class ReportActionsView extends React.Component {
                 <RecyclerListView
                     ref={ReportScrollManager.flatListRef}
                     layoutProvider={this.layoutProvider}
-                    dataProvider={this.state.dataProvider}
+                    dataProvider={this.dataProvider}
                     rowRenderer={this.renderItem}
                     forceNonDeterministicRendering
                     contentContainerStyle={styles.chatContentScrollView}
