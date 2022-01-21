@@ -356,9 +356,8 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Allows us to identify whether Virtual keyboard open or not
-     *
-     * @returns {boolean}
+     * Whether virtual keyboard is open or not
+     * @returns {Boolean}
      */
     isVirtualKeyboardOpen() {
         // check if platform is web and supports virtualkeyboard
