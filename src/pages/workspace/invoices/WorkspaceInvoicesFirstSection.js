@@ -4,14 +4,10 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Invoice,
-    NewWindow,
-    Send,
-} from '../../../components/Icon/Expensicons';
-import {MoneyEnvelopeBlue} from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Section from '../../../components/Section';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -21,23 +17,25 @@ const propTypes = {
 };
 
 const WorkspaceInvoicesFirstSection = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
-        icon={MoneyEnvelopeBlue}
+        icon={Illustrations.MoneyEnvelopeBlue}
         menuItems={[
             {
                 title: props.translate('workspace.invoices.sendInvoice'),
-                onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
-                icon: Send,
+                onPress: () => Link.openOldDotLink(encodeURI('reports?param={"createInvoice":true}')),
+                icon: Expensicons.Send,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
             {
                 title: props.translate('workspace.invoices.viewAllInvoices'),
-                onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
-                icon: Invoice,
+                onPress: () => (
+                    Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
+                ),
+                icon: Expensicons.Invoice,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
         ]}
     >
@@ -46,7 +44,7 @@ const WorkspaceInvoicesFirstSection = props => (
                 {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
             </Text>
         </View>
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;

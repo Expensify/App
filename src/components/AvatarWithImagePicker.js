@@ -8,9 +8,7 @@ import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
-import {
-    Upload, Trashcan, Camera, Sync,
-} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
@@ -127,7 +125,7 @@ class AvatarWithImagePicker extends React.Component {
     createMenuItems(openPicker) {
         const menuItems = [
             {
-                icon: Upload,
+                icon: Expensicons.Upload,
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
@@ -146,7 +144,7 @@ class AvatarWithImagePicker extends React.Component {
         // If current avatar isn't a default avatar, allow Remove Photo option
         if (!this.props.isUsingDefaultAvatar) {
             menuItems.push({
-                icon: Trashcan,
+                icon: Expensicons.Trashcan,
                 text: this.props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     this.props.onImageRemoved();
@@ -197,7 +195,7 @@ class AvatarWithImagePicker extends React.Component {
                                                 <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
 
                                                     <Icon
-                                                        src={Sync}
+                                                        src={Expensicons.Sync}
                                                         fill={themeColors.textReversed}
                                                         width={indicatorIconSize}
                                                         height={indicatorIconSize}
@@ -209,7 +207,7 @@ class AvatarWithImagePicker extends React.Component {
                                                     <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
                                                         <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                                             <Icon
-                                                                src={Camera}
+                                                                src={Expensicons.Camera}
                                                                 width={variables.iconSizeSmall}
                                                                 height={variables.iconSizeSmall}
                                                                 fill={themeColors.iconReversed}

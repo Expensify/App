@@ -69,7 +69,7 @@ class DisplayNames extends PureComponent {
 
     render() {
         if (!this.props.tooltipEnabled) {
-            // No need for any complex text-splitting, just return a simple text component
+            // No need for any complex text-splitting, just return a simple Text component
             return (
                 <Text
                     style={this.props.textStyles}

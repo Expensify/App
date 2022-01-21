@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
 import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
-import {activateWallet, fetchOnfidoToken} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
@@ -15,7 +15,6 @@ import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import Text from '../../components/Text';
-import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
 
 const propTypes = {
@@ -64,21 +63,22 @@ class OnfidoStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('onfidoStep.verifyIdentity')}
-                    onCloseButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 {
                     this.canShowOnfido() ? (
                         <Onfido
                             sdkToken={this.props.walletOnfidoData.sdkToken}
-                            onError={(error) => {
-                                Log.hmmm('Onfido error in OnfidoStep', {error});
+                            onError={() => {
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             }}
                             onUserExit={() => {
                                 Navigation.goBack();
                             }}
                             onSuccess={(data) => {
-                                activateWallet(CONST.WALLET.STEP.ONFIDO, {
+                                BankAccounts.activateWallet(CONST.WALLET.STEP.ONFIDO, {
                                     onfidoData: JSON.stringify({
                                         ...data,
                                         applicantID: this.props.walletOnfidoData.applicantID,
@@ -118,7 +118,7 @@ class OnfidoStep extends React.Component {
                                         text={this.props.translate('common.continue')}
                                         isLoading={this.props.walletOnfidoData.loading}
                                         onPress={() => {
-                                            fetchOnfidoToken();
+                                            BankAccounts.fetchOnfidoToken();
                                         }}
                                     />
                                 </>
@@ -135,7 +135,7 @@ class OnfidoStep extends React.Component {
                                         text={this.props.translate('onfidoStep.tryAgain')}
                                         onPress={() => {
                                             // Restart the flow so the user can try again.
-                                            fetchOnfidoToken();
+                                            BankAccounts.fetchOnfidoToken();
                                         }}
                                     />
                                 </>

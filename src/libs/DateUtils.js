@@ -8,7 +8,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {translate} from './translate';
+import * as Localize from './Localize';
 import * as PersonalDetails from './actions/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 
@@ -26,14 +26,18 @@ Onyx.connect({
  *
  * @param {String} locale
  * @param {Number} timestamp
+ * @param {String} [currentSelectedTimezone]
  *
  * @returns  {Moment}
  *
  * @private
  */
-function getLocalMomentFromTimestamp(locale, timestamp) {
+function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
-    return moment.unix(timestamp).tz(timezone.selected);
+    if (!timestamp) {
+        return moment.tz(currentSelectedTimezone);
+    }
+    return moment.unix(timestamp).tz(currentSelectedTimezone);
 }
 
 /**
@@ -54,10 +58,10 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(locale, timestamp);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
-    const todayAt = translate(locale, 'common.todayAt');
-    const tomorrowAt = translate(locale, 'common.tomorrowAt');
-    const yesterdayAt = translate(locale, 'common.yesterdayAt');
-    const at = translate(locale, 'common.conjunctionAt');
+    const todayAt = Localize.translate(locale, 'common.todayAt');
+    const tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
+    const yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
+    const at = Localize.translate(locale, 'common.conjunctionAt');
 
     return moment(date).calendar({
         sameDay: `[${todayAt}] LT${tz}`,
@@ -136,6 +140,7 @@ const DateUtils = {
     startCurrentDateUpdater,
     updateTimezone,
     throttledUpdateTimezone,
+    getLocalMomentFromTimestamp,
 };
 
 export default DateUtils;

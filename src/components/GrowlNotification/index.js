@@ -8,22 +8,22 @@ import {
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
-import {Checkmark, Exclamation} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
-        icon: Checkmark,
+        icon: Expensicons.Checkmark,
         iconColor: colors.green,
     },
     [CONST.GROWL.ERROR]: {
-        icon: Exclamation,
+        icon: Expensicons.Exclamation,
         iconColor: colors.red,
     },
     [CONST.GROWL.WARNING]: {
-        icon: Exclamation,
+        icon: Expensicons.Exclamation,
         iconColor: colors.yellow,
     },
 };

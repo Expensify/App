@@ -4,13 +4,10 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Bill,
-    NewWindow,
-} from '../../../components/Icon/Expensicons';
-import {MoneyMousePink} from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Section from '../../../components/Section';
+import * as Link from '../../../libs/actions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
 const propTypes = {
@@ -24,23 +21,23 @@ const WorkspaceBillsVBAView = props => (
     <>
         <WorkspaceBillsFirstSection policyID={props.policyID} />
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.bills.hassleFreeBills')}
-            icon={MoneyMousePink}
+            icon={Illustrations.MoneyMousePink}
             menuItems={[
                 {
                     title: props.translate('workspace.common.bills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
-                    icon: Bill,
+                    onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
+                    icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.bills.VBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

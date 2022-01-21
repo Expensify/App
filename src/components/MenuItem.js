@@ -4,14 +4,16 @@ import {
     View, Pressable,
 } from 'react-native';
 import Text from './Text';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
-import {ArrowRight} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
+import SelectCircle from './SelectCircle';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -20,17 +22,19 @@ const propTypes = {
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
+    shouldShowSelectedState: false,
     wrapperStyle: [],
     success: false,
     icon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
-    iconRight: ArrowRight,
+    iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
     focused: false,
     disabled: false,
+    isSelected: false,
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
@@ -48,14 +52,14 @@ const MenuItem = props => (
         }}
         style={({hovered, pressed}) => ([
             styles.popoverMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+            StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
             ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
         ])}
         disabled={props.disabled}
     >
         {({hovered, pressed}) => (
             <>
-                <View style={styles.flexRow}>
+                <View style={[styles.flexRow, styles.pointerEventsNone]}>
                     {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
@@ -67,7 +71,7 @@ const MenuItem = props => (
                                 src={props.icon}
                                 width={props.iconWidth}
                                 height={props.iconHeight}
-                                fill={props.iconFill || getIconFillColor(
+                                fill={props.iconFill || StyleUtils.getIconFillColor(
                                     getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
                                 )}
                             />
@@ -104,9 +108,11 @@ const MenuItem = props => (
                         )}
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-                    {props.subtitle && (
+
+                    {/* Since subtitle can be of type number, we should allow 0 to be shown */}
+                    {(props.subtitle || props.subtitle === 0) && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
                                 style={styles.textLabelSupporting}
@@ -119,10 +125,11 @@ const MenuItem = props => (
                         <View style={styles.popoverMenuIcon}>
                             <Icon
                                 src={props.iconRight}
-                                fill={getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
                             />
                         </View>
                     )}
+                    {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                 </View>
             </>
         )}

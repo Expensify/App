@@ -6,14 +6,11 @@ import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {getNavigationModalCardStyle} from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import {
-    subscribeToUserEvents,
-    fetchAllReports,
-} from '../../actions/Report';
+import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -23,45 +20,29 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
 import NetworkConnection from '../../NetworkConnection';
 import CONFIG from '../../../CONFIG';
-import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
+import * as GeoLocation from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
-import {setModalVisibility} from '../../actions/Modal';
+import * as Modal from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import getOperatingSystem from '../../getOperatingSystem';
-import {fetchFreePlanVerifiedBankAccount, fetchUserWallet} from '../../actions/BankAccounts';
+import * as BankAccounts from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
 // Modal Stack Navigators
-import {
-    IOUBillStackNavigator,
-    IOURequestModalStackNavigator,
-    IOUSendModalStackNavigator,
-    IOUDetailsModalStackNavigator,
-    DetailsModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
-    NewGroupModalStackNavigator,
-    NewChatModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    RequestCallModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-} from './ModalStackNavigators';
+import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
-import {cleanupSession} from '../../actions/Session';
+import * as Session from '../../actions/Session';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -90,10 +71,10 @@ const RootStack = createCustomModalStackNavigator();
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
     focus: () => {
-        setModalVisibility(true);
+        Modal.setModalVisibility(true);
     },
     beforeRemove: () => {
-        setModalVisibility(false);
+        Modal.setModalVisibility(false);
     },
 };
 
@@ -127,7 +108,7 @@ class AuthScreens extends React.Component {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(() => {
-            subscribeToUserEvents();
+            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
         });
 
@@ -140,11 +121,11 @@ class AuthScreens extends React.Component {
         User.getBetas();
         User.getDomainInfo();
         PersonalDetails.fetchLocalCurrency();
-        fetchAllReports(true, true);
-        fetchCountryCodeByRequestIP();
+        Report.fetchAllReports(true, true);
+        GeoLocation.fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        fetchFreePlanVerifiedBankAccount();
-        fetchUserWallet();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchUserWallet();
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
@@ -171,23 +152,21 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        let searchShortcutModifiers = ['control'];
-        let groupShortcutModifiers = ['control', 'shift'];
+        const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
+        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(searchShortcutConfig.modifiers);
 
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            searchShortcutModifiers = ['meta'];
-            groupShortcutModifiers = ['meta', 'shift'];
-        }
+        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(groupShortcutConfig.modifiers);
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.SEARCH);
-        }, searchShortcutModifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+        }, searchShortcutConfig.descriptionKey, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
-        }, groupShortcutModifiers, true);
+        }, groupShortcutConfig.descriptionKey, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -201,7 +180,7 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        cleanupSession();
+        Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
     }
@@ -233,7 +212,7 @@ class AuthScreens extends React.Component {
         };
         const modalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyle: StyleUtils.getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
 
@@ -289,83 +268,89 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
-                    component={SettingsModalStackNavigator}
+                    component={ModalStackNavigators.SettingsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewChat"
                     options={modalScreenOptions}
-                    component={NewChatModalStackNavigator}
+                    component={ModalStackNavigators.NewChatModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewGroup"
                     options={modalScreenOptions}
-                    component={NewGroupModalStackNavigator}
+                    component={ModalStackNavigators.NewGroupModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Search"
                     options={modalScreenOptions}
-                    component={SearchModalStackNavigator}
+                    component={ModalStackNavigators.SearchModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Details"
                     options={modalScreenOptions}
-                    component={DetailsModalStackNavigator}
+                    component={ModalStackNavigators.DetailsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Report_Details"
                     options={modalScreenOptions}
-                    component={ReportDetailsModalStackNavigator}
+                    component={ModalStackNavigators.ReportDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Report_Settings"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Participants"
                     options={modalScreenOptions}
-                    component={ReportParticipantsModalStackNavigator}
+                    component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
-                    component={IOURequestModalStackNavigator}
+                    component={ModalStackNavigators.IOURequestModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Bill"
                     options={modalScreenOptions}
-                    component={IOUBillStackNavigator}
+                    component={ModalStackNavigators.IOUBillStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="EnablePayments"
                     options={modalScreenOptions}
-                    component={EnablePaymentsStackNavigator}
+                    component={ModalStackNavigators.EnablePaymentsStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Details"
                     options={modalScreenOptions}
-                    component={IOUDetailsModalStackNavigator}
+                    component={ModalStackNavigators.IOUDetailsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
-                    component={AddPersonalBankAccountModalStackNavigator}
+                    component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="RequestCall"
                     options={modalScreenOptions}
-                    component={RequestCallModalStackNavigator}
+                    component={ModalStackNavigators.RequestCallModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Send"
                     options={modalScreenOptions}
-                    component={IOUSendModalStackNavigator}
+                    component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

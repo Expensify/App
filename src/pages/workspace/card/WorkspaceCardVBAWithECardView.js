@@ -3,38 +3,34 @@ import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    NewWindow,
-    ExpensifyCard,
-    ReceiptSearch,
-} from '../../../components/Icon/Expensicons';
-import {CreditCardsBlue} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import {openOldDotLink} from '../../../libs/actions/Link';
-import WorkspaceSection from '../WorkspaceSection';
+import * as Link from '../../../libs/actions/Link';
+import Section from '../../../components/Section';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 const WorkspaceCardVBAWithECardView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.card.headerWithEcard')}
-        icon={CreditCardsBlue}
+        icon={Illustrations.CreditCardsBlue}
         menuItems={[
             {
                 title: props.translate('workspace.common.issueAndManageCards'),
-                onPress: () => openOldDotLink('domain_companycards'),
-                icon: ExpensifyCard,
+                onPress: () => Link.openOldDotLink('domain_companycards'),
+                icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
             {
                 title: props.translate('workspace.common.reconcileCards'),
-                onPress: () => openOldDotLink('domain_companycards?param={"section":"cardReconciliation"}'),
-                icon: ReceiptSearch,
+                onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"cardReconciliation"}')),
+                icon: Expensicons.ReceiptSearch,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
         ]}
     >
@@ -50,7 +46,7 @@ const WorkspaceCardVBAWithECardView = props => (
                 props.translate('workspace.card.benefit4'),
             ]}
         />
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceCardVBAWithECardView.propTypes = propTypes;

@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST, {EXPENSIFY_EMAILS} from '../CONST';
+import CONST from '../CONST';
 
 let sessionEmail;
 Onyx.connect({
@@ -93,6 +93,26 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is a user created policy room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isUserCreatedPolicyRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+/**
+ * Whether the provided report is a chat room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isChatRoom(report) {
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -130,8 +150,8 @@ function isArchivedRoom(report) {
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getDefaultRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report)) {
+function getChatRoomSubtitle(report, policiesMap) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -165,7 +185,7 @@ function isConciergeChatReport(report) {
  * @returns {Boolean}
  */
 function hasExpensifyEmails(emails) {
-    return _.intersection(emails, EXPENSIFY_EMAILS).length > 0;
+    return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
 }
 
 /**
@@ -175,7 +195,7 @@ function hasExpensifyEmails(emails) {
  * @param {Object} report
  * @return {Boolean}
  */
-function shouldShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
@@ -190,17 +210,40 @@ function shouldShowReportRecipientLocalTime(personalDetails, myPersonalDetails, 
         && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 }
 
+/**
+ * Check if the comment is deleted
+ * @param {Object} action
+ * @returns {Boolean}
+ */
+function isDeletedAction(action) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    return action.message.length === 0 || action.message[0].html === '';
+}
+
+/**
+ * Trim the last message text to a fixed limit.
+ * @param {String} lastMessageText
+ * @returns {String}
+ */
+function formatReportLastMessageText(lastMessageText) {
+    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+}
+
 export {
     getReportParticipantsTitle,
+    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
-    getDefaultRoomSubtitle,
+    isUserCreatedPolicyRoom,
+    isChatRoom,
+    getChatRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
-    shouldShowReportRecipientLocalTime,
+    canShowReportRecipientLocalTime,
+    formatReportLastMessageText,
 };

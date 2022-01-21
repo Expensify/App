@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import {isDevelopment} from './Environment/Environment';
+import * as Environment from './Environment/Environment';
 import CONST from '../CONST';
 
 /**
@@ -8,7 +8,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
+    return Environment.isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -77,6 +77,18 @@ function canUseWallet(betas) {
     return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET) || canUseAllBetas(betas);
 }
 
+/**
+ * We're requiring you to be added to the policy rooms beta on dev,
+ * since contributors have been reporting a number of false issues related to the feature being under development.
+ * See https://expensify.slack.com/archives/C01GTK53T8Q/p1641921996319400?thread_ts=1641598356.166900&cid=C01GTK53T8Q
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+
+function canUsePolicyRooms(betas) {
+    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -86,4 +98,5 @@ export default {
     canUseInternationalization,
     canUseIOUSend,
     canUseWallet,
+    canUsePolicyRooms,
 };

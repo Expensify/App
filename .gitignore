@@ -74,3 +74,11 @@ fastlane/screenshots
 
 # Storybook build files
 storybook-static
+
+# GitHub GPG Keys
+.github/workflows/OSBotify-private-key.asc
+*.asc
+
+# Jest coverage report
+/coverage.data
+/coverage/

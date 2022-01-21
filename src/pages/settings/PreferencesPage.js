@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
@@ -14,12 +14,12 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {setExpensifyNewsStatus, setShouldUseSecureStaging} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 
 const propTypes = {
@@ -64,7 +64,7 @@ const PreferencesPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={styles.pageWrapper}>
+            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
                     <Text style={[styles.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
@@ -78,12 +78,12 @@ const PreferencesPage = (props) => {
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
                                 isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
-                                onToggle={setExpensifyNewsStatus}
+                                onToggle={User.setExpensifyNewsStatus}
                             />
                         </View>
                     </View>
                     <View style={[styles.mb2, styles.w100]}>
-                        <ExpensiPicker
+                        <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
@@ -115,14 +115,14 @@ const PreferencesPage = (props) => {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         isOn={props.user.shouldUseSecureStaging || false}
-                                        onToggle={setShouldUseSecureStaging}
+                                        onToggle={User.setShouldUseSecureStaging}
                                     />
                                 </View>
                             </View>
                         </>
                     )}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };

@@ -2,6 +2,7 @@ import _ from 'underscore';
 import NetInfo from './NetInfo';
 import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
+import Log from './Log';
 import * as Network from './actions/Network';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
@@ -9,7 +10,6 @@ import * as Network from './actions/Network';
 let unsubscribeFromNetInfo;
 let unsubscribeFromAppState;
 let isOffline = false;
-let logInfo = () => {};
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -18,7 +18,7 @@ const reconnectionCallbacks = [];
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
-    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+    Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
     Network.setIsLoadingAfterReconnect(true);
     promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
         .then(() => Network.setIsLoadingAfterReconnect(false));
@@ -48,7 +48,7 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
-    logInfo('[NetworkConnection] listenForReconnect called');
+    Log.info('[NetworkConnection] listenForReconnect called');
 
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
@@ -57,7 +57,7 @@ function listenForReconnect() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
-        logInfo(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
+        Log.info(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
         setOfflineStatus(!state.isConnected);
     });
 }
@@ -66,7 +66,7 @@ function listenForReconnect() {
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
-    logInfo('[NetworkConnection] stopListeningForReconnect called');
+    Log.info('[NetworkConnection] stopListeningForReconnect called');
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
@@ -86,18 +86,10 @@ function onReconnect(callback) {
     reconnectionCallbacks.push(callback);
 }
 
-/**
- * @param {Function} callback
- */
-function registerLogInfoCallback(callback) {
-    logInfo = callback;
-}
-
 export default {
     setOfflineStatus,
     listenForReconnect,
     stopListeningForReconnect,
     onReconnect,
     triggerReconnectionCallbacks,
-    registerLogInfoCallback,
 };

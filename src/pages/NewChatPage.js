@@ -5,11 +5,11 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import CONST, {EXPENSIFY_EMAILS} from '../CONST';
+import * as Report from '../libs/actions/Report';
+import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -60,7 +60,7 @@ class NewChatPage extends Component {
         this.createGroup = this.createGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
-        this.excludedGroupEmails = _.without(EXPENSIFY_EMAILS, [
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
             CONST.EMAIL.CONCIERGE,
             CONST.EMAIL.RECEIPTS,
             CONST.EMAIL.INTEGRATION_TESTING_CREDS,
@@ -70,7 +70,7 @@ class NewChatPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewChatOptions(
+        } = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -143,7 +143,8 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+
+        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
     /**
@@ -170,7 +171,7 @@ class NewChatPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewChatOptions(
+            } = OptionsListUtils.getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
@@ -194,7 +195,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createNewChat(option) {
-        fetchOrCreateChatReport([
+        Report.fetchOrCreateChatReport([
             this.props.session.email,
             option.login,
         ]);
@@ -211,7 +212,7 @@ class NewChatPage extends Component {
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const headerMessage = getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             (this.state.personalDetails.length + this.state.recentReports.length) !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
@@ -242,7 +243,7 @@ class NewChatPage extends Component {
                                                 recentReports,
                                                 personalDetails,
                                                 userToInvite,
-                                            } = getNewChatOptions(
+                                            } = OptionsListUtils.getNewChatOptions(
                                                 this.props.reports,
                                                 this.props.personalDetails,
                                                 this.props.betas,

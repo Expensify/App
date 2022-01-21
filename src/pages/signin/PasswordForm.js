@@ -9,13 +9,16 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
-import {signIn, resetPassword} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
+import * as ComponentUtils from '../../libs/ComponentUtils';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +36,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +46,6 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -50,6 +53,29 @@ class PasswordForm extends React.Component {
             password: '',
             twoFactorAuthCode: '',
         };
+    }
+
+    componentDidMount() {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
+            return;
+        }
+        this.input.focus();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.isVisible && this.props.isVisible) {
+            this.input.focus();
+        }
+        if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
+            this.clearPassword();
+        }
+    }
+
+    /**
+     * Clear Password from the state
+     */
+    clearPassword() {
+        this.setState({password: ''}, this.input.clear);
     }
 
     /**
@@ -75,29 +101,30 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+        Session.signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
         return (
             <>
                 <View style={[styles.mv3]}>
-                    <ExpensiTextInput
+                    <TextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType="password"
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                         textContentType="password"
+                        nativeID="password"
+                        name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
-                        autoFocus
-                        translateX={-18}
                         blurOnSubmit={false}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={resetPassword}
+                            onPress={Session.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
@@ -109,15 +136,14 @@ class PasswordForm extends React.Component {
 
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                            translateX={-18}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                         />
                     </View>
@@ -157,4 +183,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withToggleVisibilityView,
 )(PasswordForm);

@@ -4,10 +4,10 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
+import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 
 /**
@@ -43,7 +43,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 
                     // Second, the IOU report needs updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, chatReportID);
+                    iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
                 }
             });
 
@@ -63,12 +63,12 @@ function getIOUReportsForNewTransaction(requestParams) {
 function getIOUErrorMessage(error) {
     if (error && error.jsonCode) {
         if (error.jsonCode === 405) {
-            return translateLocal('common.error.invalidAmount');
+            return Localize.translateLocal('common.error.invalidAmount');
         } if (error.jsonCode === 404) {
-            return translateLocal('iou.error.invalidSplit');
+            return Localize.translateLocal('iou.error.invalidSplit');
         }
     }
-    return translateLocal('iou.error.other');
+    return Localize.translateLocal('iou.error.other');
 }
 
 /**
@@ -193,7 +193,7 @@ function rejectTransaction({
 
             const chatReport = response.reports[chatReportID];
             const iouReport = response.reports[reportID];
-            syncChatAndIOUReports(chatReport, iouReport);
+            Report.syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -246,28 +246,39 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
  * @param {Number} params.amount
  * @param {String} params.currency
- * @param {String} [params.submitterPhoneNumber] - used for Venmo
- * @param {String} [params.submitterPayPalMeAddress]
+ * @param {String} [params.requestorPhoneNumber] - used for Venmo
+ * @param {String} [params.requestorPayPalMeAddress]
+ * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
+ *
+ * @return {Promise}
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
+    chatReportID,
+    reportID,
+    paymentMethodType,
+    amount,
+    currency,
+    requestorPhoneNumber,
+    requestorPayPalMeAddress,
+    newIOUReportDetails,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID})
-        : API.PayIOU({reportID, paymentMethodType});
+        ? API.PayWithWallet({reportID, newIOUReportDetails})
+        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
     // Build the url for the user's platform of choice if they have
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
     }
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
     }
 
-    asyncOpenURL(payIOUPromise
+    const promiseWithHandlers = payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
@@ -275,24 +286,27 @@ function payIOUReport({
 
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
             switch (error.message) {
                 // eslint-disable-next-line max-len
                 case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
                     break;
                 case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
                     break;
                 default:
                     Growl.error(error.message, 5000);
             }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
-    url);
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+        });
+    asyncOpenURL(promiseWithHandlers, url);
+    return promiseWithHandlers;
 }
 
 export {

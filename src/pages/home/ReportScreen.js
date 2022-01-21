@@ -3,16 +3,15 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
-import {isDefaultRoom} from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/reportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardSpacer from '../../components/KeyboardSpacer';
@@ -121,7 +120,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        addAction(getReportID(this.props.route), text);
+        Report.addAction(getReportID(this.props.route), text);
     }
 
     /**
@@ -147,11 +146,11 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID) || !lodashGet(this.props.report, 'reportID', '')) {
-            handleInaccessibleReport();
+        if (_.isNaN(reportID)) {
+            Report.handleInaccessibleReport();
             return;
         }
-        updateCurrentlyViewedReportID(reportID);
+        Report.updateCurrentlyViewedReportID(reportID);
     }
 
     render() {
@@ -159,7 +158,7 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms(this.props.betas) && isDefaultRoom(this.props.report)) {
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isChatRoom(this.props.report)) {
             return null;
         }
 

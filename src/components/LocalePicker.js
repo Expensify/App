@@ -3,13 +3,13 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import compose from '../libs/compose';
-import {setLocale} from '../libs/actions/App';
+import * as App from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
-import {translate} from '../libs/translate';
-import ExpensiPicker from './ExpensiPicker';
+import * as Localize from '../libs/Localize';
+import Picker from './Picker';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -33,11 +33,11 @@ const defaultProps = {
 const localesToLanguages = {
     default: {
         value: 'en',
-        label: translate('en', 'preferencesPage.languages.english'),
+        label: Localize.translate('en', 'preferencesPage.languages.english'),
     },
     es: {
         value: 'es',
-        label: translate('es', 'preferencesPage.languages.spanish'),
+        label: Localize.translate('es', 'preferencesPage.languages.spanish'),
     },
 };
 
@@ -47,14 +47,14 @@ const LocalePicker = (props) => {
     }
 
     return (
-        <ExpensiPicker
+        <Picker
             label={props.size === 'normal' ? props.translate('preferencesPage.language') : null}
             onChange={(locale) => {
                 if (locale === props.preferredLocale) {
                     return;
                 }
 
-                setLocale(locale);
+                App.setLocale(locale);
             }}
             items={_.values(localesToLanguages)}
             size={props.size}

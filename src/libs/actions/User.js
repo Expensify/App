@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -13,8 +12,13 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
+import Growl from '../Growl';
+import * as Localize from '../Localize';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import * as CloseAccountActions from './CloseAccount';
+import * as Link from './Link';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -52,11 +56,31 @@ function changePasswordAndNavigate(oldPassword, password) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SETTINGS);
+            Navigation.goBack();
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
+}
+
+/**
+ * Attempt to close the user's account
+ *
+ * @param {String} message optional reason for closing account
+ */
+function closeAccount(message) {
+    API.User_Delete({message}).then((response) => {
+        console.debug('User_Delete: ', JSON.stringify(response));
+
+        if (response.jsonCode === 200) {
+            Growl.show(Localize.translateLocal('closeAccountPage.closeAccountSuccess'), CONST.GROWL.SUCCESS);
+            redirectToSignIn();
+            return;
+        }
+
+        // Inform user that they are currently unable to close their account
+        CloseAccountActions.showCloseAccountModal();
+    });
 }
 
 function getBetas() {
@@ -78,6 +102,7 @@ function getUserDetails() {
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
             CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
+            CONST.NVP.FREQUENTLY_USED_EMOJIS,
         ].join(','),
     })
         .then((response) => {
@@ -98,6 +123,9 @@ function getUserDetails() {
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
+
+            const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
         });
 }
 
@@ -276,6 +304,45 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });
+
+    // Subscribe to screen share requests sent by GuidesPlus agents
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
+        Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    });
+}
+
+/**
+ * Subscribes to Expensify Card updates when checking loginList for private domains
+ */
+function subscribeToExpensifyCardUpdates() {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    // Handle Expensify Card approval flow updates
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
+        if (pushJSON.isUsingExpensifyCard) {
+            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
+            Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
+        } else {
+            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
+        }
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE},
+            );
+        });
 }
 
 /**
@@ -285,6 +352,15 @@ function subscribeToUserEvents() {
 
 function setPreferredSkinTone(skinTone) {
     return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * Sync frequentlyUsedEmojis with Onyx and Server
+ * @param {Object[]} frequentlyUsedEmojis
+ */
+
+function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 }
 
 /**
@@ -298,8 +374,26 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
+/**
+ * Clear the data about a screen share request from Onyx.
+ */
+function clearScreenShareRequest() {
+    Onyx.set(ONYXKEYS.SCREEN_SHARE_REQUEST, null);
+}
+
+/**
+ * Open an OldDot tab linking to a screen share request.
+ * @param {String} accessToken Access token required to join a screen share room, generated by the backend
+ * @param {String} roomName Name of the screen share room to join
+ */
+function joinScreenShare(accessToken, roomName) {
+    Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
+    clearScreenShareRequest();
+}
+
 export {
     changePasswordAndNavigate,
+    closeAccount,
     getBetas,
     getUserDetails,
     resendValidateCode,
@@ -312,4 +406,8 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    subscribeToExpensifyCardUpdates,
+    setFrequentlyUsedEmojis,
+    joinScreenShare,
+    clearScreenShareRequest,
 };

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
-import {signInWithShortLivedToken} from '../libs/actions/Session';
+import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 
@@ -62,7 +62,7 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        signInWithShortLivedToken(accountID, email, shortLivedToken);
+        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
     }
 
     componentDidUpdate() {

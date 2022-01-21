@@ -2,7 +2,8 @@ import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable, Platform} from 'react-native';
-import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import Text from '../Text';
 
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
@@ -31,22 +32,26 @@ function handleLongPress(event, props) {
  * @param {Object} props
  * @returns {React.Component}
  */
-const PressableWithSecondaryInteraction = props => (
-    <Pressable
-        ref={props.forwardedRef}
-        onPress={props.onPress}
-        onPressIn={props.onPressIn}
-        onLongPress={event => handleLongPress(event, props)}
-        onPressOut={props.onPressOut}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...(_.omit(props, 'onLongPress'))}
-    >
-        {props.children}
-    </Pressable>
-);
+const PressableWithSecondaryInteraction = (props) => {
+    // Use Text node for inline mode to prevent content overflow.
+    const Node = props.inline ? Text : Pressable;
+    return (
+        <Node
+            ref={props.forwardedRef}
+            onPress={props.onPress}
+            onPressIn={props.onPressIn}
+            onLongPress={event => handleLongPress(event, props)}
+            onPressOut={props.onPressOut}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(_.omit(props, 'onLongPress'))}
+        >
+            {props.children}
+        </Node>
+    );
+};
 
-PressableWithSecondaryInteraction.propTypes = propTypes;
-PressableWithSecondaryInteraction.defaultProps = defaultProps;
+PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (

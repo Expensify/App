@@ -6,6 +6,7 @@ import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
+import GetAssistancePage from '../../../pages/GetAssistancePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import IOUSendPage from '../../../pages/iou/IOUSendPage';
@@ -16,9 +17,10 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
+import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
+import SettingsCloseAccountPage from '../../../pages/settings/Security/CloseAccountPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
-import SettingsAddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -37,7 +39,12 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import WorkspaceNewRoomPage from '../../../pages/workspace/WorkspaceNewRoomPage';
 import CONST from '../../../CONST';
+import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
+import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
+import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
+import ReportSettingsPage from '../../../pages/ReportSettingsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -96,13 +103,33 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
     name: 'IOU_Send_Currency',
 },
 {
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Send_Add_Bank_Account',
+},
+{
+    Component: AddDebitCardPage,
+    name: 'IOU_Send_Add_Debit_Card',
+},
+{
     Component: EnablePaymentsPage,
-    name: 'IOU_Enable_Payments',
+    name: 'IOU_Send_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
     Component: IOUDetailsModal,
     name: 'IOU_Details_Root',
+},
+{
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Details_Add_Bank_Account',
+},
+{
+    Component: AddDebitCardPage,
+    name: 'IOU_Details_Add_Debit_Card',
+},
+{
+    Component: EnablePaymentsPage,
+    name: 'IOU_Details_Enable_Payments',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{
@@ -113,6 +140,11 @@ const DetailsModalStackNavigator = createModalStackNavigator([{
 const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     Component: ReportDetailsPage,
     name: 'Report_Details_Root',
+}]);
+
+const ReportSettingsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportSettingsPage,
+    name: 'Report_Settings_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
@@ -163,6 +195,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsCloseAccountPage,
+        name: 'Settings_Close',
+    },
+    {
+        Component: SettingsSecurityPage,
+        name: 'Settings_Security',
+    },
+    {
         Component: SettingsAboutPage,
         name: 'Settings_About',
     },
@@ -175,12 +215,28 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Payments',
     },
     {
+        Component: TransferBalancePage,
+        name: 'Settings_Payments_Transfer_Balance',
+    },
+    {
+        Component: ChooseTransferAccountPage,
+        name: 'Settings_Payments_Choose_Transfer_Account',
+    },
+    {
         Component: SettingsAddPayPalMePage,
         name: 'Settings_Add_Paypal_Me',
     },
     {
-        Component: SettingsAddDebitCardPage,
+        Component: EnablePaymentsPage,
+        name: 'Settings_Payments_EnablePayments',
+    },
+    {
+        Component: AddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
+    },
+    {
+        Component: AddPersonalBankAccountPage,
+        name: 'Settings_Add_Bank_Account',
     },
     {
         Component: WorkspaceInitialPage,
@@ -223,9 +279,17 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Workspace_Invite',
     },
     {
+        Component: WorkspaceNewRoomPage,
+        name: 'Workspace_NewRoom',
+    },
+    {
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+    },
+    {
+        Component: GetAssistancePage,
+        name: 'GetAssistance',
     },
 ]);
 
@@ -256,6 +320,7 @@ export {
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,

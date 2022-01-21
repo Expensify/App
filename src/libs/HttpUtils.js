@@ -4,9 +4,6 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
-// To avoid a circular dependency, we can't include Log here, so instead, we define an empty logging method and expose the setLogger method to set the logger from outside this file
-let info = () => {};
-
 let shouldUseSecureStaging = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
@@ -39,14 +36,6 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @returns {Promise}
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
-    if (command !== 'Log') {
-        info('Making API request', false, {
-            command,
-            type,
-            shouldUseSecure,
-            rvl: data.returnValueList,
-        });
-    }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
@@ -55,19 +44,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData)
-        .then((response) => {
-            if (command !== 'Log') {
-                info('Finished API request', false, {
-                    command,
-                    type,
-                    shouldUseSecure,
-                    jsonCode: response.jsonCode,
-                    requestID: response.requestID,
-                });
-            }
-            return response;
-        });
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
 }
 
 /**
@@ -87,12 +64,7 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
-function setLogger(logger) {
-    info = logger.info;
-}
-
 export default {
-    setLogger,
     download,
     xhr,
 };

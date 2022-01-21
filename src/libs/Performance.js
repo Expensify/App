@@ -3,7 +3,7 @@ import lodashTransform from 'lodash/transform';
 import React, {Profiler, forwardRef} from 'react';
 import {Alert} from 'react-native';
 
-import {canCapturePerformanceMetrics} from './canCaptureMetrics';
+import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
 
@@ -45,7 +45,7 @@ const Performance = {
     withRenderTrace: () => Component => Component,
 };
 
-if (canCapturePerformanceMetrics()) {
+if (Metrics.canCapturePerformanceMetrics()) {
     /**
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */

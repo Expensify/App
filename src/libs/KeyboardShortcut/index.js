@@ -1,6 +1,18 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import getOperatingSystem from '../getOperatingSystem';
+import CONST from '../../CONST';
 
 const events = {};
+const keyboardShortcutMap = {};
+
+/**
+ * Return the key-value pair for shortcut keys and translate keys
+ * @returns {Array}
+ */
+function getKeyboardShortcuts() {
+    return _.values(keyboardShortcutMap);
+}
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
@@ -108,20 +120,68 @@ function unsubscribe(key) {
 }
 
 /**
+ * Add key to the shortcut map
+ *
+ * @param {String} key The key to watch, i.e. 'K' or 'Escape'
+ * @param {String|String[]} modifiers Can either be shift or control
+ * @param {String} descriptionKey Translation key for shortcut description
+ */
+function addKeyToMap(key, modifiers, descriptionKey) {
+    let displayName = [key];
+    if (_.isString(modifiers)) {
+        displayName.unshift(modifiers);
+    } else if (_.isArray(modifiers)) {
+        displayName = [...modifiers, ...displayName];
+    }
+
+    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+
+    displayName = displayName.join(' + ');
+    keyboardShortcutMap[displayName] = {
+        shortcutKey: key,
+        descriptionKey,
+        displayName,
+        modifiers,
+    };
+}
+
+/**
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
+ * @param {String} descriptionKey Translation key for shortcut description
  * @param {String|Array} modifiers Can either be shift or control
  * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
     const keyCode = getKeyCode(key);
     if (events[keyCode] === undefined) {
         events[keyCode] = [];
     }
     events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+
+    if (descriptionKey) {
+        addKeyToMap(key, modifiers, descriptionKey);
+    }
     return () => unsubscribe(key);
+}
+
+/**
+ * Return platform specific modifiers for keys like Control (Cmd)
+ * @param {Array} modifiers
+ * @returns {Array}
+ */
+function getShortcutModifiers(modifiers) {
+    const operatingSystem = getOperatingSystem();
+    return _.map(modifiers, (modifier) => {
+        if (!_.has(CONST.KEYBOARD_SHORTCUT_MODIFIERS, modifier)) {
+            return modifier;
+        }
+
+        const platformModifiers = CONST.KEYBOARD_SHORTCUT_MODIFIERS[modifier];
+        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || modifier);
+    });
 }
 
 /**
@@ -137,6 +197,8 @@ function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) 
  */
 const KeyboardShortcut = {
     subscribe,
+    getKeyboardShortcuts,
+    getShortcutModifiers,
 };
 
 export default KeyboardShortcut;

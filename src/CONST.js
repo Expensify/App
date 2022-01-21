@@ -1,16 +1,23 @@
+import lodashGet from 'lodash/get';
+import Config from 'react-native-config';
+import * as Url from './libs/Url';
+
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
+const PLATFORM_OS_MACOS = 'Mac OS';
+const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
 const CONST = {
+    ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
-    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
+    AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     APP_DOWNLOAD_LINKS: {
-        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -68,7 +75,7 @@ const CONST = {
             PLAID: 'plaid',
         },
         REGEX: {
-            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -100,6 +107,7 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
+        POLICY_ROOMS: 'policyRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -120,6 +128,54 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+        WEB: 'web',
+        DESKTOP: 'desktop',
+    },
+    KEYBOARD_SHORTCUT_MODIFIERS: {
+        CTRL: {
+            DEFAULT: 'control',
+            [PLATFORM_OS_MACOS]: 'meta',
+        },
+        SHIFT: {
+            DEFAULT: 'shift',
+        },
+    },
+    KEYBOARD_SHORTCUTS: {
+        SEARCH: {
+            descriptionKey: 'search',
+            shortcutKey: 'K',
+            modifiers: ['CTRL'],
+        },
+        NEW_GROUP: {
+            descriptionKey: 'newGroup',
+            shortcutKey: 'K',
+            modifiers: ['CTRL', 'SHIFT'],
+        },
+        SHORTCUT_MODAL: {
+            descriptionKey: 'openShortcutDialog',
+            shortcutKey: 'I',
+            modifiers: ['CTRL'],
+        },
+        ESCAPE: {
+            descriptionKey: 'escape',
+            shortcutKey: 'Escape',
+            modifiers: [],
+        },
+        ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: [],
+        },
+        COPY: {
+            descriptionKey: 'copy',
+            shortcutKey: 'C',
+            modifiers: ['CTRL'],
+        },
+    },
+    KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
+        CONTROL: 'Ctrl',
+        META: 'Cmd',
+        SHIFT: 'Shift',
     },
     CURRENCY: {
         USD: 'USD',
@@ -136,14 +192,14 @@ const CONST = {
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
-    PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
+    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
+    ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
@@ -175,6 +231,7 @@ const CONST = {
             POLICY_ANNOUNCE: 'policyAnnounce',
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
+            POLICY_ROOM: 'policyRoom',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -186,7 +243,14 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        VISIBILITY: {
+            RESTRICTED: 'restricted',
+            PRIVATE: 'private',
+        },
+        RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
+        MAX_ROOM_NAME_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -245,6 +309,7 @@ const CONST = {
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
+        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -266,13 +331,16 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    EMOJI_NUM_PER_ROW: 8,
+
+    EMOJI_FREQUENT_ROW_COUNT: 3,
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
     },
 
     KEYBOARD_TYPE: {
-        NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
     },
@@ -282,6 +350,8 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ADD_PAYMENT_MENU_POSITION_Y: 226,
+    ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: 320,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
@@ -322,6 +392,20 @@ const CONST = {
     },
 
     WALLET: {
+        TRANSFER_METHOD_TYPE: {
+            INSTANT: 'instant',
+            ACH: 'ach',
+        },
+        TRANSFER_METHOD_TYPE_FEE: {
+            INSTANT: {
+                RATE: 1.5,
+                MINIMUM_FEE: 25,
+            },
+            ACH: {
+                RATE: 0,
+                MINIMUM_FEE: 0,
+            },
+        },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',
@@ -361,12 +445,16 @@ const CONST = {
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
+            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
+            // eslint-disable-next-line max-len
+            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
     OS: {
         WINDOWS: 'Windows',
-        MAC_OS: 'Mac OS',
+        MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
         IOS: 'iOS',
         LINUX: 'Linux',
@@ -381,6 +469,17 @@ const CONST = {
         Opera: 'opera',
         SAFARI: 'safari',
         OTHER: 'other',
+    },
+
+    PAYMENT_METHODS: {
+        PAYPAL: 'payPalMe',
+        DEBIT_CARD: 'debitCard',
+        BANK_ACCOUNT: 'bankAccount',
+    },
+
+    PAYMENT_METHOD_ID_KEYS: {
+        DEBIT_CARD: 'fundID',
+        BANK_ACCOUNT: 'bankAccountID',
     },
 
     IOU: {
@@ -443,6 +542,8 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
+        ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -467,27 +568,37 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
+    GUIDES_CALL_TASK_IDS: {
+        CONCIERGE_DM: 'NewExpensifyConciergeDM',
+        WORKSPACE_INITIAL: 'WorkspaceHome',
+        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_CARD: 'WorkspaceCorporateCards',
+        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
+        WORKSPACE_BILLS: 'WorkspacePayBills',
+        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
+        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
+        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
+    },
+    get EXPENSIFY_EMAILS() {
+        return [
+            this.EMAIL.CONCIERGE,
+            this.EMAIL.HELP,
+            this.EMAIL.RECEIPTS,
+            this.EMAIL.CHRONOS,
+            this.EMAIL.QA,
+            this.EMAIL.CONTRIBUTORS,
+            this.EMAIL.FIRST_RESPONDER,
+            this.EMAIL.QA_TRAVIS,
+            this.EMAIL.BILLS,
+            this.EMAIL.STUDENT_AMBASSADOR,
+            this.EMAIL.ACCOUNTING,
+            this.EMAIL.PAYROLL,
+            this.EMAIL.SVFG,
+            this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.ADMIN,
+        ];
+    },
 };
 
-const EXPENSIFY_EMAILS = [
-    CONST.EMAIL.CONCIERGE,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CONTRIBUTORS,
-    CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.QA_TRAVIS,
-    CONST.EMAIL.BILLS,
-    CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.ACCOUNTING,
-    CONST.EMAIL.PAYROLL,
-    CONST.EMAIL.SVFG,
-    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-    CONST.EMAIL.ADMIN,
-];
-
-export {
-    EXPENSIFY_EMAILS,
-};
 export default CONST;

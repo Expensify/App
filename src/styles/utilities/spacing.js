@@ -25,6 +25,14 @@ export default {
         marginHorizontal: 4,
     },
 
+    mh2: {
+        marginHorizontal: 8,
+    },
+
+    mh3: {
+        marginHorizontal: 12,
+    },
+
     mh5: {
         marginHorizontal: 20,
     },
@@ -125,10 +133,6 @@ export default {
         marginTop: 24,
     },
 
-    mt40Percentage: {
-        marginTop: '40%',
-    },
-
     mb0: {
         marginBottom: 0,
     },
@@ -220,6 +224,10 @@ export default {
         paddingVertical: 20,
     },
 
+    pv10: {
+        paddingVertical: 40,
+    },
+
     ph0: {
         paddingHorizontal: 0,
     },
@@ -254,6 +262,10 @@ export default {
 
     pr2: {
         paddingRight: 8,
+    },
+
+    pr4: {
+        paddingRight: 16,
     },
 
     pr5: {

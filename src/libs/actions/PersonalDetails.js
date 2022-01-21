@@ -8,11 +8,10 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
-import {isDefaultRoom} from '../reportUtils';
-import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
+import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
-import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
+import * as Localize from '../Localize';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -38,7 +37,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return getDefaultAvatar(login);
+    return OptionsListUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -66,19 +65,15 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns object with first and last name errors. If either are valid,
- * those errors get returned as empty strings.
+ * Returns max character error text if true.
  *
- * @param {String} firstName
- * @param {String} lastName
- * @returns {Object}
+ * @param {Boolean} isError
+ * @returns {String}
  */
-function getFirstAndLastNameErrors(firstName, lastName) {
-    return {
-        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
-        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
-    };
+function getMaxCharacterError(isError) {
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
+
 
 /**
  * Format personal details
@@ -184,12 +179,12 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !isDefaultRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
                     return;
                 }
 
-                const avatars = getReportIcons(report, details);
-                const reportName = isDefaultRoom(report)
+                const avatars = OptionsListUtils.getReportIcons(report, details);
+                const reportName = ReportUtils.isChatRoom(report)
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
@@ -246,12 +241,12 @@ function setPersonalDetails(details, shouldGrowl) {
                 mergeLocalPersonalDetails(details);
 
                 if (shouldGrowl) {
-                    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
                 }
             } else if (response.jsonCode === 400) {
-                Growl.error(translateLocal('personalDetails.error.firstNameLength'), 3000);
+                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
             } else if (response.jsonCode === 401) {
-                Growl.error(translateLocal('personalDetails.error.lastNameLength'), 3000);
+                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
             }
         }).catch((error) => {
             console.debug('Error while setting personal details', error);
@@ -317,9 +312,9 @@ function setAvatar(file) {
         .catch((error) => {
             setPersonalDetails({avatarUploading: false});
             if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
             } else {
-                Growl.show(translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
             }
         });
 }
@@ -333,8 +328,8 @@ function deleteAvatar(login) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
-    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
@@ -345,11 +340,10 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getDefaultAvatar,
-    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
     fetchLocalCurrency,
     getCurrencyList,
+    getMaxCharacterError,
 };

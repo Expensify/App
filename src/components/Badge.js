@@ -1,7 +1,8 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {getBadgeColorStyle} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
 
 const propTypes = {
@@ -38,7 +39,7 @@ const Badge = (props) => {
     const wrapperStyles = ({pressed}) => ([
         styles.badge,
         styles.ml2,
-        getBadgeColorStyle(props.success, props.error, pressed),
+        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed),
         ...props.badgeStyles,
     ]);
 

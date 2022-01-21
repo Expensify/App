@@ -6,10 +6,10 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Bank} from '../../../components/Icon/Expensicons';
-import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -19,14 +19,14 @@ const propTypes = {
 };
 
 const WorkspaceCardNoVBAView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.card.header')}
-        icon={JewelBoxBlue}
+        icon={Illustrations.JewelBoxBlue}
         menuItems={[
             {
                 title: props.translate('workspace.common.bankAccount'),
                 onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
-                icon: Bank,
+                icon: Expensicons.Bank,
                 shouldShowRightIcon: true,
             },
         ]}
@@ -43,7 +43,7 @@ const WorkspaceCardNoVBAView = props => (
                 props.translate('workspace.card.benefit4'),
             ]}
         />
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceCardNoVBAView.propTypes = propTypes;

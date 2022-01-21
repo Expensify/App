@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,23 +46,21 @@ const FullNameInputRow = (props) => {
     return (
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>
-                <ExpensiTextInput
+                <TextInput
                     label={props.translate('common.firstName')}
                     value={props.firstName}
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
                     placeholder={props.translate('profilePage.john')}
-                    translateX={-10}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
-                <ExpensiTextInput
+                <TextInput
                     label={props.translate('common.lastName')}
                     value={props.lastName}
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
                     placeholder={props.translate('profilePage.doe')}
-                    translateX={-10}
                 />
             </View>
         </View>

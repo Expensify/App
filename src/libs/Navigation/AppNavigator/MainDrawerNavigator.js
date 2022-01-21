@@ -12,7 +12,7 @@ import Permissions from '../../Permissions';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
-import {findLastAccessedReport} from '../../reportUtils';
+import * as ReportUtils from '../../reportUtils';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -37,7 +37,7 @@ const defaultProps = {
  * @returns {Object}
  */
 const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
-    const last = findLastAccessedReport(reports, ignoreDefaultRooms);
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');

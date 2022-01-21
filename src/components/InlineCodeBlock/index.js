@@ -1,6 +1,6 @@
 import React from 'react';
-import {Text} from 'react-native';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
+import Text from '../Text';
 
 const InlineCodeBlock = (props) => {
     const TDefaultRenderer = props.TDefaultRenderer;

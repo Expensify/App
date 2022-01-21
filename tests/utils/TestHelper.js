@@ -1,5 +1,5 @@
-import {signIn, fetchAccountDetails} from '../../src/libs/actions/Session';
-import {fetchPersonalDetails} from '../../src/libs/actions/PersonalDetails';
+import * as Session from '../../src/libs/actions/Session';
+import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
 
@@ -24,7 +24,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     }));
 
     // Simulate user entering their login and populating the credentials.login
-    fetchAccountDetails(login);
+    Session.fetchAccountDetails(login);
     return waitForPromisesToResolve()
         .then(() => {
             // First call to Authenticate
@@ -43,7 +43,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                     authToken,
                     email: login,
                 }));
-            signIn(password);
+            Session.signIn(password);
             return waitForPromisesToResolve()
                 .then(() => {
                     HttpUtils.xhr = originalXhr;
@@ -70,7 +70,7 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
             personalDetailsList,
         }));
 
-    fetchPersonalDetails();
+    PersonalDetails.fetchPersonalDetails();
     return waitForPromisesToResolve()
         .then(() => {
             HttpUtils.xhr = originalXHR;

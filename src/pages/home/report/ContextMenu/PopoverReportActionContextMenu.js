@@ -3,9 +3,7 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
-import {
-    deleteReportComment,
-} from '../../../../libs/actions/Report';
+import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -52,10 +50,12 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
+
+        this.dimensionsEventListener = null;
     }
 
     componentDidMount() {
-        Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -65,7 +65,10 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.measureContextMenuAnchorPosition);
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     /**
@@ -91,7 +94,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return this.state.reportAction.reportActionID === actionID;
+        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
     }
 
     /**
@@ -227,7 +230,7 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     confirmDeleteAndHideModal() {
-        deleteReportComment(this.state.reportID, this.state.reportAction);
+        Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
@@ -258,6 +261,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
+                    disableAnimation={false}
                     animationOutTiming={1}
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}

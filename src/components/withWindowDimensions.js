@@ -46,6 +46,8 @@ export default function (WrappedComponent) {
             const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
               && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
 
+            this.dimensionsEventListener = null;
+
             this.state = {
                 windowHeight: initialDimensions.height,
                 windowWidth: initialDimensions.width,
@@ -55,11 +57,14 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            Dimensions.addEventListener('change', this.onDimensionChange);
+            this.dimensionsEventListener = Dimensions.addEventListener('change', this.onDimensionChange);
         }
 
         componentWillUnmount() {
-            Dimensions.removeEventListener('change', this.onDimensionChange);
+            if (!this.dimensionsEventListener) {
+                return;
+            }
+            this.dimensionsEventListener.remove();
         }
 
         /**
@@ -71,7 +76,7 @@ export default function (WrappedComponent) {
         onDimensionChange(newDimensions) {
             const {window} = newDimensions;
             const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
-            const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.mediumScreenResponsiveWidthBreakpoint;
+            const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
             this.setState({
                 windowHeight: window.height,
                 windowWidth: window.width,

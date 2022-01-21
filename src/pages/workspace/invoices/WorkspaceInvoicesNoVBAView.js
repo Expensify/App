@@ -4,12 +4,9 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    ArrowRight,
-    Bank,
-} from '../../../components/Icon/Expensicons';
-import {JewelBoxGreen} from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
@@ -25,23 +22,23 @@ const WorkspaceInvoicesNoVBAView = props => (
     <>
         <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
-            icon={JewelBoxGreen}
+            icon={Illustrations.JewelBoxGreen}
             menuItems={[
                 {
                     title: props.translate('workspace.common.bankAccount'),
                     onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
-                    icon: Bank,
+                    icon: Expensicons.Bank,
                     shouldShowRightIcon: true,
-                    iconRight: ArrowRight,
+                    iconRight: Expensicons.ArrowRight,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

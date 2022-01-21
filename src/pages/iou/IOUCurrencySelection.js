@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
-import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
 import OptionRow from '../home/sidebar/OptionRow';
 import themeColors from '../../styles/themes/default';
@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
-import {setIOUSelectedCurrency} from '../../libs/actions/IOU';
+import * as IOU from '../../libs/actions/IOU';
 
 /**
  * IOU Currency selection for selecting currency
@@ -69,13 +69,13 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList),
+        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList),
             '');
 
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
+            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.props.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -85,7 +85,7 @@ class IOUCurrencySelection extends Component {
     }
 
     componentDidMount() {
-        getCurrencyList();
+        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -137,7 +137,7 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     changeSearchValue(searchValue) {
-        const {currencyOptions} = getCurrencyListForSections(
+        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(
             this.getCurrencyOptions(this.props.currencyList),
             searchValue,
         );
@@ -152,7 +152,7 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     confirmCurrencySelection() {
-        setIOUSelectedCurrency(this.state.toggledCurrencyCode);
+        IOU.setIOUSelectedCurrency(this.state.toggledCurrencyCode);
         Navigation.goBack();
     }
 

@@ -8,8 +8,9 @@ import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -46,47 +47,65 @@ const ReportWelcomeText = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
-        getPersonalDetailsForLogins(participants, props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         ({
             displayName, firstName, login, pronouns,
         }) => {
             const longName = displayName || Str.removeSMSDomain(login);
             const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
             const shortName = firstName || longNameLocalized;
+            let finalPronouns = pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                finalPronouns = props.translate(`pronouns.${localeKey}`);
+            }
             return {
                 displayName: isMultipleParticipant ? shortName : longNameLocalized,
                 tooltip: Str.removeSMSDomain(login),
-                pronouns,
+                pronouns: finalPronouns,
             };
         },
     );
     const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
-            <Text>
-                {!props.shouldIncludeParticipants
-                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
-                    : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
-            </Text>
-            {!props.shouldIncludeParticipants && <Text style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</Text>}
-            {!props.shouldIncludeParticipants && <Text>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</Text>}
-            {props.shouldIncludeParticipants
-            && (
-                <>
-                    {_.map(chatUsers, ({displayName, pronouns}, index) => (
-                        <Text key={displayName}>
-                            <Text style={[styles.textStrong]}>
-                                {displayName}
-                            </Text>
-                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                            {(index === chatUsers.length - 1) && <Text>.</Text>}
-                            {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                            {(index < chatUsers.length - 2) && <Text>, </Text>}
+            {!props.shouldIncludeParticipants
+                ? (
+                    <>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
                         </Text>
-                    ))}
-                </>
-            )}
+                        <Text style={[styles.textStrong]}>
+                            {lodashGet(chatUsers, '[0].displayName', '')}
+                        </Text>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        </Text>
+                    </>
+                ) : (
+                    <>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                        </Text>
+                        {_.map(chatUsers, ({displayName, pronouns}, index) => (
+                            <Text key={displayName}>
+                                <Text style={[styles.textStrong]}>
+                                    {displayName}
+                                </Text>
+                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {(index === chatUsers.length - 1) && <Text>.</Text>}
+                                {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                                {(index < chatUsers.length - 2) && <Text>, </Text>}
+                            </Text>
+                        ))}
+                    </>
+                )}
         </Text>
     );
 };

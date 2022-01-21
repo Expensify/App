@@ -7,10 +7,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {
-    fetchFreePlanVerifiedBankAccount,
-    hideBankAccountErrors,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -20,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
 
 // Steps
@@ -27,7 +25,7 @@ import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
-import BeneficialOwnersStep from './BeneficialOwnersStep';
+import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -76,7 +74,7 @@ class ReimbursementAccountPage extends React.Component {
         const stepToOpen = this.getStepToOpenFromRouteParams();
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
     componentDidUpdate(prevProps) {
@@ -98,7 +96,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        hideBankAccountErrors();
+        BankAccounts.hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 
@@ -206,7 +204,6 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -214,6 +211,8 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                            plaidLinkOAuthToken={this.props.plaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
@@ -223,7 +222,7 @@ class ReimbursementAccountPage extends React.Component {
                         <RequestorStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <BeneficialOwnersStep companyName={achData.companyName} />
+                        <ACHContractStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep />
@@ -253,6 +252,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        plaidLinkToken: {
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
     }),
     withLocalize,

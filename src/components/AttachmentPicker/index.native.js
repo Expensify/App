@@ -6,11 +6,12 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
+import RNFetchBlob from 'rn-fetch-blob';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -52,6 +53,7 @@ function getImagePickerOptions(type) {
   */
 const documentPickerOptions = {
     type: [RNDocumentPicker.types.allFiles],
+    copyTo: 'cachesDirectory',
 };
 
 /**
@@ -59,15 +61,24 @@ const documentPickerOptions = {
   * send to the xhr will be handled properly.
   *
   * @param {Object} fileData
-  * @return {Object}
+  * @return {Promise}
   */
 function getDataForUpload(fileData) {
-    return {
+    const fileResult = {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
-        uri: fileData.uri,
+        uri: fileData.fileCopyUri || fileData.uri,
         size: fileData.fileSize || fileData.size,
     };
+
+    if (fileResult.size) {
+        return Promise.resolve(fileResult);
+    }
+
+    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        fileResult.size = stats.size;
+        return fileResult;
+    });
 }
 
 /**
@@ -86,12 +97,12 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Camera,
+                icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
-                icon: Gallery,
+                icon: Expensicons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
@@ -102,7 +113,7 @@ class AttachmentPicker extends Component {
         if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             this.menuItemData.push(
                 {
-                    icon: Paperclip,
+                    icon: Expensicons.Paperclip,
                     textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
@@ -117,20 +128,27 @@ class AttachmentPicker extends Component {
       * Handles the image/document picker result and
       * sends the selected attachment to the caller (parent component)
       *
-      * @param {ImagePickerResponse|DocumentPickerResponse} attachment
+      * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
+      * @returns {Promise}
       */
-    pickAttachment(attachment) {
-        if (!attachment) {
+    pickAttachment(attachments = []) {
+        if (attachments.length === 0) {
             return;
         }
 
-        if (attachment.width === -1 || attachment.height === -1) {
+        const fileData = _.first(attachments);
+
+        if (fileData.width === -1 || fileData.height === -1) {
             this.showImageCorruptionAlert();
             return;
         }
 
-        const result = getDataForUpload(attachment);
-        this.completeAttachmentSelection(result);
+        return getDataForUpload(fileData).then((result) => {
+            this.completeAttachmentSelection(result);
+        }).catch((error) => {
+            this.showGeneralAlert(error.message);
+            throw error;
+        });
     }
 
     /**
@@ -180,8 +198,7 @@ class AttachmentPicker extends Component {
                     return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                 }
 
-                // Resolve with the first (and only) selected file
-                return resolve(response.assets[0]);
+                return resolve(response.assets);
             });
         });
     }
@@ -210,7 +227,7 @@ class AttachmentPicker extends Component {
     /**
       * Launch the DocumentPicker. Results are in the same format as ImagePicker
       *
-      * @returns {Promise<DocumentPickerResponse>}
+      * @returns {Promise<DocumentPickerResponse[]>}
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {

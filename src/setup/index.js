@@ -1,9 +1,8 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import listenToStorageEvents from '../libs/listenToStorageEvents';
 import platformSetup from './platformSetup';
-import {canCaptureOnyxMetrics} from '../libs/canCaptureMetrics';
+import * as Metrics from '../libs/Metrics';
 
 export default function () {
     /*
@@ -22,7 +21,7 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        captureMetrics: canCaptureOnyxMetrics(),
+        captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
 
             // Clear any loading and error messages so they do not appear on app startup
@@ -33,9 +32,6 @@ export default function () {
                 loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-        },
-        registerStorageEventListener: (onStorageEvent) => {
-            listenToStorageEvents(onStorageEvent);
         },
     });
 

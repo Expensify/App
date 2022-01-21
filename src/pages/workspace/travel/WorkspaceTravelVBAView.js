@@ -3,54 +3,49 @@ import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Concierge,
-    ExpensifyCard,
-    NewWindow,
-    Info,
-} from '../../../components/Icon/Expensicons';
-import {RocketOrange} from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
-import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
-import {navigateToConciergeChat} from '../../../libs/actions/Report';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Section from '../../../components/Section';
+import * as Link from '../../../libs/actions/Link';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 const WorkspaceTravelVBAView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.travel.packYourBags')}
-        icon={RocketOrange}
+        icon={Illustrations.RocketOrange}
         menuItems={[
             {
                 title: props.translate('workspace.common.issueAndManageCards'),
-                onPress: () => openOldDotLink('domain_companycards'),
-                icon: ExpensifyCard,
+                onPress: () => Link.openOldDotLink('domain_companycards'),
+                icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
             {
                 title: props.translate('workspace.travel.bookTravelWithConcierge'),
                 onPress: () => {
-                    navigateToConciergeChat();
+                    Report.navigateToConciergeChat();
                 },
-                icon: Concierge,
+                icon: Expensicons.Concierge,
                 shouldShowRightIcon: true,
             },
             {
                 title: props.translate('requestorStep.learnMore'),
-                onPress: () => openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
-                icon: Info,
+                onPress: () => Link.openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
+                icon: Expensicons.Info,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
         ]}
     >
         <View style={[styles.mv4]}>
             <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceTravelVBAView.propTypes = propTypes;

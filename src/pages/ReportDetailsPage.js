@@ -3,27 +3,24 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
-import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
-import {updateNotificationPreference} from '../libs/actions/Report';
-import {Users} from '../components/Icon/Expensicons';
+import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
-import ExpensiPicker from '../components/ExpensiPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,9 +43,6 @@ const propTypes = {
 
         /** ID of the report */
         reportID: PropTypes.number,
-
-        /** The current user's notification preference for this report */
-        notificationPreference: PropTypes.string,
     }).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
@@ -73,39 +67,48 @@ class ReportDetailsPage extends Component {
     constructor(props) {
         super(props);
 
-        this.notificationPreferencesOptions = {
-            default: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                label: props.translate('reportDetailsPage.always'),
+        this.menuItems = [];
+        if (ReportUtils.isArchivedRoom(this.props.report)) {
+            return;
+        }
 
-            },
-            daily: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-                label: props.translate('reportDetailsPage.daily'),
-            },
-            mute: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-                label: props.translate('reportDetailsPage.mute'),
-            },
-        };
+        // All nonarchived chats should let you see their members
+        this.menuItems.push({
+            translationKey: 'common.members',
+            icon: Expensicons.Users,
+            subtitle: props.report.participants.length,
+            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+        });
 
-        this.menuItems = isArchivedRoom(this.props.report) ? []
-            : [
+        // Chat rooms will allow you to more things than typical chats so they have extra options
+        if (ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems = this.menuItems.concat([
                 {
-                    translationKey: 'common.members',
-                    icon: Users,
-                    subtitle: props.report.participants.length,
-                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                    translationKey: 'common.settings',
+                    icon: Expensicons.Gear,
+                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
                 },
-            ];
+                {
+                    translationKey: 'common.invite',
+                    icon: Expensicons.Plus,
+                    action: () => { /* Placeholder for when inviting other users is built in */ },
+                },
+                {
+                    translationKey: 'common.leaveRoom',
+                    icon: Expensicons.Exit,
+                    action: () => { /* Placeholder for when leaving rooms is built in */ },
+                },
+            ]);
+        }
     }
 
     render() {
-        const defaultRoomSubtitle = getDefaultRoomSubtitle(this.props.report, this.props.policies);
+        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
-            getPersonalDetailsForLogins(participants, this.props.personalDetails),
+            OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
             ({displayName, firstName, login}) => {
                 const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
 
@@ -123,14 +126,14 @@ class ReportDetailsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1]}>
+                <ScrollView style={[styles.flex1]}>
                     <View style={[styles.m5]}>
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
                             <Avatar
-                                isDefaultChatRoom={isDefaultRoom(this.props.report)}
-                                isArchivedRoom={isArchivedRoom(this.props.report)}
+                                isChatRoom={isChatRoom}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={this.props.report.icons[0]}
@@ -142,46 +145,21 @@ class ReportDetailsPage extends Component {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.mb2]}
-                                    shouldUseFullTitle={isDefaultRoom(this.props.report)}
+                                    shouldUseFullTitle={isChatRoom}
                                 />
                                 <Text
                                     style={[
                                         styles.sidebarLinkText,
                                         styles.optionAlternateText,
                                         styles.textLabelSupporting,
-                                        styles.mb6,
+                                        styles.mb5,
                                     ]}
                                     numberOfLines={1}
                                 >
-                                    {defaultRoomSubtitle}
+                                    {chatRoomSubtitle}
                                 </Text>
                             </View>
                         </View>
-                        {!isArchivedRoom(this.props.report) && (
-                            <View>
-                                <View style={styles.mt4}>
-                                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                                        {this.props.translate('common.notifications')}
-                                    </Text>
-                                </View>
-                                <View>
-                                    <View style={[styles.mb5]}>
-                                        <ExpensiPicker
-                                            // eslint-disable-next-line max-len
-                                            label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                                            onChange={(notificationPreference) => {
-                                                updateNotificationPreference(
-                                                    this.props.report.reportID,
-                                                    notificationPreference,
-                                                );
-                                            }}
-                                            items={_.values(this.notificationPreferencesOptions)}
-                                            value={this.props.report.notificationPreference}
-                                        />
-                                    </View>
-                                </View>
-                            </View>
-                        )}
                     </View>
                     {_.map(this.menuItems, (item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
@@ -198,7 +176,7 @@ class ReportDetailsPage extends Component {
                             />
                         );
                     })}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         );
     }

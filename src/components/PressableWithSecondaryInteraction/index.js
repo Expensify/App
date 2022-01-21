@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
-import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+import SelectionScraper from '../../libs/SelectionScraper';
+import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import styles from '../../styles/styles';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -29,7 +31,7 @@ class PressableWithSecondaryInteraction extends Component {
      * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
      */
     executeSecondaryInteractionOnContextMenu(e) {
-        const selection = window.getSelection().toString();
+        const selection = SelectionScraper.getAsMarkdown();
         e.stopPropagation();
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();
@@ -39,10 +41,12 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
+
+        // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
+                style={this.props.inline && styles.dInline}
                 onPressIn={this.props.onPressIn}
-                delayLongPress={200}
                 onLongPress={this.props.onSecondaryInteraction}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
@@ -56,8 +60,8 @@ class PressableWithSecondaryInteraction extends Component {
     }
 }
 
-PressableWithSecondaryInteraction.propTypes = propTypes;
-PressableWithSecondaryInteraction.defaultProps = defaultProps;
+PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />

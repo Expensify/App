@@ -4,7 +4,8 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles, {getSafeAreaMargins} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
@@ -13,9 +14,9 @@ import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
@@ -82,7 +83,7 @@ const defaultProps = {
     reports: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: getDefaultAvatar(),
+        avatar: OptionsListUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -94,7 +95,7 @@ const defaultProps = {
 class SidebarLinks extends React.Component {
     static getRecentReports(props) {
         const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-        const sidebarOptions = getSidebarOptions(
+        const sidebarOptions = OptionsListUtils.getSidebarOptions(
             props.reports,
             props.personalDetails,
             activeReportID,
@@ -223,7 +224,7 @@ class SidebarLinks extends React.Component {
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
-                            <Icon src={MagnifyingGlass} />
+                            <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
                     <TouchableOpacity
@@ -235,14 +236,14 @@ class SidebarLinks extends React.Component {
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                             isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
-                            tooltipText={this.props.myPersonalDetails.displayName}
+                            tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
                 </View>
                 <OptionsList
                     contentContainerStyles={[
                         styles.sidebarListContainer,
-                        {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     sections={sections}
                     focusedIndex={_.findIndex(this.state.orderedReports, (

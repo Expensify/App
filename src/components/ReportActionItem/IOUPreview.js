@@ -15,11 +15,11 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import MultipleAvatars from '../MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import {fetchIOUReportByID} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import themeColors from '../../styles/themes/default';
 import Icon from '../Icon';
 import CONST from '../../CONST';
-import {Checkmark} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 
 const propTypes = {
@@ -35,6 +35,12 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
+    /** Callback for the preview pressed */
+    onPreviewPressed: PropTypes.func,
+
+    /** Extra styles to pass to View wrapper */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     /* Onyx Props */
 
     /** Active IOU Report for current report */
@@ -45,8 +51,11 @@ const propTypes = {
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
 
-        /** Outstanding amount of this transaction */
-        cachedTotal: PropTypes.string,
+        /** Outstanding amount in cents of this transaction */
+        total: PropTypes.number,
+
+        /** Currency of outstanding amount of this transaction */
+        currency: PropTypes.string,
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
@@ -72,6 +81,8 @@ const defaultProps = {
     iouReport: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
+    onPreviewPressed: () => {},
+    containerStyles: [],
 };
 
 const IOUPreview = (props) => {
@@ -92,7 +103,7 @@ const IOUPreview = (props) => {
     const reportIsLoading = _.isEmpty(props.iouReport);
 
     if (reportIsLoading) {
-        fetchIOUReportByID(props.iouReportID, props.chatReportID);
+        Report.fetchIOUReportByID(props.iouReportID, props.chatReportID);
     }
 
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
@@ -100,10 +111,14 @@ const IOUPreview = (props) => {
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
     const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
     const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
-    const cachedTotal = props.iouReport.cachedTotal ? props.iouReport.cachedTotal.replace(/[()]/g, '') : '';
+    const cachedTotal = props.iouReport.total && props.iouReport.currency
+        ? props.numberFormat(
+            props.iouReport.total / 100,
+            {style: 'currency', currency: props.iouReport.currency},
+        ) : '';
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
-            <View style={styles.iouPreviewBox}>
+            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                 {reportIsLoading
                     ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
                     : (
@@ -116,7 +131,7 @@ const IOUPreview = (props) => {
                                         </Text>
                                         {!props.iouReport.hasOutstandingIOU && (
                                             <View style={styles.iouPreviewBoxCheckmark}>
-                                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                             </View>
                                         )}
                                     </View>
@@ -128,11 +143,21 @@ const IOUPreview = (props) => {
                                     />
                                 </View>
                             </View>
-                            <Text>
-                                {props.iouReport.hasOutstandingIOU
-                                    ? props.translate('iou.owes', {manager: managerName, owner: ownerName})
-                                    : props.translate('iou.paid', {manager: managerName, owner: ownerName})}
-                            </Text>
+                            {isCurrentUserManager
+                                ? (
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.youowe', {owner: ownerName})
+                                            : props.translate('iou.youpaid', {owner: ownerName})}
+                                    </Text>
+                                )
+                                : (
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.owesyou', {manager: managerName})
+                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                    </Text>
+                                )}
                             {(isCurrentUserManager
                                 && !props.shouldHidePayButton
                                 && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (

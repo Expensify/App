@@ -7,32 +7,24 @@ import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
-import {
-    goToWithdrawalAccountSetupStep,
-    setupWithdrawalAccount,
-    showBankAccountErrorModal,
-    setBankAccountFormValidationErrors,
-    updateReimbursementAccountDraft,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import DatePicker from '../../components/DatePicker';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {
-    isValidDate, isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
-} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import AddressSearch from '../../components/AddressSearch';
+import AddressForm from './AddressForm';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -86,10 +78,6 @@ class CompanyStep extends React.Component {
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
-            addressStreet: 'bankAccount.error.addressStreet',
-            addressCity: 'bankAccount.error.addressCity',
-            addressState: 'bankAccount.error.addressState',
-            addressZipCode: 'bankAccount.error.zipCode',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
@@ -101,25 +89,9 @@ class CompanyStep extends React.Component {
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
-    }
-
-    getFormattedAddressValue() {
-        let addressString = '';
-        if (this.state.addressStreet) {
-            addressString += `${this.state.addressStreet}, `;
-        }
-        if (this.state.addressCity) {
-            addressString += `${this.state.addressCity}, `;
-        }
-        if (this.state.addressState) {
-            addressString += `${this.state.addressState}, `;
-        }
-        if (this.state.addressZipCode) {
-            addressString += `${this.state.addressZipCode}`;
-        }
-        return addressString;
     }
 
     /**
@@ -127,7 +99,7 @@ class CompanyStep extends React.Component {
      */
     setValue(value) {
         this.setState(value);
-        updateReimbursementAccountDraft(value);
+        BankAccounts.updateReimbursementAccountDraft(value);
     }
 
     /**
@@ -158,17 +130,15 @@ class CompanyStep extends React.Component {
     validate() {
         const errors = {};
 
-        if (this.state.manualAddress) {
-            if (!isValidAddress(this.state.addressStreet)) {
-                errors.addressStreet = true;
-            }
-
-            if (!isValidZipCode(this.state.addressZipCode)) {
-                errors.addressZipCode = true;
-            }
+        if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
+            errors.addressStreet = true;
         }
 
-        if (!isValidURL(this.state.website)) {
+        if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+            errors.addressZipCode = true;
+        }
+
+        if (!ValidationUtils.isValidURL(this.state.website)) {
             errors.website = true;
         }
 
@@ -176,37 +146,37 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!isValidDate(this.state.incorporationDate)) {
+        if (!ValidationUtils.isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
         }
 
-        if (!isValidPastDate(this.state.incorporationDate)) {
+        if (!ValidationUtils.isValidPastDate(this.state.incorporationDate)) {
             errors.incorporationDateFuture = true;
         }
 
-        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+        if (!ValidationUtils.isValidPhoneWithSpecialChars(this.state.companyPhone)) {
             errors.companyPhone = true;
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (isRequiredFulfilled(this.state[inputKey])) {
+            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
                 return;
             }
 
             errors[inputKey] = true;
         });
-        setBankAccountFormValidationErrors(errors);
+        BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
 
     submit() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        setupWithdrawalAccount({...this.state, incorporationDate});
+        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate});
     }
 
     render() {
@@ -218,15 +188,17 @@ class CompanyStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
+                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ReimbursementAccountForm
                     onSubmit={this.submit}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
@@ -234,63 +206,37 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
-                    {!this.state.manualAddress && (
-                        <>
-                            <AddressSearch
-                                label={this.props.translate('common.companyAddress')}
-                                containerStyles={[styles.mt4]}
-                                value={this.getFormattedAddressValue()}
-                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
-                                errorText={this.getErrorText('addressStreet')}
-                            />
-                            <TextLink
-                                style={[styles.textMicro]}
-                                onPress={() => this.setState({manualAddress: true})}
-                            >
-                                Can&apos;t find your address? Enter it manually
-                            </TextLink>
-                        </>
-                    )}
-                    {this.state.manualAddress && (
-                        <>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.companyAddress')}
-                                containerStyles={[styles.mt4]}
-                                onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
-                                value={this.state.addressStreet}
-                                errorText={this.getErrorText('addressStreet')}
-                            />
-                            <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
-                            <View style={[styles.flexRow, styles.mt4]}>
-                                <View style={[styles.flex2, styles.mr2]}>
-                                    <ExpensiTextInput
-                                        label={this.props.translate('common.city')}
-                                        onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
-                                        value={this.state.addressCity}
-                                        errorText={this.getErrorText('addressCity')}
-                                        translateX={-14}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <StatePicker
-                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                        value={this.state.addressState}
-                                        hasError={this.getErrors().addressState}
-                                    />
-                                </View>
-                            </View>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.zip')}
-                                containerStyles={[styles.mt4]}
-                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                                value={this.state.addressZipCode}
-                                errorText={this.getErrorText('addressZipCode')}
-                            />
-                        </>
-                    )}
-
-                    <ExpensiTextInput
+                    <AddressForm
+                        streetTranslationKey="common.companyAddress"
+                        values={{
+                            street: this.state.addressStreet,
+                            city: this.state.addressCity,
+                            zipCode: this.state.addressZipCode,
+                            state: this.state.addressState,
+                        }}
+                        errors={{
+                            street: this.getErrors().addressStreet,
+                            city: this.getErrors().addressCity,
+                            zipCode: this.getErrors().addressZipCode,
+                            state: this.getErrors().addressState,
+                        }}
+                        onFieldChange={(values) => {
+                            const renamedFields = {
+                                street: 'addressStreet',
+                                state: 'addressState',
+                                city: 'addressCity',
+                                zipCode: 'addressZipCode',
+                            };
+                            const renamedValues = {};
+                            _.each(values, (value, inputKey) => {
+                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                renamedValues[renamedInputKey] = value;
+                            });
+                            this.setValue(renamedValues);
+                            this.clearErrors(_.keys(renamedValues));
+                        }}
+                    />
+                    <TextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -300,17 +246,17 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('website', value)}
                         value={this.state.website}
                         errorText={this.getErrorText('website')}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
@@ -319,7 +265,7 @@ class CompanyStep extends React.Component {
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
-                        <ExpensiPicker
+                        <Picker
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
@@ -335,7 +281,6 @@ class CompanyStep extends React.Component {
                             value={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
-                            translateX={-14}
                             maximumDate={new Date()}
                         />
                     </View>
@@ -352,7 +297,7 @@ class CompanyStep extends React.Component {
                         onPress={() => {
                             this.setState((prevState) => {
                                 const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                updateReimbursementAccountDraft(newState);
+                                BankAccounts.updateReimbursementAccountDraft(newState);
                                 return newState;
                             });
                             this.clearError('hasNoConnectionToCannabis');

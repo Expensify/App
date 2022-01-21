@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {CONST} from 'expensify-common/lib/CONST';
-import ExpensiPicker from './ExpensiPicker';
+import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const STATES = _.map(CONST.STATES, ({stateISO}) => ({
@@ -29,7 +29,7 @@ const defaultProps = {
 };
 
 const StatePicker = props => (
-    <ExpensiPicker
+    <Picker
         placeholder={{value: '', label: '-'}}
         items={STATES}
         onChange={props.onChange}

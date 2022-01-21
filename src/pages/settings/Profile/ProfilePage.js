@@ -9,12 +9,7 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {
-    getFirstAndLastNameErrors,
-    setPersonalDetails,
-    setAvatar,
-    deleteAvatar,
-} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -26,12 +21,13 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import ExpensiPicker from '../../../components/ExpensiPicker';
+import TextInput from '../../../components/TextInput';
+import Picker from '../../../components/Picker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,10 +71,11 @@ class ProfilePage extends Component {
         super(props);
         this.state = {
             firstName: props.myPersonalDetails.firstName,
-            firstNameError: '',
+            hasFirstNameError: false,
             lastName: props.myPersonalDetails.lastName,
-            lastNameError: '',
+            hasLastNameError: false,
             pronouns: props.myPersonalDetails.pronouns,
+            hasPronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -152,7 +149,7 @@ class ProfilePage extends Component {
             return;
         }
 
-        setPersonalDetails({
+        PersonalDetails.setPersonalDetails({
             firstName: this.state.firstName.trim(),
             lastName: this.state.lastName.trim(),
             pronouns: this.state.pronouns.trim(),
@@ -164,13 +161,13 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
-
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
         this.setState({
-            firstNameError,
-            lastNameError,
+            hasFirstNameError,
+            hasLastNameError,
+            hasPronounError,
         });
-        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !hasFirstNameError && !hasLastNameError && !hasPronounError;
     }
 
     render() {
@@ -204,8 +201,8 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={setAvatar}
-                            onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                            onImageSelected={PersonalDetails.setAvatar}
+                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
@@ -216,38 +213,39 @@ class ProfilePage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
+                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
+                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
                         />
                         <View style={styles.mb6}>
-                            <View style={styles.mb1}>
-                                <ExpensiPicker
-                                    label={this.props.translate('profilePage.preferredPronouns')}
-                                    onChange={(pronouns) => {
-                                        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-                                        this.setState({
-                                            pronouns: hasSelfSelectedPronouns ? '' : pronouns,
-                                            hasSelfSelectedPronouns,
-                                        });
-                                    }}
-                                    items={pronounsList}
-                                    placeholder={{
-                                        value: '',
-                                        label: this.props.translate('profilePage.selectYourPronouns'),
-                                    }}
-                                    value={pronounsPickerValue}
-                                />
-                            </View>
+                            <Picker
+                                label={this.props.translate('profilePage.preferredPronouns')}
+                                onChange={(pronouns) => {
+                                    const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                    this.setState({
+                                        pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                        hasSelfSelectedPronouns,
+                                    });
+                                }}
+                                items={pronounsList}
+                                placeholder={{
+                                    value: '',
+                                    label: this.props.translate('profilePage.selectYourPronouns'),
+                                }}
+                                value={pronounsPickerValue}
+                            />
                             {this.state.hasSelfSelectedPronouns && (
-                                <ExpensiTextInput
-                                    value={this.state.pronouns}
-                                    onChangeText={pronouns => this.setState({pronouns})}
-                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                />
+                                <View style={styles.mt2}>
+                                    <TextInput
+                                        value={this.state.pronouns}
+                                        onChangeText={pronouns => this.setState({pronouns})}
+                                        placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                        errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
+                                    />
+                                </View>
                             )}
                         </View>
                         <LoginField
@@ -261,7 +259,7 @@ class ProfilePage extends Component {
                             login={this.state.logins.phone}
                         />
                         <View style={styles.mb3}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('profilePage.timezone')}
                                 onChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
@@ -282,6 +280,7 @@ class ProfilePage extends Component {
                             onPress={this.updatePersonalDetails}
                             style={[styles.w100]}
                             text={this.props.translate('common.save')}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

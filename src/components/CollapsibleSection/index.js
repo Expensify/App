@@ -5,7 +5,7 @@ import Collapsible from './Collapsible';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
-import {DownArrow, UpArrow} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 
 const propTypes = {
     /** Title of the Collapsible section */
@@ -34,7 +34,7 @@ class CollapsibleSection extends React.Component {
     }
 
     render() {
-        const src = this.state.isExpanded ? UpArrow : DownArrow;
+        const src = this.state.isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
         return (
             <View style={styles.mt4}>

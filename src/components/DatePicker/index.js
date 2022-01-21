@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import ExpensiTextInput from '../ExpensiTextInput';
+import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -67,7 +67,7 @@ class Datepicker extends React.Component {
 
     render() {
         return (
-            <ExpensiTextInput
+            <TextInput
                 forceActiveLabel={!this.props.isSmallScreenWidth}
                 ref={input => this.inputRef = input}
                 onFocus={this.showDatepicker}
@@ -78,7 +78,6 @@ class Datepicker extends React.Component {
                 hasError={this.props.hasError}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
-                translateX={this.props.translateX}
                 disabled={this.props.disabled}
             />
         );

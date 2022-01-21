@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {removeMembers} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -28,6 +28,7 @@ import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -83,7 +84,7 @@ class WorkspaceMembersPage extends React.Component {
     removeUsers() {
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        removeMembers(membersToRemove, this.props.route.params.policyID);
+        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
@@ -258,6 +259,8 @@ class WorkspaceMembersPage extends React.Component {
                     title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                 />
                 <ConfirmModal
@@ -273,13 +276,13 @@ class WorkspaceMembersPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
-                            small
+                            medium
                             success
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                         />
                         <Button
-                            small
+                            medium
                             danger
                             style={[styles.ml2]}
                             isDisabled={this.state.selectedEmployees.length === 0}

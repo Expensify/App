@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import perf from '@react-native-firebase/perf';
-import {isDevelopment} from '../Environment/Environment';
+import * as Environment from '../Environment/Environment';
 import Log from '../Log';
 
 const traceMap = {};
@@ -10,7 +10,7 @@ const traceMap = {};
  */
 function startTrace(customEventName) {
     const start = global.performance.now();
-    if (isDevelopment()) {
+    if (Environment.isDevelopment()) {
         return;
     }
 
@@ -33,7 +33,7 @@ function startTrace(customEventName) {
 function stopTrace(customEventName) {
     const stop = global.performance.now();
 
-    if (isDevelopment()) {
+    if (Environment.isDevelopment()) {
         return;
     }
 

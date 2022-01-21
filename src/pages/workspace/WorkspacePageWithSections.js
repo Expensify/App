@@ -11,10 +11,11 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 const propTypes = {
     /** The text to display in the header */
@@ -42,6 +43,9 @@ const propTypes = {
     /** Content to be added as fixed footer */
     footer: PropTypes.element,
 
+    /** The guides call task ID to associate with the workspace page being shown */
+    guidesCallTaskID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -50,12 +54,13 @@ const defaultProps = {
     user: {},
     reimbursementAccount: {},
     footer: null,
+    guidesCallTaskID: '',
 };
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        fetchFreePlanVerifiedBankAccount('', achState);
+        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
     }
 
     render() {
@@ -66,23 +71,26 @@ class WorkspacePageWithSections extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.headerText}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView
-                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                    contentContainerStyle={[styles.flex1]}
-                >
-                    <View style={[styles.w100, styles.flex1]}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.headerText}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={this.props.guidesCallTaskID}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ScrollView
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={[styles.w100, styles.flex1]}>
 
-                        {this.props.children(hasVBA, policyID, isUsingECard)}
+                            {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                    </View>
-                </ScrollView>
-                {this.props.footer}
+                        </View>
+                    </ScrollView>
+                    {this.props.footer}
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

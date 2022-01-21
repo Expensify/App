@@ -9,7 +9,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import {rejectTransaction} from '../libs/actions/IOU';
+import * as IOU from '../libs/actions/IOU';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import Text from './Text';
@@ -54,7 +54,7 @@ class ReportTransaction extends Component {
     }
 
     rejectTransaction() {
-        rejectTransaction({
+        IOU.rejectTransaction({
             reportID: this.props.iouReportID,
             chatReportID: this.props.chatReportID,
             transactionID: this.props.action.originalMessage.IOUTransactionID,

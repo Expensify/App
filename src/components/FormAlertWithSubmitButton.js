@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
-import {Exclamation} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -98,7 +98,7 @@ const FormAlertWithSubmitButton = (props) => {
         <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
             {props.isAlertVisible && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                    <Icon src={Exclamation} fill={colors.red} />
+                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
                     {getAlertPrompt()}
                 </View>
             )}

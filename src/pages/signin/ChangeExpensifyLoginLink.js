@@ -9,16 +9,22 @@ import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {clearSignInData} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** The credentials of the logged in person */
     credentials: PropTypes.shape({
         /** The email the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    credentials: {
+        login: '',
+    },
 };
 
 const ChangeExpensifyLoginLink = props => (
@@ -33,7 +39,7 @@ const ChangeExpensifyLoginLink = props => (
         </Text>
         <TouchableOpacity
             style={[styles.link]}
-            onPress={clearSignInData}
+            onPress={Session.clearSignInData}
             underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>
@@ -45,6 +51,7 @@ const ChangeExpensifyLoginLink = props => (
 );
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
+ChangeExpensifyLoginLink.defaultProps = defaultProps;
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
 export default compose(

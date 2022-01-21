@@ -4,14 +4,12 @@ import {ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import {
-    Android, Apple, NewWindow, Monitor,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
-import {openExternalLink} from '../../libs/actions/Link';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -21,21 +19,27 @@ const AppDownloadLinksPage = (props) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
-            icon: Android,
-            iconRight: NewWindow,
-            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID); },
+            icon: Expensicons.Android,
+            iconRight: Expensicons.NewWindow,
+            action: () => {
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
+            },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
-            icon: Apple,
-            iconRight: NewWindow,
-            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS); },
+            icon: Expensicons.Apple,
+            iconRight: Expensicons.NewWindow,
+            action: () => {
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS);
+            },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            icon: Monitor,
-            iconRight: NewWindow,
-            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP); },
+            icon: Expensicons.Monitor,
+            iconRight: Expensicons.NewWindow,
+            action: () => {
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
+            },
         },
     ];
 

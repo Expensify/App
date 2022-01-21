@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {getEnvironment} from '../libs/Environment/Environment';
+import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
@@ -20,7 +20,7 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            getEnvironment()
+            Environment.getEnvironment()
                 .then((environment) => {
                     this.setState({environment});
                 });

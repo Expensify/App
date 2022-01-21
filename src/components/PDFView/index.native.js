@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {TouchableWithoutFeedback} from 'react-native';
 import PDF from 'react-native-pdf';
-import styles, {getWidthAndHeightStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
@@ -36,7 +37,7 @@ const PDFView = props => (
             source={{uri: props.sourceURL}}
             style={[
                 styles.imageModalPDF,
-                getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
+                StyleUtils.getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
             ]}
         />
     </TouchableWithoutFeedback>

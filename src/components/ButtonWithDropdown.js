@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import styles from '../styles/styles';
 import Button from './Button';
 import Icon from './Icon';
-import {DownArrow} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
@@ -43,7 +43,7 @@ const ButtonWithDropdown = props => (
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
             ContentComponent={() => (
-                <Icon src={DownArrow} fill={themeColors.textReversed} />
+                <Icon src={Expensicons.DownArrow} fill={themeColors.textReversed} />
             )}
         />
     </View>

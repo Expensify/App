@@ -6,7 +6,7 @@ import {
     propTypes as genericReportActionContextMenuPropTypes,
     defaultProps as GenericReportActionContextMenuDefaultProps,
 } from '../genericReportActionContextMenuPropTypes';
-import {getMiniReportActionContextMenuWrapperStyle} from '../../../../../styles/getReportActionItemStyles';
+import * as StyleUtils from '../../../../../styles/StyleUtils';
 import BaseReportActionContextMenu from '../BaseReportActionContextMenu';
 
 const propTypes = {
@@ -23,7 +23,7 @@ const defaultProps = {
 };
 
 const MiniReportActionContextMenu = props => (
-    <View style={getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}>
+    <View style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <BaseReportActionContextMenu isMini {...props} />
     </View>

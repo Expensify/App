@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import CONST from '../../CONST';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
@@ -26,7 +26,7 @@ Onyx.connect({
  */
 function showGrowlIfOffline() {
     if (isNetworkOffline) {
-        Growl.show(translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
+        Growl.show(Localize.translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
     }
     return isNetworkOffline;
 }

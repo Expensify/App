@@ -18,8 +18,9 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,19 +64,17 @@ class AddSecondaryLoginPage extends Component {
     }
 
     onSecondaryLoginChange(login) {
-        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
-            this.setState({login});
-        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
-            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
-            this.setState({login});
-        }
+        this.setState({login});
     }
 
     /**
      * Add a secondary login to a user's account
      */
     submitForm() {
-        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+        User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
 
     /**
@@ -84,8 +83,12 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(this.state.login);
+        return !this.state.password || !validationMethod(login);
     }
 
     render() {
@@ -114,7 +117,7 @@ class AddSecondaryLoginPage extends Component {
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                         </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'common.phoneNumber'
                                     : 'profilePage.emailAddress')}
@@ -127,7 +130,7 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.password')}
                                 value={this.state.password}
                                 onChangeText={password => this.setState({password})}
@@ -146,11 +149,11 @@ class AddSecondaryLoginPage extends Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            style={[styles.mb2]}
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}
                             onPress={this.submitForm}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

@@ -7,11 +7,11 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -19,6 +19,7 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
+import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -112,14 +113,30 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * @param {String} amount
+     * @returns {Number}
+     */
+    calculateAmountLength(amount) {
+        const leadingZeroes = amount.match(/^0+/);
+        const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
+        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+
+        /*
+        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+        */
+        return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+    }
+
+    /**
      * Check if amount is a decimal upto 3 digits
      *
      * @param {String} amount
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,3})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(3)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
+        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
     /**
@@ -159,17 +176,40 @@ class IOUAmountPage extends React.Component {
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
-     * @param {String} amount
+     * @param {String} text - Changed text from user input
      */
-    updateAmount(amount) {
-        if (!this.validateAmount(amount)) {
-            return;
-        }
+    updateAmount(text) {
+        this.setState((prevState) => {
+            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
+            return this.validateAmount(amount)
+                ? {amount: this.stripCommaFromAmount(amount)}
+                : prevState;
+        });
+    }
 
-        this.setState({amount: this.stripCommaFromAmount(amount)});
+    /**
+     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
+     * the original character will be preserved.
+     *
+     * @param {String} text
+     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
+     * @returns {String}
+     */
+    replaceAllDigits(text, convertFn) {
+        return _.chain([...text])
+            .map((char) => {
+                try {
+                    return convertFn(char);
+                } catch {
+                    return char;
+                }
+            })
+            .join('')
+            .value();
     }
 
     render() {
+        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
             <>
                 <View style={[
@@ -188,23 +228,15 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
-                    {this.props.isSmallScreenWidth
-                        ? (
-                            <Text
-                                style={styles.iouAmountText}
-                            >
-                                {this.state.amount}
-                            </Text>
-                        ) : (
-                            <TextInputAutoWidth
-                                inputStyle={styles.iouAmountTextInput}
-                                textStyle={styles.iouAmountText}
-                                onChangeText={this.updateAmount}
-                                ref={el => this.textInput = el}
-                                value={this.state.amount}
-                                placeholder="0"
-                            />
-                        )}
+                    <TextInputAutoWidthWithoutKeyboard
+                        inputStyle={styles.iouAmountTextInput}
+                        textStyle={styles.iouAmountText}
+                        onChangeText={this.updateAmount}
+                        ref={el => this.textInput = el}
+                        value={formattedAmount}
+                        placeholder={this.props.numberFormat(0)}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth

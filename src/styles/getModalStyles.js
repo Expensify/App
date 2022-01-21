@@ -3,7 +3,7 @@ import colors from './colors';
 import variables from './variables';
 import themeColors from './themes/default';
 
-export default (type, windowDimensions, popoverAnchorPosition = {}) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -154,7 +154,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 borderColor: themeColors.border,
                 justifyContent: 'center',
                 overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
+                boxShadow: variables.popoverMenuShadow,
             };
 
             hideBackdrop = true;
@@ -205,6 +205,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
     }
+
+    modalContainerStyle = {...modalContainerStyle, ...containerStyle};
 
     return {
         modalStyle,

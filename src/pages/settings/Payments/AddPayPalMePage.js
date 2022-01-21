@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
-import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -18,8 +18,8 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import {isValidPaypalUsername} from '../../../libs/ValidationUtils';
+import TextInput from '../../../components/TextInput';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -44,7 +44,7 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     componentDidUpdate(prevProps) {
@@ -60,7 +60,7 @@ class AddPayPalMePage extends React.Component {
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
-        const isValid = isValidPaypalUsername(this.state.payPalMeUsername);
+        const isValid = ValidationUtils.isValidPaypalUsername(this.state.payPalMeUsername);
         if (!isValid) {
             this.setState({payPalMeUsernameError: true});
             return;
@@ -86,7 +86,7 @@ class AddPayPalMePage extends React.Component {
                             <Text style={[styles.mb4]}>
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
@@ -105,6 +105,7 @@ class AddPayPalMePage extends React.Component {
                             onPress={this.setPayPalMeUsername}
                             pressOnEnter
                             style={[styles.mt3]}
+                            isDisabled={this.state.payPalMeUsername === this.props.payPalMeUsername}
                             text={this.props.payPalMeUsername
                                 ? this.props.translate('addPayPalMePage.editPayPalAccount')
                                 : this.props.translate('addPayPalMePage.addPayPalAccount')}

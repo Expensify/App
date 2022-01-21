@@ -5,13 +5,16 @@ import {View} from 'react-native';
 import {withNavigation} from '@react-navigation/compat';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getSafeAreaPadding} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import HeaderGap from './HeaderGap';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -60,19 +63,21 @@ const defaultProps = {
 class ScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             didScreenTransitionEnd: false,
         };
     }
 
     componentDidMount() {
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             if (this.props.modal.willAlertModalBecomeVisible) {
                 return;
             }
 
             Navigation.dismissModal();
-        }, [], true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});
@@ -93,7 +98,7 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -120,6 +125,7 @@ class ScreenWrapper extends React.Component {
                                     })
                                     : this.props.children
                             }
+                            <KeyboardShortcutsModal />
                         </View>
                     );
                 }}

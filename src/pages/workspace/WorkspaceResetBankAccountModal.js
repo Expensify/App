@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '../../components/ConfirmModal';
-import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
@@ -19,14 +19,14 @@ const propTypes = {
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reimbursementAccount: {},
-    bankAccountList: [],
+    bankAccountList: {},
 };
 
 const WorkspaceResetBankAccountModal = (props) => {
@@ -49,8 +49,8 @@ const WorkspaceResetBankAccountModal = (props) => {
                 </Text>
             ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
-            onCancel={cancelResetFreePlanBankAccount}
-            onConfirm={() => resetFreePlanBankAccount()}
+            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount()}
             shouldShowCancelButton
             isVisible={lodashGet(props.reimbursementAccount, 'shouldShowResetModal', false)}
         />

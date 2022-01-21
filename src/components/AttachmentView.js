@@ -1,16 +1,17 @@
 import React, {memo} from 'react';
-import {View} from 'react-native';
+import {View, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
-import {Paperclip, Download} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
 import Tooltip from './Tooltip';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** URL to full-sized attachment */
@@ -24,6 +25,9 @@ const propTypes = {
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,
 
+    /** Flag to show the loading indicator */
+    shouldShowLoadingSpinnerIcon: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -32,6 +36,7 @@ const defaultProps = {
         name: '',
     },
     shouldShowDownloadIcon: false,
+    shouldShowLoadingSpinnerIcon: false,
 };
 
 const AttachmentView = (props) => {
@@ -60,13 +65,24 @@ const AttachmentView = (props) => {
             style={styles.defaultAttachmentView}
         >
             <View style={styles.mr2}>
-                <Icon src={Paperclip} />
+                <Icon src={Expensicons.Paperclip} />
             </View>
-            <Text style={[styles.textStrong, styles.flexShrink1]}>{props.file && props.file.name}</Text>
-            {props.shouldShowDownloadIcon && (
+
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
+            {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.download')}>
-                        <Icon src={Download} />
+                        <Icon src={Expensicons.Download} />
+                    </Tooltip>
+                </View>
+            )}
+            {props.shouldShowLoadingSpinnerIcon && (
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.downloading')}>
+                        <ActivityIndicator
+                            size="small"
+                            color={themeColors.textSupporting}
+                        />
                     </Tooltip>
                 </View>
             )}

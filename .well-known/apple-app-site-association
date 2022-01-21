@@ -1,0 +1,47 @@
+{
+    "applinks": {
+        "details": [
+            {
+                "appIDs": ["368M544MTT.com.chat.expensify.chat"],
+                "components": [
+                    {
+                       "/": "/r/*",
+                       "comment": "Reports"
+                    },
+                    {
+                        "/": "/settings/*",
+                        "comment": "Profile and app settings"
+                    },
+                    {
+                        "/": "/setpassword/*",
+                        "comment": "Passoword setup"
+                    },
+                    {
+                        "/": "/details/*",
+                        "comment": "Details of another users"
+                    },
+                    {
+                        "/": "/v/*",
+                        "comment": "Account validation"
+                    },
+                    {
+                        "/": "/bank-account/*",
+                        "comment": "Bank account setup and its steps"
+                    },
+                    {
+                        "/": "/iou/*",
+                        "comment": "I Owe You reports"
+                    },
+                    {
+                        "/": "/enable-payments/*",
+                        "comment": "Payments setup"
+                    },
+                    {
+                        "/": "/partners/plaid/oauth_ios",
+                        "comment": "Plaid setup"
+                    }
+                ]
+            }
+        ]
+    }
+}

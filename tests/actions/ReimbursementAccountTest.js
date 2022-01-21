@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import {fetchFreePlanVerifiedBankAccount, setupWithdrawalAccount} from '../../src/libs/actions/BankAccounts';
+import * as BankAccounts from '../../src/libs/actions/BankAccounts';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import {signInWithTestUser} from '../utils/TestHelper';
+import * as TestHelper from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
@@ -36,7 +36,7 @@ Onyx.connect({
 beforeEach(() => Onyx.clear()
     .then(() => {
         Network.setIsReady(true);
-        signInWithTestUser();
+        TestHelper.signInWithTestUser();
         return waitForPromisesToResolve();
     }));
 
@@ -57,7 +57,7 @@ describe('actions/BankAccounts', () => {
         }));
 
         // WHEN we fetch the bank account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect it to stop loading and bring us to the BankAccountStep
@@ -70,7 +70,7 @@ describe('actions/BankAccounts', () => {
                 HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
                     jsonCode: 200,
                 }));
-                setupWithdrawalAccount({
+                BankAccounts.setupWithdrawalAccount({
                     acceptTerms: true,
                     country: 'US',
                     currency: 'USD',
@@ -103,7 +103,7 @@ describe('actions/BankAccounts', () => {
                 }));
 
                 // WHEN we call setupWithdrawalAccount again with CompanyStep data
-                setupWithdrawalAccount({
+                BankAccounts.setupWithdrawalAccount({
                     companyName: 'Alberta Bobbeth Charleson',
                     companyPhone: '5165671515',
                     companyTaxID: '123456789',
@@ -147,7 +147,7 @@ describe('actions/BankAccounts', () => {
         }));
 
         // WHEN we fetch the bank account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should to navigate to the RequestorStep
@@ -173,7 +173,7 @@ describe('actions/BankAccounts', () => {
                 HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({jsonCode: 200}));
 
                 // WHEN we call setupWithdrawalAccount on the RequestorStep
-                setupWithdrawalAccount({
+                BankAccounts.setupWithdrawalAccount({
                     dob: '1980-01-01',
                     firstName: 'Alberta',
                     isControllingOfficer: true,
@@ -219,7 +219,7 @@ describe('actions/BankAccounts', () => {
         }));
 
         // WHEN we fetch the bank account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect it redirect the user back to the RequestorStep because they still need to do Onfido
@@ -251,7 +251,7 @@ describe('actions/BankAccounts', () => {
         }));
 
         // WHEN we fetch the bank account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect to be navigated to the ACHContractStep step
@@ -280,7 +280,7 @@ describe('actions/BankAccounts', () => {
                 }));
 
                 // WHEN we call setupWithdrawalAccount via the ACHContractStep
-                setupWithdrawalAccount({
+                BankAccounts.setupWithdrawalAccount({
                     acceptTermsAndConditions: true,
                     beneficialOwners: [],
                     certifyTrueInformation: true,
@@ -321,7 +321,7 @@ describe('actions/BankAccounts', () => {
             }));
 
         // WHEN we fetch the account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should see that we are directed to the ValidationStep
@@ -357,7 +357,7 @@ describe('actions/BankAccounts', () => {
         }));
 
         // WHEN we fetch the account
-        fetchFreePlanVerifiedBankAccount();
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN it should have maxAttemptsReached set to true and show the correct data set in Onyx

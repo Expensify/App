@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchUserWallet} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
@@ -24,7 +24,7 @@ const defaultProps = {
 
 class EnablePaymentsPage extends React.Component {
     componentDidMount() {
-        fetchUserWallet();
+        BankAccounts.fetchUserWallet();
     }
 
     render() {

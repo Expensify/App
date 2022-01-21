@@ -16,6 +16,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
+import TextWithEllipsis from './TextWithEllipsis';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -35,6 +36,9 @@ const propTypes = {
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Optional original filename when uploading */
+    originalFileName: PropTypes.string,
+
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
@@ -50,6 +54,7 @@ const defaultProps = {
     isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
+    originalFileName: null,
     isAuthTokenRequired: false,
     onModalHide: () => {},
 };
@@ -83,6 +88,18 @@ class AttachmentModal extends PureComponent {
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
         return modalType;
+    }
+
+    /**
+     * Returns the filename split into fileName and fileExtension
+     * @returns {Object}
+     */
+    splitExtensionFromFileName() {
+        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
+        const splittedFileName = fullFileName.split('.');
+        const fileExtension = splittedFileName.pop();
+        const fileName = splittedFileName.join('.');
+        return {fileName, fileExtension};
     }
 
     /**
@@ -125,6 +142,8 @@ class AttachmentModal extends PureComponent {
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
+
+        const {fileName, fileExtension} = this.splitExtensionFromFileName();
         return (
             <>
                 <Modal
@@ -144,6 +163,14 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        subtitle={(
+                            <TextWithEllipsis
+                                leadingText={fileName}
+                                trailingText={fileExtension ? `.${fileExtension}` : ''}
+                                wrapperStyle={[styles.w100]}
+                                textStyle={styles.mutedTextLabel}
+                            />
+                        )}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (

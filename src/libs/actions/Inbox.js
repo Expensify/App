@@ -1,10 +1,9 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import {Inbox_CallUser} from '../API';
+import * as API from '../API';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
-import * as Report from './Report';
+import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * @param {Object} params
@@ -13,23 +12,23 @@ import * as Report from './Report';
  * @param {String} firstName
  * @param {String} lastName
  * @param {String} phoneNumber
- * @param {String} email
  */
 function requestInboxCall({
-    taskID, policyID, firstName, lastName, phoneNumber, email,
+    taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
     Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
-    Inbox_CallUser({
+    API.Inbox_CallUser({
         policyID,
         firstName,
         lastName,
         phoneNumber,
+        phoneNumberExtension,
         taskID,
     })
         .then((result) => {
             if (result.jsonCode === 200) {
-                Growl.success(translateLocal('requestCallPage.growlMessageOnSave'));
-                Report.fetchOrCreateChatReport([email, CONST.EMAIL.CONCIERGE], true);
+                Growl.success(Localize.translateLocal('requestCallPage.growlMessageOnSave'));
+                Navigation.goBack();
                 return;
             }
 
@@ -41,5 +40,14 @@ function requestInboxCall({
         });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {requestInboxCall};
+function getInboxCallWaitTime() {
+    API.Inbox_CallUser_WaitTime()
+        .then((data) => {
+            Onyx.set(ONYXKEYS.INBOX_CALL_USER_WAIT_TIME, data.waitTime);
+        });
+}
+
+export {
+    requestInboxCall,
+    getInboxCallWaitTime,
+};

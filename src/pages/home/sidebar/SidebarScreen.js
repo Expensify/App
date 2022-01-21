@@ -17,14 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import {
-    ChatBubble,
-    Users,
-    MoneyCircle,
-    Receipt,
-    NewWorkspace,
-    Send,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
@@ -154,44 +147,50 @@ class SidebarScreen extends Component {
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
-                            animationIn="fadeInLeft"
-                            animationOut="fadeOutLeft"
                             onItemSelected={this.onCreateMenuItemSelected}
+                            fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
-                                    icon: ChatBubble,
+                                    icon: Expensicons.ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
-                                    icon: Users,
+                                    icon: Expensicons.Users,
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.Hashtag,
+                                        text: this.props.translate('sidebarScreen.newRoom'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                    },
+                                ] : []),
                                 ...(Permissions.canUseIOUSend(this.props.betas) ? [
                                     {
-                                        icon: Send,
+                                        icon: Expensicons.Send,
                                         text: this.props.translate('iou.sendMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
                                     },
                                 ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
-                                        icon: MoneyCircle,
+                                        icon: Expensicons.MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
-                                        icon: Receipt,
+                                        icon: Expensicons.Receipt,
                                         text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
                                 ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
-                                        icon: NewWorkspace,
+                                        icon: Expensicons.NewWorkspace,
                                         iconWidth: 46,
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),

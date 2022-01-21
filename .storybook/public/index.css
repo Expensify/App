@@ -1,0 +1,20 @@
+.search-field *, .sidebar-item, .search-result-item--label {
+    color: #fff !important;
+}
+
+.sidebar-subheading *, .search-result-item {
+    color: #fff;
+}
+
+a.sidebar-item > svg {
+    color: #03d47c;
+}
+
+.search-result-item--label span {
+    color: #ffffffaa !important;
+}
+
+#panel-tab-content :is(input:checked ~ span:last-of-type, input:not(:checked) ~ span:first-of-type) {
+    background: #ff7101;
+    color: #fff;
+}
