@@ -1569,4 +1569,5 @@ export {
     fetchActionsWithLoadingState,
     createPolicyRoom,
     getLastReadSequenceNumber,
+    leaveUserPolicyRoom,
 };
