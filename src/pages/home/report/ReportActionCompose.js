@@ -49,6 +49,7 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** Beta features list */
@@ -146,6 +147,7 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
+        this.isVirtualKeyboardOpen = this.isVirtualKeyboardOpen.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -354,12 +356,26 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Allows us to identify whether Virtual keyboard open or not
+     *
+     * @returns {boolean}
+     */
+    isVirtualKeyboardOpen() {
+        // check if platform is web and supports virtualkeyboard
+        if (navigator && 'virtualkeyboard' in navigator) {
+            const keyboardPosition = navigator.virtualKeyboard.boundingRect.y;
+            return keyboardPosition > 0;
+        }
+        return canUseTouchScreen();
+    }
+
+    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e) {
+        if (!e || this.isVirtualKeyboardOpen()) {
             return;
         }
 
