@@ -361,8 +361,7 @@ class ReportActionCompose extends React.Component {
     isVirtualKeyboardOpen() {
         // check if platform is web and supports virtualkeyboard
         if (navigator && 'virtualkeyboard' in navigator) {
-            const keyboardPosition = navigator.virtualKeyboard.boundingRect.y;
-            return keyboardPosition > 0;
+            return navigator.virtualKeyboard.boundingRect.y > 0;
         }
         return canUseTouchScreen();
     }
