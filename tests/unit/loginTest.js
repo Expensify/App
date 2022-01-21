@@ -16,6 +16,11 @@ jest.mock('@react-native-firebase/crashlytics', () => () => ({
     recordError: jest.fn(),
 }));
 
+jest.mock('../../src/libs/BootSplash', () => ({
+    hide: jest.fn(),
+    getVisibilityStatus: jest.fn().mockResolvedValue('hidden'),
+}));
+
 describe('AppComponent', () => {
     it('renders correctly', () => {
         renderer.create(<App />);

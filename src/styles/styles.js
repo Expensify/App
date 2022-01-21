@@ -274,6 +274,10 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    textNoWrap: {
+        ...whiteSpace.noWrap,
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -2029,6 +2033,11 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
+    },
+
+    navigatorFullScreenLoading: {
+        backgroundColor: colors.gray1,
+        opacity: 1,
     },
 
     reimbursementAccountFullScreenLoading: {
