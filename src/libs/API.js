@@ -679,14 +679,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
