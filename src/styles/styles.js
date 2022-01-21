@@ -237,6 +237,10 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXXLarge: {
+        fontSize: variables.fontSizeXXLarge,
+    },
+
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -324,6 +328,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonMedium: {
+        borderRadius: variables.componentBorderRadiusNormal,
+        height: variables.componentSizeNormal,
+        paddingTop: 6,
+        paddingRight: 12,
+        paddingBottom: 6,
+        paddingLeft: 12,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonLarge: {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
@@ -331,10 +345,18 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonMediumText: {
+        fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -593,7 +615,7 @@ const styles = {
         height: variables.componentSizeLarge,
     },
 
-    expensiTextInputContainer: {
+    textInputContainer: {
         flex: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
@@ -604,7 +626,7 @@ const styles = {
         overflow: 'hidden',
     },
 
-    expensiTextInputLabel: {
+    textInputLabel: {
         position: 'absolute',
         left: 11,
         top: 0,
@@ -614,7 +636,7 @@ const styles = {
         width: '100%',
     },
 
-    expensiTextInputLabelBackground: {
+    textInputLabelBackground: {
         position: 'absolute',
         top: 0,
         width: '100%',
@@ -624,11 +646,11 @@ const styles = {
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputLabelDesktop: {
+    textInputLabelDesktop: {
         transformOrigin: 'left center',
     },
 
-    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+    textInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
             {translateX},
@@ -636,7 +658,7 @@ const styles = {
         ],
     }),
 
-    expensiTextInput: {
+    baseTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
@@ -648,12 +670,12 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    expensiTextInputAndIconContainer: {
+    textInputAndIconContainer: {
         zIndex: -1,
         flexDirection: 'row',
     },
 
-    expensiTextInputDesktop: addOutlineWidth({}, 0),
+    textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
         paddingRight: 11,
@@ -876,6 +898,10 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
+    },
+
+    resendLinkButton: {
+        minWidth: 124,
     },
 
     sidebarFooter: {
@@ -1291,6 +1317,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
+        overflowX: 'hidden',
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
@@ -1703,6 +1730,15 @@ const styles = {
         ...flex.alignItemsCenter,
     },
 
+    reportSettingsChangeNameButton: {
+        height: 42,
+        paddingHorizontal: 20,
+    },
+
+    reportSettingsVisibilityText: {
+        textTransform: 'capitalize',
+    },
+
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
@@ -2078,6 +2114,13 @@ const styles = {
         height: '120%',
     },
 
+    fullscreenCardWebCentered: {
+        left: '0',
+        right: '0',
+        top: '0',
+        height: '60%',
+    },
+
     fullscreenCardMobile: {
         left: '-20%',
         top: '-30%',
@@ -2170,6 +2213,10 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    sidebarPopover: {
+        width: variables.sideBarWidth - 68,
     },
 
     cardOverlay: {
@@ -2345,6 +2392,23 @@ const styles = {
     iPhoneXSafeArea: {
         backgroundColor: colors.black,
         flex: 1,
+    },
+
+    errorPageContainer: {
+        backgroundColor: themeColors.componentBG,
+    },
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
+
+    transferBalanceBalance: {
+        fontSize: 48,
     },
 };
 

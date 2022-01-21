@@ -6,7 +6,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
@@ -22,7 +22,7 @@ const WorkspaceBillsNoVBAView = props => (
     <>
         <WorkspaceBillsFirstSection policyID={props.policyID} />
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.bills.unlockOnlineBillPayment')}
             icon={Illustrations.JewelBoxPink}
             menuItems={[
@@ -38,7 +38,7 @@ const WorkspaceBillsNoVBAView = props => (
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

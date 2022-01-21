@@ -11,7 +11,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import DatePicker from '../../components/DatePicker';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
@@ -188,6 +188,8 @@ class CompanyStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -196,7 +198,7 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
@@ -234,7 +236,7 @@ class CompanyStep extends React.Component {
                             this.clearErrors(_.keys(renamedValues));
                         }}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -244,14 +246,14 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('website', value)}
                         value={this.state.website}
                         errorText={this.getErrorText('website')}
                     />
-                    <ExpensiTextInput
+                    <TextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}

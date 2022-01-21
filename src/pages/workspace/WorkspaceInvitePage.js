@@ -12,7 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
@@ -247,6 +247,8 @@ class WorkspaceInvitePage extends React.Component {
                                 this.clearErrors();
                                 Navigation.dismissModal();
                             }}
+                            shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             shouldShowBackButton
                             onBackButtonPress={() => Navigation.goBack()}
                         />
@@ -287,7 +289,7 @@ class WorkspaceInvitePage extends React.Component {
                         </View>
                         <View style={[styles.flexShrink0]}>
                             <View style={[styles.ph5, styles.pv3]}>
-                                <ExpensiTextInput
+                                <TextInput
                                     label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                     autoCompleteType="off"
                                     autoCorrect={false}

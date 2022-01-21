@@ -17,7 +17,7 @@ import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextLink from '../../components/TextLink';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
@@ -190,20 +190,20 @@ class AdditionalDetailsStep extends React.Component {
                         </View>
                         <FormScrollView ref={el => this.form = el}>
                             <View style={[styles.mh5, styles.mb5]}>
-                                <ExpensiTextInput
+                                <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
                                     value={this.state.legalFirstName}
                                     errorText={this.getErrorText('legalFirstName')}
                                 />
-                                <ExpensiTextInput
+                                <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalMiddleName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalMiddleName', val)}
                                     value={this.state.legalMiddleName}
                                 />
-                                <ExpensiTextInput
+                                <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
@@ -232,7 +232,7 @@ class AdditionalDetailsStep extends React.Component {
                                         {this.props.translate('common.noPO')}
                                     </Text>
                                 </View>
-                                <ExpensiTextInput
+                                <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
@@ -248,7 +248,7 @@ class AdditionalDetailsStep extends React.Component {
                                     errorText={this.getErrorText('dob')}
                                     maximumDate={new Date()}
                                 />
-                                <ExpensiTextInput
+                                <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.ssn)}
                                     onChangeText={val => this.clearErrorAndSetValue('ssn', val)}

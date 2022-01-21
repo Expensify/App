@@ -95,6 +95,8 @@ export default {
         transferBalance: 'Transfer Balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
+        message: 'Message ',
+        leaveRoom: 'Leave room',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -166,9 +168,11 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'This is the beginning of your chat history with',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
+        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
+        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -213,9 +217,10 @@ export default {
             other: 'Unexpected error, please try again later',
         },
     },
-    reportDetailsPage: {
-        notificationPreferencesDescription: 'Notify me about new messages',
-        always: 'Always',
+    notificationPreferences: {
+        description: 'How often should we notify you when there are new messages to catch up on in this room?',
+        label: 'Notify me about new messages',
+        immediately: 'Immediately',
         daily: 'Daily',
         mute: 'Mute',
     },
@@ -288,6 +293,18 @@ export default {
             phrase4: 'privacy policy',
         },
     },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        enterMessageHere: 'Enter message here',
+        closeAccountWarning: 'Closing your account cannot be undone.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
+        closeAccountTryAgainAfter: 'and try again after.',
+        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        okayGotIt: 'Okay, Got it',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
@@ -319,6 +336,7 @@ export default {
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
+        expensifyPassword: 'Expensify password',
         error: {
             invalidName: 'Please enter a valid name',
             addressZipCode: 'Please enter a valid zip code',
@@ -330,10 +348,18 @@ export default {
             addressCity: 'Please enter a city',
             acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
+            password: 'Please enter your Expensify password',
         },
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        setDefaultConfirmation: 'Make default payment method',
+        setDefaultSuccess: 'Default payment method set!',
+        setDefaultFailure: 'Failed to set default payment method.',
+        deleteConfirmation: 'Are you sure that you want to delete this account?',
+        deleteBankAccountSuccess: 'Bank account successfully deleted',
+        deleteDebitCardSuccess: 'Debit Card successfully deleted',
+        deletePayPalSuccess: 'PayPal.me successfully deleted',
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
@@ -341,7 +367,7 @@ export default {
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit Card)',
-        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
+        instantSummary: ({rate, minAmount}) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business Days (Bank Account)',
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
@@ -358,6 +384,7 @@ export default {
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
         mostRecent: 'Most recent',
@@ -422,6 +449,7 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
         },
     },
     resendValidationForm: {
@@ -459,6 +487,7 @@ export default {
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Connect online with Plaid',
         connectManually: 'Connect manually',
+        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
@@ -512,7 +541,6 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
@@ -523,6 +551,8 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         genericError: 'There was an error while processing this step. Please try again.',
+        cameraPermissionsNotGranted: 'Camera permissions not granted',
+        cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -803,19 +833,49 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
+    getAssistancePage: {
+        title: 'Get assistance',
+        subtitle: 'Have questions, or need help?',
+        description: 'We have answers! Choose from the support options below:',
+        chatWithConcierge: 'Chat with Concierge',
+        requestSetupCall: 'Request a setup call',
+        questionMarkButtonTooltip: 'Get assistance from our team',
+    },
     requestCallPage: {
         title: 'Request a call',
         subtitle: 'Have questions, or need help?',
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        waitTime: {
+            calculating: 'Calculating wait time...',
+            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
+            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
+            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
+            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
+            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
+        },
+        error: {
+            phoneExtension: 'Please enter a valid phone extension number',
+        },
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+        headers: {
+            frequentlyUsed: 'Frequently Used',
+            smileysAndPeople: 'Smileys & People',
+            animalsAndNature: 'Animals & Nature',
+            foodAndDrinks: 'Food & Drinks',
+            travelAndPlaces: 'Travel & Places',
+            activities: 'Activities',
+            objects: 'Objects',
+            symbols: 'Symbols',
+            flags: 'Flags',
+        },
     },
     newRoomPage: {
         newRoom: 'New Room',
@@ -824,7 +884,8 @@ export default {
         restrictedDescription: 'People in your workspace are able to find this room using Search',
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
-        roomAlreadyExists: 'A room with this name already exists',
+        roomAlreadyExistsError: 'A room with this name already exists',
+        roomNameReservedError: 'This name is reserved and cannot be used',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         social: 'social',
@@ -849,5 +910,14 @@ export default {
     guides: {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
+    },
+    genericErrorPage: {
+        title: 'Uh-oh, something went wrong!',
+        body: {
+            helpTextMobile: 'Please try closing and reopening the app or switching to',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'If the problem persists, reach out to',
+        },
+        refresh: 'Refresh',
     },
 };

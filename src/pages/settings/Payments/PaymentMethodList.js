@@ -13,7 +13,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
-import PaymentUtils from '../../../libs/PaymentUtils';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
 
@@ -31,10 +31,10 @@ const propTypes = {
     payPalMeUsername: PropTypes.string,
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** Array of card objects */
-    cardList: PropTypes.arrayOf(PropTypes.shape({
+    cardList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc */
         cardName: PropTypes.string,
 
@@ -45,6 +45,14 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
+    userWallet: PropTypes.shape({
+        /** The ID of the linked account */
+        walletLinkedAccountID: PropTypes.number,
+
+        /** The type of the linked account (debitCard or bankAccount) */
+        walletLinkedAccountType: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -52,6 +60,10 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
+    userWallet: {
+        walletLinkedAccountID: 0,
+        walletLinkedAccountType: '',
+    },
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
 };
@@ -69,11 +81,11 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        let combinedPaymentMethods = PaymentUtils.getPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
-            onPress: e => this.props.onPress(e, paymentMethod.methodID),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
         }));
 
         // If we have not added any payment methods, show a default empty state
@@ -118,6 +130,7 @@ class PaymentMethodList extends Component {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
+                    badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
                 />
             );
@@ -156,6 +169,9 @@ export default compose(
         },
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(PaymentMethodList);

@@ -4,19 +4,20 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
+import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import Text from '../../components/Text';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
-import * as Report from '../../libs/actions/Report';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -48,6 +49,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.state = {
             roomName: '',
+            error: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             errors: {},
@@ -101,7 +103,9 @@ class WorkspaceNewRoomPage extends React.Component {
         if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         } else if (isExistingRoomName) {
-            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExists');
+            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        } else if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, this.state.roomName)) {
+            errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
         if (!this.state.policyID) {
@@ -166,16 +170,17 @@ class WorkspaceNewRoomPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <TextInputWithLabel
-                            label={this.props.translate('newRoomPage.roomName')}
-                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
-                            placeholder={this.props.translate('newRoomPage.social')}
-                            containerStyles={[styles.mb5]}
-                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
-                            value={this.state.roomName.substr(1)}
-                            errorText={this.state.errors.roomName}
-                            autoCapitalize="none"
-                        />
+                        <View style={styles.mb5}>
+                            <Text style={[styles.formLabel]}>{this.props.translate('newRoomPage.roomName')}</Text>
+                            <RoomNameInput
+                                initialValue={this.state.roomName}
+                                policyID={this.state.policyID}
+                                showErrorOnDemand
+                                errorText={this.state.errors.roomName}
+                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
+                            />
+                        </View>
+
                         <View style={styles.mb5}>
                             <Picker
                                 value={this.state.policyID}

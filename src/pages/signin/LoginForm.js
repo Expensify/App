@@ -14,7 +14,7 @@ import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import LoginUtil from '../../libs/LoginUtil';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
@@ -58,7 +58,7 @@ class LoginForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input) {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
             return;
         }
         this.input.focus();
@@ -132,7 +132,7 @@ class LoginForm extends React.Component {
         return (
             <>
                 <View style={[styles.mt3]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}

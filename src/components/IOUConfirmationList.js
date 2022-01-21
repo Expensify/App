@@ -14,11 +14,12 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
-import SettlementButton from './SettlementButton';
 import Log from '../libs/Log';
+import SettlementButton from './SettlementButton';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -368,7 +369,7 @@ class IOUConfirmationList extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
@@ -390,13 +391,16 @@ class IOUConfirmationList extends Component {
                             onPress={this.onPress}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             isLoading={isLoading}
-                            onPress={this.onPress}
+                            onPress={(_event, value) => this.onPress(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}

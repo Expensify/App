@@ -93,13 +93,23 @@ function isDefaultRoom(report) {
 }
 
 /**
- * Whether the provided report is a policy room
+ * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
  * @returns {Boolean}
  */
-function isPolicyRoom(report) {
+function isUserCreatedPolicyRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+/**
+ * Whether the provided report is a chat room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isChatRoom(report) {
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
 }
 
 /**
@@ -140,8 +150,8 @@ function isArchivedRoom(report) {
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getDefaultRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report)) {
+function getChatRoomSubtitle(report, policiesMap) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -210,6 +220,15 @@ function isDeletedAction(action) {
     return action.message.length === 0 || action.message[0].html === '';
 }
 
+/**
+ * Trim the last message text to a fixed limit.
+ * @param {String} lastMessageText
+ * @returns {String}
+ */
+function formatReportLastMessageText(lastMessageText) {
+    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+}
+
 export {
     getReportParticipantsTitle,
     isDeletedAction,
@@ -219,10 +238,12 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
-    isPolicyRoom,
-    getDefaultRoomSubtitle,
+    isUserCreatedPolicyRoom,
+    isChatRoom,
+    getChatRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
+    formatReportLastMessageText,
 };

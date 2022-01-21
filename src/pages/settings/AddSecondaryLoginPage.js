@@ -18,7 +18,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
 import LoginUtil from '../../libs/LoginUtil';
 
@@ -117,7 +117,7 @@ class AddSecondaryLoginPage extends Component {
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                         </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'common.phoneNumber'
                                     : 'profilePage.emailAddress')}
@@ -130,7 +130,7 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('common.password')}
                                 value={this.state.password}
                                 onChangeText={password => this.setState({password})}
@@ -153,6 +153,7 @@ class AddSecondaryLoginPage extends Component {
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}
                             onPress={this.submitForm}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
