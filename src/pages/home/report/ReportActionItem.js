@@ -158,11 +158,11 @@ class ReportActionItem extends Component {
                                 <UnreadActionIndicator />
                             )}
                             <View
-                                style={StyleUtils.getReportActionItemStyle(
+                                style={[StyleUtils.getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                )}
+                                ), this.props.style]}
                             >
                                 {!this.props.displayAsGroup
                                     ? (

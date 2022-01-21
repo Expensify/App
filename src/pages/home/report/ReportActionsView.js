@@ -209,6 +209,10 @@ class ReportActionsView extends React.Component {
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
             this.copySelectionToClipboard();
         }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
+
+        this.scrollRef
+                .getScrollableNode()
+                .addEventListener('wheel', this.invertedWheelEvent);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -392,6 +396,7 @@ class ReportActionsView extends React.Component {
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT)
             .map((item, index) => ({action: item, index}))
+            .reverse()
             .value();
 
         if (this.dataProvider) {
@@ -414,7 +419,7 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const previousAction = this.sortedReportActions[actionIndex + 1];
         const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
@@ -586,6 +591,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
+                style={{transform: 'scaleY(-1)'}}
             />
         );
     }
@@ -653,12 +659,13 @@ class ReportActionsView extends React.Component {
                 />
                 */}
                 <RecyclerListView
-                    ref={ReportScrollManager.flatListRef}
+                    ref={el => this.scrollRef = el}
                     layoutProvider={this.layoutProvider}
                     dataProvider={this.dataProvider}
                     rowRenderer={this.renderItem}
                     forceNonDeterministicRendering
                     contentContainerStyle={styles.chatContentScrollView}
+                    style={{transform: 'scaleY(-1)'}}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
             </>
