@@ -49,7 +49,6 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.state = {
             roomName: '',
-            error: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             errors: {},
