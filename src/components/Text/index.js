@@ -4,7 +4,7 @@ import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../../styles/fontFamily';
 import variables from '../../styles/variables';
-import {propTypes, defaultProps} from './baseTextPropTypes';
+import * as baseTextPropTypes from './baseTextPropTypes';
 
 
 const Text = React.forwardRef(({
@@ -39,8 +39,8 @@ const Text = React.forwardRef(({
     );
 });
 
-Text.propTypes = propTypes;
-Text.defaultProps = defaultProps;
+Text.propTypes = baseTextPropTypes.propTypes;
+Text.defaultProps = baseTextPropTypes.defaultProps;
 Text.displayName = 'Text';
 
 export default Text;

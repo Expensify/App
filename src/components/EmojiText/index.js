@@ -1,6 +1,6 @@
 import React from 'react';
 import Text from '../Text';
-import {propTypes, defaultProps} from '../Text/baseTextPropTypes';
+import * as baseTextPropTypes from '../Text/baseTextPropTypes';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 
 // This is a workaround on the Chrome browser issue when rendering emojis with font-weight greater than 500
@@ -11,8 +11,8 @@ const EmojiText = props => (
     <Text {...props}>{EmojiUtils.escapeEmojiFromText(props.children)}</Text>
 );
 
-EmojiText.propTypes = propTypes;
-EmojiText.defaultProps = defaultProps;
+EmojiText.propTypes = baseTextPropTypes.propTypes;
+EmojiText.defaultProps = baseTextPropTypes.defaultProps;
 EmojiText.displayName = 'EmojiText';
 
 export default EmojiText;

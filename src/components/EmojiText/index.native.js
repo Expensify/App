@@ -1,6 +1,6 @@
 import React from 'react';
 import Text from '../Text';
-import {propTypes, defaultProps} from '../Text/baseTextPropTypes';
+import * as baseTextPropTypes from '../Text/baseTextPropTypes';
 
 // As this workaround is not needed on the native platform, we simply render Text  
 const EmojiText = props => (
@@ -8,8 +8,8 @@ const EmojiText = props => (
     <Text {...props} />
 );
 
-EmojiText.propTypes = propTypes;
-EmojiText.defaultProps = defaultProps;
+EmojiText.propTypes = baseTextPropTypes.propTypes;
+EmojiText.defaultProps = baseTextPropTypes.defaultProps;
 EmojiText.displayName = 'EmojiText';
 
 export default EmojiText;
