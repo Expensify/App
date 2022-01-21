@@ -231,11 +231,24 @@ class DebitCardPage extends Component {
                                     <TextInput
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
-                                        onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                         value={this.state.expirationDate}
                                         maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                        onKeyPress={({nativeEvent}) => {
+                                            if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 3) {
+                                                this.allowExpirationDateChange = false;
+                                                this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, 2)}));
+                                            } else {
+                                                this.allowExpirationDateChange = true;
+                                            }
+                                        }}
+                                        onChangeText={(text) => {
+                                            if (!this.allowExpirationDateChange) {
+                                                return;
+                                            }
+                                            this.clearErrorAndSetValue('expirationDate', text.length === 3 ? `${this.insertStringAt(text, 2, '/')}` : text);
+                                        }}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
