@@ -157,7 +157,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                            toggleReportActionComposeView(false);
+                            toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
