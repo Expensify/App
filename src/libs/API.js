@@ -1176,6 +1176,7 @@ function CreatePolicyRoom(parameters) {
 function LeaveUserPolicyRoom(parameters) {
     const commandName = 'LeaveUserPolicyRoom';
     requireParameters(['reportID'], parameters, commandName);
+    return Network.post(commandName, parameters);
 }
 
 /**
