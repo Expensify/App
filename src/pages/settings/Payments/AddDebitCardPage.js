@@ -91,6 +91,7 @@ class DebitCardPage extends Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
+        this.allowExpirationDateChange = true;
     }
 
     /**
@@ -182,6 +183,19 @@ class DebitCardPage extends Component {
                 [inputKey]: false,
             },
         }));
+    }
+
+    /**
+     * Insert string at index position for a given input string
+     * @param {String} inputString
+     * @param {Number} indexPosition
+     * @param {String} stringToAdd
+     * @returns {String}
+     */
+    insertStringAt(inputString, indexPosition, stringToAdd) {
+        return inputString.slice(0, indexPosition)
+                    + stringToAdd
+                    + inputString.slice(indexPosition);
     }
 
     render() {
