@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
@@ -53,13 +54,14 @@ class CopyTextToClipboard extends React.Component {
                 style={[styles.flexRow, styles.cursorPointer]}
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
-                <Icon
-                    src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
-                    fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    inline
-                />
+                <View>
+                    <Icon
+                        src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
+                        fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
+                        inline
+                        small
+                    />
+                </View>
             </Text>
         );
     }
