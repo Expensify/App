@@ -21,6 +21,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -96,7 +97,7 @@ class ReportDetailsPage extends Component {
                 {
                     translationKey: 'common.leaveRoom',
                     icon: Expensicons.Exit,
-                    action: () => { /* Placeholder for when leaving rooms is built in */ },
+                    action: () => { Report.leaveUserPolicyRoom(this.props.report.reportID); },
                 },
             ]);
         }
