@@ -147,7 +147,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
-        this.isVirtualKeyboardOpen = this.isVirtualKeyboardOpen.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
