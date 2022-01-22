@@ -10,6 +10,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -1181,6 +1182,18 @@ function addAction(reportID, text, file) {
                 console.error(response.message);
                 return;
             }
+
+            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+                return;
+            }
+
             updateReportWithNewAction(reportID, response.reportAction);
         });
 }
