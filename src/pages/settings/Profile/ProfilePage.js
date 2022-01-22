@@ -80,7 +80,10 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
+            avatarImage: null,
+            avatarPreviewURL: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)),
         };
+
         this.getLogins = this.getLogins.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
@@ -178,13 +181,14 @@ class ProfilePage extends Component {
 
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
+        const isProfilePictureUnchanged = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL;
 
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
             && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && arePronounsUnchanged;
+            && arePronounsUnchanged && isProfilePictureUnchanged;
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -200,11 +204,11 @@ class ProfilePage extends Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
-                            avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={PersonalDetails.setAvatar}
-                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
-                            // eslint-disable-next-line max-len
-                            isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            avatarURL={this.state.avatarPreviewURL}
+                            onImageSelected={img => this.setState({avatarImage: img, avatarPreviewURL: img.uri})}
+                            onImageRemoved={() => {
+                                this.setState({avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login), avatarImage: null});
+                            }}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
