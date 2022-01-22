@@ -99,11 +99,19 @@ class WorkspaceNewRoomPage extends React.Component {
             && report.reportName === this.state.roomName,
         );
 
+        // We error if the user doesn't enter a room name or left blank
         if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        } else if (isExistingRoomName) {
+        }
+
+        // We error if the room name already exists. We don't care if it matches the original name provided in this
+        // component because then we are not changing the room's name.
+        if (isExistingRoomName) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        } else if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, this.state.roomName)) {
+        }
+
+        // Certain names are reserved for default rooms and should not be used for policy rooms.
+        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, this.state.roomName)) {
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
@@ -174,7 +182,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             <RoomNameInput
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
-                                showErrorOnDemand
+                                shouldShowErrorOnDemand
                                 errorText={this.state.errors.roomName}
                                 onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
                             />

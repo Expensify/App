@@ -27,9 +27,9 @@ const propTypes = {
     policyID: PropTypes.string,
 
     /** Whether we should show the error on demand or not */
-    showErrorOnDemand: PropTypes.bool,
+    shouldShowErrorOnDemand: PropTypes.bool,
 
-    /** On demand error text if set showErrorOnDemand true */
+    /** On demand error text if set shouldShowErrorOnDemand true */
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
@@ -62,7 +62,7 @@ const defaultProps = {
     initialValue: '',
     disabled: false,
     policyID: '',
-    showErrorOnDemand: false,
+    shouldShowErrorOnDemand: false,
     errorText: '',
     ...fullPolicyDefaultProps,
 };
@@ -114,25 +114,21 @@ class RoomNameInput extends Component {
 
         let error = '';
 
-        // We show the error provided as props if we want to show error on demand rather than on every change
-        if (this.props.errorText && this.props.showErrorOnDemand) {
-            error = this.props.errorText;
-        } else {
-            // We error if the user doesn't enter a room name or left blank
-            if (finalRoomName === CONST.POLICY.ROOM_PREFIX) {
-                error = this.props.translate('newRoomPage.pleaseEnterRoomName');
-            }
 
-            // We error if the room name already exists. We don't care if it matches the original name provided in this
-            // component because then we are not changing the room's name.
-            if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
-                error = this.props.translate('newRoomPage.roomAlreadyExistsError');
-            }
+        // We error if the user doesn't enter a room name or left blank
+        if (finalRoomName === CONST.POLICY.ROOM_PREFIX) {
+            error = this.props.translate('newRoomPage.pleaseEnterRoomName');
+        }
 
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
-                error = this.props.translate('newRoomPage.roomNameReservedError');
-            }
+        // We error if the room name already exists. We don't care if it matches the original name provided in this
+        // component because then we are not changing the room's name.
+        if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
+            error = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        }
+
+        // Certain names are reserved for default rooms and should not be used for policy rooms.
+        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
+            error = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
         this.setState({
@@ -151,7 +147,7 @@ class RoomNameInput extends Component {
                 containerStyles={[styles.mb5]}
                 onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
                 value={this.state.roomName.substring(1)}
-                errorText={this.state.error}
+                errorText={this.props.shouldShowErrorOnDemand ? this.props.errorText : this.state.error}
                 autoCapitalize="none"
             />
         );
