@@ -50,6 +50,7 @@ import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
 
 const propTypes = {
     /** Beta features list */
@@ -355,15 +356,11 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Whether virtual keyboard is open or not
-     * @returns {Boolean}
+     * @returns {boolean}
      */
-    isVirtualKeyboardOpen() {
-        // Whether the virtualKeyboard API is supported on the platform.
-        if (navigator && 'virtualKeyboard' in navigator) {
-            return navigator.virtualKeyboard.boundingRect.y > 0;
-        }
-        return canUseTouchScreen();
+    shouldAssumeVirtualKeyboardIsOpen() {
+        const isOpen = VirtualKeyboard.isOpen();
+        return _.isNull(isOpen) ? canUseTouchScreen() : isOpen;
     }
 
     /**
@@ -372,7 +369,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e || this.isVirtualKeyboardOpen()) {
+        if (!e || this.shouldAssumeVirtualKeyboardIsOpen()) {
             return;
         }
 
