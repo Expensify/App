@@ -329,7 +329,6 @@ function deleteAvatar(login) {
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
-    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
