@@ -53,9 +53,10 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
+ * @param {Boolean} isFromFullPolicy,
  * @returns {Object}
  */
-function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
+function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
     const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
     const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
     const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
@@ -71,6 +72,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
         },
     };
     return {
+        isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
         name: fullPolicyOrPolicySummary.name,
         role: fullPolicyOrPolicySummary.role,
@@ -202,7 +204,7 @@ function getPolicyList() {
 
             const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
                 ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
             }), {});
 
             if (!_.isEmpty(policyCollection)) {
@@ -239,7 +241,7 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
         });
 }
 
