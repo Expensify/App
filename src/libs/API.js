@@ -679,14 +679,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1200,7 +1199,7 @@ function CreatePolicyRoom(parameters) {
  * @param {String} [parameters.fundID]
  * @returns {Promise}
  */
-function Wallet_TransferBalance(parameters) {
+function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
     if (!parameters.bankAccountID && !parameters.fundID) {
         throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
@@ -1269,7 +1268,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    Wallet_TransferBalance,
+    TransferWalletBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

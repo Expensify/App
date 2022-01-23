@@ -35,7 +35,7 @@
       </activity>
 
       <activity
-        android:name="com.zoontek.rnbootsplash.RNBootSplashActivity"
+        android:name=".bootsplash.BootSplashActivity"
         android:theme="@style/BootTheme"
         android:launchMode="singleTask">
 

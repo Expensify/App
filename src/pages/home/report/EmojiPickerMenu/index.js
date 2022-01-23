@@ -245,7 +245,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Move in the prescribed direction until we reach an element that isn't a header
-            const isHeader = e => e.header || e.code === CONST.EMOJI_SPACER;
+            const isHeader = e => e.header || e.spacer;
             do {
                 newIndex += steps;
             } while (isHeader(this.state.filteredEmojis[newIndex]));
@@ -346,9 +346,12 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        const newFilteredEmojiList = _.filter(this.emojis, emoji => (
+        // Skip "Frequently Used" emojis to avoid duplicate results.
+        // Frequently used emojis are on the 0th index category. Hence, slice the array from the 1st index category onwards.
+        const uniqueEmojis = _.isEmpty(this.props.frequentlyUsedEmojis) ? this.emojis : this.emojis.slice(this.unfilteredHeaderIndices[1] * this.numColumns);
+        const newFilteredEmojiList = _.filter(uniqueEmojis, emoji => (
             !emoji.header
-            && emoji.code !== CONST.EMOJI_SPACER
+            && !emoji.spacer
             && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
         ));
 
