@@ -432,6 +432,7 @@ export default {
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
+            incorrectPassword: 'Incorrect password. Please try again.',
             incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',

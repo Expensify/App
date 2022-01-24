@@ -432,6 +432,7 @@ export default {
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
+            incorrectPassword: 'Contraseña incorrecta. Por favor inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
