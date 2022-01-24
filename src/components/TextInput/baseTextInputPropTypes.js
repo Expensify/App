@@ -33,9 +33,29 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    inputID: (props) => {
+        if (props.isFormInput && props.inputID && typeof props.inputID === 'string') {
+            return;
+        }
+        return new Error('Please provide an inputID to use this input as a Form input.');
+    },
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** Character limit for the input */
+    maxLength: PropTypes.number,
+
+    /** Hint microcopy to be displayed under the input */
+    hint: PropTypes.string,
 };
 
 const defaultProps = {
+    isFormInput: false,
     label: '',
     name: '',
     errorText: '',
@@ -52,6 +72,9 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
+    shouldSaveDraft: false,
+    maxLength: undefined,
+    hint: '',
 };
 
 export {propTypes, defaultProps};

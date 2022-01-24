@@ -74,6 +74,17 @@ class Form extends React.Component {
         };
     }
 
+    /**
+     * @returns {Object} - An object containing the values for each inputID
+     */
+    getValues() {
+        const values = {};
+        _.each(_.keys(this.inputRefs), (inputID) => {
+            values[inputID] = this.inputRefs[inputID].value;
+        });
+        return values;
+    }
+
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isSubmitting) {
@@ -94,17 +105,6 @@ class Form extends React.Component {
         // Set loading state and call submit handler
         FormActions.setIsSubmitting(this.props.formID, true);
         this.props.onSubmit(values);
-    }
-
-    /**
-     * @returns {Object} - An object containing the values for each inputID
-     */
-    getValues() {
-        const values = {};
-        _.each(_.keys(this.inputRefs), (inputID) => {
-            values[inputID] = this.inputRefs[inputID].value;
-        });
-        return values;
     }
 
     /**
