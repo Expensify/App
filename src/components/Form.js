@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
-import { chown } from 'original-fs';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -68,6 +67,13 @@ class Form extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
+    setTouchedInput(inputID) {
+        this.touchedInputs = {
+            ...this.touchedInputs,
+            [inputID]: true,
+        };
+    }
+
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isSubmitting) {
@@ -99,13 +105,6 @@ class Form extends React.Component {
             values[inputID] = this.inputRefs[inputID].value;
         });
         return values;
-    }
-
-    setTouchedInput(inputID) {
-        this.touchedInputs = {
-            ...this.touchedInputs,
-            [inputID]: true,
-        };
     }
 
     /**
