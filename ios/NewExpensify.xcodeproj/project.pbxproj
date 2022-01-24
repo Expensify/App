@@ -423,6 +423,7 @@
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleSignIn/GoogleSignIn.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -482,6 +483,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -612,6 +614,7 @@
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleSignIn/GoogleSignIn.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -671,6 +674,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
