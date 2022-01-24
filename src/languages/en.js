@@ -381,8 +381,8 @@ export default {
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
-        addDebitCard: 'Add debit card',
-        addBankAccount: 'Add bank account',
+        addNewDebitCard: 'Add new debit card',
+        addNewBankAccount: 'Add new bank account',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
