@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -59,9 +60,12 @@ class SignInPage extends Component {
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;
 
+        const validateCodeExpired = lodashGet(this.props.account, 'validateCodeExpired', false);
+
         const validAccount = this.props.account.accountExists
             && this.props.account.validated
-            && !this.props.account.forgotPassword;
+            && !this.props.account.forgotPassword
+            && !validateCodeExpired;
 
         // Show the password form if
         // - A login has been entered
@@ -76,21 +80,23 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND a GitHub username has been entered OR they already have access to this app
         // - AND an account did not exist or is not validated for that login
-        const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
+        const shouldShowResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
+        const welcomeText = shouldShowResendValidationLinkForm
+            ? ''
+            : this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'welcome'}`);
 
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeText={welcomeText}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                     <LoginForm isVisible={showLoginForm} />
                     <PasswordForm isVisible={showPasswordForm} />
-                    {showResendValidationLinkForm && <ResendValidationForm />}
+                    {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );

@@ -3,6 +3,7 @@ package com.expensify.chat;
 import android.content.Context;
 import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
+import com.expensify.chat.bootsplash.BootSplashPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.existfragger.rnimagesize.RNImageSizePackage;
@@ -11,7 +12,6 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.plaid.PlaidPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,7 +34,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-          packages.add(new PlaidPackage());
+          packages.add(new BootSplashPackage());
           packages.add(new ExpensifyAppPackage());
 
           return packages;

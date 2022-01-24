@@ -19,14 +19,14 @@ const propTypes = {
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reimbursementAccount: {},
-    bankAccountList: [],
+    bankAccountList: {},
 };
 
 const WorkspaceResetBankAccountModal = (props) => {

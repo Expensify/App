@@ -173,7 +173,7 @@ const OptionRow = (props) => {
                                                 ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isDefaultChatRoom={props.option.isDefaultChatRoom}
+                                        isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
                                     />
                                 )
@@ -185,7 +185,7 @@ const OptionRow = (props) => {
                                     tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isDefaultChatRoom}
+                                    shouldUseFullTitle={props.option.isChatRoom}
                                 />
                                 {props.option.alternateText ? (
                                     <Text
@@ -272,6 +272,11 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
+        return false;
+    }
+
+    // Re-render when the text changes
+    if (prevProps.option.text !== nextProps.option.text) {
         return false;
     }
 

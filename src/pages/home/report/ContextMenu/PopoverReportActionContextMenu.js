@@ -50,10 +50,12 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
+
+        this.dimensionsEventListener = null;
     }
 
     componentDidMount() {
-        Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -63,7 +65,10 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.measureContextMenuAnchorPosition);
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     /**
@@ -89,7 +94,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return this.state.reportAction.reportActionID === actionID;
+        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
     }
 
     /**

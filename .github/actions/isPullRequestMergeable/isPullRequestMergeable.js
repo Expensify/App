@@ -27,8 +27,15 @@ const run = function () {
                     return;
                 }
 
+                if (_.isEmpty(data.mergeable_state)) {
+                    console.log('Pull request mergeable_state is not yet resolved...');
+                    retryCount++;
+                    return;
+                }
+
                 mergeabilityResolved = true;
-                isMergeable = data.mergeable;
+                console.log(`Merge information for #${pullRequestNumber} - mergeable: ${data.mergeable}, mergeable_state: ${data.mergeable_state}`);
+                isMergeable = data.mergeable && data.mergeable_state.toUpperCase() !== 'BLOCKED';
             })
             .catch((githubError) => {
                 mergeabilityResolved = true;

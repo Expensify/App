@@ -127,13 +127,13 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
+/**
+ * Required in order to build native code for debug builds
+ */
+def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 
     packagingOptions {
         pickFirst 'lib/x86/libc++_shared.so'
@@ -142,6 +142,9 @@ android {
         pickFirst 'lib/arm64-v8a/libc++_shared.so'
         pickFirst 'lib/x86_64/libc++_shared.so'
         pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+
+        // Exclude generated files from APK, to fix 'More than one file was found with path' error
+        exclude 'META-INF/*'
     }
 
     defaultConfig {
@@ -149,8 +152,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001012402
-        versionName "1.1.24-2"
+        versionCode 1001013200
+        versionName "1.1.32-0"
     }
     splits {
         abi {
@@ -179,6 +182,11 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            if (nativeArchitectures) {
+                ndk {
+                    abiFilters nativeArchitectures.split(',')
+                }
+            }
         }
         release {
             signingConfig signingConfigs.release
@@ -231,7 +239,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation platform("com.google.firebase:firebase-bom:29.0.3")
     implementation "com.google.firebase:firebase-perf"
 
     // GIF support
@@ -256,7 +264,7 @@ dependencies {
 // Run this once to be able to run the application with BUCK
 // puts all compile dependencies into folder libs for BUCK to use
 task copyDownloadableDepsToLibs(type: Copy) {
-    from configurations.compile
+    from configurations.implementation
     into 'libs'
 }
 

@@ -9,7 +9,10 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Clipboard from '../../../libs/Clipboard';
 import * as Report from '../../../libs/actions/Report';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import SelectionScraper from '../../../libs/SelectionScraper';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -101,7 +104,7 @@ class ReportActionsView extends React.Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
-        this.scrollToListBottom = this.scrollToListBottom.bind(this);
+        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -140,8 +143,7 @@ class ReportActionsView extends React.Component {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
             }
-
-            this.scrollToListBottom();
+            ReportScrollManager.scrollToBottom();
         });
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
@@ -152,6 +154,13 @@ class ReportActionsView extends React.Component {
         }
 
         Report.fetchActions(this.props.reportID);
+
+        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
+        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
+
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
+            this.copySelectionToClipboard();
+        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -211,7 +220,7 @@ class ReportActionsView extends React.Component {
             // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
-                this.scrollToListBottom();
+                ReportScrollManager.scrollToBottom();
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -249,6 +258,10 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.reportID);
+
+        if (this.unsubscribeCopyShortcut) {
+            this.unsubscribeCopyShortcut();
+        }
     }
 
     /**
@@ -260,6 +273,12 @@ class ReportActionsView extends React.Component {
         }
 
         Report.updateLastReadActionID(this.props.reportID);
+    }
+
+    copySelectionToClipboard = () => {
+        const selectionMarkdown = SelectionScraper.getAsMarkdown();
+
+        Clipboard.setString(selectionMarkdown);
     }
 
     /**
@@ -311,7 +330,6 @@ class ReportActionsView extends React.Component {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
-
     /**
      * Updates and sorts the report actions by sequence number
      *
@@ -320,14 +338,9 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter((action) => {
-                // Only show non-empty ADDCOMMENT actions or IOU actions
-                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
-                const message = _.first(lodashGet(action, 'message', null));
-                const html = lodashGet(message, 'html', '');
-                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
-            })
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED)
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -359,6 +372,12 @@ class ReportActionsView extends React.Component {
             return false;
         }
 
+        // Do not group if previous or current action was a renamed action
+        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return false;
+        }
+
         return currentAction.action.actorEmail === previousAction.action.actorEmail;
     }
 
@@ -380,7 +399,7 @@ class ReportActionsView extends React.Component {
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
-    scrollToListBottom() {
+    scrollToBottomAndUpdateLastRead() {
         ReportScrollManager.scrollToBottom();
         Report.updateLastReadActionID(this.props.reportID);
     }
@@ -396,7 +415,6 @@ class ReportActionsView extends React.Component {
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
         Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
-
 
     /**
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
@@ -524,7 +542,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
+        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
@@ -539,9 +557,9 @@ class ReportActionsView extends React.Component {
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isDefaultChatRoom={isDefaultChatRoom}
+                            isChatRoom={isChatRoom}
                         />
-                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isChatRoom} />
                     </View>
                 </View>
             );
@@ -557,7 +575,7 @@ class ReportActionsView extends React.Component {
                 <MarkerBadge
                     active={this.state.isMarkerActive}
                     count={this.state.localUnreadActionCount}
-                    onClick={this.scrollToListBottom}
+                    onClick={this.scrollToBottomAndUpdateLastRead}
                     onClose={this.hideMarker}
                 />
                 <InvertedFlatList

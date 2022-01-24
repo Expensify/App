@@ -85,13 +85,12 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isPolicyRoom = ReportUtils.isPolicyRoom(props.report);
-    const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
-    const title = isDefaultChatRoom || isPolicyRoom
+    const isChatRoom = ReportUtils.isChatRoom(props.report);
+    const title = isChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
-    const subtitle = ReportUtils.getDefaultRoomSubtitle(props.report, props.policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasExpensifyEmails(participants));
 
@@ -123,7 +122,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (isDefaultChatRoom) {
+                                if (isChatRoom) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -136,7 +135,7 @@ const HeaderView = (props) => {
                             <MultipleAvatars
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
-                                isDefaultChatRoom={isDefaultChatRoom}
+                                isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -145,10 +144,10 @@ const HeaderView = (props) => {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom || isPolicyRoom}
+                                    textStyles={[styles.headerText, styles.textNoWrap]}
+                                    shouldUseFullTitle={isChatRoom}
                                 />
-                                {isDefaultChatRoom && (
+                                {isChatRoom && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,

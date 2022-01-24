@@ -420,6 +420,17 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.fundID
+ * @returns {Promise}
+ */
+function DeleteFund(parameters) {
+    const commandName = 'DeleteFund';
+    requireParameters(['fundID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -668,14 +679,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -741,12 +751,35 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
+ * @returns {Promise}
+ */
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.subscribed
  * @returns {Promise}
  */
 function UpdateAccount(parameters) {
     const commandName = 'UpdateAccount';
     requireParameters(['subscribed'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function User_Delete(parameters) {
+    const commandName = 'User_Delete';
     return Network.post(commandName, parameters);
 }
 
@@ -997,7 +1030,7 @@ function BankAccount_SetupWithdrawal(parameters) {
  */
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1090,6 +1123,15 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
+ * Get the current wait time in minutes for an inbox call
+ * @returns {Promise}
+ */
+function Inbox_CallUser_WaitTime() {
+    const commandName = 'Inbox_CallUser_WaitTime';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -1126,13 +1168,26 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * Renames a user-created policy room
+ * @param {Object} parameters
+ * @param {String} parameters.reportID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['reportID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
  * @param {String} [parameters.fundID]
  * @returns {Promise}
  */
-function Wallet_TransferBalance(parameters) {
+function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
     if (!parameters.bankAccountID && !parameters.fundID) {
         throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
@@ -1152,6 +1207,8 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
+    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1164,6 +1221,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
@@ -1182,9 +1240,11 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
+    SetWalletLinkedAccount,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
+    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
@@ -1197,7 +1257,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    Wallet_TransferBalance,
+    TransferWalletBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

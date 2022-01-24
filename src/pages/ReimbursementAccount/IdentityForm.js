@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
@@ -74,7 +74,7 @@ const IdentityForm = (props) => {
         <View style={props.style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <ExpensiTextInput
+                    <TextInput
                         label={`${props.translate('common.firstName')}`}
                         value={props.values.firstName}
                         onChangeText={value => props.onFieldChange({firstName: value})}
@@ -82,7 +82,7 @@ const IdentityForm = (props) => {
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <ExpensiTextInput
+                    <TextInput
                         label={`${props.translate('common.lastName')}`}
                         value={props.values.lastName}
                         onChangeText={value => props.onFieldChange({lastName: value})}
@@ -98,10 +98,10 @@ const IdentityForm = (props) => {
                 onChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
             />
-            <ExpensiTextInput
+            <TextInput
                 label={`${props.translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.ssnLast4}
                 onChangeText={value => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
