@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -135,8 +134,6 @@ class ReportActionItem extends Component {
                             action={this.props.action}
                             draftMessage={this.props.draftMessage}
                             reportID={this.props.reportID}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
                             index={this.props.index}
                             ref={el => this.textInput = el}
                     />
@@ -205,14 +202,6 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
-        },
-    }),
-    withOnyx({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);
