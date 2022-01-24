@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import { chown } from 'original-fs';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -137,8 +138,8 @@ class Form extends React.Component {
                     });
                 }
 
-                // We check if the child has the isFormInput prop,
-                // since we we don't want to pass form props to non form components, e.g. View, Text, etc
+                // We check if the child has the isFormInput prop.
+                // We don't want to pass form props to non form components, e.g. View, Text, etc
                 if (!child.props.isFormInput) {
                     return child;
                 }
@@ -153,6 +154,9 @@ class Form extends React.Component {
                     onBlur: (key) => {
                         this.setTouchedInput(key);
                         this.validate(this.getValues());
+                        if (child.props.onBlur) {
+                            child.props.onBlur();
+                        }
                     },
                     onChange: (value) => {
                         if (child.props.shouldSaveDraft) {
