@@ -12,10 +12,8 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
-import EmojiPicker from '../../../components/EmojiPicker';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
-import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -177,9 +175,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
-        const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
-
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -200,10 +195,6 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
-                    />
-                    <EmojiPicker
-                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
-                        onEmojiSelected={this.addEmojiToTextBox}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
