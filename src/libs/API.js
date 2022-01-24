@@ -359,8 +359,8 @@ function AddBillingCard(parameters) {
 
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.oldPassword
+ * @param {{password: String, oldPassword: String}} parameters
+ * @param {String} parameters.authToken
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -727,7 +727,7 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {string} parameters.email
  * @returns {Promise}
  */
 function ResetPassword(parameters) {
@@ -740,7 +740,7 @@ function ResetPassword(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
- * @param {String} parameters.accountID
+ * @param {Number} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {

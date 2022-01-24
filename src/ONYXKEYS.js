@@ -180,4 +180,7 @@ export default {
 
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
+
+    // Validating Email?
+    USER_SIGN_UP: 'userSignUp',
 };
