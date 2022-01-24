@@ -19,7 +19,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
@@ -29,15 +29,15 @@ const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
 
-    /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isLoadingPaymentMethods: true,
-    bankAccountList: [],
+    bankAccountList: {},
 };
 
 class EnableStep extends React.Component {
@@ -89,11 +89,13 @@ class EnableStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1]}>
-                    <WorkspaceSection
+                    <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
                         // eslint-disable-next-line max-len
                         IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
@@ -114,7 +116,7 @@ class EnableStep extends React.Component {
                                 ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
-                    </WorkspaceSection>
+                    </Section>
                     {this.props.user.isCheckingDomain && (
                         <Text style={[styles.formError, styles.m5]}>
                             {this.props.translate('workspace.card.checkingDomain')}

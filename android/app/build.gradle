@@ -142,6 +142,9 @@ android {
         pickFirst 'lib/arm64-v8a/libc++_shared.so'
         pickFirst 'lib/x86_64/libc++_shared.so'
         pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+
+        // Exclude generated files from APK, to fix 'More than one file was found with path' error
+        exclude 'META-INF/*'
     }
 
     defaultConfig {
@@ -149,8 +152,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001012601
-        versionName "1.1.26-1"
+        versionCode 1001013200
+        versionName "1.1.32-0"
     }
     splits {
         abi {
@@ -236,7 +239,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation platform("com.google.firebase:firebase-bom:29.0.3")
     implementation "com.google.firebase:firebase-perf"
 
     // GIF support

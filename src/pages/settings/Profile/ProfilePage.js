@@ -27,6 +27,7 @@ import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,10 +71,11 @@ class ProfilePage extends Component {
         super(props);
         this.state = {
             firstName: props.myPersonalDetails.firstName,
-            firstNameError: '',
+            hasFirstNameError: false,
             lastName: props.myPersonalDetails.lastName,
-            lastNameError: '',
+            hasLastNameError: false,
             pronouns: props.myPersonalDetails.pronouns,
+            hasPronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -159,13 +161,13 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
-
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
         this.setState({
-            firstNameError,
-            lastNameError,
+            hasFirstNameError,
+            hasLastNameError,
+            hasPronounError,
         });
-        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+        return !hasFirstNameError && !hasLastNameError && !hasPronounError;
     }
 
     render() {
@@ -211,9 +213,9 @@ class ProfilePage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
-                            firstNameError={this.state.firstNameError}
+                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
                             lastName={this.state.lastName}
-                            lastNameError={this.state.lastNameError}
+                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
@@ -241,6 +243,7 @@ class ProfilePage extends Component {
                                         value={this.state.pronouns}
                                         onChangeText={pronouns => this.setState({pronouns})}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                        errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
                                     />
                                 </View>
                             )}
@@ -277,6 +280,7 @@ class ProfilePage extends Component {
                             onPress={this.updatePersonalDetails}
                             style={[styles.w100]}
                             text={this.props.translate('common.save')}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

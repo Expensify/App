@@ -23,7 +23,8 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import Section from '../../components/Section';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -163,10 +164,12 @@ class ValidationStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.testTransactions')}
+                    title={isVerifying ? this.props.translate('workspace.common.bankAccount') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
@@ -226,7 +229,7 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBlue}
                             menuItems={[
@@ -247,7 +250,7 @@ class ValidationStep extends React.Component {
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
                             </Text>
-                        </WorkspaceSection>
+                        </Section>
                     </View>
                 )}
             </View>

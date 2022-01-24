@@ -10,6 +10,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -181,6 +182,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
             .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
@@ -193,6 +195,9 @@ function getSimplifiedReportObject(report) {
 
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
+    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
+    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
 
     return {
         reportID: report.reportID,
@@ -217,6 +222,7 @@ function getSimplifiedReportObject(report) {
         stateNum: report.state,
         statusNum: report.status,
         oldPolicyName,
+        visibility,
     };
 }
 
@@ -551,7 +557,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -597,7 +603,7 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 
@@ -1079,7 +1085,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
@@ -1100,7 +1106,7 @@ function addAction(reportID, text, file) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
-        lastMessageText: textForNewComment,
+        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
     });
 
@@ -1158,8 +1164,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: commentText,
         file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
@@ -1176,6 +1182,18 @@ function addAction(reportID, text, file) {
                 console.error(response.message);
                 return;
             }
+
+            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+                return;
+            }
+
             updateReportWithNewAction(reportID, response.reportAction);
         });
 }
@@ -1267,16 +1285,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
     const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
 
-    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
-    // doing an unnecessary server call if the last read is the same one we had already
-    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
-        return;
-    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
-        accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
     });

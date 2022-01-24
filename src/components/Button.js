@@ -23,6 +23,9 @@ const propTypes = {
     /** Large sized button */
     large: PropTypes.bool,
 
+    /** medium sized button */
+    medium: PropTypes.bool,
+
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
@@ -44,11 +47,14 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
-    /** Additional styles to add after local styles */
+    /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
+
+    /** Additional button styles. Specific to the OpacityView of button */
+    innerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Additional text styles */
     textStyles: PropTypes.arrayOf(PropTypes.object),
@@ -76,12 +82,14 @@ const defaultProps = {
     isDisabled: false,
     small: false,
     large: false,
+    medium: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
     pressOnEnter: false,
     style: [],
+    innerStyles: [],
     textStyles: [],
     success: false,
     danger: false,
@@ -136,8 +144,10 @@ class Button extends Component {
             <Text
                 selectable={false}
                 style={[
+                    styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
+                    this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
@@ -185,6 +195,7 @@ class Button extends Component {
                         style={[
                             styles.button,
                             this.props.small ? styles.buttonSmall : undefined,
+                            this.props.medium ? styles.buttonMedium : undefined,
                             this.props.large ? styles.buttonLarge : undefined,
                             this.props.success ? styles.buttonSuccess : undefined,
                             this.props.danger ? styles.buttonDanger : undefined,
@@ -195,6 +206,7 @@ class Button extends Component {
                             (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                             this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                             this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                            ...this.props.innerStyles,
                         ]}
                     >
                         {this.renderContent()}
