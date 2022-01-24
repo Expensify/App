@@ -31,19 +31,6 @@ const propTypes = {
     /** A ref to forward to the text input */
     forwardedRef: PropTypes.func,
 
-    /** The report currently being looked at */
-    report: PropTypes.shape({
-
-        /** participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
-
-    // The NVP describing a user's block status
-    blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
-        expiresAt: PropTypes.string,
-    }),
-
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -53,8 +40,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    report: {},
-    blockedFromConcierge: {},
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -63,7 +48,6 @@ class ReportActionItemMessageEdit extends React.Component {
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
         this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -88,24 +72,6 @@ class ReportActionItemMessageEdit extends React.Component {
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
     }
-
-    /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     */
-    addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateDraft(newComment);
-    }
-
 
     /**
      * Update the value of the draft in Onyx
