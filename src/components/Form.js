@@ -62,13 +62,12 @@ class Form extends React.Component {
         this.touchedInputs = {};
 
         this.getValues = this.getValues.bind(this);
-        this.getErrorText = this.getErrorText.bind(this);
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+        this.submit = this.submit.bind(this);
     }
 
-    onSubmit() {
+    submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isSubmitting) {
             return;
@@ -92,21 +91,10 @@ class Form extends React.Component {
 
     getValues() {
         const values = {};
-        _.each(_.keys(this.inputRefs), (key) => {
-            values[key] = this.inputRefs[key].value;
+        _.each(_.keys(this.inputRefs), (inputID) => {
+            values[inputID] = this.inputRefs[inputID].value;
         });
         return values;
-    }
-
-    getErrorText(inputID) {
-        if (_.isEmpty(this.state.errors[inputID])) {
-            return '';
-        }
-
-        const translatedErrors = _.map(this.state.errors[inputID], translationKey => (
-            this.props.translate(translationKey)
-        ));
-        return _.join(translatedErrors, ' ');
     }
 
     setTouchedInput(inputID) {
@@ -154,7 +142,7 @@ class Form extends React.Component {
                 return React.cloneElement(child, {
                     ref: node => this.inputRefs[inputID] = node,
                     defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
-                    errorText: this.getErrorText(inputID),
+                    errorText: this.state.errors[inputID] || '',
                     onBlur: (key) => {
                         this.setTouchedInput(key);
                         this.validate(this.getValues());
@@ -188,7 +176,7 @@ class Form extends React.Component {
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
                             isLoading={this.props.formState.isSubmitting}
                             message={this.props.formState.serverErrorMessage}
-                            onSubmit={this.onSubmit}
+                            onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
