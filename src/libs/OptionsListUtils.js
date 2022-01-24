@@ -782,7 +782,7 @@ function getReportIcons(report, personalDetails) {
     }
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar'], '')
             || getDefaultAvatar(dmParticipant),
     }))
         .sort((first, second) => first.firstName - second.firstName);
