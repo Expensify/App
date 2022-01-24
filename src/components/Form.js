@@ -89,6 +89,9 @@ class Form extends React.Component {
         this.props.onSubmit(values);
     }
 
+    /**
+     * @returns {Object} - An object containing the values for each inputID
+     */
     getValues() {
         const values = {};
         _.each(_.keys(this.inputRefs), (inputID) => {
@@ -104,6 +107,10 @@ class Form extends React.Component {
         };
     }
 
+    /**
+     * @param {Object} values - An object containing the value of each inputID
+     * @returns {Object} - An object containeing the errors for each inputID
+     */
     validate(values) {
         FormActions.setServerErrorMessage(this.props.formID, '');
         const validationErrors = this.props.validate(values);
