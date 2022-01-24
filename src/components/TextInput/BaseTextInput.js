@@ -94,6 +94,7 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
+        if (this.props.onChange) { this.props.onChange(value); }
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
@@ -156,7 +157,7 @@ class BaseTextInput extends Component {
                             style={[
                                 styles.textInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
-                                (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+                                this.props.errorText && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (

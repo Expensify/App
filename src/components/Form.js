@@ -150,11 +150,11 @@ class Form extends React.Component {
                     ref: node => this.inputRefs[inputID] = node,
                     defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
                     errorText: this.state.errors[inputID] || '',
-                    onBlur: (key) => {
-                        this.setTouchedInput(key);
+                    onBlur: (event) => {
+                        this.setTouchedInput(event.target.inputID);
                         this.validate(this.getValues());
                         if (child.props.onBlur) {
-                            child.props.onBlur();
+                            child.props.onBlur(event);
                         }
                     },
                     onChange: (value) => {
@@ -165,7 +165,7 @@ class Form extends React.Component {
                             this.validate(this.getValues());
                         }
                         if (child.props.onChange) {
-                            child.props.onChange();
+                            child.props.onChange(value);
                         }
                     },
                 });

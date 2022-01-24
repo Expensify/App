@@ -19,9 +19,6 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
-
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
