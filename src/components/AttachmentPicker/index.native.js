@@ -71,13 +71,6 @@ function getDataForUpload(fileData) {
         size: fileData.fileSize || fileData.size,
     };
 
-    // When the URI is lacking uri scheme - file upload would fail
-    // Prefixing the uri with `file://` fixes attachment upload on Android
-    const hasScheme = /^.+:\/\//.test(fileResult.uri);
-    if (!hasScheme) {
-        fileResult.uri = `file://${fileResult.uri}`;
-    }
-
     if (fileResult.size) {
         return Promise.resolve(fileResult);
     }
