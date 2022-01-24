@@ -356,7 +356,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * @returns {boolean}
+     * @returns {Boolean}
      */
     shouldAssumeVirtualKeyboardIsOpen() {
         const isOpen = VirtualKeyboard.isOpen();
