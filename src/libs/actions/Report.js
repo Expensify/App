@@ -585,7 +585,10 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        messageText = lodashGet(reportAction, 'originalMessage.html', '');
+    }
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
@@ -1543,6 +1546,30 @@ function createPolicyRoom(policyID, reportName, visibility) {
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
 
+/**
+ * Renames a user created Policy Room.
+ * @param {String} reportID
+ * @param {String} reportName
+ */
+function renameReport(reportID, reportName) {
+    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
+    API.RenameReport({reportID, reportName})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Growl.error(response.message);
+                return;
+            }
+            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
+
+            // Update the report name so that the LHN and header display the updated name
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1572,5 +1599,6 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    renameReport,
     getLastReadSequenceNumber,
 };
