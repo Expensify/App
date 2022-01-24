@@ -145,6 +145,7 @@ function fetchPersonalDetails() {
  * Get personal details from report participants.
  *
  * @param {Object} reports
+ * @returns {Promise}
  */
 function getFromReportParticipants(reports) {
     const participantEmails = _.chain(reports)
@@ -157,7 +158,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    return API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -172,6 +173,7 @@ function getFromReportParticipants(reports) {
 
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
+            return details;
         });
 }
 

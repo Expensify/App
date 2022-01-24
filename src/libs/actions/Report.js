@@ -320,42 +320,37 @@ function fetchIOUReportID(debtorEmail) {
     });
 }
 
-function configureReportNameAndIcon(reports) {
+function configureReportNameAndIcon(reports, details) {
     // The personalDetails of the participants contain their avatar images. Here we'll go over each
     // report and based on the participants we'll link up their avatars to report icons. This will
     // skip over default rooms which aren't named by participants.
 
-    Onyx.connect({
-        key: ONYXKEYS.PERSONAL_DETAILS,
-        callback: (formattedPersonalDetails) => {
-            const reportsToUpdate = {};
-            _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
-                    return;
-                }
+    const reportsToUpdate = {};
+    _.each(reports, (report) => {
+        if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+            return;
+        }
 
-                const avatars = ReportUtils.isChatRoom(report) ? (['']) : OptionsListUtils.getReportIcons(report, formattedPersonalDetails);
-                const reportName = ReportUtils.isChatRoom(report)
-                    ? report.reportName
-                    : _.chain(report.participants)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(
-                            formattedPersonalDetails,
-                            [participant, 'displayName'],
-                            participant,
-                        ))
-                        .value()
-                        .join(', ');
+        const avatars = ReportUtils.isChatRoom(report) ? (['']) : OptionsListUtils.getReportIcons(report, details);
+        const reportName = ReportUtils.isChatRoom(report)
+            ? report.reportName
+            : _.chain(report.participants)
+                .filter(participant => participant !== currentUserEmail)
+                .map(participant => lodashGet(
+                    details,
+                    [participant, 'displayName'],
+                    participant,
+                ))
+                .value()
+                .join(', ');
 
-                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
-            });
-
-            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
-            // Any withOnyx subscribers to this key will also receive the complete updated props just once
-            // than updating props for each report and re-rendering had merge been used.
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
-        },
+        reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
     });
+
+    // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+    // Any withOnyx subscribers to this key will also receive the complete updated props just once
+    // than updating props for each report and re-rendering had merge been used.
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
 }
 
 /**
@@ -439,10 +434,10 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+            Promise.resolve(PersonalDetails.getFromReportParticipants(_.values(simplifiedReports))).then(
+                details => configureReportNameAndIcon(_.values(simplifiedReports), details),
+            );
 
-            // Configure Report Name and Report Icon
-            configureReportNameAndIcon(_.values(simplifiedReports));
             return fetchedReports;
         })
         .catch((err) => {
