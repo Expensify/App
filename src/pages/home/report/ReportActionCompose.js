@@ -49,6 +49,8 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
 
 const propTypes = {
     /** Beta features list */
@@ -354,12 +356,24 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * As of January 2022, the VirtualKeyboard web API is not available in all browsers yet
+     * If it is unavailable, we default to assuming that the virtual keyboard is open on touch-enabled devices.
+     * See https://github.com/Expensify/App/issues/6767 for additional context.
+     *
+     * @returns {Boolean}
+     */
+    shouldAssumeVirtualKeyboardIsOpen() {
+        const isOpen = VirtualKeyboard.isOpen();
+        return _.isNull(isOpen) ? canUseTouchScreen() : isOpen;
+    }
+
+    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e) {
+        if (!e || this.shouldAssumeVirtualKeyboardIsOpen()) {
             return;
         }
 
