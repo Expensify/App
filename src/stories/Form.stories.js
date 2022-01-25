@@ -1,9 +1,7 @@
 import React from 'react';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
-import _ from 'underscore';
 
-// 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
@@ -12,23 +10,23 @@ import _ from 'underscore';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput}
+    subcomponents: {TextInput},
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 const Template = args => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
     <Form {...args}>
         <TextInput
-            label={'Routing number'}
-            inputID={'routingNumber'}
+            label="Routing number"
+            inputID="routingNumber"
             isFormInput
             shouldSaveDraft
         />
         <TextInput
-            label={'Account number'}
-            inputID={'accountNumber'}
+            label="Account number"
+            inputID="accountNumber"
             isFormInput
-            shouldSaveDraft
         />
     </Form>
 );
