@@ -26,7 +26,6 @@ import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
