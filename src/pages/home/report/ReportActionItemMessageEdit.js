@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     /** All the data of the action */
@@ -121,6 +122,12 @@ class ReportActionItemMessageEdit extends React.Component {
         this.debouncedSaveDraft.cancel();
 
         const trimmedNewDraft = this.state.draft.trim();
+
+        // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
+        if (!trimmedNewDraft) {
+            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action);
+            return;
+        }
         Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
