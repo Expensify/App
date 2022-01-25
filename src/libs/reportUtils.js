@@ -29,6 +29,10 @@ function getReportParticipantsTitle(logins) {
  * @returns {String}
  */
 function getReportActionMessageText(reportAction) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        return lodashGet(reportAction, 'originalMessage.html', '');
+    }
+
     return lodashGet(reportAction, ['message', 0, 'text'], '');
 }
 
