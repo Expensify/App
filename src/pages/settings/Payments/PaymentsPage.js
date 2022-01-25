@@ -259,16 +259,12 @@ class PaymentsPage extends React.Component {
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                            actionPaymentMethodType={
-                                this.state.shouldShowDefaultDeleteMenu
-                                    ? this.state.selectedPaymentMethodType
-                                    : ''
-                            }
-                            activePaymentMethodID={
-                                this.state.shouldShowDefaultDeleteMenu
-                                    ? this.getSelectedPaymentMethodID()
-                                    : ''
-                            }
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.state.selectedPaymentMethodType
+                                : ''}
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.getSelectedPaymentMethodID()
+                                : ''}
                         />
                     </View>
                     <AddPaymentMethodMenu
