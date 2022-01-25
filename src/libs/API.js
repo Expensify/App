@@ -679,14 +679,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1169,6 +1168,19 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * Renames a user-created policy room
+ * @param {Object} parameters
+ * @param {String} parameters.reportID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['reportID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -1195,6 +1207,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
     DeleteFund,
     DeleteLogin,
     DeleteBankAccount,

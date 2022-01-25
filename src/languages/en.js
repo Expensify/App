@@ -432,6 +432,7 @@ export default {
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
+            incorrectPassword: 'Incorrect password. Please try again.',
             incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
@@ -886,11 +887,14 @@ export default {
         restrictedDescription: 'People in your workspace are able to find this room using Search',
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
+        policyRoomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'This name is reserved and cannot be used',
+        renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
+        growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
