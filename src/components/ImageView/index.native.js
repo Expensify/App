@@ -65,10 +65,19 @@ class ImageView extends PureComponent {
             let imageWidth = width;
             let imageHeight = height;
             const aspectRatio = (imageHeight / imageWidth);
+
+            // reduce the imageWidth to windowWidth if imageWidth is greater than the windowWidth
             if (imageWidth > this.props.windowWidth) {
                 imageWidth = Math.round(this.props.windowWidth);
                 imageHeight = Math.round(imageWidth * aspectRatio);
             }
+
+            // reduce the imageHeight to windowHeight if imageHeight is greater than the windowHeight
+            if (imageHeight > (this.props.windowHeight - variables.contentHeaderHeight)) {
+                imageHeight = Math.round(this.props.windowHeight - variables.contentHeaderHeight);
+                imageWidth = Math.round((1 / aspectRatio) * imageHeight);
+            }
+
             this.setState({imageHeight, imageWidth});
         });
     }
