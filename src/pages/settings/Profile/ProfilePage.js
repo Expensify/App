@@ -215,9 +215,7 @@ class ProfilePage extends Component {
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.state.avatarPreviewURL}
                             onImageSelected={img => this.setState({avatarImage: img, avatarPreviewURL: img.uri})}
-                            onImageRemoved={() => {
-                                this.setState({avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login), avatarImage: null});
-                            }}
+                            onImageRemoved={() => this.setState({avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login), avatarImage: null})}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
