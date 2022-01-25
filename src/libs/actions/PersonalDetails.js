@@ -155,7 +155,7 @@ function getFromReportParticipants(reports) {
         .value();
 
     if (participantEmails.length === 0) {
-        return;
+        return Promise.resolve([]);
     }
 
     return API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})

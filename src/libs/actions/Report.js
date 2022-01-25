@@ -433,10 +433,11 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
+            const simplifiedReportsList = _.values(simplifiedReports);
+
             // Fetch the personal details if there are any
-            Promise.resolve(PersonalDetails.getFromReportParticipants(_.values(simplifiedReports))).then(
-                details => configureReportNameAndIcon(_.values(simplifiedReports), details),
-            );
+            PersonalDetails.getFromReportParticipants(simplifiedReportsList)
+                .then(details => configureReportNameAndIcon(simplifiedReportsList, details));
 
             return fetchedReports;
         })
