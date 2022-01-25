@@ -45,6 +45,13 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
+    /** Whether the add Payment button be shown on the list */
+    shouldShowAddPaymentMethodButton: PropTypes.bool,
+
+    /** Type to filter the payment Method list */
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+
+    /** User wallet props */
     userWallet: PropTypes.shape({
         /** The ID of the linked account */
         walletLinkedAccountID: PropTypes.number,
@@ -66,6 +73,8 @@ const defaultProps = {
     },
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
+    shouldShowAddPaymentMethodButton: true,
+    filterType: '',
 };
 
 class PaymentMethodList extends Component {
@@ -82,6 +91,11 @@ class PaymentMethodList extends Component {
      */
     createPaymentMethodList() {
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
+
+        if (!_.isEmpty(this.props.filterType)) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
+        }
+
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
@@ -94,6 +108,10 @@ class PaymentMethodList extends Component {
                 key: 'addFirstPaymentMethodHelpText',
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
+        }
+
+        if (!this.props.shouldShowAddPaymentMethodButton) {
+            return combinedPaymentMethods;
         }
 
         combinedPaymentMethods.push({
@@ -132,6 +150,8 @@ class PaymentMethodList extends Component {
                     iconWidth={item.iconSize}
                     badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
+                    shouldShowSelectedState={this.props.shouldShowSelectedState}
+                    isSelected={this.props.selectedMethodID === item.methodID}
                 />
             );
         }

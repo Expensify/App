@@ -213,6 +213,7 @@ const CONST = {
             TYPE: {
                 IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                RENAMED: 'RENAMED',
             },
         },
         ERROR: {
