@@ -83,6 +83,8 @@ function signOut() {
         })
             .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
     }
+    Onyx.set(ONYXKEYS.SESSION, null);
+    Onyx.set(ONYXKEYS.CREDENTIALS, null);
     Timing.clearData();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
