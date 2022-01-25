@@ -41,7 +41,7 @@ const propTypes = {
         if (!props.inputID) {
             return new Error(`${propName} is required if isFormInput prop is supplied.`);
         }
-        if (typeof props.inputID === 'string') {
+        if (typeof props.inputID !== 'string') {
             return new Error(`Invalid prop type ${typeof props.inputID} supplied to ${propName}. Expecting string.`);
         }
     },
