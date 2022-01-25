@@ -10,6 +10,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -20,6 +21,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -318,6 +320,39 @@ function fetchIOUReportID(debtorEmail) {
     });
 }
 
+function configureReportNameAndIcon(reports, details) {
+    // The personalDetails of the participants contain their avatar images. Here we'll go over each
+    // report and based on the participants we'll link up their avatars to report icons. This will
+    // skip over default rooms which aren't named by participants.
+
+    const reportsToUpdate = {};
+    _.each(reports, (report) => {
+        if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+            return;
+        }
+
+        const avatars = ReportUtils.isChatRoom(report) ? (['']) : OptionsListUtils.getReportIcons(report, details);
+        const reportName = ReportUtils.isChatRoom(report)
+            ? report.reportName
+            : _.chain(report.participants)
+                .filter(participant => participant !== currentUserEmail)
+                .map(participant => lodashGet(
+                    details,
+                    [participant, 'displayName'],
+                    participant,
+                ))
+                .value()
+                .join(', ');
+
+        reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+    });
+
+    // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+    // Any withOnyx subscribers to this key will also receive the complete updated props just once
+    // than updating props for each report and re-rendering had merge been used.
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+}
+
 /**
  * Fetches chat reports when provided a list of chat report IDs.
  * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
@@ -398,8 +433,12 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
+            const simplifiedReportsList = _.values(simplifiedReports);
+
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+            PersonalDetails.getFromReportParticipants(simplifiedReportsList)
+                .then(details => configureReportNameAndIcon(simplifiedReportsList, details));
+
             return fetchedReports;
         })
         .catch((err) => {
@@ -582,6 +621,11 @@ function updateReportWithNewAction(
     // locally so we must first update it and then calculate the unread (which should be 0)
     if (isFromCurrentUser) {
         setLocalLastRead(reportID, newMaxSequenceNumber);
+    }
+
+    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        messageText = lodashGet(reportAction, 'originalMessage.html', '');
     }
 
     // Always merge the reportID into Onyx
@@ -1179,6 +1223,18 @@ function addAction(reportID, text, file) {
                 console.error(response.message);
                 return;
             }
+
+            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+                return;
+            }
+
             updateReportWithNewAction(reportID, response.reportAction);
         });
 }
@@ -1274,7 +1330,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
-        accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
     });
@@ -1521,12 +1576,41 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
+}
+
+/**
+ * Renames a user created Policy Room.
+ * @param {String} reportID
+ * @param {String} reportName
+ */
+function renameReport(reportID, reportName) {
+    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
+    API.RenameReport({reportID, reportName})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Growl.error(response.message);
+                return;
+            }
+            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
+
+            // Update the report name so that the LHN and header display the updated name
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
 export {
@@ -1558,5 +1642,6 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    renameReport,
     getLastReadSequenceNumber,
 };

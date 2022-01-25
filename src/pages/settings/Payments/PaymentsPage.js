@@ -28,6 +28,7 @@ import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import ConfirmModal from '../../../components/ConfirmModal';
+import KYCWall from '../../../components/KYCWall';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -218,16 +219,26 @@ class PaymentsPage extends React.Component {
                                 <View style={[styles.mv5]}>
                                     <CurrentWalletBalance />
                                 </View>
-                                <MenuItem
-                                    title={this.props.translate('common.transferBalance')}
-                                    icon={Expensicons.Transfer}
-                                    onPress={this.navigateToTransferBalancePage}
-                                    shouldShowRightIcon
-                                />
+                                <KYCWall
+                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {triggerKYCFlow => (
+                                        <MenuItem
+                                            title={this.props.translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                        />
+                                    )}
+                                </KYCWall>
                             </>
                         )}
                         <Text
-                            style={[styles.ph5, styles.formLabel]}
+                            style={[styles.ph5, styles.mt6, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
                         </Text>
