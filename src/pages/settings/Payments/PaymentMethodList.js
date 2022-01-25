@@ -143,7 +143,7 @@ class PaymentMethodList extends Component {
      * @return {Boolean}
      */
     isPaymentMethodActive(paymentMethod) {
-        return paymentMethod.type === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
+        return paymentMethod.accountType === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
     }
 
     /**

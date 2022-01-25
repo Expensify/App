@@ -82,6 +82,18 @@ class PaymentsPage extends React.Component {
         PaymentMethods.getPaymentMethods();
     }
 
+    getSelectedPaymentMethodID() {
+        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
+            return CONST.PAYMENT_METHODS.PAYPAL;
+        }
+        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            return this.state.selectedPaymentMethod.bankAccountID;
+        }
+        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+            return this.state.selectedPaymentMethod.fundID;
+        }
+    }
+
     /**
      * Display the delete/default menu, or the add payment method menu
      *
@@ -247,6 +259,16 @@ class PaymentsPage extends React.Component {
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
+                            actionPaymentMethodType={
+                                this.state.shouldShowDefaultDeleteMenu
+                                    ? this.state.selectedPaymentMethodType
+                                    : ''
+                            }
+                            activePaymentMethodID={
+                                this.state.shouldShowDefaultDeleteMenu
+                                    ? this.getSelectedPaymentMethodID()
+                                    : ''
+                            }
                         />
                     </View>
                     <AddPaymentMethodMenu
