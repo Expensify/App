@@ -108,6 +108,8 @@ class PaymentMethodList extends Component {
             ...paymentMethod,
             type: MENU_ITEM,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
+            iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
 
         // If we have not added any payment methods, show a default empty state
@@ -134,6 +136,14 @@ class PaymentMethodList extends Component {
         });
 
         return combinedPaymentMethods;
+    }
+
+    /**
+     * @param {*} paymentMethod
+     * @return {Boolean}
+     */
+    isPaymentMethodActive(paymentMethod) {
+        return paymentMethod.type === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
     }
 
     /**
