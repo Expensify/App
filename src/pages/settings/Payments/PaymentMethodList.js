@@ -60,6 +60,9 @@ const propTypes = {
         walletLinkedAccountType: PropTypes.string,
     }),
 
+    /** ID of selected payment method */
+    selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
     ...withLocalizePropTypes,
 };
 
@@ -75,6 +78,7 @@ const defaultProps = {
     isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
+    selectedMethodID: '',
 };
 
 class PaymentMethodList extends Component {
