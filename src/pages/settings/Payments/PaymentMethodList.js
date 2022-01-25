@@ -60,6 +60,12 @@ const propTypes = {
         walletLinkedAccountType: PropTypes.string,
     }),
 
+    /** Type of active/highlighted payment method */
+    actionPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+
+    /** ID of active/highlighted payment method */
+    activePaymentMethodID: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -75,6 +81,8 @@ const defaultProps = {
     isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
+    actionPaymentMethodType: '',
+    activePaymentMethodID: NaN,
 };
 
 class PaymentMethodList extends Component {
