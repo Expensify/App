@@ -21,6 +21,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -1576,6 +1577,11 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
