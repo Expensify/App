@@ -35,10 +35,15 @@ const propTypes = {
     isFormInput: PropTypes.bool,
 
     inputID: (props) => {
-        if (props.isFormInput && props.inputID && typeof props.inputID === 'string') {
+        if (!props.isFormInput) {
             return;
         }
-        return new Error('Please provide an inputID to use this input as a Form input.');
+        if (!props.inputID) {
+            return new Error('inputID is required if isFormInput prop is set to true');
+        }
+        if (typeof props.inputID === 'string') {
+            return new Error(`Invalid prop type ${typeof props.inputID} supplied to inputID. Expecting string.`);
+        }
     },
 
     /** Saves a draft of the input value when used in a form */
