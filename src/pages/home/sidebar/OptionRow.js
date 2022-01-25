@@ -275,5 +275,10 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
+    // Re-render when the text changes
+    if (prevProps.option.text !== nextProps.option.text) {
+        return false;
+    }
+
     return true;
 }));
