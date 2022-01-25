@@ -762,6 +762,28 @@ class BComposedComponent extends React.Component
 }
 ```
 
+## isMounted is an Antipattern
+
+Sometimes we must set React state when a resolved promise is handled. This can cause errors in the JS console because a promise does not have any awareness of whether a component we are setting state on still exists or has unmounted. It may be tempting in these situations to use an instance flag like `this.isComponentMounted` and then set it to `false` in `componentWillUnmount()`. The correct way to handle this is to use a "cancellable" promise.
+
+```js
+componentWillUnmount() {
+    if (!this.doSomethingPromise) {
+        return;
+    }
+
+    this.doSomethingPromise.cancel();
+}
+
+doSomethingThenSetState() {
+    this.doSomethingPromise = makeCancellablePromise(this.doSomething());
+    this.doSomethingPromise.promise
+        .then((value) => this.setState({value}));
+}
+```
+
+**Read more:** [https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html](https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html)
+
 ## Composition vs Inheritance
 
 From React's documentation -

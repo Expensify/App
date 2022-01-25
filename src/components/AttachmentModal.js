@@ -16,6 +16,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
+import TextWithEllipsis from './TextWithEllipsis';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -90,6 +91,18 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
+     * Returns the filename split into fileName and fileExtension
+     * @returns {Object}
+     */
+    splitExtensionFromFileName() {
+        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
+        const splittedFileName = fullFileName.split('.');
+        const fileExtension = splittedFileName.pop();
+        const fileName = splittedFileName.join('.');
+        return {fileName, fileExtension};
+    }
+
+    /**
      * Execute the onConfirm callback and close the modal.
      */
     submitAndClose() {
@@ -129,6 +142,8 @@ class AttachmentModal extends PureComponent {
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
+
+        const {fileName, fileExtension} = this.splitExtensionFromFileName();
         return (
             <>
                 <Modal
@@ -148,7 +163,14 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={this.props.originalFileName ? this.props.originalFileName : lodashGet(this.state, 'file.name', '')}
+                        subtitle={(
+                            <TextWithEllipsis
+                                leadingText={fileName}
+                                trailingText={fileExtension ? `.${fileExtension}` : ''}
+                                wrapperStyle={[styles.w100]}
+                                textStyle={styles.mutedTextLabel}
+                            />
+                        )}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
