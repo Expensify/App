@@ -1535,8 +1535,8 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * Handle a user leaveing a user created policy room.
  * @param {String} reportID
  */
-function leaveUserPolicyRoom(reportID) {
-    API.LeaveUserPolicyRoom(reportID);
+function leaveUserPolicyRoom(report) {
+    API.LeaveUserPolicyRoom(report);
 }
 
 export {
