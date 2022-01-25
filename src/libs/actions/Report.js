@@ -1211,6 +1211,17 @@ function getLastReadSequenceNumber(reportID) {
 }
 
 /**
+ * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ *
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ * @param {String} draftMessage
+ */
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {Number} reportID
@@ -1231,6 +1242,9 @@ function deleteReportComment(reportID, reportAction) {
             },
         ],
     };
+
+    // Clear the draft comment for action if any.
+    saveReportActionDraft(reportID, reportAction.reportActionID, '');
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
         setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
@@ -1436,17 +1450,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             actionToMerge[sequenceNumber] = originalReportAction;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
         });
-}
-
-/**
- * Saves the draft for a comment report action. This will put the comment into "edit mode"
- *
- * @param {Number} reportID
- * @param {Number} reportActionID
- * @param {String} draftMessage
- */
-function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 /**
