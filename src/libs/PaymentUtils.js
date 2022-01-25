@@ -51,7 +51,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
             iconSize,
             key: `bankAccount-${bankAccount.bankAccountID}`,
             accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
-            accountData: _.extend(bankAccount, {icon}),
+            accountData: _.extend({}, bankAccount, {icon}),
             isDefault,
         });
     });
@@ -70,7 +70,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
             iconSize,
             key: `card-${card.cardNumber}`,
             accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
-            accountData: _.extend(card, {icon}),
+            accountData: _.extend({}, card, {icon}),
             isDefault,
         });
     });
