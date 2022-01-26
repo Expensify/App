@@ -193,6 +193,7 @@ class Form extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
+                            containerStyles={[styles.mh0, styles.mt5]}
                         />
                     </View>
                 </ScrollView>

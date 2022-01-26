@@ -2,6 +2,7 @@ import React from 'react';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
+import styles from '../styles/styles';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -31,6 +32,7 @@ const Template = (args) => {
             <TextInput
                 label="Account number"
                 inputID="accountNumber"
+                containerStyles={[styles.mt4]}
                 isFormInput
             />
         </Form>
@@ -59,8 +61,8 @@ const defaultArgs = {
     },
     onSubmit: (values) => {
         setTimeout(() => {
-            alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`)
-            FormActions.setIsSubmitting('TestForm', false)
+            alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
+            FormActions.setIsSubmitting('TestForm', false);
         }, 1000);
     },
     formState: {
@@ -76,7 +78,7 @@ const defaultArgs = {
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
-InputError.args = {...defaultArgs, draftValues: {}};
+InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;
 export {
