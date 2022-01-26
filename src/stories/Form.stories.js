@@ -58,7 +58,7 @@ const defaultArgs = {
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {serverErrorMessage: 'There was an unexpected error. Please try again later.'}}
-InputError.args = {...defaultArgs, validate: (values) => ({routingNumber: 'Routing number is invalid'})};
+InputError.args = {...defaultArgs, validate: (values) => ({accountNumber: 'Account number is invalid'})};
 export default story;
 export {
     Default,

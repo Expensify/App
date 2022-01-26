@@ -93,7 +93,7 @@ class Form extends React.Component {
 
         // Touches all form inputs so we can validate the entire form
         _.each(_.keys(this.inputRefs), inputID => (
-            this.touchedInput[inputID] = true
+            this.touchedInputs[inputID] = true
         ));
 
         // Validate form and return early if any errors are found
