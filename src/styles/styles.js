@@ -682,8 +682,13 @@ const styles = {
     textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
-        paddingRight: 11,
+        paddingHorizontal: 11,
         justifyContent: 'center',
+    },
+
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
     },
 
     textInput: {
