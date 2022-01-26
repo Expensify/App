@@ -61,7 +61,7 @@ const propTypes = {
     }),
 
     /** Type of active/highlighted payment method */
-    actionPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+    actionPaymentMethodType: PropTypes.oneOf([..._.values(CONST.PAYMENT_METHODS), '']),
 
     /** ID of active/highlighted payment method */
     activePaymentMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
