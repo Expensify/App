@@ -66,6 +66,9 @@ const propTypes = {
     /** ID of active/highlighted payment method */
     activePaymentMethodID: PropTypes.number,
 
+    /** ID of selected payment method */
+    selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +86,7 @@ const defaultProps = {
     filterType: '',
     actionPaymentMethodType: '',
     activePaymentMethodID: NaN,
+    selectedMethodID: '',
 };
 
 class PaymentMethodList extends Component {

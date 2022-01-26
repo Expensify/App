@@ -225,7 +225,7 @@ class TransferBalancePage extends React.Component {
                             {this.props.translate('transferAmountPage.fee')}
                         </Text>
                         <Text
-                            style={[styles.textLabel, styles.justifyContentStart]}
+                            style={[styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
                                 calculatedFee / 100,
