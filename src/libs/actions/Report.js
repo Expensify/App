@@ -1581,7 +1581,9 @@ function createPolicyRoom(policyID, reportName, visibility) {
             // Make sure the report has its icons set
             const report = allReports[reportID];
             const icons = OptionsListUtils.getReportIcons(report, {});
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
+            const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
+            const reportName = ReportUtils.getChatReportName(report, chatType);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons, reportName});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
