@@ -114,7 +114,6 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
 
         this.state = {
-            isReportDataLoaded: false,
             isMarkerActive: false,
             localUnreadActionCount: this.props.report.unreadActionCount,
         };
@@ -133,11 +132,6 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
-
-        // If we already have a report data loaded, set its state to loaded
-        if (Report.getLastReadSequenceNumber(this.props.report.reportID)) {
-            this.setState({isReportDataLoaded: true});
-        }
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
@@ -211,10 +205,9 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Update unread count when Report data is ready for being accessed and set it as loaded
-        if ((!this.props.isLoadingReportData && prevProps.isLoadingReportData) && !this.state.isReportDataLoaded) {
-            this.setState({isReportDataLoaded: true});
-            this.updateUnreadIndicatorPosition(this.props.report.localUnreadActionCount);
+        // Update last read action when Report data is loaded
+        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
+            Report.updateLastReadActionID(this.props.reportID);
         }
 
         // The last sequenceNumber of the same report has changed.
