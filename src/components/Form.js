@@ -114,7 +114,7 @@ class Form extends React.Component {
     validate(values) {
         FormActions.setServerErrorMessage(this.props.formID, '');
         const validationErrors = this.props.validate(values);
-        const errors = _.filter(_.keys(validationErrors), inputID => (
+        const errors = _.pick(validationErrors, (inputValue, inputID) => (
             Boolean(this.touchedInputs[inputID])
         ));
         this.setState({errors});
@@ -151,7 +151,7 @@ class Form extends React.Component {
                     defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
                     errorText: this.state.errors[inputID] || '',
                     onBlur: (event) => {
-                        this.setTouchedInput(event.target.inputID);
+                        this.setTouchedInput(inputID);
                         this.validate(this.getValues());
                         if (child.props.onBlur) {
                             child.props.onBlur(event);
