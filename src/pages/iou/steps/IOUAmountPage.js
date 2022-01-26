@@ -20,6 +20,7 @@ import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -239,7 +240,7 @@ class IOUAmountPage extends React.Component {
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {this.props.isSmallScreenWidth
+                    {canUseTouchScreen()
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
