@@ -11,7 +11,6 @@ import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -46,9 +45,6 @@ const propTypes = {
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
-
-    /** Window Dimensions Props */
-    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -265,7 +261,6 @@ IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
