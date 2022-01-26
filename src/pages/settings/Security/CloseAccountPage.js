@@ -96,7 +96,6 @@ class CloseAccountPage extends Component {
                     <FixedFooter>
                         <Button
                             danger
-                            style={[styles.mb5]}
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
