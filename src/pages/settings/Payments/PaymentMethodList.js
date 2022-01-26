@@ -64,7 +64,7 @@ const propTypes = {
     actionPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
     /** ID of active/highlighted payment method */
-    activePaymentMethodID: PropTypes.number,
+    activePaymentMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** ID of selected payment method */
     selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -85,7 +85,7 @@ const defaultProps = {
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
-    activePaymentMethodID: NaN,
+    activePaymentMethodID: '',
     selectedMethodID: '',
 };
 
@@ -143,7 +143,9 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * @param {*} paymentMethod
+     * @param {Object} paymentMethod
+     * @param {String|Number} paymentMethod.methodID
+     * @param {String} paymentMethod.accountType
      * @return {Boolean}
      */
     isPaymentMethodActive(paymentMethod) {
