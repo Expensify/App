@@ -16,6 +16,7 @@ const story = {
 };
 
 const Template = (args) => {
+    // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
