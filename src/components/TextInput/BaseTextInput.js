@@ -184,7 +184,13 @@ class BaseTextInput extends Component {
                                     placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                     placeholderTextColor={themeColors.placeholderText}
                                     underlineColorAndroid="transparent"
-                                    style={[this.props.inputStyle, styles.flex1, styles.w100, !hasLabel && styles.pv0, this.props.secureTextEntry && styles.pr2]}
+                                    style={[
+                                        this.props.inputStyle,
+                                        styles.flex1,
+                                        styles.w100,
+                                        !hasLabel && styles.pv0,
+                                        this.props.secureTextEntry && styles.secureInput,
+                                    ]}
                                     multiline={this.props.multiline}
                                     onFocus={this.onFocus}
                                     onBlur={this.onBlur}
