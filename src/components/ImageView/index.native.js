@@ -72,6 +72,10 @@ class ImageView extends PureComponent {
                 imageHeight = Math.round(imageWidth * aspectRatio);
             }
 
+            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+            const maxDimensionsScale = 11;
+            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
+
             // reduce the imageHeight to windowHeight if imageHeight is greater than the windowHeight
             if (imageHeight > (this.props.windowHeight - variables.contentHeaderHeight)) {
                 imageHeight = Math.round(this.props.windowHeight - variables.contentHeaderHeight);

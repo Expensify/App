@@ -682,8 +682,13 @@ const styles = {
     textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
-        paddingRight: 11,
+        paddingHorizontal: 11,
         justifyContent: 'center',
+    },
+
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
     },
 
     textInput: {
@@ -2411,7 +2416,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
     transferBalancePayment: {
-        borderWidth: 2,
+        borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
     },
