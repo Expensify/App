@@ -8,6 +8,7 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
+import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -145,7 +146,6 @@ function fetchPersonalDetails() {
  * Get personal details from report participants.
  *
  * @param {Object} reports
- * @returns {Promise}
  */
 function getFromReportParticipants(reports) {
     const participantEmails = _.chain(reports)
@@ -155,10 +155,10 @@ function getFromReportParticipants(reports) {
         .value();
 
     if (participantEmails.length === 0) {
-        return Promise.resolve({});
+        return;
     }
 
-    return API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -173,7 +173,36 @@ function getFromReportParticipants(reports) {
 
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
-            return details;
+
+            // The personalDetails of the participants contain their avatar images. Here we'll go over each
+            // report and based on the participants we'll link up their avatars to report icons. This will
+            // skip over default rooms which aren't named by participants.
+            const reportsToUpdate = {};
+            _.each(reports, (report) => {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+                    return;
+                }
+
+                const avatars = OptionsListUtils.getReportIcons(report, details);
+                const reportName = ReportUtils.isChatRoom(report)
+                    ? report.reportName
+                    : _.chain(report.participants)
+                        .filter(participant => participant !== currentUserEmail)
+                        .map(participant => lodashGet(
+                            formattedPersonalDetails,
+                            [participant, 'displayName'],
+                            participant,
+                        ))
+                        .value()
+                        .join(', ');
+
+                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+            });
+
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
 }
 
