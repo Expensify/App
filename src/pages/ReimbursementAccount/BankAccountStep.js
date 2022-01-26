@@ -30,6 +30,7 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
+import Form from '../../components/Form';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -270,7 +271,10 @@ class BankAccountStep extends React.Component {
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
-                    <ReimbursementAccountForm
+                    <Form
+                        formID="testForm"
+                        submitButtonText="Next"
+                        validate={() => {}}
                         onSubmit={this.addManualAccount}
                     >
                         <Text style={[styles.mb5]}>
@@ -282,21 +286,26 @@ class BankAccountStep extends React.Component {
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
                         <TextInput
+                            inputID="routingNumber"
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            value={this.state.routingNumber}
-                            onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
-                            disabled={shouldDisableInputs}
-                            errorText={this.getErrorText('routingNumber')}
+                            // value={this.state.routingNumber}
+                            // onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
+                            // disabled={shouldDisableInputs}
+                            // errorText={this.getErrorText('routingNumber')}
+                            isFormInput
+                            shouldSaveDraft
                         />
                         <TextInput
+                            inputID="accountNumber"
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            value={this.state.accountNumber}
-                            onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
-                            disabled={shouldDisableInputs}
-                            errorText={this.getErrorText('accountNumber')}
+                            // value={this.state.accountNumber}
+                            // onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
+                            // disabled={shouldDisableInputs}
+                            // errorText={this.getErrorText('accountNumber')}
+                            isFormInput
                         />
                         <CheckboxWithLabel
                             style={[styles.mb4, styles.mt5]}
@@ -314,7 +323,7 @@ class BankAccountStep extends React.Component {
                             )}
                             hasError={this.getErrors().hasAcceptedTerms}
                         />
-                    </ReimbursementAccountForm>
+                    </Form>
                 )}
             </View>
         );

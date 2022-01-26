@@ -78,12 +78,10 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the values for each inputID
      */
     getValues() {
-        console.log('fired')
         const values = {};
         _.each(_.keys(this.inputRefs), (inputID) => {
             values[inputID] = this.inputRefs[inputID].value;
         });
-        console.log(values)
         return values;
     }
 
