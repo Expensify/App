@@ -94,12 +94,7 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
-        if (this.props.onChange) {
-            this.props.onChange(value)
-
-            // Expose value to the input ref in React Native to use it as an uncontrolled input
-            this.input.value = this.value;
-        }
+        if (this.props.onChange) { this.props.onChange(value); }
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();

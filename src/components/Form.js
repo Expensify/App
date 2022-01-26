@@ -78,10 +78,12 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the values for each inputID
      */
     getValues() {
+        console.log('fired')
         const values = {};
         _.each(_.keys(this.inputRefs), (inputID) => {
             values[inputID] = this.inputRefs[inputID].value;
         });
+        console.log(values)
         return values;
     }
 
@@ -158,6 +160,9 @@ class Form extends React.Component {
                         }
                     },
                     onChange: (value) => {
+                        // Expose value to the input ref on native
+                        this.inputRefs[inputID].value = value;
+
                         if (child.props.shouldSaveDraft) {
                             FormActions.setDraftValues(this.props.formID, {[inputID]: value});
                         }
