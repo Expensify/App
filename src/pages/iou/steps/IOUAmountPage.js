@@ -7,10 +7,10 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -19,6 +19,7 @@ import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -44,9 +45,6 @@ const propTypes = {
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
-
-    /** Window Dimensions Props */
-    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -175,17 +173,40 @@ class IOUAmountPage extends React.Component {
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
-     * @param {String} amount
+     * @param {String} text - Changed text from user input
      */
-    updateAmount(amount) {
-        if (!this.validateAmount(amount)) {
-            return;
-        }
+    updateAmount(text) {
+        this.setState((prevState) => {
+            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
+            return this.validateAmount(amount)
+                ? {amount: this.stripCommaFromAmount(amount)}
+                : prevState;
+        });
+    }
 
-        this.setState({amount: this.stripCommaFromAmount(amount)});
+    /**
+     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
+     * the original character will be preserved.
+     *
+     * @param {String} text
+     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
+     * @returns {String}
+     */
+    replaceAllDigits(text, convertFn) {
+        return _.chain([...text])
+            .map((char) => {
+                try {
+                    return convertFn(char);
+                } catch {
+                    return char;
+                }
+            })
+            .join('')
+            .value();
     }
 
     render() {
+        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
             <>
                 <View style={[
@@ -209,13 +230,13 @@ class IOUAmountPage extends React.Component {
                         textStyle={styles.iouAmountText}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
-                        value={this.state.amount}
-                        placeholder="0"
+                        value={formattedAmount}
+                        placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {this.props.isSmallScreenWidth
+                    {canUseTouchScreen()
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
@@ -240,7 +261,6 @@ IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},

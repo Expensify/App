@@ -6,6 +6,7 @@ import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
 import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
+import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -36,8 +37,6 @@ class Tooltip extends PureComponent {
         // The tooltip (popover) itself.
         this.tooltip = null;
 
-        this.isComponentMounted = false;
-
         // Whether the tooltip is first tooltip to activate the TooltipSense
         this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
@@ -49,36 +48,22 @@ class Tooltip extends PureComponent {
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
-    componentDidMount() {
-        this.isComponentMounted = true;
-    }
-
     componentDidUpdate(prevProps) {
         if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
             return;
         }
 
-        this.getWrapperPosition()
-            .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
+        this.getWrapperPositionPromise.promise
+            .then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
     }
 
     componentWillUnmount() {
-        this.isComponentMounted = false;
-    }
-
-    /**
-     * Call setState only if this component is mounted. It's necessary to check because we need to call setState
-     * after an asynchronous `measureInWindow` call, and by the time it completes this component may have unmounted
-     * and calling setState on an unmounted component results in an error.
-     *
-     * @param {Object} newState
-     */
-    setStateIfMounted(newState) {
-        if (!this.isComponentMounted) {
+        if (!this.getWrapperPositionPromise) {
             return;
         }
 
-        this.setState(newState);
+        this.getWrapperPositionPromise.cancel();
     }
 
     /**
@@ -107,7 +92,7 @@ class Tooltip extends PureComponent {
      * @param {Object} nativeEvent
      */
     measureTooltip({nativeEvent}) {
-        this.setStateIfMounted({
+        this.setState({
             tooltipWidth: nativeEvent.layout.width,
             tooltipHeight: nativeEvent.layout.height,
         });
@@ -125,7 +110,8 @@ class Tooltip extends PureComponent {
 
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
-        this.getWrapperPosition()
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
+        this.getWrapperPositionPromise.promise
             .then(({
                 x, y, width, height,
             }) => {

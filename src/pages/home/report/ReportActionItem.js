@@ -24,6 +24,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import * as ReportUtils from '../../../libs/reportUtils';
+import RenameAction from '../../../components/ReportActionItem/RenameAction';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -117,6 +118,10 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return <RenameAction action={this.props.action} />;
+        }
+
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -163,7 +168,7 @@ class ReportActionItem extends Component {
                             >
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle action={this.props.action}>
+                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
                                             {children}
                                         </ReportActionItemSingle>
                                     )

@@ -144,6 +144,7 @@ class Button extends Component {
             <Text
                 selectable={false}
                 style={[
+                    styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,

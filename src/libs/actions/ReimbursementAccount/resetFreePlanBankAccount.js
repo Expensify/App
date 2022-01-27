@@ -41,7 +41,7 @@ function resetFreePlanBankAccount() {
             };
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
-            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, []);
+            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
 
             // Clear the NVP for the bank account so the user can add a new one
             API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});

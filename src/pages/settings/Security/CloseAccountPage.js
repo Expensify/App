@@ -141,6 +141,7 @@ export default compose(
     withOnyx({
         isCloseAccoutModalOpen: {
             key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
+            initWithStoredValues: false,
         },
         session: {
             key: ONYXKEYS.SESSION,
