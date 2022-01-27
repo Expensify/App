@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import Emoji from '../../assets/emojis';
-import CONST from '../../src/CONST';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 
 describe('EmojiRegexTest', () => {
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
         const emojiMatched = _.every(Emoji, (emoji) => {
-            if (emoji.header === true || emoji.code === CONST.EMOJI_SPACER) {
+            if (emoji.header === true || emoji.spacer) {
                 return true;
             }
 

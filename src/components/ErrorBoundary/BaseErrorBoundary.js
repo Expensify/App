@@ -39,7 +39,7 @@ class BaseErrorBoundary extends React.Component {
         this.props.logError(this.props.errorMessage, error, errorInfo);
 
         // We hide the splash screen since the error might happened during app init
-        BootSplash.hide({fade: true});
+        BootSplash.hide();
     }
 
     clearError() {
