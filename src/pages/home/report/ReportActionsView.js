@@ -173,7 +173,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.isLoadingReportData !== this.props.isLoadingReportData) {
+        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
             return true;
         }
 
@@ -205,7 +205,8 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Update last read action when Report data is loaded
+        // Update the last read action for the report currently in view when report data finishes loading.
+        // This report should now be up-to-date and since it is in view we mark it as read.
         if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
             Report.updateLastReadActionID(this.props.reportID);
         }
@@ -607,7 +608,6 @@ export default compose(
     withOnyx({
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            initwithStoredValues: false,
         },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
