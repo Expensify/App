@@ -137,6 +137,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.ssn = true;
         }
 
+        if (!ValidationUtils.isValidVBAPhone(this.state.phoneNumber)) {
+            errors.phoneNumber = true;
+        }
+
         _.each(this.requiredFields, (requiredField) => {
             if (ValidationUtils.isRequiredFulfilled(this.state[requiredField])) {
                 return;

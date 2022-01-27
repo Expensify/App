@@ -155,7 +155,7 @@ class CompanyStep extends React.Component {
             errors.incorporationDateFuture = true;
         }
 
-        if (!ValidationUtils.isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+        if (!ValidationUtils.isValidVBAPhone(this.state.companyPhone)) {
             errors.companyPhone = true;
         }
 

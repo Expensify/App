@@ -262,6 +262,15 @@ function isValidUSPhone(phoneNumber) {
 }
 
 /**
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidVBAPhone(phoneNumber) {
+    // Remove alphanumeric characters and validate that this is in fact a phone number
+    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.PHONE_WITHOUT_COUNTRY_CODE.test(phoneNumber);
+}
+
+/**
  * @param {String} password
  * @returns {Boolean}
  */
@@ -335,6 +344,7 @@ export {
     isRequiredFulfilled,
     isValidPhoneWithSpecialChars,
     isValidUSPhone,
+    isValidVBAPhone,
     isValidURL,
     validateIdentity,
     isValidPassword,
