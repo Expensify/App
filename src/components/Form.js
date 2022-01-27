@@ -16,7 +16,7 @@ const propTypes = {
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
 
-    /** Callback validate the form */
+    /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
 
     /** Callback to submit the form */
@@ -109,7 +109,7 @@ class Form extends React.Component {
 
     /**
      * @param {Object} values - An object containing the value of each inputID
-     * @returns {Object} - An object containeing the errors for each inputID
+     * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
         FormActions.setServerErrorMessage(this.props.formID, '');
@@ -125,12 +125,12 @@ class Form extends React.Component {
         const childrenWrapperWithProps = children => (
             // eslint-disable-next-line rulesdir/prefer-underscore-method
             React.Children.map(children, (child) => {
-                // Do nothing if child is not a valid React element, e.g. text within a <Text> component
+                // Just render the child if it is not a valid React element, e.g. text within a <Text> component
                 if (!React.isValidElement(child)) {
                     return child;
                 }
 
-                // Depth first traversal of the render tree as the form element is likely to be the last node
+                // Depth first traversal of the render tree as the input element is likely to be the last node
                 if (child.props.children) {
                     return React.cloneElement(child, {
                         children: childrenWrapperWithProps(child.props.children),
@@ -144,7 +144,6 @@ class Form extends React.Component {
                 }
 
                 // We clone the child passing down all form props
-                // We should only pass refs to class components!
                 const inputID = child.props.inputID;
                 return React.cloneElement(child, {
                     ref: node => this.inputRefs[inputID] = node,
@@ -158,7 +157,7 @@ class Form extends React.Component {
                         }
                     },
                     onChange: (value) => {
-                        // Expose value to the input ref on native
+                        // Expose value to the input ref so we can access it on native too
                         this.inputRefs[inputID].value = value;
 
                         if (child.props.shouldSaveDraft) {

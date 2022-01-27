@@ -78,7 +78,7 @@ const defaultArgs = {
 
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
-ServerError.args = {...defaultArgs, formState: {serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
+ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
 InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;
