@@ -99,7 +99,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Callback function to update UI-triggered selection changes in state.
+     * Callback function to update UI-triggered selection changes in local selection.
      * @param {*} e
      */
     onSelectionChange(e) {
