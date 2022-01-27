@@ -60,6 +60,12 @@ const propTypes = {
         walletLinkedAccountType: PropTypes.string,
     }),
 
+    /** Type of active/highlighted payment method */
+    actionPaymentMethodType: PropTypes.oneOf([..._.values(CONST.PAYMENT_METHODS), '']),
+
+    /** ID of active/highlighted payment method */
+    activePaymentMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
     /** ID of selected payment method */
     selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
@@ -78,6 +84,8 @@ const defaultProps = {
     isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
+    actionPaymentMethodType: '',
+    activePaymentMethodID: '',
     selectedMethodID: '',
 };
 
@@ -104,6 +112,8 @@ class PaymentMethodList extends Component {
             ...paymentMethod,
             type: MENU_ITEM,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
+            iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
 
         // If we have not added any payment methods, show a default empty state
@@ -130,6 +140,16 @@ class PaymentMethodList extends Component {
         });
 
         return combinedPaymentMethods;
+    }
+
+    /**
+     * @param {Object} paymentMethod
+     * @param {String|Number} paymentMethod.methodID
+     * @param {String} paymentMethod.accountType
+     * @return {Boolean}
+     */
+    isPaymentMethodActive(paymentMethod) {
+        return paymentMethod.accountType === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
     }
 
     /**
