@@ -19,6 +19,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** URL Route params */
@@ -126,7 +127,7 @@ class IOUDetailsModal extends Component {
                         </ScrollView>
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
-                            <View style={styles.p5}>
+                            <FixedFooter>
                                 <SettlementButton
                                     isLoading={this.props.iou.loading}
                                     onPress={paymentMethodType => this.performIOUPayment(paymentMethodType)}
@@ -137,7 +138,7 @@ class IOUDetailsModal extends Component {
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
                                 />
-                            </View>
+                            </FixedFooter>
                         ))}
                     </View>
                 )}
