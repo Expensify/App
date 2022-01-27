@@ -179,12 +179,17 @@ class IOUAmountPage extends React.Component {
 
             if (start === end && start > 0) {
                 const newAmount = amount.slice(0, start - 1) + amount.slice(end);
-                if (!this.validateAmount(newAmount)) { return {amount, selection: this.selection}; }
+
+                if (!this.validateAmount(newAmount)) {
+                    return {amount, selection: this.selection};
+                }
+
                 return {amount: newAmount, selection: {start: start - 1, end: end - 1}};
             }
             const newAmount = amount.slice(0, start) + amount.slice(end);
             return {amount: newAmount, selection: {start, end: start}};
         }
+
         const newAmount = `${amount.slice(0, start)}${key}${amount.slice(end)}`;
 
         if (!this.validateAmount(newAmount)) {
