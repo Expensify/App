@@ -33,9 +33,7 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
-import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
 import * as ReportUtils from '../../../libs/reportUtils';
-import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
@@ -341,7 +339,7 @@ class ReportActionsView extends React.Component {
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED))
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -543,7 +541,6 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
