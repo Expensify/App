@@ -36,6 +36,7 @@ const propTypes = {
         serverErrorMessage: PropTypes.string,
     }),
 
+    /** Contains draft values for each input in the form */
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
@@ -108,8 +109,8 @@ class Form extends React.Component {
     }
 
     /**
-     * @param {Object} values - An object containing the value of each inputID
-     * @returns {Object} - An object containing the errors for each inputID
+     * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
+     * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
         FormActions.setServerErrorMessage(this.props.formID, '');
