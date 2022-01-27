@@ -1,6 +1,5 @@
 import React from 'react';
-import Str from 'expensify-common/lib/str';
-import * as phoneTextnputPropTypes from './phoneTextnputPropTypes';
+import * as baseTextInputPropTypes from '../TextInput/baseTextInputPropTypes';
 import TextInput from '../TextInput';
 import LoginUtil from '../../libs/LoginUtil';
 
@@ -14,26 +13,25 @@ class PhoneTextInput extends React.Component {
 
     setValue(val) {
         this.value = val;
-        const formattedValue = LoginUtil.getPhoneNumberWithoutSpecialChars(val);
-        Str.result(this.props.onChangeText, formattedValue);
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(val);
+        this.props.onChangeText(phoneNumber);
     }
 
     render() {
         return (
             <TextInput
-                ref={el => this.textInput = el}
+                ref={this.props.forwardedRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 value={this.value}
                 onChangeText={this.setValue}
-
             />
         );
     }
 }
 
-PhoneTextInput.propTypes = phoneTextnputPropTypes.propTypes;
-PhoneTextInput.defaultProps = phoneTextnputPropTypes.defaultProps;
+PhoneTextInput.propTypes = baseTextInputPropTypes.propTypes;
+PhoneTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */

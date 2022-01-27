@@ -117,8 +117,7 @@ class AddSecondaryLoginPage extends Component {
                                         ref={el => this.phoneNumberInputRef = el}
                                         value={this.state.login}
                                         onChangeText={this.onSecondaryLoginChange}
-                                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                         returnKeyType="done"
                                     />
                                 )
@@ -128,8 +127,6 @@ class AddSecondaryLoginPage extends Component {
                                         ref={el => this.phoneNumberInputRef = el}
                                         value={this.state.login}
                                         onChangeText={this.onSecondaryLoginChange}
-                                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                         returnKeyType="done"
                                     />
                                 )}
