@@ -83,7 +83,10 @@ class IOUAmountPage extends React.Component {
         this.state = {
             amount: props.selectedAmount,
         };
-        this.selection = {start: props.selectedAmount.length, end: props.selectedAmount.length};
+        this.selection = {
+            start: props.selectedAmount.length,
+            end: props.selectedAmount.length,
+        };
     }
 
     componentDidMount() {
@@ -103,7 +106,6 @@ class IOUAmountPage extends React.Component {
      * @param {*} e
      */
     onSelectionChange(e) {
-        // this.setState({selection: e.nativeEvent.selection});
         this.selection = e.nativeEvent.selection;
     }
 
@@ -190,8 +192,8 @@ class IOUAmountPage extends React.Component {
             return {amount: newAmount, selection: {start, end: start}};
         }
 
+        // Normal Keys
         const newAmount = `${amount.slice(0, start)}${key}${amount.slice(end)}`;
-
         if (!this.validateAmount(newAmount)) {
             return {amount, selection: this.selection};
         }
