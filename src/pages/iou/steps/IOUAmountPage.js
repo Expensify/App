@@ -180,10 +180,10 @@ class IOUAmountPage extends React.Component {
             if (start === end && start > 0) {
                 const newAmount = amount.slice(0, start - 1) + amount.slice(end);
                 if (!this.validateAmount(newAmount)) { return {amount, selection: this.selection}; }
-                return {amount: newAmount, selection: {start: this.selection.start - 1, end: this.selection.end - 1}};
+                return {amount: newAmount, selection: {start: start - 1, end: end - 1}};
             }
             const newAmount = amount.slice(0, start) + amount.slice(end);
-            return {amount: newAmount, selection: {start: this.selection.start, end: this.selection.start}};
+            return {amount: newAmount, selection: {start, end: start}};
         }
         const newAmount = `${amount.slice(0, start)}${key}${amount.slice(end)}`;
 
@@ -191,7 +191,7 @@ class IOUAmountPage extends React.Component {
             return {amount, selection: this.selection};
         }
 
-        return {amount: newAmount, selection: {start: this.selection.start + 1, end: this.selection.start + 1}};
+        return {amount: newAmount, selection: {start: start + 1, end: start + 1}};
     }
 
     /**
