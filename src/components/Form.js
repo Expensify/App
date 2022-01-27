@@ -67,11 +67,11 @@ class Form extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
+    /**
+     * @param {String} inputID - The inputID of the input being touched
+     */
     setTouchedInput(inputID) {
-        this.touchedInputs = {
-            ...this.touchedInputs,
-            [inputID]: true,
-        };
+        this.touchedInputs[inputID] = true;
     }
 
     /**
@@ -79,8 +79,8 @@ class Form extends React.Component {
      */
     getValues() {
         const values = {};
-        _.each(_.keys(this.inputRefs), (inputID) => {
-            values[inputID] = this.inputRefs[inputID].value;
+        _.each(this.inputRefs, (inputRef, inputID) => {
+            values[inputID] = inputRef.value;
         });
         return values;
     }
@@ -92,7 +92,7 @@ class Form extends React.Component {
         }
 
         // Touches all form inputs so we can validate the entire form
-        _.each(_.keys(this.inputRefs), inputID => (
+        _.each(this.inputRefs, (inputRef, inputID) => (
             this.touchedInputs[inputID] = true
         ));
 
@@ -165,9 +165,6 @@ class Form extends React.Component {
                         }
                         if (this.touchedInputs[inputID]) {
                             this.validate(this.getValues());
-                        }
-                        if (child.props.onChange) {
-                            child.props.onChange(value);
                         }
                     },
                 });

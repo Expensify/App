@@ -94,7 +94,9 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
-        if (this.props.onChange) { this.props.onChange(value); }
+        if (this.props.onChange) {
+            this.props.onChange(value);
+        }
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
