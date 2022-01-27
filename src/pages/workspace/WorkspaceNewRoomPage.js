@@ -137,26 +137,6 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
     }
 
-    /**
-     * Modifies the room name to follow our conventions:
-     * - Max length 80 characters
-     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
-     * - Must be lowercase
-     * @param {String} roomName
-     *
-     * @returns {String}
-     */
-    modifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substr(1)
-            .replace(/ /g, '_')
-            .replace(/[^a-zA-Z\d_]/g, '')
-            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
-            .toLowerCase();
-        const modifiedRoomName = `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
-
-        return modifiedRoomName;
-    }
-
     render() {
         if (!Permissions.canUseDefaultRooms(this.props.betas)) {
             Log.info('Not showing create Policy Room page since user is not on default rooms beta');
@@ -184,7 +164,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 policyID={this.state.policyID}
                                 shouldShowErrorOnDemand
                                 errorText={this.state.errors.roomName}
-                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', this.modifyRoomName(roomName))}
+                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             />
                         </View>
 
