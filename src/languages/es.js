@@ -679,7 +679,7 @@ export default {
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
     validationStep: {
-        headerTitle: 'Validar',
+        headerTitle: 'Validar cuenta bancaria',
         buttonText: 'Finalizar configuración',
         maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation".',
