@@ -340,7 +340,8 @@ class ReportActionsView extends React.Component {
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED)
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED))
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -547,22 +548,6 @@ class ReportActionsView extends React.Component {
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
-        }
-
-        // If we only have the created action then no one has left a comment
-        if (_.size(this.props.reportActions) === 1) {
-            return (
-                <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                        <EmptyStateAvatars
-                            avatarImageURLs={this.props.report.icons}
-                            secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isChatRoom={isChatRoom}
-                        />
-                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isChatRoom} />
-                    </View>
-                </View>
-            );
         }
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
