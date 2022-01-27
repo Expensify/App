@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Input label */
@@ -34,17 +35,13 @@ const propTypes = {
     /** Indicates that the input is being used with the Form component */
     isFormInput: PropTypes.bool,
 
-    inputID: (props, propName) => {
-        if (!props.isFormInput) {
-            return;
-        }
-        if (!props.inputID) {
-            return new Error('InputID is required if isFormInput prop is supplied.');
-        }
-        if (typeof props.inputID !== 'string') {
-            return new Error(`Invalid prop type ${typeof props.inputID} supplied to inputID. Expecting string.`);
-        }
-    },
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.getInputIDPropTypes(props),
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
