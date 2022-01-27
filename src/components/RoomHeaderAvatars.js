@@ -20,7 +20,7 @@ const defaultProps = {
     isChatRoom: false,
 };
 
-const EmptyStateAvatars = (props) => {
+const RoomHeaderAvatars = (props) => {
     if (!props.avatarImageURLs.length) {
         return null;
     }
@@ -43,13 +43,13 @@ const EmptyStateAvatars = (props) => {
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(avatarImageURLsToDisplay, (val, index) => (
                     <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
+                        <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
 
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
-                                        styles.emptyStateAvatar,
+                                        styles.roomHeaderAvatar,
                                         styles.screenBlur,
                                     ]}
                                 />
@@ -65,8 +65,8 @@ const EmptyStateAvatars = (props) => {
     );
 };
 
-EmptyStateAvatars.defaultProps = defaultProps;
-EmptyStateAvatars.propTypes = propTypes;
-EmptyStateAvatars.displayName = 'EmptyStateAvatars';
+RoomHeaderAvatars.defaultProps = defaultProps;
+RoomHeaderAvatars.propTypes = propTypes;
+RoomHeaderAvatars.displayName = 'RoomHeaderAvatars';
 
-export default memo(EmptyStateAvatars);
+export default memo(RoomHeaderAvatars);
