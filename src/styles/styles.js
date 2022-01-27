@@ -1207,7 +1207,7 @@ const styles = {
         paddingVertical: 16,
     },
 
-    chatContentEmpty: {
+    chatContentCreated: {
         paddingTop: 16,
         paddingBottom: 16,
         paddingLeft: 20,

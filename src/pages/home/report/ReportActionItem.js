@@ -118,6 +118,9 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.reportID} />;
+        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }

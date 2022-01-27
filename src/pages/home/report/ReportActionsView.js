@@ -543,7 +543,6 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
