@@ -1,6 +1,6 @@
-##How to create a plan - Contributor version
+## How to create a plan - Contributor version
 
-###Preamble 
+### Preamble 
 If you’re new to working with Expensify, it’s important to know the philosophy behind the design of Expensify’s products and the processes that wrap around them.
 - Problems are identified and defined before solutions are proposed
 - Features are not added to satisfy personal preferences
