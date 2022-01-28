@@ -149,7 +149,6 @@ class ReportDetailsPage extends Component {
                                         shouldUseFullTitle={isChatRoom}
                                     />
                                 </View>
-
                                 <Text
                                     style={[
                                         styles.sidebarLinkText,
