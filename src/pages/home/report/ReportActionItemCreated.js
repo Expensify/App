@@ -12,6 +12,7 @@ const propTypes = {
     report: PropTypes.oneOfType([PropTypes.object]),
 };
 const defaultProps = {
+    /** The report currently being looked at */
     report: {},
 };
 
@@ -34,7 +35,7 @@ const ReportActionItemCreated = (props) => {
 
 ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
-
+ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default withOnyx({
     report: {

@@ -1208,8 +1208,8 @@ const styles = {
     },
 
     chatContentCreated: {
-        paddingTop: 16,
-        paddingBottom: 16,
+        paddingTop: 20,
+        paddingBottom: 32,
         paddingLeft: 20,
         paddingRight: 20,
     },
