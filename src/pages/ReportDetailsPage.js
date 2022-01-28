@@ -138,7 +138,7 @@ class ReportDetailsPage extends Component {
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={this.props.report.icons[0]}
                             />
-                            <View style={styles.reportDetailsRoomInfo}>
+                            <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
                                         fullTitle={this.props.report.reportName}
