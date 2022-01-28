@@ -13,6 +13,8 @@ const TextInput = forwardRef((props, ref) => (
         autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
         inputStyle={[styles.baseTextInput]}
+
+        // eslint-disable-next-line no-param-reassign
         exposeValueToRef={(inputRef, value) => inputRef.value = value}
     />
 ));
