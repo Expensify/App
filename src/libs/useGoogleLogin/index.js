@@ -33,19 +33,18 @@ const useGoogleLogin = ({
     const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
 
     function signIn(e) {
+        // Prevent submit if used within form
         if (e) {
-            e.preventDefault(); // to prevent submit if used within form
+            e.preventDefault();
         }
 
+        // Prevent signIn if Google Auth is not ready
         if (!googleAuthLoaded) {
             return;
         }
 
         const GoogleAuth = window.gapi.auth2.getAuthInstance();
-        const options = {
-            prompt,
-        };
-        GoogleAuth.signIn(options).then(
+        GoogleAuth.signIn({prompt}).then(
             (res) => {
                 const basicProfile = res.getBasicProfile();
                 const authResponse = res.getAuthResponse(true);
@@ -66,12 +65,12 @@ const useGoogleLogin = ({
             'google-login',
             jsSrc,
             () => {
-                const params = {
-                    client_id: clientId,
-                };
+                // Load Google Auth
                 const gapi = window.gapi;
                 gapi.load('auth2', () => {
-                    gapi.auth2.init(params).then(
+                    gapi.auth2.init({
+                        client_id: clientId,
+                    }).then(
                         () => setGoogleAuthLoaded(true),
                         err => onFailure(err),
                     );
@@ -79,7 +78,6 @@ const useGoogleLogin = ({
             },
             err => onFailure(err),
         );
-
         return () => removeScript(document, 'google-login');
     }, []);
 
