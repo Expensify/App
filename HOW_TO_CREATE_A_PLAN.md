@@ -37,7 +37,7 @@ Once you have your solutions, it’s time to decide on the preferred solution (a
 If you are finding the solution to be difficult, go back and beat harder on the problem to break it up into smaller pieces. Keep repeating until you have a general list of prioritized stages, with early stages solving the dependencies required by later stages, each of which is extremely well defined, with a reasonably obvious preferred solution.
 
 ## Step 3: Write out each problem and solution (P/S statement)
-Have a trusted peer or two proof your P/S statement and help you ensure it is well-defined.  If you're in need of a peer to proof, post in #expensify-open-source to ask for help.   Refine it and then share with another peer or two until you have a clear, understandable P/S statement. The more complex the problem and solution, the more people should review it. Keep going back to step 1 if needed.
+Have a trusted peer or two proof your P/S statement and help you ensure it is well-defined. If you're in need of a peer to proof, post in #expensify-open-source to ask for help. Refine it and then share with another peer or two until you have a clear, understandable P/S statement. The more complex the problem and solution, the more people should review it. Keep going back to step 1 if needed.
 
 ## Step 4: Propose it
 Once you have a well-defined problem and solution, post your problem and solution as separate comments in ​​#expensify-open-source in Slack and be prepared to answer questions and defend your choices. Also, be prepared to hear better solutions that may completely change your P/S statement. 
