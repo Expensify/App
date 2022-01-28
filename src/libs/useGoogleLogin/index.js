@@ -1,4 +1,6 @@
 import {useEffect, useState} from 'react';
+import Config from 'react-native-config';
+import lodashGet from 'lodash/get';
 
 function loadScript(d, s, id, jsSrc, cb, onError) {
     const element = d.getElementsByTagName(s)[0];
@@ -21,6 +23,10 @@ function removeScript(d, id) {
     if (element) {
         element.parentNode.removeChild(element);
     }
+}
+
+function getGoogleApi() {
+    return window.gapi;
 }
 
 /**
@@ -48,7 +54,7 @@ const useGoogleLogin = ({
             return;
         }
 
-        const GoogleAuth = window.gapi.auth2.getAuthInstance();
+        const GoogleAuth = getGoogleApi().auth2.getAuthInstance();
         GoogleAuth.signIn().then(
             (res) => {
                 const basicProfile = res.getBasicProfile();
@@ -71,10 +77,9 @@ const useGoogleLogin = ({
             'https://apis.google.com/js/api.js',
             () => {
                 // Load Google Auth
-                const gapi = window.gapi;
-                gapi.load('auth2', () => {
-                    gapi.auth2.init({
-                        clientId: '1016036866283-rotn0elqu18bbju128nkf8ahcpaq8nb9.apps.googleusercontent.com',
+                getGoogleApi().load('auth2', () => {
+                    getGoogleApi().auth2.init({
+                        clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
                     }).then(
                         () => setGoogleAuthLoaded(true),
                         err => onFailure(err),
