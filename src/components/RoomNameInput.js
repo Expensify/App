@@ -90,9 +90,6 @@ class RoomNameInput extends Component {
         }
     }
 
-    /**
-     * @returns {Boolean}
-     */
     validateRoomName(modifiedRoomName) {
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
@@ -149,7 +146,7 @@ class RoomNameInput extends Component {
                 prefixCharacter="#"
                 placeholder={this.props.translate('newRoomPage.social')}
                 containerStyles={[styles.mb5]}
-                onChangeText={roomName => {
+                onChangeText={(roomName) => {
                     const modifiedRoomName = this.modifyRoomName(roomName);
                     this.setState({roomName: modifiedRoomName});
                     this.validateRoomName(modifiedRoomName);
