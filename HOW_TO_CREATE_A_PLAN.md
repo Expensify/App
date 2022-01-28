@@ -22,7 +22,7 @@ What is the problem that needs solving?
 
 Identify which problems are actually independent and can be solved by themselves, versus which are actually a series of dependent but otherwise separate problems that can be solved one at a time.
 
-The broader and better contextualized the problem definition, the greater opportunity for discovering radical, out-of-the-box solutions. The odds of achieving something are dramatically improved by clearly defining what it is.  Take at least as much care perfecting your problem definition as you do the solution, because the perfect solution to the wrong problem is typically an awful solution to the right one.
+The broader and better contextualized the problem definition, the greater opportunity for discovering radical, out-of-the-box solutions. The odds of achieving something are dramatically improved by clearly defining what it is. Take at least as much care perfecting your problem definition as you do the solution, because the perfect solution to the wrong problem is typically an awful solution to the right one.
 
 ## Step 2: Workshop the solutions
 Draft as many solutions as you can for each problem, including any existing workarounds - “Do nothing” is always a potential solution. Be as creative or audacious as you want when workshopping potential solutions.
