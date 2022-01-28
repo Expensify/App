@@ -132,47 +132,25 @@ const useGoogleLogin = ({
                 const gapi = window.gapi;
 
                 gapi.load('auth2', () => {
-                    const GoogleAuth = gapi.auth2.getAuthInstance();
-                    if (!GoogleAuth) {
-                        gapi.auth2.init(params).then(
-                            (res) => {
-                                if (unmounted) {
-                                    return;
-                                }
+                    gapi.auth2.init(params).then(
+                        (res) => {
+                            if (unmounted) {
+                                return;
+                            }
 
-                                // setLoaded(true);
-                                const signedIn = isSignedIn && res.isSignedIn.get();
-                                onAutoLoadFinished(signedIn);
-                                if (signedIn) {
-                                    handleSigninSuccess(res.currentUser.get());
-                                }
-                            },
-                            (err) => {
-                                // setLoaded(true);
-                                onAutoLoadFinished(false);
-                                onLoadFailure(err);
-                            },
-                        );
-                    } else {
-                        GoogleAuth.then(
-                            () => {
-                                if (unmounted) {
-                                    return;
-                                }
-                                if (isSignedIn && GoogleAuth.isSignedIn.get()) {
-                                    // setLoaded(true);
-                                    onAutoLoadFinished(true);
-                                    handleSigninSuccess(GoogleAuth.currentUser.get());
-                                } else {
-                                    // setLoaded(true);
-                                    onAutoLoadFinished(false);
-                                }
-                            },
-                            (err) => {
-                                onFailure(err);
-                            },
-                        );
-                    }
+                            // setLoaded(true);
+                            const signedIn = isSignedIn && res.isSignedIn.get();
+                            onAutoLoadFinished(signedIn);
+                            if (signedIn) {
+                                handleSigninSuccess(res.currentUser.get());
+                            }
+                        },
+                        (err) => {
+                            // setLoaded(true);
+                            onAutoLoadFinished(false);
+                            onLoadFailure(err);
+                        },
+                    );
                 });
             },
             (err) => {
