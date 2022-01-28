@@ -24,11 +24,8 @@ function removeScript(d, id) {
 }
 
 const useGoogleLogin = ({
-    clientId,
     onSuccess,
     onFailure,
-    jsSrc = 'https://apis.google.com/js/api.js',
-    prompt,
 }) => {
     const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
 
@@ -44,7 +41,7 @@ const useGoogleLogin = ({
         }
 
         const GoogleAuth = window.gapi.auth2.getAuthInstance();
-        GoogleAuth.signIn({prompt}).then(
+        GoogleAuth.signIn().then(
             (res) => {
                 const basicProfile = res.getBasicProfile();
                 const authResponse = res.getAuthResponse(true);
@@ -63,13 +60,13 @@ const useGoogleLogin = ({
             document,
             'script',
             'google-login',
-            jsSrc,
+            'https://apis.google.com/js/api.js',
             () => {
                 // Load Google Auth
                 const gapi = window.gapi;
                 gapi.load('auth2', () => {
                     gapi.auth2.init({
-                        client_id: clientId,
+                        clientId: '1016036866283-rotn0elqu18bbju128nkf8ahcpaq8nb9.apps.googleusercontent.com',
                     }).then(
                         () => setGoogleAuthLoaded(true),
                         err => onFailure(err),
