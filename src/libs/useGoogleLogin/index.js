@@ -36,19 +36,9 @@ const useGoogleLogin = ({
     // onRequest = () => {},
     onScriptLoadFailure,
     clientId,
-    cookiePolicy,
-    loginHint,
-    hostedDomain,
 
     // autoLoad,
     isSignedIn,
-    fetchBasicProfile,
-    redirectUri,
-    discoveryDocs,
-    uxMode,
-    scope,
-    accessType,
-    responseType,
     jsSrc = 'https://apis.google.com/js/api.js',
     prompt,
 }) => {
@@ -80,28 +70,18 @@ const useGoogleLogin = ({
             e.preventDefault(); // to prevent submit if used within form
         }
 
-        // if (!loaded) {
-        //     return;
-        // }
+        if (!googleAuthLoaded) {
+            return;
+        }
+
         const GoogleAuth = window.gapi.auth2.getAuthInstance();
         const options = {
             prompt,
         };
-
-        // onRequest();
-
-        // if (responseType === 'code') {
-        //     GoogleAuth.grantOfflineAccess(options).then(
-        //         res => onSuccess(res),
-        //         err => onFailure(err),
-        //     );
-        // } else {
         GoogleAuth.signIn(options).then(
             res => handleSigninSuccess(res),
             err => onFailure(err),
         );
-
-        // }
     }
 
     useEffect(() => {
@@ -115,22 +95,9 @@ const useGoogleLogin = ({
             () => {
                 const params = {
                     client_id: clientId,
-                    cookie_policy: cookiePolicy,
-                    login_hint: loginHint,
-                    hosted_domain: hostedDomain,
-                    fetch_basic_profile: fetchBasicProfile,
-                    discoveryDocs,
-                    ux_mode: uxMode,
-                    redirect_uri: redirectUri,
-                    scope,
-                    access_type: accessType,
                 };
 
-                if (responseType === 'code') {
-                    params.access_type = 'offline';
-                }
                 const gapi = window.gapi;
-
                 gapi.load('auth2', () => {
                     gapi.auth2.init(params).then(
                         (res) => {
@@ -162,13 +129,6 @@ const useGoogleLogin = ({
             removeScript(document, 'google-login');
         };
     }, []);
-
-    // useEffect(() => {
-    //     if (!autoLoad) {
-    //         return;
-    //     }
-    //     signIn();
-    // }, [loaded]);
 
     return {signIn, googleAuthLoaded};
 };
