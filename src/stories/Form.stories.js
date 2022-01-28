@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
@@ -24,12 +25,14 @@ const Template = (args) => {
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <Form {...args}>
-            <TextInput
-                label="Routing number"
-                inputID="routingNumber"
-                isFormInput
-                shouldSaveDraft
-            />
+            <View>
+                <TextInput
+                    label="Routing number"
+                    inputID="routingNumber"
+                    isFormInput
+                    shouldSaveDraft
+                />
+            </View>
             <TextInput
                 label="Account number"
                 inputID="accountNumber"

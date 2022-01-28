@@ -138,7 +138,7 @@ class Form extends React.Component {
             // Depth first traversal of the render tree as the input element is likely to be the last node
             if (child.props.children) {
                 return React.cloneElement(child, {
-                    children: childrenWrapperWithProps(child.props.children),
+                    children: this.childrenWrapperWithProps(child.props.children),
                 });
             }
 
