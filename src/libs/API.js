@@ -131,7 +131,7 @@ Network.registerRequestHandler((queuedRequest, finalParameters) => {
     Log.info('Making API request', false, {
         command: queuedRequest.command,
         type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.type,
+        shouldUseSecure: queuedRequest.shouldUseSecure,
         rvl: finalParameters.returnValueList,
     });
 });
