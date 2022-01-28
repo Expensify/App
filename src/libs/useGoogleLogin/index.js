@@ -26,19 +26,11 @@ function removeScript(d, id) {
 const useGoogleLogin = ({
     // onSuccess = () => {},
     onSuccess,
+    onFailure,
 
-    onAutoLoadFinished = () => {},
-
-    // onAutoLoadFinished,
-
-    onFailure = () => {},
-
-    // onRequest = () => {},
     onScriptLoadFailure,
     clientId,
 
-    // autoLoad,
-    isSignedIn,
     jsSrc = 'https://apis.google.com/js/api.js',
     prompt,
 }) => {
@@ -85,7 +77,6 @@ const useGoogleLogin = ({
     }
 
     useEffect(() => {
-        let unmounted = false;
         const onLoadFailure = onScriptLoadFailure || onFailure;
         loadScript(
             document,
@@ -100,20 +91,8 @@ const useGoogleLogin = ({
                 const gapi = window.gapi;
                 gapi.load('auth2', () => {
                     gapi.auth2.init(params).then(
-                        (res) => {
-                            if (unmounted) {
-                                return;
-                            }
-
-                            setGoogleAuthLoaded(true);
-                            const signedIn = isSignedIn && res.isSignedIn.get();
-                            onAutoLoadFinished(signedIn);
-                            if (signedIn) {
-                                handleSigninSuccess(res.currentUser.get());
-                            }
-                        },
+                        () => setGoogleAuthLoaded(true),
                         (err) => {
-                            onAutoLoadFinished(false);
                             onLoadFailure(err);
                         },
                     );
@@ -125,7 +104,6 @@ const useGoogleLogin = ({
         );
 
         return () => {
-            unmounted = true;
             removeScript(document, 'google-login');
         };
     }, []);
