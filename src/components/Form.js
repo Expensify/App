@@ -127,56 +127,56 @@ class Form extends React.Component {
         return errors;
     }
 
-    render() {
-        const childrenWrapperWithProps = children => (
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
-            React.Children.map(children, (child) => {
-                // Just render the child if it is not a valid React element, e.g. text within a <Text> component
-                if (!React.isValidElement(child)) {
-                    return child;
-                }
+    childrenWrapperWithProps(children) {
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        return React.Children.map(children, (child) => {
+            // Just render the child if it is not a valid React element, e.g. text within a <Text> component
+            if (!React.isValidElement(child)) {
+                return child;
+            }
 
-                // Depth first traversal of the render tree as the input element is likely to be the last node
-                if (child.props.children) {
-                    return React.cloneElement(child, {
-                        children: childrenWrapperWithProps(child.props.children),
-                    });
-                }
-
-                // We check if the child has the isFormInput prop.
-                // We don't want to pass form props to non form components, e.g. View, Text, etc
-                if (!child.props.isFormInput) {
-                    return child;
-                }
-
-                // We clone the child passing down all form props
-                const inputID = child.props.inputID;
+            // Depth first traversal of the render tree as the input element is likely to be the last node
+            if (child.props.children) {
                 return React.cloneElement(child, {
-                    ref: node => this.inputRefs[inputID] = node,
-                    defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
-                    errorText: this.state.errors[inputID] || '',
-                    onBlur: (event) => {
-                        this.setTouchedInput(inputID);
-                        this.validate(this.getValues());
-                        if (child.props.onBlur) {
-                            child.props.onBlur(event);
-                        }
-                    },
-                    onChange: (value) => {
-                        // Expose value to the input ref so we can access it on native too
-                        this.inputRefs[inputID].value = value;
-
-                        if (child.props.shouldSaveDraft) {
-                            FormActions.setDraftValues(this.props.formID, {[inputID]: value});
-                        }
-                        if (this.touchedInputs[inputID]) {
-                            this.validate(this.getValues());
-                        }
-                    },
+                    children: childrenWrapperWithProps(child.props.children),
                 });
-            })
-        );
+            }
 
+            // We check if the child has the isFormInput prop.
+            // We don't want to pass form props to non form components, e.g. View, Text, etc
+            if (!child.props.isFormInput) {
+                return child;
+            }
+
+            // We clone the child passing down all form props
+            const inputID = child.props.inputID;
+            return React.cloneElement(child, {
+                ref: node => this.inputRefs[inputID] = node,
+                defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
+                errorText: this.state.errors[inputID] || '',
+                onBlur: (event) => {
+                    this.setTouchedInput(inputID);
+                    this.validate(this.getValues());
+                    if (child.props.onBlur) {
+                        child.props.onBlur(event);
+                    }
+                },
+                onChange: (value) => {
+                    // Expose value to the input ref so we can access it on native too
+                    this.inputRefs[inputID].value = value;
+
+                    if (child.props.shouldSaveDraft) {
+                        FormActions.setDraftValues(this.props.formID, {[inputID]: value});
+                    }
+                    if (this.touchedInputs[inputID]) {
+                        this.validate(this.getValues());
+                    }
+                },
+            });
+        });
+    }
+
+    render() {
         return (
             <>
                 <ScrollView
@@ -185,7 +185,7 @@ class Form extends React.Component {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={[this.props.style]}>
-                        {childrenWrapperWithProps(this.props.children)}
+                        {this.childrenWrapperWithProps(this.props.children)}
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
