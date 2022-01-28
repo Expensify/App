@@ -23,6 +23,14 @@ function removeScript(d, id) {
     }
 }
 
+/**
+*
+* @param {{
+*   onSuccess: function({ token: string, email: string, name: string }): void,
+*   onFailure: function(*): void
+* }} params
+* @returns {{signIn: function, googleAuthLoaded: boolean}}
+*/
 const useGoogleLogin = ({
     onSuccess,
     onFailure,
