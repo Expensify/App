@@ -101,7 +101,7 @@ const IdentityForm = (props) => {
             <TextInput
                 label={`${props.translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.ssnLast4}
                 onChangeText={value => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}

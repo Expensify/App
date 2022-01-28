@@ -221,7 +221,7 @@ class DebitCardPage extends Component {
                                         value={this.state.expirationDate}
                                         maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -259,7 +259,7 @@ class DebitCardPage extends Component {
                                 <View style={[styles.flex2, styles.mr2]}>
                                     <TextInput
                                         label={this.props.translate('common.zip')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                                         value={this.state.addressZipCode}
                                         errorText={this.getErrorText('addressZipCode')}
