@@ -1207,13 +1207,6 @@ const styles = {
         paddingVertical: 16,
     },
 
-    chatContentCreated: {
-        paddingTop: 20,
-        paddingBottom: 32,
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
     // Chat Item
     chatItem: {
         display: 'flex',

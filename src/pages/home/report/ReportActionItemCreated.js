@@ -10,7 +10,10 @@ import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.oneOfType([PropTypes.object]),
+    report: PropTypes.shape({
+        /**  Avatars corresponding to a chat */
+        icons: PropTypes.arrayOf(PropTypes.string),
+    }),
 };
 const defaultProps = {
     report: {},
@@ -20,7 +23,12 @@ const ReportActionItemCreated = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
 
     return (
-        <View style={[styles.chatContent, styles.chatContentCreated]}>
+        <View style={[styles.chatContent,
+            styles.pb8,
+            styles.ph5,
+            styles.pt5,
+        ]}
+        >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
                     avatarImageURLs={props.report.icons}
