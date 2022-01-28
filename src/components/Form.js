@@ -115,6 +115,11 @@ class Form extends React.Component {
     validate(values) {
         FormActions.setServerErrorMessage(this.props.formID, '');
         const validationErrors = this.props.validate(values);
+
+        if (!_.isObject(validationErrors)) {
+            throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
+        }
+
         const errors = _.pick(validationErrors, (inputValue, inputID) => (
             Boolean(this.touchedInputs[inputID])
         ));
