@@ -162,9 +162,6 @@ class Form extends React.Component {
                     }
                 },
                 onChange: (value) => {
-                    // Expose value to the input ref so we can access it on native too
-                    this.inputRefs[inputID].value = value;
-
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputID]: value});
                     }

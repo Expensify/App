@@ -38,8 +38,16 @@ class BaseTextInput extends Component {
     }
 
     componentDidMount() {
+        if (!this.input) {
+            return;
+        }
+
+        if (this.props.exposeValueToRef) {
+            this.props.exposeValueToRef(this.input, this.value);
+        }
+
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!this.props.autoFocus || !this.input) {
+        if (!this.props.autoFocus) {
             return;
         }
 
@@ -94,6 +102,9 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
+        if (this.props.exposeValueToRef) {
+            this.props.exposeValueToRef(this.input, value);
+        }
         if (this.props.onChange) {
             this.props.onChange(value);
         }
