@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 function loadScript(d, s, id, jsSrc, cb, onError) {
     const element = d.getElementsByTagName(s)[0];
@@ -52,7 +52,7 @@ const useGoogleLogin = ({
     jsSrc = 'https://apis.google.com/js/api.js',
     prompt,
 }) => {
-    // const [loaded, setLoaded] = useState(false);
+    const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
 
     function handleSigninSuccess(res) {
         /*
@@ -138,7 +138,7 @@ const useGoogleLogin = ({
                                 return;
                             }
 
-                            // setLoaded(true);
+                            setGoogleAuthLoaded(true);
                             const signedIn = isSignedIn && res.isSignedIn.get();
                             onAutoLoadFinished(signedIn);
                             if (signedIn) {
@@ -146,7 +146,6 @@ const useGoogleLogin = ({
                             }
                         },
                         (err) => {
-                            // setLoaded(true);
                             onAutoLoadFinished(false);
                             onLoadFailure(err);
                         },
@@ -171,8 +170,7 @@ const useGoogleLogin = ({
     //     signIn();
     // }, [loaded]);
 
-    // return {signIn, loaded};
-    return {signIn};
+    return {signIn, googleAuthLoaded};
 };
 
 export default useGoogleLogin;
