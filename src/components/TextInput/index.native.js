@@ -13,7 +13,7 @@ const TextInput = forwardRef((props, ref) => (
         autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
         inputStyle={[styles.baseTextInput]}
-        exposeValueToRef={(ref, value) => ref.value = value}
+        exposeValueToRef={(inputRef, value) => inputRef.value = value}
     />
 ));
 
