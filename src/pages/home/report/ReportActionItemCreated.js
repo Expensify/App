@@ -9,10 +9,10 @@ import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
 
 const propTypes = {
+    /** The report currently being looked at */
     report: PropTypes.oneOfType([PropTypes.object]),
 };
 const defaultProps = {
-    /** The report currently being looked at */
     report: {},
 };
 
