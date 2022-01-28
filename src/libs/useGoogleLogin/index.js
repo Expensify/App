@@ -24,38 +24,13 @@ function removeScript(d, id) {
 }
 
 const useGoogleLogin = ({
-    // onSuccess = () => {},
+    clientId,
     onSuccess,
     onFailure,
-
-    onScriptLoadFailure,
-    clientId,
-
     jsSrc = 'https://apis.google.com/js/api.js',
     prompt,
 }) => {
     const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
-
-    function handleSigninSuccess(res) {
-        /*
-        offer renamed response keys to names that match use
-      */
-        const basicProfile = res.getBasicProfile();
-        const authResponse = res.getAuthResponse(true);
-        res.googleId = basicProfile.getId();
-        res.tokenObj = authResponse;
-        res.tokenId = authResponse.id_token;
-        res.accessToken = authResponse.access_token;
-        res.profileObj = {
-            googleId: basicProfile.getId(),
-            imageUrl: basicProfile.getImageUrl(),
-            email: basicProfile.getEmail(),
-            name: basicProfile.getName(),
-            givenName: basicProfile.getGivenName(),
-            familyName: basicProfile.getFamilyName(),
-        };
-        onSuccess(res);
-    }
 
     function signIn(e) {
         if (e) {
@@ -71,13 +46,20 @@ const useGoogleLogin = ({
             prompt,
         };
         GoogleAuth.signIn(options).then(
-            res => handleSigninSuccess(res),
+            (res) => {
+                const basicProfile = res.getBasicProfile();
+                const authResponse = res.getAuthResponse(true);
+                onSuccess({
+                    token: authResponse.id_token,
+                    email: basicProfile.getEmail(),
+                    name: basicProfile.getName(),
+                });
+            },
             err => onFailure(err),
         );
     }
 
     useEffect(() => {
-        const onLoadFailure = onScriptLoadFailure || onFailure;
         loadScript(
             document,
             'script',
@@ -87,25 +69,18 @@ const useGoogleLogin = ({
                 const params = {
                     client_id: clientId,
                 };
-
                 const gapi = window.gapi;
                 gapi.load('auth2', () => {
                     gapi.auth2.init(params).then(
                         () => setGoogleAuthLoaded(true),
-                        (err) => {
-                            onLoadFailure(err);
-                        },
+                        err => onFailure(err),
                     );
                 });
             },
-            (err) => {
-                onLoadFailure(err);
-            },
+            err => onFailure(err),
         );
 
-        return () => {
-            removeScript(document, 'google-login');
-        };
+        return () => removeScript(document, 'google-login');
     }, []);
 
     return {signIn, googleAuthLoaded};
