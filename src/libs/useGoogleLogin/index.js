@@ -35,13 +35,14 @@ function getGoogleApi() {
 *   onSuccess: function({ token: string, email: string, name: string }): void,
 *   onFailure: function(*): void
 * }} params
-* @returns {{signIn: function, googleAuthLoaded: boolean}}
+* @returns {{googleAuthLoaded: boolean, signIn: function, isSigningIn: boolean}}
 */
 const useGoogleLogin = ({
     onSuccess,
     onFailure,
 }) => {
     const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
+    const [isSigningIn, setIsSigningIn] = useState(false);
 
     function signIn(e) {
         // Prevent submit if used within form
@@ -54,6 +55,7 @@ const useGoogleLogin = ({
             return;
         }
 
+        setIsSigningIn(true);
         const GoogleAuth = getGoogleApi().auth2.getAuthInstance();
         GoogleAuth.signIn().then(
             (res) => {
@@ -64,8 +66,12 @@ const useGoogleLogin = ({
                     email: basicProfile.getEmail(),
                     name: basicProfile.getName(),
                 });
+                setIsSigningIn(false);
             },
-            err => onFailure(err),
+            (err) => {
+                onFailure(err);
+                setIsSigningIn(false);
+            },
         );
     }
 
@@ -91,7 +97,7 @@ const useGoogleLogin = ({
         return () => removeScript(document, 'google-login');
     }, []);
 
-    return {signIn, googleAuthLoaded};
+    return {googleAuthLoaded, signIn, isSigningIn};
 };
 
 export default useGoogleLogin;
