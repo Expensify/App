@@ -35,7 +35,7 @@ function getGoogleApi() {
  *
  * @returns {{
  *   googleAuthLoaded: boolean,
- *   signIn: function,
+ *   signIn: function(): void,
  *   isSigningIn: boolean,
  *   res: ({ token: string, email: string, name: string } | null),
  *   err: *
@@ -47,14 +47,10 @@ const useGoogleLogin = () => {
     const [res, setRes] = useState(null);
     const [err, setErr] = useState(null);
 
-    function signIn(e) {
-        // Prevent submit if used within form
-        if (e) {
-            e.preventDefault();
-        }
-
-        // Prevent signIn if Google Auth is not ready
-        if (!googleAuthLoaded) {
+    function signIn() {
+        // Prevent signIn if Google Auth is not ready, if there's previous signIn function running or if there was an
+        // already successful response.
+        if (!googleAuthLoaded || isSigningIn || res) {
             return;
         }
 
