@@ -23,7 +23,8 @@ const ReportActionItemCreated = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
 
     return (
-        <View style={[styles.chatContent,
+        <View style={[
+            styles.chatContent,
             styles.pb8,
             styles.p5,
         ]}
