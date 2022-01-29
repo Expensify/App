@@ -25,8 +25,7 @@ const ReportActionItemCreated = (props) => {
     return (
         <View style={[styles.chatContent,
             styles.pb8,
-            styles.ph5,
-            styles.pt5,
+            styles.p5,
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
