@@ -6,26 +6,41 @@ module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 1738:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
 const GitHubUtils = __nccwpck_require__(7999);
 const {promiseDoWhile} = __nccwpck_require__(4502);
 
-let currentStagingDeploys = [];
-promiseDoWhile(
-    () => !_.isEmpty(currentStagingDeploys),
-    _.throttle(
-        () => GitHubUtils.octokit.actions.listWorkflowRuns({
-            owner: GitHubUtils.GITHUB_OWNER,
-            repo: GitHubUtils.APP_REPO,
-            workflow_id: 'platformDeploy.yml',
-            event: 'push',
-        })
-            .then(response => currentStagingDeploys = _.filter(response.data.workflow_runs, workflowRun => workflowRun.status !== 'completed')),
-        GitHubUtils.POLL_RATE,
-    ),
-);
+function run() {
+    let currentStagingDeploys = [];
+    return promiseDoWhile(
+        () => !_.isEmpty(currentStagingDeploys),
+        _.throttle(
+            () => GitHubUtils.octokit.actions.listWorkflowRuns({
+                owner: GitHubUtils.GITHUB_OWNER,
+                repo: GitHubUtils.APP_REPO,
+                workflow_id: 'platformDeploy.yml',
+                event: 'push',
+            })
+                .then(response => currentStagingDeploys = _.filter(response.data.workflow_runs, workflowRun => workflowRun.status !== 'completed'))
+                .then(() => console.log(
+                    _.isEmpty(currentStagingDeploys)
+                        ? 'No current staging deploys found'
+                        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
+                )),
+
+            // Poll every 90 seconds instead of every 10 seconds
+            GitHubUtils.POLL_RATE * 9,
+        ),
+    );
+}
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
 
 
 /***/ }),
