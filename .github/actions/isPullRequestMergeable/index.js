@@ -11,7 +11,7 @@ module.exports =
 const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
 const GithubUtils = __nccwpck_require__(7999);
-const promiseWhile = __nccwpck_require__(4502);
+const {promiseWhile} = __nccwpck_require__(4502);
 
 const MAX_RETRIES = 30;
 const THROTTLE_DURATION = process.env.NODE_ENV === 'test' ? 5 : 5000;
