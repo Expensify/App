@@ -213,6 +213,7 @@ class BaseTextInput extends Component {
                                         {...inputProps}
                                         value={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                        placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
                                             styles.flex1,
