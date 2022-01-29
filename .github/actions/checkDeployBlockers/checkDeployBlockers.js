@@ -9,7 +9,7 @@ const run = function () {
 
     return GithubUtils.octokit.issues.get({
         owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+        repo: GithubUtils.APP_REPO,
         issue_number: issueNumber,
     })
         .then(({data}) => {
@@ -25,7 +25,7 @@ const run = function () {
 
             return GithubUtils.octokit.issues.listComments({
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                repo: GithubUtils.APP_REPO,
                 issue_number: issueNumber,
                 per_page: 100,
             });

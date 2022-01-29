@@ -17,7 +17,7 @@ const run = function () {
         () => !mergeabilityResolved && retryCount < MAX_RETRIES,
         _.throttle(() => GithubUtils.octokit.pulls.get({
             owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            repo: GithubUtils.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({data}) => {
