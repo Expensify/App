@@ -222,14 +222,16 @@ class ProfilePage extends Component {
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns.trim();
 
         // Determine if the avatar is changed or finished uploading
-        const isProfilePictureUnchanged = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL || this.state.isAvatarUpdated;
+        const disableSaveWhenAvatarIsProcessed = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL
+            || this.state.isAvatarUpdated
+            || this.props.myPersonalDetails.avatarUploading;
 
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
             && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && arePronounsUnchanged && isProfilePictureUnchanged && this.props.myPersonalDetails.avatarUploading;
+            && arePronounsUnchanged && disableSaveWhenAvatarIsProcessed;
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
