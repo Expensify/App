@@ -83,6 +83,7 @@ class ProfilePage extends Component {
             logins: this.getLogins(props.user.loginList),
             avatarImage: null,
             avatarPreviewURL: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)),
+            isAvatarUpdated: false,
         };
 
         this.getLogins = this.getLogins.bind(this);
@@ -92,15 +93,22 @@ class ProfilePage extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        let stateToUpdate = {};
+
         // Recalculate logins if loginList has changed
-        if (this.props.user.loginList === prevProps.user.loginList) {
+        if (this.props.user.loginList !== prevProps.user.loginList) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
+        }
+        if (this.props.myPersonalDetails.avatar !== this.state.avatarPreviewURL && this.props.myPersonalDetails.avatar !== prevProps.myPersonalDetails.avatar) {
+            stateToUpdate = {...stateToUpdate, isAvatarUpdated: true};
+        }
+
+        if (_.isEmpty(stateToUpdate)) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-            logins: this.getLogins(this.props.user.loginList),
-        });
+        this.setState(stateToUpdate);
     }
 
     /**
@@ -190,7 +198,7 @@ class ProfilePage extends Component {
 
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
-        const isProfilePictureUnchanged = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL;
+        const isProfilePictureUnchanged = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL || this.state.isAvatarUpdated;
 
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
@@ -214,8 +222,12 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.state.avatarPreviewURL}
-                            onImageSelected={img => this.setState({avatarImage: img, avatarPreviewURL: img.uri})}
-                            onImageRemoved={() => this.setState({avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login), avatarImage: null})}
+                            onImageSelected={img => this.setState({avatarImage: img, avatarPreviewURL: img.uri, isAvatarUpdated: false})}
+                            onImageRemoved={() => this.setState({
+                                avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login),
+                                avatarImage: null,
+                                isAvatarUpdated: false,
+                            })}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
