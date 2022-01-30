@@ -90,6 +90,8 @@ class ProfilePage extends Component {
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
+        this.setAvatar = this.setAvatar.bind(this);
+        this.removeAvatar = this.removeAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
