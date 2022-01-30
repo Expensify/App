@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
+import Tooltip from './Tooltip';
 import Text from './Text';
 
 const propTypes = {
@@ -21,6 +22,9 @@ const propTypes = {
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
+
+    /** Tooltip for the Avatar */
+    tooltip: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -46,48 +50,53 @@ const MultipleAvatars = (props) => {
     if (props.avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
-                <Avatar
-                    source={props.avatarImageURLs[0]}
-                    size={props.size}
-                    isChatRoom={props.isChatRoom}
-                    isArchivedRoom={props.isArchivedRoom}
-                />
+                <Tooltip text={props.tooltip}>
+                    <Avatar
+                        source={props.avatarImageURLs[0]}
+                        size={props.size}
+                        isChatRoom={props.isChatRoom}
+                        isArchivedRoom={props.isArchivedRoom}
+                    />
+                </Tooltip>
             </View>
         );
     }
 
     return (
-        <View pointerEvents="none" style={avatarContainerStyles}>
-            <View
-                style={singleAvatarStyles}
-            >
-                <Image
-                    source={{uri: props.avatarImageURLs[0]}}
-                    style={singleAvatarStyles}
-                />
+        <Tooltip text={props.tooltip}>
+            <View pointerEvents="none" style={avatarContainerStyles}>
+
                 <View
-                    style={secondAvatarStyles}
+                    style={singleAvatarStyles}
                 >
-                    {props.avatarImageURLs.length === 2 ? (
-                        <Image
-                            source={{uri: props.avatarImageURLs[1]}}
-                            style={singleAvatarStyles}
-                        />
-                    ) : (
-                        <View
-                            style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
-                        >
-                            <Text style={props.size === 'small'
-                                ? styles.avatarInnerTextSmall
-                                : styles.avatarInnerText}
+                    <Image
+                        source={{uri: props.avatarImageURLs[0]}}
+                        style={singleAvatarStyles}
+                    />
+                    <View
+                        style={secondAvatarStyles}
+                    >
+                        {props.avatarImageURLs.length === 2 ? (
+                            <Image
+                                source={{uri: props.avatarImageURLs[1]}}
+                                style={singleAvatarStyles}
+                            />
+                        ) : (
+                            <View
+                                style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
-                                {`+${props.avatarImageURLs.length - 1}`}
-                            </Text>
-                        </View>
-                    )}
+                                <Text style={props.size === 'small'
+                                    ? styles.avatarInnerTextSmall
+                                    : styles.avatarInnerText}
+                                >
+                                    {`+${props.avatarImageURLs.length - 1}`}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
             </View>
-        </View>
+        </Tooltip>
     );
 };
 
