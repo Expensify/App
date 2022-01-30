@@ -185,6 +185,7 @@ class ProfilePage extends Component {
         }
 
         // Checks if the user already has an avatar and removePhoto is triggered
+        // Avatar having `/images/avatars/avatar` in URL means a profile picture exists for the user
         if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar') && !this.state.avatarImage) {
             PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login);
         }
