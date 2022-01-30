@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
@@ -55,6 +56,18 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         },
     ];
 
+    /**
+     * Set the rate throttled by 3 seconds so the user does not have to type over the corrected value
+     */
+    updateRateValueThrottled = _.throttle((value) => {
+        this.setState({rateValue: this.getRateDisplayValue(value)});
+        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
+            customUnitRateID: this.state.rateID,
+            name: this.state.rateName,
+            rate: value,
+        }, null);
+    }, 3000, {leading: false, trailing: true});
+
     constructor(props) {
         super(props);
         this.state = {
@@ -63,36 +76,40 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
             rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
             rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: lodashGet(props, 'policy.customUnit.rate.value', 0).toString(),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', '')),
             rateCurrency: lodashGet(props, 'policy.customUnit.rate.currency', ''),
         };
     }
 
+    getRateDisplayValue(value) {
+        const numValue = parseFloat(value);
+        return !Number.isNaN(numValue)
+            ? numValue.toFixed(2).toString()
+            : '';
+    }
+
     setRate(value) {
-        const numValue = Number(value);
+        const numValue = parseFloat(value);
         if (Number.isNaN(numValue)) {
+            this.setState({rateValue: ''});
             return;
         }
 
+        // Set the immediate value so the user does not lose the input
         this.setState({rateValue: numValue.toString()});
 
-        const values = {
-            customUnitRateID: this.state.rateID,
-            name: this.state.rateName,
-            rate: numValue,
-        };
-        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, values, null);
+        // Set the corrected value with a delay and sync to the server
+        this.updateRateValueThrottled(numValue);
     }
 
     setUnit(value) {
         this.setState({unitValue: value});
 
-        const values = {
+        Policy.setCustomUnit(this.props.policyID, {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
-        };
-        Policy.setCustomUnit(this.props.policyID, values, null);
+        }, null);
     }
 
     render() {

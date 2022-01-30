@@ -432,27 +432,26 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} values
  */
 function setCustomUnit(policyID, values) {
-    const payload = {
+    API.Policy_CustomUnit_Update({
         policyID: policyID.toString(),
         customUnit: JSON.stringify(values),
         lastModified: null,
-    };
-    API.Policy_CustomUnit_Update(payload)
+    })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error();
             }
 
-            const localCustomUnit = {
-                id: values.customUnitID,
-                name: values.name,
-                value: values.attributes.unit,
-            };
-            updateLocalPolicyValues(policyID, {customUnit: localCustomUnit});
+            updateLocalPolicyValues(policyID, {
+                customUnit: {
+                    id: values.customUnitID,
+                    name: values.name,
+                    value: values.attributes.unit,
+                },
+            });
         }).catch(() => {
             // Show the user feedback
-            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-            Growl.error(errorMessage, 5000);
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
         });
 }
 
@@ -462,29 +461,29 @@ function setCustomUnit(policyID, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, customUnitID, values) {
-    const payload = {
+    API.Policy_CustomUnitRate_Update({
         policyID: policyID.toString(),
         customUnitID: customUnitID.toString(),
         customUnitRate: JSON.stringify(values),
         lastModified: null,
-    };
-
-    API.Policy_CustomUnitRate_Update(payload)
+    })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error();
             }
 
-            const localCustomUnitRate = {
-                id: values.customUnitRateID,
-                name: values.name,
-                value: Number(values.rate),
-            };
-            updateLocalPolicyValues(policyID, {customUnit: {rate: localCustomUnitRate}});
+            updateLocalPolicyValues(policyID, {
+                customUnit: {
+                    rate: {
+                        id: values.customUnitRateID,
+                        name: values.name,
+                        value: Number(values.rate),
+                    },
+                },
+            });
         }).catch(() => {
             // Show the user feedback
-            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-            Growl.error(errorMessage, 5000);
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
         });
 }
 
