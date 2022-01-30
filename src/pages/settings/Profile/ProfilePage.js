@@ -154,6 +154,25 @@ class ProfilePage extends Component {
     }
 
     /**
+     * Set avatar image
+     * @param {Object} img
+     */
+    setAvatar(img) {
+        this.setState({avatarImage: img, avatarPreviewURL: img.uri, isAvatarUpdated: false});
+    }
+
+    /**
+     * Remove the avatar image
+     */
+    removeAvatar() {
+        this.setState({
+            avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login),
+            avatarImage: null,
+            isAvatarUpdated: false,
+        });
+    }
+
+    /**
      * Submit form to update personal details
      */
     updatePersonalDetails() {
@@ -227,12 +246,8 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.state.avatarPreviewURL}
-                            onImageSelected={img => this.setState({avatarImage: img, avatarPreviewURL: img.uri, isAvatarUpdated: false})}
-                            onImageRemoved={() => this.setState({
-                                avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login),
-                                avatarImage: null,
-                                isAvatarUpdated: false,
-                            })}
+                            onImageSelected={this.setAvatar}
+                            onImageRemoved={this.removeAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
