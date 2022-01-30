@@ -138,15 +138,17 @@ class ReportDetailsPage extends Component {
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={this.props.report.icons[0]}
                             />
-                            <View style={styles.reportDetailsRoomInfo}>
-                                <DisplayNames
-                                    fullTitle={this.props.report.reportName}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.mb2]}
-                                    shouldUseFullTitle={isChatRoom}
-                                />
+                            <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
+                                <View style={[styles.alignSelfCenter, styles.w100]}>
+                                    <DisplayNames
+                                        fullTitle={this.props.report.reportName}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled
+                                        numberOfLines={1}
+                                        textStyles={[styles.headerText, styles.mb2]}
+                                        shouldUseFullTitle={isChatRoom}
+                                    />
+                                </View>
                                 <Text
                                     style={[
                                         styles.sidebarLinkText,

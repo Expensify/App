@@ -131,7 +131,7 @@ Network.registerRequestHandler((queuedRequest, finalParameters) => {
     Log.info('Making API request', false, {
         command: queuedRequest.command,
         type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.type,
+        shouldUseSecure: queuedRequest.shouldUseSecure,
         rvl: finalParameters.returnValueList,
     });
 });
@@ -359,8 +359,8 @@ function AddBillingCard(parameters) {
 
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.oldPassword
+ * @param {{password: String, oldPassword: String}} parameters
+ * @param {String} parameters.authToken
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -727,7 +727,7 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {string} parameters.email
  * @returns {Promise}
  */
 function ResetPassword(parameters) {
@@ -740,7 +740,7 @@ function ResetPassword(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
- * @param {String} parameters.accountID
+ * @param {Number} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
@@ -1168,6 +1168,19 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * Renames a user-created policy room
+ * @param {Object} parameters
+ * @param {String} parameters.reportID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['reportID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -1194,6 +1207,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
     DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
