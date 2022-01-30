@@ -413,6 +413,9 @@ export default {
             phrase4: 'Vista',
             phrase5: 'vacantes',
         },
+        googleButton: ({name}) => (name ? `Sesión iniciada: ${name}` : 'Google'),
+        emailOrPhoneNumber: 'Número de teléfono o email',
+        appleButton: 'Apple',
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',

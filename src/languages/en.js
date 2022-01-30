@@ -413,6 +413,9 @@ export default {
             phrase4: 'View',
             phrase5: 'open jobs',
         },
+        googleButton: ({name}) => (name ? `Signed in: ${name}` : 'Google'),
+        emailOrPhoneNumber: 'Phone Number or Email',
+        appleButton: 'Apple',
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
