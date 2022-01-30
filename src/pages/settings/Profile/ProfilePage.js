@@ -181,7 +181,10 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+            50,
+            [this.state.firstName.trim(), this.state.lastName.trim(), this.state.pronouns.trim()],
+        );
         this.setState({
             hasFirstNameError,
             hasLastNameError,
@@ -197,7 +200,9 @@ class ProfilePage extends Component {
         }));
 
         // Determines if the pronouns/selected pronouns have changed
-        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
+        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns.trim();
+
+        // Determine if the avatar is changed or finished uploading
         const isProfilePictureUnchanged = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL || this.state.isAvatarUpdated;
 
         // Disables button if none of the form values have changed

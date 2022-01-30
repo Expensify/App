@@ -103,6 +103,7 @@ function getUserDetails() {
             CONST.NVP.PAYPAL_ME_ADDRESS,
             CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
             CONST.NVP.FREQUENTLY_USED_EMOJIS,
+            CONST.NVP.BLOCKED_FROM_CONCIERGE,
         ].join(','),
     })
         .then((response) => {

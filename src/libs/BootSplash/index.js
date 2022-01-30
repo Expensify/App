@@ -1,4 +1,4 @@
 export default {
-    hide: () => Promise.resolve(),
+    hide: () => {},
     getVisibilityStatus: () => Promise.resolve('hidden'),
 };

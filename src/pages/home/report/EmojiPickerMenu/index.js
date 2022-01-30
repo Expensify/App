@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import * as StyleUtils from '../../../../styles/StyleUtils';
@@ -142,7 +143,9 @@ class EmojiPickerMenu extends Component {
 
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code, this.state.filteredEmojis[this.state.highlightedIndex]);
+                const item = this.state.filteredEmojis[this.state.highlightedIndex];
+                const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
+                this.props.onEmojiSelected(emoji, item);
                 return;
             }
 
@@ -242,7 +245,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Move in the prescribed direction until we reach an element that isn't a header
-            const isHeader = e => e.header || e.code === CONST.EMOJI_SPACER;
+            const isHeader = e => e.header || e.spacer;
             do {
                 newIndex += steps;
             } while (isHeader(this.state.filteredEmojis[newIndex]));
@@ -343,9 +346,12 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        const newFilteredEmojiList = _.filter(this.emojis, emoji => (
+        // Skip "Frequently Used" emojis to avoid duplicate results.
+        // Frequently used emojis are on the 0th index category. Hence, slice the array from the 1st index category onwards.
+        const uniqueEmojis = _.isEmpty(this.props.frequentlyUsedEmojis) ? this.emojis : this.emojis.slice(this.unfilteredHeaderIndices[1] * this.numColumns);
+        const newFilteredEmojiList = _.filter(uniqueEmojis, emoji => (
             !emoji.header
-            && emoji.code !== CONST.EMOJI_SPACER
+            && !emoji.spacer
             && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
         ));
 
