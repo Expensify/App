@@ -184,6 +184,7 @@ class ProfilePage extends Component {
             PersonalDetails.setAvatar(this.state.avatarImage);
         }
 
+        // Checks if the user already has an avatar and removePhoto is triggered
         if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar') && !this.state.avatarImage) {
             PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login);
         }
