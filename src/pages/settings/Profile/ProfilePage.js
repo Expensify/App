@@ -210,7 +210,7 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && arePronounsUnchanged && isProfilePictureUnchanged;
+            && arePronounsUnchanged && isProfilePictureUnchanged && this.props.myPersonalDetails.avatarUploading;
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
