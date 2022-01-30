@@ -129,6 +129,8 @@ const OptionRow = (props) => {
         },
     );
 
+    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip').join(', ');
+
     return (
         <Hoverable>
             {hovered => (
@@ -175,6 +177,7 @@ const OptionRow = (props) => {
                                         ]}
                                         isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
+                                        tooltip={avatarTooltip}
                                     />
                                 )
                             }
