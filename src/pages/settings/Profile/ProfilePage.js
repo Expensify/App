@@ -99,6 +99,7 @@ class ProfilePage extends Component {
         if (this.props.user.loginList !== prevProps.user.loginList) {
             stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
         }
+
         if (this.props.myPersonalDetails.avatar !== this.state.avatarPreviewURL && this.props.myPersonalDetails.avatar !== prevProps.myPersonalDetails.avatar) {
             stateToUpdate = {...stateToUpdate, isAvatarUpdated: true};
         }
