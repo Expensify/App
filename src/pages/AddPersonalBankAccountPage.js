@@ -28,15 +28,15 @@ const AddPersonalBankAccountPage = props => (
         <KeyboardAvoidingView>
             <HeaderWithCloseButton
                 title={props.translate('bankAccount.addBankAccount')}
-                onCloseButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={Navigation.goBack}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <AddPlaidBankAccount
                 onSubmit={({account, password, plaidLinkToken}) => {
                     BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
                 }}
-                onExitPlaid={() => Navigation.goBack()}
+                onExitPlaid={Navigation.goBack}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={props.plaidLinkToken}
                 isPasswordRequired
