@@ -80,6 +80,8 @@ class RoomNameInput extends Component {
         if (prevState.error !== this.state.error) {
             this.props.onChangeError(this.state.error);
         }
+
+        // If the selected policyID has changed we need to check if the room name already exists on this new policy.
         if (prevProps.policyID !== this.props.policyID) {
             this.checkAndModifyRoomName(this.state.roomName);
         }
