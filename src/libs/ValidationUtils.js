@@ -139,6 +139,19 @@ function isValidDebitCard(string) {
 }
 
 /**
+ *
+ * @param {String} nameOnCard
+ * @returns {Boolean}
+ */
+function isValidCardName(nameOnCard) {
+    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
+        return false;
+    }
+
+    return !_.isEmpty(nameOnCard.trim());
+}
+
+/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -257,6 +270,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isPositiveInteger(input) {
+    return CONST.REGEX.POSITIVE_INTEGER.test(input);
+}
+
+/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
@@ -265,14 +286,6 @@ function isNumericWithSpecialChars(input) {
     return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
-/**
- * Checks whether a given first or last name is valid length
- * @param {String} name
- * @returns {Boolean}
- */
-function isValidLengthForFirstOrLastName(name) {
-    return name.length <= 50;
-}
 
 /**
  * Checks the given number is a valid US Routing Number
@@ -296,10 +309,23 @@ function isValidRoutingNumber(number) {
     return false;
 }
 
+/**
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit.
+ *
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
+function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value.length > maxLength);
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
     isValidDate,
+    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -312,8 +338,10 @@ export {
     isValidURL,
     validateIdentity,
     isValidPassword,
+    isPositiveInteger,
     isNumericWithSpecialChars,
-    isValidLengthForFirstOrLastName,
     isValidPaypalUsername,
     isValidRoutingNumber,
+    isValidSSNLastFour,
+    doesFailCharacterLimit,
 };

@@ -5,7 +5,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
@@ -14,15 +14,19 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
+import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
-import SettlementButton from './SettlementButton';
 import Log from '../libs/Log';
+import SettlementButton from './SettlementButton';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
+
+    /** Callback to to parent modal to send money */
+    onSendMoney: PropTypes.func.isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -149,7 +153,7 @@ class IOUConfirmationList extends Component {
     onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onConfirm();
+            this.props.onSendMoney(value);
         } else {
             Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
@@ -365,7 +369,7 @@ class IOUConfirmationList extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
@@ -376,9 +380,9 @@ class IOUConfirmationList extends Component {
                 </View>
                 <FixedFooter>
                     {this.props.network.isOffline && (
-                        <ExpensifyText style={[styles.formError, styles.pb2]}>
+                        <Text style={[styles.formError, styles.pb2]}>
                             {this.props.translate('session.offlineMessage')}
-                        </ExpensifyText>
+                        </Text>
                     )}
                     {shouldShowSettlementButton ? (
                         <SettlementButton
@@ -387,13 +391,16 @@ class IOUConfirmationList extends Component {
                             onPress={this.onPress}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
-                            currency={this.props.localCurrencyCode}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             isLoading={isLoading}
-                            onPress={this.onPress}
+                            onPress={(_event, value) => this.onPress(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}

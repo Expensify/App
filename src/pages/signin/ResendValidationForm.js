@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
-import ExpensifyText from '../../components/ExpensifyText';
+import Button from '../../components/Button';
+import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -99,6 +99,8 @@ class ResendValidationForm extends React.Component {
                 login,
                 loginType,
             });
+        } else if (this.props.account.validateCodeExpired) {
+            message = this.props.translate('resendValidationForm.validationCodeFailedMessage');
         } else if (isOldUnvalidatedAccount) {
             message = this.props.translate('resendValidationForm.unvalidatedAccount');
         } else {
@@ -106,7 +108,6 @@ class ResendValidationForm extends React.Component {
                 login,
             });
         }
-
         return (
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
@@ -115,32 +116,34 @@ class ResendValidationForm extends React.Component {
                         imageStyles={[styles.mr2]}
                     />
                     <View style={[styles.flex1]}>
-                        <ExpensifyText style={[styles.textStrong]}>
+                        <Text style={[styles.textStrong]}>
                             {login}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 </View>
                 <View style={[styles.mv5]}>
-                    <ExpensifyText>
+                    <Text>
                         {message}
-                    </ExpensifyText>
+                    </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
-                    <ExpensifyText style={[styles.formSuccess]}>
+                    <Text style={[styles.formSuccess]}>
                         {this.state.formSuccess}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
-                        <ExpensifyText>
+                        <Text>
                             {this.props.translate('common.back')}
-                        </ExpensifyText>
+                        </Text>
                     </TouchableOpacity>
-                    <ExpensifyButton
+                    <Button
+                        medium
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        style={styles.resendLinkButton}
                     />
                 </View>
             </>

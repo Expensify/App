@@ -1,9 +1,9 @@
 import React, {PureComponent} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated, Text, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
-import ExpensifyButton from '../../../../components/ExpensifyButton';
+import Button from '../../../../components/Button';
+import Text from '../../../../components/Text';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
@@ -33,13 +33,13 @@ const defaultProps = {
     onClick: () => {},
 };
 
-const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
+const MARKER_INACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 class MarkerBadge extends PureComponent {
     constructor(props) {
         super(props);
-        this.translateY = new Animated.Value(MARKER_NOT_ACTIVE_TRANSLATE_Y);
+        this.translateY = new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y);
         this.show = this.show.bind(this);
         this.hide = this.hide.bind(this);
     }
@@ -62,7 +62,7 @@ class MarkerBadge extends PureComponent {
 
     hide() {
         Animated.spring(this.translateY, {
-            toValue: MARKER_NOT_ACTIVE_TRANSLATE_Y,
+            toValue: MARKER_INACTIVE_TRANSLATE_Y,
             duration: 80,
             useNativeDriver: true,
         }).start();
@@ -78,7 +78,7 @@ class MarkerBadge extends PureComponent {
                         styles.alignItemsCenter,
                     ]}
                     >
-                        <ExpensifyButton
+                        <Button
                             success
                             small
                             onPress={this.props.onClick}
@@ -102,7 +102,7 @@ class MarkerBadge extends PureComponent {
                             )}
                             shouldRemoveRightBorderRadius
                         />
-                        <ExpensifyButton
+                        <Button
                             success
                             small
                             style={[styles.buttonDropdown]}

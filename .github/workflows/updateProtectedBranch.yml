@@ -53,18 +53,18 @@ jobs:
 
       - name: Set New Version
         run: echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-      
-      - name: Decrypt Botify GPG key
+
+      - name: Decrypt OSBotify GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Import Botify GPG Key
+      - name: Import OSBotify GPG Key
         run: cd .github/workflows && gpg --import OSBotify-private-key.asc
 
-      - name: Set up git for Botify
+      - name: Set up git for OSBotify
         run: |
-          git config user.signingkey DBF63700F60F5530
+          git config user.signingkey 367811D53E34168C
           git config commit.gpgsign true
           git config user.name OSBotify
           git config user.email infra+osbotify@expensify.com
@@ -91,32 +91,11 @@ jobs:
           pr_body: Update version to ${{ env.NEW_VERSION }}
           pr_label: automerge
 
-      - name: Check if pull request is mergeable
-        id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
-      
-      - name: Leave comment if PR is not mergeable
-        if: ${{ !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          body: |
-            :bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable. 
-            If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process. 
-
-      - name: Fail workflow if PR is not mergeable
-        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
-        run: exit 1
-
       - name: Check changed files
         if: ${{ github.event.inputs.TARGET_BRANCH == 'main' }}
         id: changedFiles
         # Version: 3.3.0
-        uses: futuratrepadeira/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
+        uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -131,6 +110,27 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Check if pull request is mergeable
+        id: isPullRequestMergeable
+        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Leave comment if PR is not mergeable
+        if: ${{ !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          body: |
+            :bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable. 
+            If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process. 
+
+      - name: Fail workflow if PR is not mergeable
+        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        run: exit 1
 
       - name: Check for an auto merge
         # Version: 0.12.0

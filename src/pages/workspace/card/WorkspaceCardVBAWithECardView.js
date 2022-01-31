@@ -1,20 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import * as Link from '../../../libs/actions/Link';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 const WorkspaceCardVBAWithECardView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.card.headerWithEcard')}
         icon={Illustrations.CreditCardsBlue}
         menuItems={[
@@ -35,7 +35,7 @@ const WorkspaceCardVBAWithECardView = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <ExpensifyText>{props.translate('workspace.card.VBAWithECardCopy')}</ExpensifyText>
+            <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
         </View>
 
         <UnorderedList
@@ -46,7 +46,7 @@ const WorkspaceCardVBAWithECardView = props => (
                 props.translate('workspace.card.benefit4'),
             ]}
         />
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceCardVBAWithECardView.propTypes = propTypes;

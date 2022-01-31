@@ -6,7 +6,7 @@ import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import OptionRow from '../../pages/home/sidebar/OptionRow';
 import SectionList from '../SectionList';
-import ExpensifyText from '../ExpensifyText';
+import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 
 const propTypes = {
@@ -130,9 +130,9 @@ class BaseOptionsList extends Component {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
                 <View>
-                    <ExpensifyText style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
-                    </ExpensifyText>
+                    </Text>
                 </View>
             );
         }
@@ -145,9 +145,9 @@ class BaseOptionsList extends Component {
             <View style={this.props.listContainerStyles}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
-                        <ExpensifyText style={[styles.textLabel, styles.colorMuted]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
                             {this.props.headerMessage}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 ) : null}
                 <SectionList
@@ -158,7 +158,7 @@ class BaseOptionsList extends Component {
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    sections={this.props.sections}
+                    sections={_.filter(this.props.sections, section => section.data.length !== 0)}
                     keyExtractor={this.extractKey}
                     onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}

@@ -193,7 +193,9 @@ function processNetworkRequestQueue() {
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
             const shouldRetry = lodashGet(request, 'data.shouldRetry');
             if (shouldRetry && request.data.persist) {
-                retryableRequests.push(request);
+                // exclude functions as they cannot be persisted
+                const requestToPersist = _.omit(request, val => _.isFunction(val));
+                retryableRequests.push(requestToPersist);
                 return true;
             }
         });
@@ -226,7 +228,16 @@ function processNetworkRequestQueue() {
 
         processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
-            .catch(error => onError(queuedRequest, error));
+            .catch((error) => {
+                // When the request did not reach its destination add it back the queue to be retried
+                const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+                if (shouldRetry) {
+                    networkRequestQueue.push(queuedRequest);
+                    return;
+                }
+
+                onError(queuedRequest, error);
+            });
     });
 
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some

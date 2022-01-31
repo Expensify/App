@@ -1,8 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View,
-    ScrollView,
-} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -11,19 +8,22 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import StatePicker from '../../../components/StatePicker';
+import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
+import * as ComponentUtils from '../../../libs/ComponentUtils';
+import FormScrollView from '../../../components/FormScrollView';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -58,6 +58,7 @@ class DebitCardPage extends Component {
             addressState: '',
             addressZipCode: '',
             acceptedTerms: false,
+            password: '',
             errors: {},
             shouldShowAlertPrompt: false,
         };
@@ -70,6 +71,7 @@ class DebitCardPage extends Component {
             'addressStreet',
             'addressState',
             'addressZipCode',
+            'password',
             'acceptedTerms',
         ];
 
@@ -83,6 +85,7 @@ class DebitCardPage extends Component {
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            password: 'addDebitCardPage.error.password',
         };
 
         this.submit = this.submit.bind(this);
@@ -114,7 +117,7 @@ class DebitCardPage extends Component {
      */
     validate() {
         const errors = {};
-        if (_.isEmpty(this.state.nameOnCard.trim())) {
+        if (!ValidationUtils.isValidCardName(this.state.nameOnCard)) {
             errors.nameOnCard = true;
         }
 
@@ -130,10 +133,20 @@ class DebitCardPage extends Component {
             errors.securityCode = true;
         }
 
-        if (!ValidationUtils.isValidAddress(this.state.addressStreet)
-            || !this.state.addressState
-            || !ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+        if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
             errors.addressStreet = true;
+        }
+
+        if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+            errors.addressZipCode = true;
+        }
+
+        if (!this.state.addressState) {
+            errors.addressState = true;
+        }
+
+        if (_.isEmpty(this.state.password.trim())) {
+            errors.password = true;
         }
 
         if (!this.state.acceptedTerms) {
@@ -181,20 +194,17 @@ class DebitCardPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
+                    <FormScrollView
                         ref={el => this.form = el}
                     >
                         <View style={[styles.mh5, styles.mb5]}>
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addDebitCardPage.nameOnCard')}
                                 onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard', nameOnCard)}
                                 value={this.state.nameOnCard}
                                 errorText={this.getErrorText('nameOnCard')}
                             />
-                            <ExpensiTextInput
+                            <TextInput
                                 label={this.props.translate('addDebitCardPage.debitCardNumber')}
                                 containerStyles={[styles.mt4]}
                                 onChangeText={cardNumber => this.clearErrorAndSetValue('cardNumber', cardNumber)}
@@ -204,21 +214,24 @@ class DebitCardPage extends Component {
                             />
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex1, styles.mr2]}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                         onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                         value={this.state.expirationDate}
+                                        maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
-                                    <ExpensiTextInput
+                                    <TextInput
                                         label={this.props.translate('addDebitCardPage.cvv')}
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}
+                                        maxLength={4}
                                         errorText={this.getErrorText('securityCode')}
+                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     />
                                 </View>
                             </View>
@@ -226,9 +239,52 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                onChange={(values) => {
+                                    const renamedFields = {
+                                        street: 'addressStreet',
+                                        state: 'addressState',
+                                        zipCode: 'addressZipCode',
+                                    };
+                                    _.each(values, (value, inputKey) => {
+                                        if (inputKey === 'city') {
+                                            return;
+                                        }
+                                        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                        this.clearErrorAndSetValue(renamedInputKey, value);
+                                    });
+                                }}
                                 errorText={this.getErrorText('addressStreet')}
                             />
+                            <View style={[styles.flexRow, styles.mt4]}>
+                                <View style={[styles.flex2, styles.mr2]}>
+                                    <TextInput
+                                        label={this.props.translate('common.zip')}
+                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                                        value={this.state.addressZipCode}
+                                        errorText={this.getErrorText('addressZipCode')}
+                                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
+                                    <StatePicker
+                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                        value={this.state.addressState}
+                                        hasError={lodashGet(this.state.errors, 'addressState', false)}
+                                    />
+                                </View>
+                            </View>
+                            <View style={[styles.mt4]}>
+                                <TextInput
+                                    label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                    onChangeText={password => this.clearErrorAndSetValue('password', password)}
+                                    value={this.state.password}
+                                    errorText={this.getErrorText('password')}
+                                    textContentType="password"
+                                    autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                                    secureTextEntry
+                                />
+                            </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {
@@ -242,7 +298,7 @@ class DebitCardPage extends Component {
                                 }}
                                 LabelComponent={() => (
                                     <>
-                                        <ExpensifyText>{`${this.props.translate('common.iAcceptThe')}`}</ExpensifyText>
+                                        <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                         </TextLink>
@@ -255,9 +311,9 @@ class DebitCardPage extends Component {
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (
                             <View style={[styles.mh5, styles.mb5]}>
-                                <ExpensifyText style={[styles.formError]}>
+                                <Text style={[styles.formError]}>
                                     {this.props.addDebitCardForm.error}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         )}
                         <FormAlertWithSubmitButton
@@ -269,7 +325,7 @@ class DebitCardPage extends Component {
                             }}
                             isLoading={this.props.addDebitCardForm.submitting}
                         />
-                    </ScrollView>
+                    </FormScrollView>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

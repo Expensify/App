@@ -15,21 +15,21 @@ If we need some minimal set of styling rules applied to a single-use component t
 ```jsx
 // Bad - Since we only use this style once in this component
 const TextWithPadding = props => (
-    <ExpensifyText style={styles.textWithPadding}>
+    <Text style={styles.textWithPadding}>
         {props.children}
-    </ExpensifyText>
+    </Text>
 );
 
 // Good
 const TextWithPadding = props => (
-    <ExpensifyText
+    <Text
         style={[
             styles.p5,
             styles.noWrap,
         ]}
     >
         {props.children}
-    </ExpensifyText>
+    </Text>
 );
 ```
 
@@ -46,7 +46,7 @@ Any array of styles associated with a single type of React element that has at l
 - If a reusable style has 3 or more modifiers it should be refactored into a component with props to modify the styles e.g.
 
 ```jsx
-<ExpensifyButton title="Submit" success large />
+<Button title="Submit" success large />
 ```
 
 ## Inline Styles
@@ -56,24 +56,24 @@ Any array of styles associated with a single type of React element that has at l
 ```jsx
 // Bad - Do not use inline styles
 const TextWithPadding = props => (
-    <ExpensifyText style={{
+    <Text style={{
         padding: 10,
         whiteSpace: props.shouldWrap ? 'wrap' : 'nowrap',
     }}>
         {props.children}
-    </ExpensifyText>
+    </Text>
 );
 
 // Good
 const TextWithPadding = props => (
-    <ExpensifyText
+    <Text
         style={[
             styles.p5,
             getTextWrapStyle(props.shouldWrap)
         ]}
     >
         {props.children}
-    </ExpensifyText>
+    </Text>
 );
 ```
 
@@ -85,34 +85,34 @@ There are many styles in the `styles.js` file. It is generally a bad practice to
 // Bad - Reuses style without generalizing style name
 const SettingsScreen = props => (
     <View>
-        <ExpensifyText style={[styles.settingsScreenText]}>
+        <Text style={[styles.settingsScreenText]}>
             Expensify
-        </ExpensifyText>
+        </Text>
     </View>
 );
 
 const SomeOtherScreen = props => (
     <View>
-        <ExpensifyText style={[styles.settingsScreenText]}>
+        <Text style={[styles.settingsScreenText]}>
             New Expensify
-        </ExpensifyText>
+        </Text>
     </View>
 );
 
 // Good
 const SettingsScreen = props => (
     <View>
-        <ExpensifyText style={[styles.defaultScreenText]}>
+        <Text style={[styles.defaultScreenText]}>
             Expensify
-        </ExpensifyText>
+        </Text>
     </View>
 );
 
 const SomeOtherScreen = props => (
     <View>
-        <ExpensifyText style={[styles.defaultScreenText]}>
+        <Text style={[styles.defaultScreenText]}>
             New Expensify
-        </ExpensifyText>
+        </Text>
     </View>
 );
 ```
@@ -193,7 +193,7 @@ The only time we should allow a component to have a `style` prop with `PropTypes
 ```jsx
 // Good
 const CustomText = props => (
-    <ExpensifyText style={props.style}>{props.children}</ExpensifyText>
+    <Text style={props.style}>{props.children}</Text>
 );
 
 // Good
@@ -202,14 +202,14 @@ const CustomText = props => {
             ? props.style
             : [props.style];
 }(
-    <ExpensifyText
+    <Text
         style={[
             styles.defaultCustomText,
             ...propsStyle,
         ]}
     >
         {props.children}
-    </ExpensifyText>
+    </Text>
 );
 ```
 

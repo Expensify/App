@@ -4,6 +4,7 @@ import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
 import Bill from '../../../assets/images/bill.svg';
+import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
@@ -14,12 +15,14 @@ import Checkmark from '../../../assets/images/checkmark.svg';
 import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
+import Exit from '../../../assets/images/exit.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
@@ -28,6 +31,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
+import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
@@ -50,12 +54,14 @@ import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
+import QuestionMark from '../../../assets/images/question-mark-circle.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
-import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
+import Transfer from '../../../assets/images/transfer.svg';
+import ThreeDots from '../../../assets/images/three-dots.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import UpArrow from '../../../assets/images/arrow-up.svg';
 import Upload from '../../../assets/images/upload.svg';
@@ -63,7 +69,6 @@ import Users from '../../../assets/images/users.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
-import ThreeDots from '../../../assets/images/three-dots.svg';
 
 export {
     Android,
@@ -72,6 +77,7 @@ export {
     BackArrow,
     Bank,
     Bill,
+    Bolt,
     Briefcase,
     Building,
     Bug,
@@ -82,12 +88,14 @@ export {
     CircleHourglass,
     Clipboard,
     Close,
+    ClosedSign,
     Concierge,
     CreditCard,
     DownArrow,
     Download,
     Emoji,
     Exclamation,
+    Exit,
     Eye,
     EyeDisabled,
     ExpensifyCard,
@@ -96,6 +104,7 @@ export {
     Hashtag,
     Info,
     Invoice,
+    Keyboard,
     Link,
     LinkCopy,
     Lock,
@@ -118,12 +127,14 @@ export {
     Plus,
     Printer,
     Profile,
+    QuestionMark,
     Receipt,
     ReceiptSearch,
     RotateLeft,
     Send,
-    SignOut,
     Sync,
+    Transfer,
+    ThreeDots,
     Trashcan,
     UpArrow,
     Upload,
@@ -131,5 +142,4 @@ export {
     Venmo,
     Wallet,
     Workspace,
-    ThreeDots,
 };

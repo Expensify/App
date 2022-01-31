@@ -223,11 +223,11 @@ created to house a collection of items in plural form and using camelCase (eg: p
 ## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
 
-- If you export a constant named `CONST` it's file/directory should be named the `CONST`.
-- If you export a component named `Text` the file/directory should be named `Text`.
-- If you export a function named `guid` the file/directory should be named `guid`.
+- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
+- If you export a component named `Text`, the file/directory should be named `Text`.
+- If you export a function named `guid`, the file/directory should be named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- HOCs should be named in camelCase like withOnyx.
+- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
@@ -333,7 +333,7 @@ localize the following types of data when presented to the user (even accessibil
 
 - Texts: See [translate method](https://github.com/Expensify/App/blob/655ba416d552d5c88e57977a6e0165fb7eb7ab58/src/libs/translate.js#L15)
 - Date/time: see [DateUtils](https://github.com/Expensify/App/blob/f579946fbfbdc62acc5bd281dc75cabb803d9af0/src/libs/DateUtils.js)
-- Numbers and amounts: see [numberFormat](https://github.com/Expensify/App/tree/965f92fc2a5a2a0d01e6114bf5aa8755b9d9fd1a/src/libs/numberFormat)
+- Numbers and amounts: see [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
 In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/App/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).

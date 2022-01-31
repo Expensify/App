@@ -11,7 +11,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ExpensifyButton from '../../../components/ExpensifyButton';
+import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 
@@ -95,6 +95,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
+        this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
@@ -163,13 +164,13 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <ExpensifyButton
+                    <Button
                         small
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
-                    <ExpensifyButton
+                    <Button
                         small
                         success
                         style={[styles.mr2]}

@@ -9,8 +9,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
-import ExpensifyText from '../../components/ExpensifyText';
+import Button from '../../components/Button';
+import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
@@ -18,9 +18,9 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
-import ExpensiPicker from '../../components/ExpensiPicker';
+import Picker from '../../components/Picker';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -122,9 +122,10 @@ class WorkspaceSettingsPage extends React.Component {
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.common.settings')}
                 route={this.props.route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
                 footer={(
                     <FixedFooter style={[styles.w100]}>
-                        <ExpensifyButton
+                        <Button
                             success
                             isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
@@ -155,7 +156,7 @@ class WorkspaceSettingsPage extends React.Component {
                             onImageRemoved={this.removeAvatar}
                         />
 
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('workspace.editor.nameInputLabel')}
                             containerStyles={[styles.mt4]}
                             onChangeText={name => this.setState({name})}
@@ -165,7 +166,7 @@ class WorkspaceSettingsPage extends React.Component {
                         />
 
                         <View style={[styles.mt4]}>
-                            <ExpensiPicker
+                            <Picker
                                 label={this.props.translate('workspace.editor.currencyInputLabel')}
                                 onChange={currency => this.setState({currency})}
                                 items={this.getCurrencyItems()}
@@ -173,9 +174,9 @@ class WorkspaceSettingsPage extends React.Component {
                                 isDisabled={hasVBA}
                             />
                         </View>
-                        <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </ExpensifyText>
+                        </Text>
                     </View>
                 )}
             </WorkspacePageWithSections>

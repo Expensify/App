@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
@@ -115,7 +115,7 @@ const defaultMenuItems = [
     },
     {
         translationKey: 'initialSettingsPage.signOut',
-        icon: Expensicons.SignOut,
+        icon: Expensicons.Exit,
         action: Session.signOut,
     },
 ];
@@ -169,19 +169,19 @@ const InitialSettingsPage = (props) => {
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
-                            <ExpensifyText style={[styles.displayName]} numberOfLines={1}>
+                            <Text style={[styles.displayName]} numberOfLines={1}>
                                 {props.myPersonalDetails.displayName
                                     ? props.myPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
-                            </ExpensifyText>
+                            </Text>
                         </Pressable>
                         {props.myPersonalDetails.displayName && (
-                            <ExpensifyText
+                            <Text
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(props.session.email)}
-                            </ExpensifyText>
+                            </Text>
                         )}
                     </View>
                     {_.map(menuItems, (item, index) => {

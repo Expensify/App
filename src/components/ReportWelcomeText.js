@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -67,33 +67,46 @@ const ReportWelcomeText = (props) => {
         },
     );
     const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
-        <ExpensifyText style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
-            <ExpensifyText>
-                {!props.shouldIncludeParticipants
-                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
-                    : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
-            </ExpensifyText>
-            {!props.shouldIncludeParticipants && <ExpensifyText style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</ExpensifyText>}
-            {!props.shouldIncludeParticipants && <ExpensifyText>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</ExpensifyText>}
-            {props.shouldIncludeParticipants
-            && (
-                <>
-                    {_.map(chatUsers, ({displayName, pronouns}, index) => (
-                        <ExpensifyText key={displayName}>
-                            <ExpensifyText style={[styles.textStrong]}>
-                                {displayName}
-                            </ExpensifyText>
-                            {!_.isEmpty(pronouns) && <ExpensifyText>{` (${pronouns})`}</ExpensifyText>}
-                            {(index === chatUsers.length - 1) && <ExpensifyText>.</ExpensifyText>}
-                            {(index === chatUsers.length - 2) && <ExpensifyText>{` ${props.translate('common.and')} `}</ExpensifyText>}
-                            {(index < chatUsers.length - 2) && <ExpensifyText>, </ExpensifyText>}
-                        </ExpensifyText>
-                    ))}
-                </>
-            )}
-        </ExpensifyText>
+        <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
+            {!props.shouldIncludeParticipants
+                ? (
+                    <>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
+                        </Text>
+                        <Text style={[styles.textStrong]}>
+                            {lodashGet(chatUsers, '[0].displayName', '')}
+                        </Text>
+                        <Text>
+                            {isResctrictedRoom
+                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
+                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        </Text>
+                    </>
+                ) : (
+                    <>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                        </Text>
+                        {_.map(chatUsers, ({displayName, pronouns}, index) => (
+                            <Text key={displayName}>
+                                <Text style={[styles.textStrong]}>
+                                    {displayName}
+                                </Text>
+                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {(index === chatUsers.length - 1) && <Text>.</Text>}
+                                {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                                {(index < chatUsers.length - 2) && <Text>, </Text>}
+                            </Text>
+                        ))}
+                    </>
+                )}
+        </Text>
     );
 };
 

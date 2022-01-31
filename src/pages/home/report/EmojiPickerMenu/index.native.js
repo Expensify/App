@@ -7,7 +7,7 @@ import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import ExpensifyText from '../../../../components/ExpensifyText';
+import Text from '../../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
@@ -79,15 +79,15 @@ class EmojiPickerMenu extends Component {
      */
     renderItem({item}) {
         const {code, types} = item;
-        if (item.code === CONST.EMOJI_SPACER) {
+        if (item.spacer) {
             return null;
         }
 
         if (item.header) {
             return (
-                <ExpensifyText style={styles.emojiHeaderStyle}>
-                    {item.code}
-                </ExpensifyText>
+                <Text style={styles.emojiHeaderStyle}>
+                    {this.props.translate(`emojiPicker.headers.${item.code}`)}
+                </Text>
             );
         }
 

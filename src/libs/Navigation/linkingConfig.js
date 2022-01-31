@@ -40,6 +40,10 @@ export default {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
+                    Settings_Close: {
+                        path: ROUTES.SETTINGS_CLOSE,
+                        exact: true,
+                    },
                     Settings_Password: {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
@@ -50,6 +54,18 @@ export default {
                     },
                     Settings_Payments: {
                         path: ROUTES.SETTINGS_PAYMENTS,
+                        exact: true,
+                    },
+                    Settings_Payments_EnablePayments: {
+                        path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                        exact: true,
+                    },
+                    Settings_Payments_Transfer_Balance: {
+                        path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                        exact: true,
+                    },
+                    Settings_Payments_Choose_Transfer_Account: {
+                        path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
                         exact: true,
                     },
                     Settings_Add_Paypal_Me: {
@@ -117,11 +133,19 @@ export default {
                         path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
+                    GetAssistance: {
+                        path: ROUTES.GET_ASSISTANCE,
+                    },
                 },
             },
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                },
+            },
+            Report_Settings: {
+                screens: {
+                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
                 },
             },
             NewGroup: {
@@ -166,12 +190,17 @@ export default {
                 screens: {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
-                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
+                    IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
+                    IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
+                    IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
             IOU_Details: {
                 screens: {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
+                    IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
+                    IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
+                    IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
                 },
             },
             AddPersonalBankAccount: {

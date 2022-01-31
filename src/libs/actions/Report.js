@@ -10,6 +10,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -20,6 +21,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -143,7 +145,7 @@ function getChatReportName(fullReport, chatType) {
     }
 
     // For a basic policy room, return its original name
-    if (ReportUtils.isPolicyRoom({chatType})) {
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return fullReport.reportName;
     }
 
@@ -181,18 +183,22 @@ function getSimplifiedReportObject(report) {
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
             .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
+    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
+    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
 
     return {
         reportID: report.reportID,
@@ -217,6 +223,7 @@ function getSimplifiedReportObject(report) {
         stateNum: report.state,
         statusNum: report.status,
         oldPolicyName,
+        visibility,
     };
 }
 
@@ -551,7 +558,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -579,7 +586,10 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        messageText = lodashGet(reportAction, 'originalMessage.html', '');
+    }
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
@@ -597,7 +607,7 @@ function updateReportWithNewAction(
     // a chat participant in another application), then the last message text and author needs to be updated as well
     if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 
@@ -1079,7 +1089,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
@@ -1100,7 +1110,7 @@ function addAction(reportID, text, file) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
-        lastMessageText: textForNewComment,
+        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
     });
 
@@ -1158,8 +1168,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: commentText,
         file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
@@ -1176,6 +1186,18 @@ function addAction(reportID, text, file) {
                 console.error(response.message);
                 return;
             }
+
+            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+                return;
+            }
+
             updateReportWithNewAction(reportID, response.reportAction);
         });
 }
@@ -1267,16 +1289,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
     const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
 
-    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
-    // doing an unnecessary server call if the last read is the same one we had already
-    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
-        return;
-    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
-        accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
     });
@@ -1523,12 +1539,41 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
+}
+
+/**
+ * Renames a user created Policy Room.
+ * @param {String} reportID
+ * @param {String} reportName
+ */
+function renameReport(reportID, reportName) {
+    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
+    API.RenameReport({reportID, reportName})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Growl.error(response.message);
+                return;
+            }
+            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
+
+            // Update the report name so that the LHN and header display the updated name
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
 export {
@@ -1560,5 +1605,6 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    renameReport,
     getLastReadSequenceNumber,
 };

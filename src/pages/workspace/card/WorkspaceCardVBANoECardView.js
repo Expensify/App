@@ -1,12 +1,12 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Link from '../../../libs/actions/Link';
 import * as User from '../../../libs/actions/User';
@@ -20,7 +20,7 @@ const propTypes = {
 
 const WorkspaceCardVBANoECardView = props => (
     <>
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.card.header')}
             icon={Illustrations.JewelBoxBlue}
             menuItems={[
@@ -44,11 +44,11 @@ const WorkspaceCardVBANoECardView = props => (
                     props.translate('workspace.card.benefit4'),
                 ]}
             />
-        </WorkspaceSection>
+        </Section>
         {props.user.isCheckingDomain && (
-            <ExpensifyText style={[styles.m5, styles.formError]}>
+            <Text style={[styles.m5, styles.formError]}>
                 {props.translate('workspace.card.checkingDomain')}
-            </ExpensifyText>
+            </Text>
         )}
     </>
 );

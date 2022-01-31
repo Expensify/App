@@ -10,6 +10,7 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Report from './Report';
 
 const allPolicies = {};
 Onyx.connect({
@@ -111,6 +112,9 @@ function create(name = '') {
             }
             res = response;
 
+            // Fetch the default reports on the policy
+            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce]);
+
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                 employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
@@ -149,7 +153,7 @@ function deletePolicy(policyID) {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
                 Growl.error(errorMessage, 5000);
                 return;
             }
@@ -158,7 +162,9 @@ function deletePolicy(policyID) {
 
             // Removing the workspace data from Onyx as well
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
-        }).then(() => {
+        })
+        .then(() => Report.fetchAllReports(false, true))
+        .then(() => {
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.HOME);
             return Promise.resolve();
@@ -202,7 +208,10 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(() => navigateToPolicy(newPolicyID));
+        .then(() => {
+            Navigation.dismissModal();
+            navigateToPolicy(newPolicyID);
+        });
 }
 
 /**
@@ -400,6 +409,14 @@ function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
+/**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -414,4 +431,5 @@ export {
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
+    updateLastAccessedWorkspace,
 };

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import ExpensifyText from './ExpensifyText';
+import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
 
@@ -12,12 +12,12 @@ const propTypes = {
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
     /** Whether this avatar is for a custom/default room */
-    isDefaultChatRoom: PropTypes.bool,
+    isChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
-    isDefaultChatRoom: false,
+    isChatRoom: false,
 };
 
 const EmptyStateAvatars = (props) => {
@@ -25,12 +25,12 @@ const EmptyStateAvatars = (props) => {
         return null;
     }
 
-    if (props.avatarImageURLs.length === 1 || props.isDefaultChatRoom) {
+    if (props.avatarImageURLs.length === 1 || props.isChatRoom) {
         return (
             <Avatar
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
-                isDefaultChatRoom={props.isDefaultChatRoom}
+                isChatRoom={props.isChatRoom}
             />
         );
     }
@@ -53,9 +53,9 @@ const EmptyStateAvatars = (props) => {
                                         styles.screenBlur,
                                     ]}
                                 />
-                                <ExpensifyText style={styles.avatarInnerTextChat}>
+                                <Text style={styles.avatarInnerTextChat}>
                                     {`+${props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
-                                </ExpensifyText>
+                                </Text>
                             </>
                         )}
                     </View>

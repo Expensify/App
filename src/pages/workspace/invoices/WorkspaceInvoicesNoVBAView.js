@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
@@ -22,7 +22,7 @@ const WorkspaceInvoicesNoVBAView = props => (
     <>
         <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
             icon={Illustrations.JewelBoxGreen}
             menuItems={[
@@ -36,9 +36,9 @@ const WorkspaceInvoicesNoVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <ExpensifyText>{props.translate('workspace.invoices.unlockNoVBACopy')}</ExpensifyText>
+                <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

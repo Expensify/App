@@ -41,7 +41,7 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
@@ -49,6 +49,8 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
 
 const propTypes = {
     /** Beta features list */
@@ -124,6 +126,8 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
+        this.dimensionsEventListener = null;
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -172,7 +176,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     componentDidUpdate(prevProps) {
@@ -195,7 +199,11 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
+
+        if (!this.dimensionsEventListener) {
+            return;
+        }
+        this.dimensionsEventListener.remove();
     }
 
     onSelectionChange(e) {
@@ -345,6 +353,20 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
+
+        this.textInput.scrollTop = this.textInput.scrollHeight;
+    }
+
+    /**
+     * As of January 2022, the VirtualKeyboard web API is not available in all browsers yet
+     * If it is unavailable, we default to assuming that the virtual keyboard is open on touch-enabled devices.
+     * See https://github.com/Expensify/App/issues/6767 for additional context.
+     *
+     * @returns {Boolean}
+     */
+    shouldAssumeVirtualKeyboardIsOpen() {
+        const isOpen = VirtualKeyboard.isOpen();
+        return _.isNull(isOpen) ? canUseTouchScreen() : isOpen;
     }
 
     /**
@@ -353,7 +375,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e) {
+        if (!e || this.shouldAssumeVirtualKeyboardIsOpen()) {
             return;
         }
 
@@ -477,7 +499,6 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -498,9 +519,9 @@ class ReportActionCompose extends React.Component {
             ]}
             >
                 {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} currentUserTimezone={currentUserTimezone} />}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
-                    (this.state.isFocused || this.state.isDraggingOver)
+                    (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
@@ -697,12 +718,16 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty
-                                        ? styles.buttonDisable : styles.buttonSuccess]}
+                                style={[
+                                    styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                                hitSlop={{
+                                    top: 3, right: 3, bottom: 3, left: 3,
+                                }}
                             >
                                 <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
                             </TouchableOpacity>
@@ -721,9 +746,9 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <ExpensifyText style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                                 {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </ExpensifyText>
+                            </Text>
                         </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}

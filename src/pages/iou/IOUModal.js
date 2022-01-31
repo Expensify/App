@@ -25,7 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../ROUTES';
 
 /**
@@ -78,9 +77,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
-    /** The user's current wallet status and step */
-    userWallet: userWalletPropTypes.userWallet,
-
     ...withLocalizePropTypes,
 };
 
@@ -93,7 +89,6 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -111,6 +106,7 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
+        this.sendMoney = this.sendMoney.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
@@ -121,8 +117,6 @@ class IOUModal extends Component {
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
-        this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
             previousStepIndex: 0,
@@ -161,8 +155,7 @@ class IOUModal extends Component {
             this.setState({currentStepIndex: 0});
         }
 
-        if (prevProps.iou.selectedCurrencyCode
-            !== this.props.iou.selectedCurrencyCode) {
+        if (prevProps.iou.selectedCurrencyCode !== this.props.iou.selectedCurrencyCode) {
             IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
         }
     }
@@ -193,6 +186,7 @@ class IOUModal extends Component {
      */
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
+        const isSendingMoney = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             const formattedAmount = this.props.numberFormat(
                 this.state.amount, {
@@ -200,7 +194,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.isSendRequest) {
+            if (isSendingMoney) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -212,7 +206,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.isSendRequest) {
+            if (isSendingMoney) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -221,6 +215,22 @@ class IOUModal extends Component {
         return this.props.translate(this.steps[currentStepIndex]) || '';
     }
 
+    /**
+     * Update comment whenever user enters any new text
+     *
+     * @param {String} comment
+     */
+    updateComment(comment) {
+        this.setState({
+            comment,
+        });
+    }
+
+    /**
+     * Update participants whenever user selects the payment recipient
+     *
+     * @param {Array} participants
+     */
     addParticipants(participants) {
         this.setState({
             participants,
@@ -247,6 +257,7 @@ class IOUModal extends Component {
         if (this.state.currentStepIndex >= this.steps.length - 1) {
             return;
         }
+
         this.setState(prevState => ({
             previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex + 1,
@@ -254,27 +265,46 @@ class IOUModal extends Component {
     }
 
     /**
-     * Update comment whenever user enters any new text
+     * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
      *
-     * @param {String} comment
+     * @param {String} paymentMethodType
      */
-    updateComment(comment) {
-        this.setState({
+    sendMoney(paymentMethodType) {
+        const amount = Math.round(this.state.amount * 100);
+        const currency = this.props.iou.selectedCurrencyCode;
+        const comment = this.state.comment;
+
+        const newIOUReportDetails = JSON.stringify({
+            amount,
+            currency,
+            requestorEmail: this.state.participants[0].login,
             comment,
+            idempotencyKey: Str.guid(),
         });
+
+        IOU.payIOUReport({
+            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
+            reportID: 0,
+            paymentMethodType,
+            amount,
+            currency,
+            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
+            requestorPhoneNumber: this.state.participants[0].phoneNumber,
+            comment,
+            newIOUReportDetails,
+        })
+            .finally(() => {
+                Navigation.navigate(ROUTES.REPORT);
+            });
     }
 
     /**
+     * Create the IOU transaction
+     *
      * @param {Array} [splits]
      */
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
-
-        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
-        if (this.isSendRequest && !this.hasGoldWallet) {
-            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
-            return;
-        }
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -290,11 +320,12 @@ class IOUModal extends Component {
             });
             return;
         }
+
         if (splits) {
             IOU.createIOUSplit({
                 comment: this.state.comment,
 
-                // should send in cents to API
+                // Send in cents to API.
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
                 splits,
@@ -305,7 +336,7 @@ class IOUModal extends Component {
         IOU.createIOUTransaction({
             comment: this.state.comment,
 
-            // should send in cents to API
+            // Send in cents to API.
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
@@ -398,13 +429,13 @@ class IOUModal extends Component {
                                         >
                                             <IOUConfirmPage
                                                 onConfirm={this.createTransaction}
+                                                onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={this.state.participants}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
                                                 isGroupSplit={this.steps.length === 2}
                                             />
                                         </AnimatedStep>
@@ -439,9 +470,6 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);
