@@ -28,7 +28,7 @@ The broader and better contextualized the problem definition, the greater opport
 Draft as many solutions as you can for each problem, including any existing workarounds - “Do nothing” is always a potential solution. Be as creative or audacious as you want when workshopping potential solutions.
 
 Once you have your solutions, it’s time to decide on the preferred solution (alternate solutions may be included at a later stage). Aspects that may promote one solution to “preferred” status:
-- ROI - the current value of the problem, versus the cost of your solution
+- ROI (return on investment) - the current value of the problem, versus the cost of your solution
 - Work involved - is one solution just as effective but would take half the time to create?
 - Adding or moving “things” - does one solution have less consumer impact?
 - Future-proofing - does one solution have more longevity or pave the way for future development?
