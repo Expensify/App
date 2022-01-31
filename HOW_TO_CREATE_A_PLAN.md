@@ -42,4 +42,4 @@ Have a trusted peer or two proof your P/S statement and help you ensure it is we
 ## Step 4: Propose it
 Once you have a well-defined problem and solution, post your problem and solution as separate comments in ​​#expensify-open-source in Slack and be prepared to answer questions and defend your choices. Also, be prepared to hear better solutions that may completely change your P/S statement. 
 
-Depending on the complexity of the P/S Statement, a Design Doc may be required.
+Depending on the complexity of the P/S Statement, an internal Design Doc may be required (Expensify employees will take it from there).
