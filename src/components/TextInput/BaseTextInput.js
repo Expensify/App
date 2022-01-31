@@ -146,9 +146,6 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
-        if (this.input) {
-            this.input.value = this.value;
-        }
         return (
             <View>
                 <View
