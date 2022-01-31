@@ -19,16 +19,16 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
-    /** flag to disable the emoji picker button */
+    /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
-    /** callback on emoji popover hide */
+    /** Callback on emoji popover hide */
     onModalHide: PropTypes.func,
 
-    /** callback on before showing emoji picker */
+    /** Callback on before showing emoji picker */
     onBeforeShowEmojiPicker: PropTypes.func,
 
-    /** callback on emoji selection */
+    /** Callback on emoji selection */
     onEmojiSelected: PropTypes.func.isRequired,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
