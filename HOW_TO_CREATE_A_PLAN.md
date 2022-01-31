@@ -15,7 +15,7 @@ What is the problem that needs solving?
 - Does this affect the customer experience? How so? 
 - How many customers would be affected by this?
 - Define why it is a problem
-- Resist the temptation to reverse-engineer a Solution into a matching Problem.  (ie. Problem: We don’t have a car. Solution: Buy a car) 
+- Resist the temptation to reverse-engineer a Solution into a matching Problem.  (ie. Solution: Let's get a car! Problem: We don’t have a car.) 
 - There may be more than one problem, so define all of them
 - Keep the language simple - Reduce every word down to its most plain and straightforward manner.  Avoid jargon. If you use abbreviations, include the full spelling the first time.
 - Tear apart your statements and have others tear them apart for you until everybody agrees unambiguously as to the nature of the problem. If needed, continue the discussion in #expensify-open-source.
