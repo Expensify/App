@@ -34,4 +34,7 @@ module.exports = {
         '../src/libs/checkForUpdates.js',
         '../src/CONST/ENVIRONMENT.js',
     ],
+    directories: {
+        output: '../desktop-build',
+    },
 };
