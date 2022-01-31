@@ -90,9 +90,14 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const shouldShowResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = shouldShowResendValidationLinkForm
-            ? ''
-            : this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'welcome'}`);
+        let welcomeText = '';
+        if (!shouldShowResendValidationLinkForm) {
+            if (this.state.showSignInOptions) {
+                welcomeText = this.props.translate('welcomeText.welcome');
+            } else {
+                welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'enterPhoneOrEmail'}`);
+            }
+        }
 
         return (
             <SafeAreaView style={[styles.signInPage]}>
@@ -100,14 +105,14 @@ class SignInPage extends Component {
                     welcomeText={welcomeText}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
                 >
-                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    { this.state.showSignInOptions ? (
+                    { (this.state.showSignInOptions && !shouldShowResendValidationLinkForm) ? (
                         <SignInOptions
                             onEmailOrPhoneNumberPress={() => this.setState({showSignInOptions: false})}
                         />
                     ) : (
                         <>
+                            {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
+                            so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                             <LoginForm
                                 isVisible={showLoginForm}
                                 onCancel={() => this.setState({showSignInOptions: true})}

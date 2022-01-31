@@ -138,7 +138,8 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to the New Expensify! How would you like to connect?',
+        enterPhoneOrEmail: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',

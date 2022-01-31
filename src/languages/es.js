@@ -138,7 +138,8 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo. ¿Cómo te gustaría conectar?',
+        enterPhoneOrEmail: 'Con el Nuevo Expensify, chat y pagos son lo mismo. Ingresa tu número de teléfono o correo electrónico para continuar.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
