@@ -62,21 +62,10 @@ class Form extends React.Component {
         this.inputRefs = {};
         this.touchedInputs = {};
 
-        // We keep a local isSubmitting variable to avoid any Onyx race conditions
-        // that could result in the form being submitted multiple times
-        this.isSubmitting = props.formState.isSubmitting;
         this.getValues = this.getValues.bind(this);
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        // We make the local isSubmitting variable shadow changes in Onyx
-        if (prevProps.formState.isSubmitting === this.props.formState.isSubmitting || this.isSubmitting === this.props.formState.isSubmitting) {
-            return;
-        }
-        this.isSubmitting = this.props.formState.isSubmitting;
     }
 
     /**
@@ -99,7 +88,7 @@ class Form extends React.Component {
 
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
-        if (this.isSubmitting) {
+        if (this.props.formState.isSubmitting) {
             return;
         }
 
@@ -115,7 +104,6 @@ class Form extends React.Component {
         }
 
         // Set loading state and call submit handler
-        this.isSubmitting = true;
         FormActions.setIsSubmitting(this.props.formID, true);
         this.props.onSubmit(values);
     }
@@ -200,7 +188,10 @@ class Form extends React.Component {
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
                             isLoading={this.props.formState.isSubmitting}
                             message={this.props.formState.serverErrorMessage}
-                            onSubmit={this.submit}
+                            onSubmit={() => {
+                                this.submit();
+                                this.submit();
+                            }}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
