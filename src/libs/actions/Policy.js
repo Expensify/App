@@ -222,8 +222,14 @@ function loadFullPolicy(policyID) {
             if (!policy.id) {
                 return;
             }
+            
+            const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            const currentPolicy = allPolicies[key];
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
+            const simplifiedPolicyObject = getSimplifiedPolicyObject(policy)
+            const updatedPolicyObject = {...currentPolicy, ...simplifiedPolicyObject}
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, updatedPolicyObject);
         });
 }
 
