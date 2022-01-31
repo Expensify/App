@@ -149,7 +149,7 @@ class RoomNameInput extends Component {
                     this.validateRoomName(modifiedRoomName);
                 }}
                 value={this.state.roomName.substring(1)}
-                errorText={this.props.shouldShowErrorOnChange ? this.state.error : this.props.errorText }
+                errorText={this.props.shouldShowErrorOnChange ? this.state.error : this.props.errorText}
                 autoCapitalize="none"
             />
         );
