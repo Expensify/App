@@ -128,6 +128,7 @@ class ReportActionsView extends React.Component {
         this.toggleMarker = this.toggleMarker.bind(this);
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
     componentDidMount() {
@@ -147,11 +148,8 @@ class ReportActionsView extends React.Component {
             this.scrollToListBottom();
         });
 
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-
-        // Only mark as read if the report is open
-        if (!this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
+        if (this.props.isLoadingReportData === false) {
+            this.updateNewMarkerAndMarkReadOnce();
         }
 
         Report.fetchActions(this.props.reportID);
@@ -173,7 +171,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData && this.props.report.newMarkerSequenceNumber === 0) {
+        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
             return true;
         }
 
@@ -207,12 +205,8 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
-        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData && this.props.report.newMarkerSequenceNumber === 0) {
-            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-
-            if (!this.props.isDrawerOpen) {
-                Report.updateLastReadActionID(this.props.reportID);
-            }
+        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
+            this.updateNewMarkerAndMarkReadOnce();
         }
 
         // The last sequenceNumber of the same report has changed.
@@ -440,6 +434,18 @@ class ReportActionsView extends React.Component {
             this.updateUnreadIndicatorPosition(localUnreadActionCount);
             return {localUnreadActionCount};
         });
+    }
+
+    /**
+     * Update NEW marker and mark report as read
+     */
+    updateNewMarkerAndMarkRead() {
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
+        // Only mark as read if the report is open
+        if (!this.props.isDrawerOpen) {
+            Report.updateLastReadActionID(this.props.reportID);
+        }
     }
 
     /**
