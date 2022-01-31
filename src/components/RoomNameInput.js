@@ -80,6 +80,9 @@ class RoomNameInput extends Component {
         if (prevState.error !== this.state.error) {
             this.props.onChangeError(this.state.error);
         }
+        if (prevProps.policyID !== this.props.policyID) {
+            this.checkAndModifyRoomName(this.state.roomName);
+        }
     }
 
     /**
