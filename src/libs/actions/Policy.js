@@ -222,12 +222,12 @@ function loadFullPolicy(policyID) {
             if (!policy.id) {
                 return;
             }
-            
+
             const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             const currentPolicy = allPolicies[key];
 
-            const simplifiedPolicyObject = getSimplifiedPolicyObject(policy)
-            const updatedPolicyObject = {...currentPolicy, ...simplifiedPolicyObject}
+            const simplifiedPolicyObject = getSimplifiedPolicyObject(policy);
+            const updatedPolicyObject = {...currentPolicy, ...simplifiedPolicyObject};
 
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, updatedPolicyObject);
         });
