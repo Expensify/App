@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable, Dimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import compose from '../../libs/compose';
 import Popover from '../Popover';
 import Tooltip from '../Tooltip';
@@ -44,8 +45,6 @@ class EmojiPicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.emojiPopoverAnchor = null;
-        this.emojiPopoverDimensionListener = null;
         this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
         this.selectEmoji = this.selectEmoji.bind(this);
@@ -104,15 +103,12 @@ class EmojiPicker extends React.Component {
     }
 
     showEmojiPicker() {
-        if (this.props.onBeforeShowEmojiPicker) {
+        if (_.isFunction(this.props.onBeforeShowEmojiPicker)) {
             this.props.onBeforeShowEmojiPicker();
         }
         this.setState({isEmojiPickerVisible: true});
     }
 
-    /**
-     * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
-     */
     measureEmojiPopoverAnchorPosition() {
         if (!this.emojiPopoverAnchor) {
             return;
