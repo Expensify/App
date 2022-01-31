@@ -168,7 +168,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
+                    <ChangeExpensifyLoginLink onPress={Session.clearSignInData} />
                 </View>
             </>
         );
