@@ -108,7 +108,10 @@ class SignInPage extends Component {
                         />
                     ) : (
                         <>
-                            <LoginForm isVisible={showLoginForm} />
+                            <LoginForm
+                                isVisible={showLoginForm}
+                                onCancel={() => this.setState({showSignInOptions: true})}
+                            />
                             <PasswordForm isVisible={showPasswordForm} />
                             {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                         </>
