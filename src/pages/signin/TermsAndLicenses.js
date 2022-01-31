@@ -10,16 +10,8 @@ import LocalePicker from '../../components/LocalePicker';
 
 const TermsAndLicenses = props => (
     <>
-        <View
-            style={[
-                styles.dFlex,
-                styles.flexRow,
-                styles.flexWrap,
-                styles.textAlignCenter,
-                styles.alignItemsCenter,
-            ]}
-        >
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+        <Text style={[styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase1')}
             </Text>
             <TextLink
@@ -30,7 +22,7 @@ const TermsAndLicenses = props => (
                 {props.translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase3')}
             </Text>
             <TextLink
@@ -40,12 +32,12 @@ const TermsAndLicenses = props => (
                 {' '}
                 {props.translate('termsOfUse.phrase4')}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textExtraSmallSupporting]}>{'. '}</Text>
+            <Text style={[styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase5')}
                 {' '}
             </Text>
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
+            <Text style={[styles.textExtraSmallSupporting]}>
                 {props.translate('termsOfUse.phrase6')}
             </Text>
             <TextLink
@@ -55,8 +47,8 @@ const TermsAndLicenses = props => (
                 {' '}
                 {props.translate('termsOfUse.phrase7')}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
-        </View>
+            <Text style={[styles.textExtraSmallSupporting]}>.</Text>
+        </Text>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
             <LogoWordmark height={30} width={80} />
             <LocalePicker size="small" />
