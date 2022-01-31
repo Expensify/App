@@ -11,35 +11,26 @@ import LocalePicker from '../../components/LocalePicker';
 const TermsAndLicenses = props => (
     <>
         <Text style={[styles.textExtraSmallSupporting]}>
-                {props.translate('termsOfUse.phrase1')}
-            <TextLink
-                style={[styles.textExtraSmallSupporting, styles.link]}
-                href={CONST.TERMS_URL}
-            >
+            {props.translate('termsOfUse.phrase1')}
+            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.TERMS_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
-                {props.translate('termsOfUse.phrase3')}
-            <TextLink
-                style={[styles.textExtraSmallSupporting, styles.link]}
-                href={CONST.PRIVACY_URL}
-            >
+            {props.translate('termsOfUse.phrase3')}
+            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.PRIVACY_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase4')}
             </TextLink>
             {'. '}
-                {props.translate('termsOfUse.phrase5')}
-                {' '}
-                {props.translate('termsOfUse.phrase6')}
-            <TextLink
-                style={[styles.textExtraSmallSupporting, styles.link]}
-                href={CONST.LICENSES_URL}
-            >
+            {props.translate('termsOfUse.phrase5')}
+            {' '}
+            {props.translate('termsOfUse.phrase6')}
+            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.LICENSES_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase7')}
             </TextLink>
-            {'.'}
+            .
         </Text>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
             <LogoWordmark height={30} width={80} />
