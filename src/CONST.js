@@ -296,6 +296,13 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
+        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        PROCESS_REQUEST_DELAY_MS: 1000,
+    },
+    HTTP_STATUS_CODE: {
+        SUCCESS: 200,
+        BAD_REQUEST: 400,
+        UNAUTHORIZED: 401,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
