@@ -677,7 +677,7 @@ export default {
         isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
     },
     validationStep: {
-        headerTitle: 'Validate',
+        headerTitle: 'Validate Bank Account',
         buttonText: 'Finish setup',
         maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation".',
