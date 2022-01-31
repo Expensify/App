@@ -173,7 +173,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
+        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData && this.props.report.newMarkerSequenceNumber === 0) {
             return true;
         }
 
@@ -207,8 +207,12 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
-        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
-            Report.updateLastReadActionID(this.props.reportID);
+        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData && this.props.report.newMarkerSequenceNumber === 0) {
+            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
+            if (!this.props.isDrawerOpen) {
+                Report.updateLastReadActionID(this.props.reportID);
+            }
         }
 
         // The last sequenceNumber of the same report has changed.
