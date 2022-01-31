@@ -7,7 +7,6 @@ import Clipboard from '../libs/Clipboard';
 import Icon from './Icon';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** The text to display and copy to the clipboard */
