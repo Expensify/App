@@ -162,7 +162,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             <RoomNameInput
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
-                                shouldShowErrorOnDemand
+                                shouldShowErrorOnChange={false}
                                 errorText={this.state.errors.roomName}
                                 onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             />

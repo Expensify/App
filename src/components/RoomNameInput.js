@@ -26,10 +26,10 @@ const propTypes = {
     /** ID of policy whose room names we should be checking for duplicates */
     policyID: PropTypes.string,
 
-    /** Whether we should show the error on demand or not */
-    shouldShowErrorOnDemand: PropTypes.bool,
+    /** Whether to show the error on change of input or not */
+    shouldShowErrorOnChange: PropTypes.bool,
 
-    /** On demand error text if set shouldShowErrorOnDemand true */
+    /** On demand error text if set shouldShowErrorOnChange true */
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
@@ -62,7 +62,7 @@ const defaultProps = {
     initialValue: '',
     disabled: false,
     policyID: '',
-    shouldShowErrorOnDemand: false,
+    shouldShowErrorOnChange: true,
     errorText: '',
     ...fullPolicyDefaultProps,
 };
@@ -76,8 +76,6 @@ class RoomNameInput extends Component {
         };
 
         this.originalRoomName = props.initialValue;
-
-        this.validateRoomName = this.validateRoomName.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -90,6 +88,9 @@ class RoomNameInput extends Component {
         }
     }
 
+    /**
+     * @param {String} modifiedRoomName
+     */
     validateRoomName(modifiedRoomName) {
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
@@ -97,12 +98,6 @@ class RoomNameInput extends Component {
         );
 
         let error = '';
-
-
-        // We error if the user doesn't enter a room name or left blank
-        if (modifiedRoomName === CONST.POLICY.ROOM_PREFIX) {
-            error = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
 
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
@@ -124,7 +119,6 @@ class RoomNameInput extends Component {
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
      * @param {String} roomName
-     *
      * @returns {String}
      */
     modifyRoomName(roomName) {
@@ -149,10 +143,13 @@ class RoomNameInput extends Component {
                 onChangeText={(roomName) => {
                     const modifiedRoomName = this.modifyRoomName(roomName);
                     this.setState({roomName: modifiedRoomName});
+                    if (!this.props.shouldShowErrorOnChange) {
+                        return;
+                    }
                     this.validateRoomName(modifiedRoomName);
                 }}
                 value={this.state.roomName.substring(1)}
-                errorText={this.props.shouldShowErrorOnDemand ? this.props.errorText : this.state.error}
+                errorText={this.props.shouldShowErrorOnChange ? this.state.error : this.props.errorText }
                 autoCapitalize="none"
             />
         );
