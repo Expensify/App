@@ -163,6 +163,9 @@ class Tooltip extends PureComponent {
     }
 
     render() {
+        if (_.isEmpty(this.props.text)) {
+            return this.props.children;
+        }
         let child = (
             <View
                 ref={el => this.wrapperView = el}
