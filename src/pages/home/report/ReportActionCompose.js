@@ -260,7 +260,6 @@ class ReportActionCompose extends React.Component {
         this.updateComment(newComment);
     }
 
-
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
