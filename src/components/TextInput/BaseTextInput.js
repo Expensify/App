@@ -38,16 +38,8 @@ class BaseTextInput extends Component {
     }
 
     componentDidMount() {
-        if (!this.input) {
-            return;
-        }
-
-        if (this.props.exposeValueToRef) {
-            this.props.exposeValueToRef(this.input, this.value);
-        }
-
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!this.props.autoFocus) {
+        if (!this.props.autoFocus || !this.input) {
             return;
         }
 
@@ -102,9 +94,6 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
-        if (this.props.exposeValueToRef) {
-            this.props.exposeValueToRef(this.input, value);
-        }
         if (this.props.onChange) {
             this.props.onChange(value);
         }
@@ -157,6 +146,9 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        if (this.input) {
+            this.input.value = this.value;
+        }
         return (
             <View>
                 <View
