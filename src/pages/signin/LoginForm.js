@@ -18,6 +18,7 @@ import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import LoginUtil from '../../libs/LoginUtil';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +34,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
+
+    /** Callback function which is triggered when the Cancel button is pressed */
+    onCancel: PropTypes.func.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -170,6 +174,7 @@ class LoginForm extends React.Component {
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
+                    <ChangeExpensifyLoginLink onPress={this.props.onCancel} />
                 </View>
             </>
         );
