@@ -14,6 +14,7 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import SignInOptions from '../../components/SignInOptions';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,6 +50,13 @@ const defaultProps = {
 };
 
 class SignInPage extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            showSignInOptions: true,
+        };
+    }
+
     componentDidMount() {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
@@ -94,9 +102,17 @@ class SignInPage extends Component {
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm isVisible={showLoginForm} />
-                    <PasswordForm isVisible={showPasswordForm} />
-                    {shouldShowResendValidationLinkForm && <ResendValidationForm />}
+                    { this.state.showSignInOptions ? (
+                        <SignInOptions
+                            onEmailOrPhoneNumberPress={() => this.setState({showSignInOptions: false})}
+                        />
+                    ) : (
+                        <>
+                            <LoginForm isVisible={showLoginForm} />
+                            <PasswordForm isVisible={showPasswordForm} />
+                            {shouldShowResendValidationLinkForm && <ResendValidationForm />}
+                        </>
+                    )}
                 </SignInPageLayout>
             </SafeAreaView>
         );

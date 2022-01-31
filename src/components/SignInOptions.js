@@ -10,11 +10,10 @@ import useGoogleLogin from '../libs/useGoogleLogin';
 const propTypes = {
     /** Callback to trigger when the button "Email or Phone Number" is pressed */
     onEmailOrPhoneNumberPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
-// const defaultProps = {
-// };
 function SignInOptions(props) {
     const {
         googleAuthLoaded, signIn, isSigningIn, res, err,
@@ -59,8 +58,5 @@ function SignInOptions(props) {
 }
 
 SignInOptions.propTypes = propTypes;
-
-// SignInOptions.defaultProps = defaultProps;
-
 
 export default withLocalize(SignInOptions);
