@@ -6,7 +6,7 @@ If you’re new to working with Expensify, it’s important to know the philosop
 - Features are not added to satisfy personal preferences
 - Features are added thoughtfully and minimally
 
-It’s also important to be familiar with our existing documentation including our [CONTRIBUTING.md](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md) and [README.md](https://github.com/Expensify/App/blob/main/README.md)
+It’s also important to be familiar with our existing documentation including [CONTRIBUTING.md](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md) and [README.md](https://github.com/Expensify/App/blob/main/README.md)
 
 ## Step 1: Define the problem
 What is the problem that needs solving? 
