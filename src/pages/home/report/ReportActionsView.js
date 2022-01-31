@@ -71,7 +71,7 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
-    /** Are we waiting for data from report? */
+    /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
 
     /** The personal details of the person who is logged in */
@@ -148,7 +148,7 @@ class ReportActionsView extends React.Component {
             this.scrollToListBottom();
         });
 
-        if (this.props.isLoadingReportData === false) {
+        if (!this.props.isLoadingReportData) {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
