@@ -187,10 +187,7 @@ class Form extends React.Component {
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
                             isLoading={this.props.formState.isSubmitting}
                             message={this.props.formState.serverErrorMessage}
-                            onSubmit={() => {
-                                this.submit();
-                                this.submit();
-                            }}
+                            onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
