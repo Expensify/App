@@ -93,7 +93,7 @@ class Form extends React.Component {
 
         // Set loading state and call submit handler
         FormActions.setIsSubmitting(this.props.formID, true);
-        this.props.onSubmit(values);
+        this.props.onSubmit(this.inputValues);
     }
 
     /**
