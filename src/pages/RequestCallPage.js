@@ -27,6 +27,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import * as User from '../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,6 +72,12 @@ const propTypes = {
 
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
+
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -79,6 +86,7 @@ const defaultProps = {
     },
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
+    blockedFromConcierge: {},
 };
 
 class RequestCallPage extends Component {
@@ -274,6 +282,8 @@ class RequestCallPage extends Component {
     }
 
     render() {
+        const isBlockedFromConcierge = !_.isEmpty(this.props.blockedFromConcierge) && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -336,6 +346,7 @@ class RequestCallPage extends Component {
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
                             isLoading={this.props.requestCallForm.loading}
+                            isDisabled={isBlockedFromConcierge}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -369,6 +380,9 @@ export default compose(
         },
         lastAccessedWorkspacePolicyID: {
             key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(RequestCallPage);
