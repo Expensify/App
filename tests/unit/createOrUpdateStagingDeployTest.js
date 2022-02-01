@@ -160,7 +160,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         return run().then((result) => {
             expect(result).toStrictEqual({
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                repo: GithubUtils.APP_REPO,
                 title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
                 labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                 html_url: 'https://github.com/Expensify/App/issues/29',
@@ -268,7 +268,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             return run().then((result) => {
                 expect(result).toStrictEqual({
                     owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                    repo: GithubUtils.APP_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
@@ -330,7 +330,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             return run().then((result) => {
                 expect(result).toStrictEqual({
                     owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                    repo: GithubUtils.APP_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
