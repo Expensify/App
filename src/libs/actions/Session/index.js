@@ -262,7 +262,7 @@ function signInGoogle(email, token) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false});
         });
 }
 
