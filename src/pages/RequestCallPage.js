@@ -15,6 +15,7 @@ import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
+import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
@@ -24,6 +25,7 @@ import Text from '../components/Text';
 import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
+import * as Expensicons from '../components/Icon/Expensicons';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
@@ -340,6 +342,12 @@ class RequestCallPage extends Component {
                         </Section>
                     </ScrollView>
                     <FixedFooter>
+                        {isBlockedFromConcierge && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                                <Icon src={Expensicons.Exclamation} />
+                                <Text style={[styles.mutedTextLabel, styles.ml2]}>{'Due to previous interactions with our staff, call cannot be scheduled at this time.'}</Text>
+                            </View>
+                        )}
                         <Button
                             success
                             onPress={this.onSubmit}
