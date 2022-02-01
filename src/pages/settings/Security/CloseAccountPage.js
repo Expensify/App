@@ -73,6 +73,7 @@ class CloseAccountPage extends Component {
                         <TextInput
                             multiline
                             numberOfLines={6}
+                            textAlignVertical="top"
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
