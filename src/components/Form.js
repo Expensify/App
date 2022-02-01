@@ -60,9 +60,9 @@ class Form extends React.Component {
         };
 
         this.inputRefs = {};
+        this.inputValues = {};
         this.touchedInputs = {};
 
-        this.getValues = this.getValues.bind(this);
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
@@ -73,17 +73,6 @@ class Form extends React.Component {
      */
     setTouchedInput(inputID) {
         this.touchedInputs[inputID] = true;
-    }
-
-    /**
-     * @returns {Object} - An object containing the values for each inputID
-     */
-    getValues() {
-        const values = {};
-        _.each(this.inputRefs, (inputRef, inputID) => {
-            values[inputID] = inputRef.value;
-        });
-        return values;
     }
 
     submit() {
@@ -98,8 +87,7 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        const values = this.getValues();
-        if (!_.isEmpty(this.validate(values))) {
+        if (!_.isEmpty(this.validate(this.inputValues))) {
             return;
         }
 
@@ -155,19 +143,23 @@ class Form extends React.Component {
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
+            const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+            this.inputValues[inputID] = defaultValue;
+
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
+                defaultValue,
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.getValues());
+                    this.validate(this.inputValues);
                 },
                 onChange: (value) => {
+                    this.inputValues[inputID] = value;
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputID]: value});
                     }
-                    this.validate(this.getValues());
+                    this.validate(this.inputValues);
                 },
             });
         });
