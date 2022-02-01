@@ -238,7 +238,7 @@ class PaymentsPage extends React.Component {
                             </>
                         )}
                         <Text
-                            style={[styles.ph5, styles.formLabel]}
+                            style={[styles.ph5, styles.mt6, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
                         </Text>

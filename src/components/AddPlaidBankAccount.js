@@ -117,7 +117,7 @@ class AddPlaidBankAccount extends React.Component {
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, {
-            password: 'passwordForm.error.incorrectLoginOrPassword',
+            password: 'passwordForm.error.incorrectPassword',
         }, inputKey);
     }
 

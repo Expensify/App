@@ -2411,7 +2411,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
     transferBalancePayment: {
-        borderWidth: 2,
+        borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
     },
