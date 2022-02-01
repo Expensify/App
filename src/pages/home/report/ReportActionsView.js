@@ -212,6 +212,10 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (this.context.size > 0) {
+            return true;
+        }
+
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             // TODO: Clean this up to remove unnecessary duplicate calculations,
             // Move side-effects out of shouldComponentUpdate
@@ -663,7 +667,6 @@ class ReportActionsView extends React.Component {
                     layoutProvider={this.layoutProvider}
                     dataProvider={this.state.dataProvider}
                     rowRenderer={this.renderItem}
-                    extendedState={this.context}
                     forceNonDeterministicRendering
                     contentContainerStyle={styles.chatContentScrollView}
                 />
