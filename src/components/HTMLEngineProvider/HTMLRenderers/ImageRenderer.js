@@ -1,6 +1,8 @@
 import React from 'react';
 import {TouchableOpacity} from 'react-native';
+import {useRendererProps} from 'react-native-render-html';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
+import * as HTMLEngineUtils from '../htmlEngineUtils';
 import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
@@ -8,6 +10,7 @@ import ThumbnailImage from '../../ThumbnailImage';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
+    const rendererProps = useRendererProps('img');
 
     // There are two kinds of images that need to be displayed:
     //
@@ -58,6 +61,7 @@ const ImageRenderer = (props) => {
                         previewSourceURL={previewSource}
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
+                        onResize={() => rendererProps.flagForRerender(HTMLEngineUtils.getReportActionID(props.tnode))}
                     />
                 </TouchableOpacity>
             )}

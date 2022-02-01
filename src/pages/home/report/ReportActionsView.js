@@ -663,6 +663,7 @@ class ReportActionsView extends React.Component {
                     layoutProvider={this.layoutProvider}
                     dataProvider={this.state.dataProvider}
                     rowRenderer={this.renderItem}
+                    extendedState={this.context}
                     forceNonDeterministicRendering
                     contentContainerStyle={styles.chatContentScrollView}
                 />
