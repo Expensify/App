@@ -419,9 +419,8 @@ export default {
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS',
-        phrase6: 'ID:2017010) pursuant to its',
-        phrase7: 'licenses',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase6: 'licenses',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
