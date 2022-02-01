@@ -29,7 +29,7 @@ const propTypes = {
     /** Whether to show the error on change of input or not */
     shouldShowErrorOnChange: PropTypes.bool,
 
-    /** On demand error text if set shouldShowErrorOnChange true */
+    /** Error text to show when shouldShowErrorOnChange is false */
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
@@ -127,9 +127,8 @@ class RoomNameInput extends Component {
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        const modifiedRoomName = `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 
-        return modifiedRoomName;
+        return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
     }
 
     render() {
