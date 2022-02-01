@@ -223,9 +223,9 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-            	...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
-            	...getSimplifiedPolicyObject(policy),
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
+                ...getSimplifiedPolicyObject(policy),
             });
         });
 }
