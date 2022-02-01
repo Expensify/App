@@ -50,6 +50,7 @@ import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import OfflineText from './../../../components/OfflineText';
 
 const propTypes = {
     /** Beta features list */
@@ -733,24 +734,13 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                {this.props.network.isOffline ? (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <View style={[
-                            styles.chatItemComposeSecondaryRowOffset,
-                            styles.flexRow,
-                            styles.alignItemsCenter]}
-                        >
-                            <Icon
-                                src={Expensicons.Offline}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </Text>
-                        </View>
-                    </View>
-                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
+                <OfflineText
+                    outerContainerStyles={[styles.chatItemComposeSecondaryRow]}
+                    innerContainerStyles={[styles.chatItemComposeSecondaryRowOffset]}
+                    alternateComponent={<ReportTypingIndicator reportID={this.props.reportID} />}
+                    >
+                </OfflineText>
+                
             </View>
         );
     }

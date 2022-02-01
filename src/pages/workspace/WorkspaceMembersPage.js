@@ -27,6 +27,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
+import FixedFooter from '../../components/FixedFooter';
+import OfflineText from '../../components/OfflineText';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 
@@ -273,7 +275,7 @@ class WorkspaceMembersPage extends React.Component {
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
                 />
-                <View style={[styles.pageWrapper, styles.flex1]}>
+                <View style={[styles.flex1, styles.workspaceMemberPageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
                             medium
@@ -310,8 +312,21 @@ class WorkspaceMembersPage extends React.Component {
                             keyExtractor={item => item.login}
                             showsVerticalScrollIndicator={false}
                         />
+                        
                     </View>
+
                 </View>
+                <FixedFooter
+                    style={[styles.pt3, styles.pb3]}
+                >
+                    <OfflineText 
+                        outerContainerStyles={styles.memberPageOfflineTextContainerStyle}
+                        message={"You appear to be offline.  Pending invitations will send when you are onlines"}
+
+                        //Pending invitations will send when you are onlines
+                        //innerContainerStyles={}
+                    ></OfflineText>
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
