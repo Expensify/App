@@ -95,7 +95,7 @@ jobs:
         if: ${{ github.event.inputs.TARGET_BRANCH == 'main' }}
         id: changedFiles
         # Version: 3.3.0
-        uses: futuratrepadeira/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
+        uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-number: ${{ steps.createPullRequest.outputs.pr_number }}

@@ -33,13 +33,13 @@ const defaultProps = {
     onClick: () => {},
 };
 
-const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
+const MARKER_INACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 class MarkerBadge extends PureComponent {
     constructor(props) {
         super(props);
-        this.translateY = new Animated.Value(MARKER_NOT_ACTIVE_TRANSLATE_Y);
+        this.translateY = new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y);
         this.show = this.show.bind(this);
         this.hide = this.hide.bind(this);
     }
@@ -62,7 +62,7 @@ class MarkerBadge extends PureComponent {
 
     hide() {
         Animated.spring(this.translateY, {
-            toValue: MARKER_NOT_ACTIVE_TRANSLATE_Y,
+            toValue: MARKER_INACTIVE_TRANSLATE_Y,
             duration: 80,
             useNativeDriver: true,
         }).start();
