@@ -249,6 +249,24 @@ function signIn(password, twoFactorAuthCode) {
 }
 
 /**
+ * Sign the user into the application using the email and token value from Google Auth API.
+ * It follows the same logic of signIn function to create a temporary login.
+ *
+ * @param {String} email
+ * @param {String} token
+ */
+function signInGoogle(email, token) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    API.SignInGoogle({email, token})
+        .then(({authToken}) => {
+            createTemporaryLogin(authToken, email);
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
+        });
+}
+
+/**
  * Uses a short lived authToken to continue a user's session from OldDot
  *
  * @param {String} accountID
@@ -495,6 +513,7 @@ export {
     fetchAccountDetails,
     setPassword,
     signIn,
+    signInGoogle,
     signInWithShortLivedToken,
     signOut,
     reopenAccount,

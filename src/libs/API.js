@@ -764,6 +764,19 @@ function SetWalletLinkedAccount(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.email
+ * @param {String} parameters.token
+ * @param {String} [parameters.promoCode]
+ * @returns {Promise}
+ */
+function SignInGoogle(parameters) {
+    const commandName = 'SignInGoogle';
+    requireParameters(['email', 'token'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.subscribed
  * @returns {Promise}
  */
@@ -1227,6 +1240,7 @@ export {
     SetNameValuePair,
     SetPassword,
     SetWalletLinkedAccount,
+    SignInGoogle,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
