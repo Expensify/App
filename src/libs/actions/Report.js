@@ -330,9 +330,15 @@ function configureReportNameAndIcons(reports, details) {
         if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
             return;
         }
+        const isChatRoom = ReportUtils.isChatRoom(report);
 
-        const avatars = ReportUtils.isChatRoom(report) ? (['']) : OptionsListUtils.getReportIcons(report, details);
-        const reportName = ReportUtils.isChatRoom(report)
+        // Chat rooms have a specific avatar so we can return any non-empty array but for 1:1 chats and group chats
+        // avatars are extracted from avatars of the participants.
+        const avatars = isChatRoom ? (['']) : OptionsListUtils.getReportIcons(report, details);
+
+        // ReportName is already present in report for chatrooms but for 1:1 chats and group chats
+        // reportName is extracted from displayNames of the participants.
+        const reportName = isChatRoom
             ? report.reportName
             : _.chain(report.participants)
                 .filter(participant => participant !== currentUserEmail)
