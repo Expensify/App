@@ -127,6 +127,12 @@ class Form extends React.Component {
         return errors;
     }
 
+    /**
+     * Loops over Form's children and automatically supplies Form props to them
+     *
+     * @param {Array} children - An array containing all Form children
+     * @returns {React.Component}
+     */
     childrenWrapperWithProps(children) {
         return React.Children.map(children, (child) => {
             // Just render the child if it is not a valid React element, e.g. text within a <Text> component
@@ -153,20 +159,15 @@ class Form extends React.Component {
                 ref: node => this.inputRefs[inputID] = node,
                 defaultValue: this.props.draftValues[inputID] || child.props.defaultValue,
                 errorText: this.state.errors[inputID] || '',
-                onBlur: (event) => {
+                onBlur: () => {
                     this.setTouchedInput(inputID);
                     this.validate(this.getValues());
-                    if (child.props.onBlur) {
-                        child.props.onBlur(event);
-                    }
                 },
                 onChange: (value) => {
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputID]: value});
                     }
-                    if (this.touchedInputs[inputID]) {
-                        this.validate(this.getValues());
-                    }
+                    this.validate(this.getValues());
                 },
             });
         });

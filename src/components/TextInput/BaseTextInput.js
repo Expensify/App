@@ -94,10 +94,11 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
+        this.value = value;
+        this.input.value = this.value;
         if (this.props.onChange) {
             this.props.onChange(value);
         }
-        this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
     }
@@ -146,6 +147,9 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        if (this.input) {
+            this.input.value = this.value;
+        }
         return (
             <View>
                 <View
