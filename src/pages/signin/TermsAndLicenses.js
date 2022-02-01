@@ -24,11 +24,9 @@ const TermsAndLicenses = props => (
             </TextLink>
             {'. '}
             {props.translate('termsOfUse.phrase5')}
-            {' '}
-            {props.translate('termsOfUse.phrase6')}
             <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.LICENSES_URL}>
                 {' '}
-                {props.translate('termsOfUse.phrase7')}
+                {props.translate('termsOfUse.phrase6')}
             </TextLink>
             .
         </Text>
