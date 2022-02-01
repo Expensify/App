@@ -31,26 +31,29 @@ function getGoogleApi() {
 
 /**
  * Effect hook that loads Google script into the DOM, initialize the Google API and returns a function to signIn the
- * user with their Google account;
+ * user with their Google account
  *
+ * @param {Object} params
+ * @param {function({ token: string, email: string }) : void} params.onSuccess
+ * @param {function(*) : void} [params.onFailure]
  * @returns {{
  *   googleAuthLoaded: boolean,
  *   signIn: function(): void,
  *   isSigningIn: boolean,
- *   res: ({ token: string, email: string, name: string } | null),
- *   err: *
+ *   name: string
  * }}
  */
-const useGoogleLogin = () => {
+const useGoogleLogin = ({
+    onSuccess,
+    onFailure = () => {},
+}) => {
     const [googleAuthLoaded, setGoogleAuthLoaded] = useState(false);
     const [isSigningIn, setIsSigningIn] = useState(false);
-    const [res, setRes] = useState(null);
-    const [err, setErr] = useState(null);
+    const [name, setName] = useState('');
 
     function signIn() {
-        // Prevent signIn if Google Auth is not ready, if there's previous signIn function running or if there was an
-        // already successful response.
-        if (!googleAuthLoaded || isSigningIn || res) {
+        // Prevent signIn if Google Auth is not ready or if there's previous signIn function running
+        if (!googleAuthLoaded || isSigningIn) {
             return;
         }
 
@@ -60,15 +63,15 @@ const useGoogleLogin = () => {
             (signInRes) => {
                 const basicProfile = signInRes.getBasicProfile();
                 const authResponse = signInRes.getAuthResponse(true);
-                setRes({
+                setName(basicProfile.getName());
+                onSuccess({
                     token: authResponse.id_token,
                     email: basicProfile.getEmail(),
-                    name: basicProfile.getName(),
                 });
                 setIsSigningIn(false);
             },
-            (signInErr) => {
-                setErr(signInErr);
+            (err) => {
+                onFailure(err);
                 setIsSigningIn(false);
             },
         );
@@ -87,17 +90,17 @@ const useGoogleLogin = () => {
                         clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
                     }).then(
                         () => setGoogleAuthLoaded(true),
-                        googleAuthError => setErr(googleAuthError),
+                        err => onFailure(err),
                     );
                 });
             },
-            loadScriptErr => setErr(loadScriptErr),
+            err => onFailure(err),
         );
         return () => removeScript(document, 'google-login');
     }, []);
 
     return {
-        googleAuthLoaded, signIn, isSigningIn, res, err,
+        googleAuthLoaded, signIn, isSigningIn, name,
     };
 };
 
