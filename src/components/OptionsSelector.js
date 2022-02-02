@@ -195,6 +195,7 @@ class OptionsSelector extends Component {
      * @param {Object} ref
      */
     selectRow(option, ref) {
+        this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
         if (this.props.shouldFocusOnSelectRow) {
             this.textInput.focus();
         }
@@ -212,7 +213,10 @@ class OptionsSelector extends Component {
                     <TextInput
                         ref={el => this.textInput = el}
                         value={this.props.value}
-                        onChangeText={this.props.onChangeText}
+                        onChangeText={(text) => {
+                            this.textInput.setNativeProps({selection: null});
+                            this.props.onChangeText(text);
+                        }}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
