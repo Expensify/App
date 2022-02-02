@@ -5,7 +5,7 @@ const GithubUtils = require('../../libs/GithubUtils');
 
 const DEFAULT_PAYLOAD = {
     owner: GithubUtils.GITHUB_OWNER,
-    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+    repo: GithubUtils.APP_REPO,
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
