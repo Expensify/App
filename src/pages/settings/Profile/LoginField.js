@@ -86,7 +86,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={styles.formLabel}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, !this.props.login.validatedDate && styles.mb0]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
@@ -105,12 +105,13 @@ class LoginField extends Component {
                         </Text>
                         {!this.props.login.validatedDate && (
                             <Button
+                                small
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
-                                    <Text style={styles.createMenuText}>
+                                    <Text style={styles.buttonSmallText}>
                                         {this.props.translate('common.resend')}
                                     </Text>
                                 ))}
