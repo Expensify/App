@@ -91,48 +91,48 @@ class OptionRow extends Component {
         if (this.props.optionIsFocused !== nextProps.optionIsFocused) {
             return false;
         }
-    
+
         if (this.props.isSelected !== nextProps.isSelected) {
             return false;
         }
-    
+
         if (this.props.mode !== nextProps.mode) {
             return false;
         }
-    
+
         if (this.props.option.isUnread !== nextProps.option.isUnread) {
             return false;
         }
-    
+
         if (this.props.option.alternateText !== nextProps.option.alternateText) {
             return false;
         }
-    
+
         if (this.props.option.descriptiveText !== nextProps.option.descriptiveText) {
             return false;
         }
-    
+
         if (this.props.option.hasDraftComment !== nextProps.option.hasDraftComment) {
             return false;
         }
-    
+
         if (this.props.option.isPinned !== nextProps.option.isPinned) {
             return false;
         }
-    
+
         if (this.props.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
             return false;
         }
-    
+
         if (!_.isEqual(this.props.option.icons, nextProps.option.icons)) {
             return false;
         }
-    
+
         // Re-render when the text changes
         if (this.props.option.text !== nextProps.option.text) {
             return false;
         }
-    
+
         return true;
     }
 
