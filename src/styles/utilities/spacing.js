@@ -324,6 +324,10 @@ export default {
         paddingBottom: 20,
     },
 
+    pb8: {
+        paddingBottom: 32,
+    },
+
     pb10Percentage: {
         paddingBottom: '10%',
     },
