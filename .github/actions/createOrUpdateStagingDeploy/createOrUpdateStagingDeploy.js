@@ -16,14 +16,14 @@ const run = function () {
         GithubUtils.octokit.issues.listForRepo({
             log: console,
             owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            repo: GithubUtils.APP_REPO,
             labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
             state: 'all',
         }),
         GithubUtils.octokit.issues.listForRepo({
             log: console,
             owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            repo: GithubUtils.APP_REPO,
             labels: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
         }),
     ])
@@ -133,7 +133,7 @@ const run = function () {
         .then((body) => {
             const defaultPayload = {
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                repo: GithubUtils.APP_REPO,
                 body,
             };
 

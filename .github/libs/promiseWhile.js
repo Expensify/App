@@ -20,4 +20,23 @@ function promiseWhile(condition, action) {
     });
 }
 
-module.exports = promiseWhile;
+/**
+ * Simulates a do-while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseDoWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        action()
+            .then(() => promiseWhile(condition, action))
+            .then(() => resolve())
+            .catch(reject);
+    });
+}
+
+module.exports = {
+    promiseWhile,
+    promiseDoWhile,
+};
