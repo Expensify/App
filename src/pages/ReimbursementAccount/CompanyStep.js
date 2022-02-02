@@ -238,6 +238,7 @@ class CompanyStep extends React.Component {
                         }}
                     />
                     <PhoneTextInput
+                        VBAPhone
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}

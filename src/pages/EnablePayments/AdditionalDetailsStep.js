@@ -238,6 +238,7 @@ class AdditionalDetailsStep extends React.Component {
                                     </Text>
                                 </View>
                                 <PhoneTextInput
+                                    VBAPhone
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
