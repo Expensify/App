@@ -157,8 +157,8 @@ class TransferBalancePage extends React.Component {
 
         const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(this.props.userWallet.currentBalance, selectedPaymentType);
         const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
-        const canTransfer = transferAmount > 0;
-        const isButtonDisabled = !canTransfer || !selectedAccount;
+        const isTransferable = transferAmount > 0;
+        const isButtonDisabled = !isTransferable || !selectedAccount;
 
         return (
             <ScreenWrapper>
@@ -243,7 +243,7 @@ class TransferBalancePage extends React.Component {
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
-                                    amount: canTransfer
+                                    amount: isTransferable
                                         ? this.props.numberFormat(
                                             transferAmount / 100,
                                             {style: 'currency', currency: 'USD'},
