@@ -5,195 +5,57 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 9908:
+/***/ 1738:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
-const core = __nccwpck_require__(2186);
-const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(7999);
-const {promiseWhile} = __nccwpck_require__(4502);
+const GitHubUtils = __nccwpck_require__(7999);
+const {promiseDoWhile} = __nccwpck_require__(4502);
 
-/**
- * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
- * It's two minutes :)
- * @type {number}
- */
-const NEW_WORKFLOW_TIMEOUT = 120000;
+function run() {
+    let currentStagingDeploys = [];
+    return promiseDoWhile(
+        () => !_.isEmpty(currentStagingDeploys),
+        _.throttle(
+            () => Promise.all([
+                // These are active deploys
+                GitHubUtils.octokit.actions.listWorkflowRuns({
+                    owner: GitHubUtils.GITHUB_OWNER,
+                    repo: GitHubUtils.APP_REPO,
+                    workflow_id: 'platformDeploy.yml',
+                    event: 'push',
+                }),
 
-/**
- * The maximum amount of time (in ms) we'll wait for a workflow to complete before giving up.
- * It's two hours :)
- * @type {number}
- */
-const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
+                // These have the potential to become active deploys, so we need to wait for them to finish as well
+                // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
+                GitHubUtils.octokit.actions.listWorkflowRuns({
+                    owner: GitHubUtils.GITHUB_OWNER,
+                    repo: GitHubUtils.APP_REPO,
+                    workflow_id: 'preDeploy.yml',
+                }),
+            ])
+                .then(responses => [
+                    ...responses[0].data.workflow_runs,
+                    ...responses[1].data.workflow_runs,
+                ])
+                .then(workflowRuns => currentStagingDeploys = _.filter(workflowRuns, workflowRun => workflowRun.status !== 'completed'))
+                .then(() => console.log(
+                    _.isEmpty(currentStagingDeploys)
+                        ? 'No current staging deploys found'
+                        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
+                )),
 
-/**
- * URL prefixed to a specific workflow run
- * @type {string}
- */
-const WORKFLOW_RUN_URL_PREFIX = 'https://github.com/Expensify/App/actions/runs/';
-
-const run = function () {
-    const workflow = core.getInput('WORKFLOW', {required: true});
-    const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
-
-    console.log('This action has received the following inputs: ', {workflow, inputs});
-
-    if (_.keys(inputs).length > 10) {
-        const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
-        console.error(err.message);
-        core.setFailed(err);
-        process.exit(1);
-    }
-
-    // GitHub's createWorkflowDispatch returns a 204 No Content, so we need to:
-    // 1) Get the last workflow run
-    // 2) Trigger a new workflow run
-    // 3) Poll the API until a new one appears
-    // 4) Then we can poll and wait for that new workflow run to conclude
-    let previousWorkflowRunID;
-    let newWorkflowRunID;
-    let newWorkflowRunURL;
-    let hasNewWorkflowStarted = false;
-    let workflowCompleted = false;
-    return GithubUtils.getLatestWorkflowRunID(workflow)
-        .then((lastWorkflowRunID) => {
-            console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
-            previousWorkflowRunID = lastWorkflowRunID;
-
-            console.log(`Dispatching workflow: ${workflow}`);
-            return GithubUtils.octokit.actions.createWorkflowDispatch({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
-                workflow_id: workflow,
-                ref: 'main',
-                inputs,
-            });
-        })
-
-        .catch((err) => {
-            console.error(`Failed to dispatch workflow ${workflow}`, err);
-            core.setFailed(err);
-            process.exit(1);
-        })
-
-        // Wait for the new workflow to start
-        .then(() => {
-            let waitTimer = -GithubUtils.POLL_RATE;
-            return promiseWhile(
-                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
-                _.throttle(
-                    () => {
-                        console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
-                        return GithubUtils.getLatestWorkflowRunID(workflow)
-                            .then((lastWorkflowRunID) => {
-                                newWorkflowRunID = lastWorkflowRunID;
-                                newWorkflowRunURL = WORKFLOW_RUN_URL_PREFIX + newWorkflowRunID;
-                                hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
-
-                                if (!hasNewWorkflowStarted) {
-                                    waitTimer += GithubUtils.POLL_RATE;
-                                    if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
-                                        // eslint-disable-next-line max-len
-                                        console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
-                                    } else {
-                                        // eslint-disable-next-line max-len
-                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT / 1000} seconds, the ${workflow} workflow did not start.`);
-                                        console.error(err);
-                                        core.setFailed(err);
-                                        process.exit(1);
-                                    }
-                                } else {
-                                    console.log(`\n🚀 New ${workflow} run ${newWorkflowRunURL} has started`);
-                                }
-                            })
-                            .catch((err) => {
-                                console.warn('Failed to fetch latest workflow run.', err);
-                            });
-                    },
-                    GithubUtils.POLL_RATE,
-                ),
-            );
-        })
-
-        // Wait for the new workflow run to finish
-        .then(() => {
-            let waitTimer = -GithubUtils.POLL_RATE;
-            return promiseWhile(
-                () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
-                _.throttle(
-                    () => {
-                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
-                        return GithubUtils.octokit.actions.getWorkflowRun({
-                            owner: GithubUtils.GITHUB_OWNER,
-                            repo: GithubUtils.APP_REPO,
-                            run_id: newWorkflowRunID,
-                        })
-                            .then(({data}) => {
-                                workflowCompleted = data.status === 'completed' && data.conclusion !== null;
-                                waitTimer += GithubUtils.POLL_RATE;
-                                if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
-                                    // eslint-disable-next-line max-len
-                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunURL} did not complete.`);
-                                    console.error(err);
-                                    core.setFailed(err);
-                                    process.exit(1);
-                                }
-                                if (workflowCompleted) {
-                                    if (data.conclusion === 'success') {
-                                        // eslint-disable-next-line max-len
-                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunURL} completed successfully! 🎉`);
-                                    } else {
-                                        // eslint-disable-next-line max-len
-                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunURL} finished with conclusion ${data.conclusion}`);
-                                        console.error(err.message);
-                                        core.setFailed(err);
-                                        process.exit(1);
-                                    }
-                                }
-                            });
-                    },
-                    GithubUtils.POLL_RATE,
-                ),
-            );
-        });
-};
+            // Poll every 60 seconds instead of every 10 seconds
+            GitHubUtils.POLL_RATE * 6,
+        ),
+    );
+}
 
 if (require.main === require.cache[eval('__filename')]) {
     run();
 }
 
 module.exports = run;
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-module.exports = {
-    getJSONInput,
-};
 
 
 /***/ }),
@@ -12272,6 +12134,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(9908);
+/******/ 	return __nccwpck_require__(1738);
 /******/ })()
 ;
