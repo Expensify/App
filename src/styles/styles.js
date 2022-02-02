@@ -2429,7 +2429,7 @@ const styles = {
         fontSize: 48,
     },
 
-    closeAccountMessage: {
+    closeAccountMessageInput: {
         minHeight: 140,
     },
 };
