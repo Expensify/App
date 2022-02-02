@@ -299,7 +299,6 @@ class WorkspaceInvitePage extends React.Component {
                                     multiline
                                     containerStyles={[styles.workspaceInviteWelcome]}
                                     value={this.state.welcomeNote}
-                                    placeholder={this.getWelcomeNotePlaceholder()}
                                     onChangeText={text => this.setState({welcomeNote: text})}
                                 />
                             </View>
