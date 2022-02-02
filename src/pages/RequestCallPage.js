@@ -345,7 +345,7 @@ class RequestCallPage extends Component {
                         {isBlockedFromConcierge && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                                 <Icon src={Expensicons.Exclamation} />
-                                <Text style={[styles.mutedTextLabel, styles.ml2]}>{'Due to previous interactions with our staff, call cannot be scheduled at this time.'}</Text>
+                                <Text style={[styles.mutedTextLabel, styles.ml2]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
                             </View>
                         )}
                         <Button
