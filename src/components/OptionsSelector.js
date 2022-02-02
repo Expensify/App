@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import OptionsList from './OptionsList';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -92,6 +92,7 @@ class OptionsSelector extends Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
+        this.relatedTarget = null;
 
         this.state = {
             focusedIndex: 0,
@@ -191,12 +192,17 @@ class OptionsSelector extends Component {
      * Completes the follow up actions after a row is selected
      *
      * @param {Object} option
+     * @param {Object} ref
      */
-    selectRow(option) {
+    selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
             this.textInput.focus();
         }
+        if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+            this.textInput.focus();
+        }
         this.props.onSelectRow(option);
+        this.relatedTarget = null;
     }
 
     render() {
@@ -210,6 +216,8 @@ class OptionsSelector extends Component {
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        onBlur={e => this.relatedTarget = e.relatedTarget}
+                        onFocus={() => this.relatedTarget = null}
                     />
                 </View>
                 <OptionsList
