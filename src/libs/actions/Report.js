@@ -334,7 +334,7 @@ function configureReportNameAndIcons(reports, details) {
 
         // Chat rooms have a specific avatar so we can return any non-empty array but for 1:1 chats and group chats
         // avatars are extracted from avatars of the participants.
-        const avatars = isChatRoom ? (['']) : OptionsListUtils.getReportIcons(report, details);
+        const avatars = isChatRoom ? [''] : OptionsListUtils.getReportIcons(report, details);
 
         // ReportName is already present in report for chatrooms but for 1:1 chats and group chats
         // reportName is extracted from displayNames of the participants.
