@@ -856,7 +856,7 @@ export default {
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
-        blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser programada en este momento.',
+        blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
         waitTime: {
             calculating: 'Calculando el tiempo de espera...',
             fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
