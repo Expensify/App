@@ -2428,6 +2428,10 @@ const styles = {
     transferBalanceBalance: {
         fontSize: 48,
     },
+
+    closeAccountMessage: {
+        minHeight: 140,
+    },
 };
 
 export default styles;

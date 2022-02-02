@@ -76,7 +76,7 @@ class CloseAccountPage extends Component {
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
-                            containerStyles={[styles.mt5]}
+                            containerStyles={[styles.mt5, styles.closeAccountMessage]}
                         />
                         <Text style={[styles.mt5]}>
                             <Text style={[styles.textStrong]}>
