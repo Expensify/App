@@ -84,6 +84,7 @@ const defaultProps = {
 class OptionRow extends Component {
     constructor(props) {
         super(props);
+        this.ref = null;
     }
 
     shouldComponentUpdate(nextProps) {
@@ -189,9 +190,10 @@ class OptionRow extends Component {
                     <TouchableOpacity
                         onPress={(e) => {
                             e.preventDefault();
-                            this.props.onSelectRow(this.props.option);
+                            this.props.onSelectRow(this.props.option, this.ref);
                         }}
                         disabled={this.props.disableRowInteractivity}
+                        ref={ref => this.ref = ref}
                         activeOpacity={0.8}
                         style={[
                             styles.flexRow,
