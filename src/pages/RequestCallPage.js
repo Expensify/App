@@ -8,6 +8,7 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
+import colors from '../styles/colors';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -344,7 +345,7 @@ class RequestCallPage extends Component {
                     <FixedFooter>
                         {isBlockedFromConcierge && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                                <Icon src={Expensicons.Exclamation} />
+                                <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
                                 <Text style={[styles.mutedTextLabel, styles.ml2]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
                             </View>
                         )}
