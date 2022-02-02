@@ -84,6 +84,7 @@ const defaultProps = {
 class OptionRow extends Component {
     constructor(props) {
         super(props);
+        this.ref = null;
     }
 
     shouldComponentUpdate(nextProps) {
@@ -189,7 +190,7 @@ class OptionRow extends Component {
                     <TouchableOpacity
                         onPress={(e) => {
                             e.preventDefault();
-                            this.props.onSelectRow(this.props.option);
+                            this.props.onSelectRow(this.props.option, this.ref);
                         }}
                         disabled={this.props.disableRowInteractivity}
                         activeOpacity={0.8}
@@ -204,6 +205,7 @@ class OptionRow extends Component {
                             hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
                             this.props.isDisabled && styles.cursorDisabled,
                         ]}
+                        ref={ref => this.ref = ref}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View
