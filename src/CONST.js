@@ -522,7 +522,6 @@ const CONST = {
         ROOM_PREFIX: '#',
     },
 
-
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',

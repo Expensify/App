@@ -167,7 +167,6 @@ class WorkspaceNewRoomPage extends React.Component {
                                 onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             />
                         </View>
-
                         <View style={styles.mb5}>
                             <Picker
                                 value={this.state.policyID}

@@ -29,7 +29,7 @@ const propTypes = {
     /** Whether to show the error on change of input or not */
     shouldShowErrorOnChange: PropTypes.bool,
 
-    /** Error text to show when shouldShowErrorOnChange is false */
+    /** Error text to show */
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
