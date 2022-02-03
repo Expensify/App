@@ -39,9 +39,14 @@ function resetFreePlanBankAccount() {
                 domainLimit: 0,
                 currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
             };
+                        
+            // We should delete the bankAccountID key from the bankAccountList object before setting it in Onyx
+            const bankAccountList = store.getBankAccountList();
+            delete bankAccountList[bankAccountID];
+
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
-            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
+            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
 
             // Clear the NVP for the bank account so the user can add a new one
             API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
