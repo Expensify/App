@@ -145,7 +145,7 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    preload: `${__dirname}/preload.js`,
+                    preload: `${__dirname}/contextBridge.js`,
                     contextIsolation: true,
                 },
                 titleBarStyle: 'hidden',
