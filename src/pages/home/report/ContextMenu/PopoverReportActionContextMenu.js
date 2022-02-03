@@ -188,12 +188,8 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        this.onPopoverHide();
-        this.onPopoverHideActionCallback();
-
-        // After we have called the action, reset it.
-        this.onPopoverHide = () => {};
-        this.onPopoverHideActionCallback = () => {};
+        this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
+        this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
     }
 
     /**
