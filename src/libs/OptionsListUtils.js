@@ -281,6 +281,7 @@ function createOption(personalDetailList, report, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isLastMessageAttachment: showChatPreviewLine ? lodashGet(report, 'isLastMessageAttachment', false) : false,
     };
 }
 
