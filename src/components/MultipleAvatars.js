@@ -65,10 +65,8 @@ const MultipleAvatars = (props) => {
     }
 
     const tooltip = props.tooltip;
-    console.log('Tooltip', tooltip);
     const tooltipForFirstAvatar = _.isArray(tooltip) ? tooltip[0] : tooltip;
     const tooltipForAvatarCount = _.isArray(tooltip) && tooltip.length > 1 ? tooltip.slice(1).join(', ') : '';
-    console.log('Modified Tooltip', tooltipForFirstAvatar, tooltipForAvatarCount);
 
     return (
 
