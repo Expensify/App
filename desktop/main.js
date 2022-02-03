@@ -202,15 +202,17 @@ const mainWindow = (() => {
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
-            browserWindow.webContents.on('new-window', (e, url) => {
-                // make sure local urls stay in electron perimeter
+            browserWindow.webContents.setWindowOpenHandler(({url}) => {
+                const denial = {action: 'deny'};
+
+                // Make sure local urls stay in electron perimeter
                 if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
-                    return;
+                    return denial;
                 }
 
-                // and open every other protocol in the browser
-                e.preventDefault();
-                return shell.openExternal(url);
+                // Open every other protocol in the default browser, not Electron
+                shell.openExternal(url);
+                return denial;
             });
 
             // Flag to determine is user is trying to quit the whole application altogether
