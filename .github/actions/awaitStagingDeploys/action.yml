@@ -1,0 +1,9 @@
+name: 'Await staging deploys'
+description: 'Waits for any active staging deploys to finish'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for New Expensify Github
+    required: true
+runs:
+  using: 'node12'
+  main: './index.js'

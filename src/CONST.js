@@ -14,6 +14,7 @@ const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
+    ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -213,6 +214,7 @@ const CONST = {
             TYPE: {
                 IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                CREATED: 'CREATED',
                 RENAMED: 'RENAMED',
             },
         },
@@ -296,6 +298,13 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
+        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        PROCESS_REQUEST_DELAY_MS: 1000,
+    },
+    HTTP_STATUS_CODE: {
+        SUCCESS: 200,
+        BAD_REQUEST: 400,
+        UNAUTHORIZED: 401,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',

@@ -682,8 +682,13 @@ const styles = {
     textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputEyeButton: {
-        paddingRight: 11,
+        paddingHorizontal: 11,
         justifyContent: 'center',
+    },
+
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
     },
 
     textInput: {
@@ -1200,13 +1205,6 @@ const styles = {
         flexGrow: 1,
         justifyContent: 'flex-start',
         paddingVertical: 16,
-    },
-
-    chatContentEmpty: {
-        paddingTop: 16,
-        paddingBottom: 16,
-        paddingLeft: 20,
-        paddingRight: 20,
     },
 
     // Chat Item
@@ -1781,7 +1779,7 @@ const styles = {
         height: 80,
     },
 
-    emptyStateAvatar: {
+    roomHeaderAvatar: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
         borderRadius: 100,
@@ -2411,7 +2409,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
     transferBalancePayment: {
-        borderWidth: 2,
+        borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
     },
@@ -2422,6 +2420,10 @@ const styles = {
 
     transferBalanceBalance: {
         fontSize: 48,
+    },
+
+    closeAccountMessageInput: {
+        minHeight: 140,
     },
 };
 
