@@ -98,7 +98,7 @@ const HeaderView = (props) => {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
 
-    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip').join(', ');
+    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip');
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">

@@ -129,7 +129,7 @@ const OptionRow = (props) => {
         },
     );
 
-    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip').join(', ');
+    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip');
 
     return (
         <Hoverable>
