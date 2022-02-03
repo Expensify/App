@@ -86,7 +86,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={[styles.formLabel, !this.props.login.validatedDate && styles.mb0]}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, (this.props.login.partnerUserID && !this.props.login.validatedDate) && styles.mb0]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
