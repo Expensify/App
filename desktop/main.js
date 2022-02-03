@@ -23,10 +23,6 @@ const port = process.env.PORT || 8080;
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
 
-// TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
-// the electron app from making any API requests.
-app.commandLine.appendSwitch('disable-web-security');
-
 // This is necessary for NetInfo to work correctly as it does not handle the NetworkInformation API events correctly
 // See: https://github.com/electron/electron/issues/22597
 app.commandLine.appendSwitch('enable-network-information-downlink-max');
