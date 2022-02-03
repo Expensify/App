@@ -5,6 +5,7 @@ import * as API from '../../API';
 import CONST from '../../../CONST';
 import * as store from './store';
 import Growl from '../../Growl';
+import deleteFromBankAccountList from './deleteFromBankAccountList';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
@@ -39,14 +40,10 @@ function resetFreePlanBankAccount() {
                 domainLimit: 0,
                 currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
             };
-                        
-            // We should delete the bankAccountID key from the bankAccountList object before setting it in Onyx
-            const bankAccountList = store.getBankAccountList();
-            delete bankAccountList[bankAccountID];
 
+            deleteFromBankAccountList(bankAccountID);
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
-            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
 
             // Clear the NVP for the bank account so the user can add a new one
             API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
