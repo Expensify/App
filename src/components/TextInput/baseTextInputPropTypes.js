@@ -46,9 +46,6 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
-    /** Character limit for the input */
-    maxLength: PropTypes.number,
-
     /** Hint microcopy to be displayed under the input */
     hint: PropTypes.string,
 };
@@ -72,7 +69,6 @@ const defaultProps = {
     defaultValue: undefined,
     forceActiveLabel: false,
     shouldSaveDraft: false,
-    maxLength: undefined,
     hint: '',
 };
 
