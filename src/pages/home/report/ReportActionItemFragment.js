@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, ImageBackground, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -25,6 +25,14 @@ const propTypes = {
     /** Is this fragment an attachment? */
     isAttachment: PropTypes.bool,
 
+    /** If this fragment is attachment than has info? */
+    attachmentInfo: PropTypes.shape({
+        name: PropTypes.string,
+        size: PropTypes.number,
+        type: PropTypes.string,
+        uri: PropTypes.string,
+    }),
+
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
@@ -39,6 +47,12 @@ const propTypes = {
 
 const defaultProps = {
     isAttachment: false,
+    attachmentInfo: {
+        name: '',
+        size: 0,
+        type: '',
+        uri: '',
+    },
     loading: false,
     isSingleLine: false,
     tooltipText: '',
@@ -51,11 +65,27 @@ const ReportActionItemFragment = (props) => {
             if (props.isAttachment && props.loading) {
                 return (
                     <View style={[styles.chatItemAttachmentPlaceholder]}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.textSupporting}
-                            style={[styles.flex1]}
-                        />
+                        {Str.isImage(props.attachmentInfo.name)
+                            ? (
+                                <ImageBackground
+                                    source={{uri: props.attachmentInfo.uri}}
+                                    resizeMode="cover"
+                                    imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
+                                    style={[styles.flex1, styles.justifyContentCenter]}
+                                >
+                                    <ActivityIndicator
+                                        size="large"
+                                        color={themeColors.textSupporting}
+                                        style={[styles.flex1]}
+                                    />
+                                </ImageBackground>
+                            ) : (
+                                <ActivityIndicator
+                                    size="large"
+                                    color={themeColors.textSupporting}
+                                    style={[styles.flex1]}
+                                />
+                            )}
                     </View>
                 );
             }
