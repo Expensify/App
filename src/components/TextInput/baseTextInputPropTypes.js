@@ -45,9 +45,6 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
-
-    /** Hint microcopy to be displayed under the input */
-    hint: PropTypes.string,
 };
 
 const defaultProps = {
@@ -69,7 +66,6 @@ const defaultProps = {
     defaultValue: undefined,
     forceActiveLabel: false,
     shouldSaveDraft: false,
-    hint: '',
 };
 
 export {propTypes, defaultProps};
