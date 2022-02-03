@@ -90,7 +90,7 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send('show-keyboard-shortcuts-modal');
+    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
 // Defines the system-level menu item for manually triggering an update after
@@ -109,17 +109,17 @@ const keyboardShortcutsMenu = new MenuItem({
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
-        autoUpdater.on('update-downloaded', (info) => {
+        autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             downloadedVersion = info.version;
             updateAppMenuItem.enabled = true;
             if (browserWindow.isVisible()) {
-                browserWindow.webContents.send('update-downloaded', info.version);
+                browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
             }
         });
 
-        ipcMain.on('start-update', quitAndInstallWithUpdate);
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -145,7 +145,8 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    nodeIntegration: true,
+                    preload: `${__dirname}/preload.js`,
+                    contextIsolation: true,
                 },
                 titleBarStyle: 'hidden',
             });

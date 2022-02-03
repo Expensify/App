@@ -1,14 +1,14 @@
 import React from 'react';
-import {ipcRenderer} from 'electron';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 import {propTypes} from './updateAppModalPropTypes';
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 const UpdateAppModal = (props) => {
     const updateApp = () => {
         if (props.onSubmit) {
             props.onSubmit();
         }
-        ipcRenderer.sendSync('start-update');
+        window.electronContextBridge.send(ELECTRON_EVENTS.START_UPDATE);
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
 };
