@@ -56,7 +56,7 @@ class ImageWithSizeCalculation extends PureComponent {
     getImageSize(url) {
         return new Promise((resolve, reject) => {
             Image.getSize(url, (width, height) => {
-                resolve(width, height);
+                resolve({width, height});
             }, (error) => {
                 reject(error);
             });
@@ -70,7 +70,7 @@ class ImageWithSizeCalculation extends PureComponent {
 
         this.getImageSizePromise = makeCancellablePromise(this.getImageSize(this.props.url));
         this.getImageSizePromise.promise
-            .then((width, height) => {
+            .then(({width, height}) => {
                 if (!width || !height) {
                     // Image didn't load properly
                     return;

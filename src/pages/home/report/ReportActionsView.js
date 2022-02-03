@@ -33,9 +33,7 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
-import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
 import * as ReportUtils from '../../../libs/reportUtils';
-import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
@@ -339,7 +337,9 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT)
+                || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+                || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -368,6 +368,12 @@ class ReportActionsView extends React.Component {
 
         // Comments are only grouped if they happen within 5 minutes of each other
         if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
+            return false;
+        }
+
+        // Do not group if previous or current action was a renamed action
+        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return false;
         }
 
@@ -535,27 +541,9 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
-        }
-
-        // If we only have the created action then no one has left a comment
-        if (_.size(this.props.reportActions) === 1) {
-            return (
-                <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                        <EmptyStateAvatars
-                            avatarImageURLs={this.props.report.icons}
-                            secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isChatRoom={isChatRoom}
-                        />
-                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isChatRoom} />
-                    </View>
-                </View>
-            );
         }
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
