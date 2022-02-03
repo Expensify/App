@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import ExpensifyButton from '../../components/ExpensifyButton';
-import ExpensifyText from '../../components/ExpensifyText';
+import Button from '../../components/Button';
+import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -14,7 +14,7 @@ import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import LoginUtil from '../../libs/LoginUtil';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
@@ -58,7 +58,7 @@ class LoginForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input) {
+        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
             return;
         }
         this.input.focus();
@@ -102,16 +102,17 @@ class LoginForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.state.login.trim()) {
+        const login = this.state.login.trim();
+        if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 
-        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(login);
         const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
 
-        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
-            if (ValidationUtils.isNumericWithSpecialChars(this.state.login)) {
+        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+            if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
                 this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
@@ -124,14 +125,14 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
+        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {
         return (
             <>
                 <View style={[styles.mt3]}>
-                    <ExpensiTextInput
+                    <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
@@ -147,23 +148,23 @@ class LoginForm extends React.Component {
                     />
                 </View>
                 {this.state.formError && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </ExpensifyText>
+                    </Text>
                 )}
 
                 {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <ExpensifyText style={[styles.formError]}>
+                    <Text style={[styles.formError]}>
                         {this.props.account.error}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 {!_.isEmpty(this.props.account.success) && (
-                    <ExpensifyText style={[styles.formSuccess]}>
+                    <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
-                    </ExpensifyText>
+                    </Text>
                 )}
                 <View style={[styles.mt5]}>
-                    <ExpensifyButton
+                    <Button
                         success
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}

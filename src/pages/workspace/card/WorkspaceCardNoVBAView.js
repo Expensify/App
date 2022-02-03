@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -19,7 +19,7 @@ const propTypes = {
 };
 
 const WorkspaceCardNoVBAView = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.card.header')}
         icon={Illustrations.JewelBoxBlue}
         menuItems={[
@@ -32,7 +32,7 @@ const WorkspaceCardNoVBAView = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <ExpensifyText>{props.translate('workspace.card.noVBACopy')}</ExpensifyText>
+            <Text>{props.translate('workspace.card.noVBACopy')}</Text>
         </View>
 
         <UnorderedList
@@ -43,7 +43,7 @@ const WorkspaceCardNoVBAView = props => (
                 props.translate('workspace.card.benefit4'),
             ]}
         />
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceCardNoVBAView.propTypes = propTypes;

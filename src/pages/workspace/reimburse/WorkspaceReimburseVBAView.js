@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 
@@ -19,7 +19,7 @@ const propTypes = {
 
 const WorkspaceReimburseVBAView = props => (
     <>
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.reimburse.captureReceipts')}
             icon={Illustrations.ReceiptYellow}
             menuItems={[
@@ -33,18 +33,18 @@ const WorkspaceReimburseVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <ExpensifyText>
+                <Text>
                     {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <ExpensifyText>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</ExpensifyText>
-                </ExpensifyText>
+                    <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                </Text>
             </View>
-        </WorkspaceSection>
+        </Section>
 
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
             icon={Illustrations.BankUserGreen}
             menuItems={[
@@ -58,9 +58,9 @@ const WorkspaceReimburseVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <ExpensifyText>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</ExpensifyText>
+                <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

@@ -3,9 +3,8 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 import styles from '../styles/styles';
-import ExpensifyText from '../components/ExpensifyText';
+import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -18,6 +17,10 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/reportUtils';
+import DateUtils from '../libs/DateUtils';
+import * as Expensicons from '../components/Icon/Expensicons';
+import MenuItem from '../components/MenuItem';
+import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -66,7 +69,7 @@ const DetailsPage = (props) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(props.route.params.reportID);
-    const timezone = moment().tz(details.timezone.selected);
+    const timezone = DateUtils.getLocalMomentFromTimestamp(props.preferredLocale, null, details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
     const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
@@ -101,54 +104,63 @@ const DetailsPage = (props) => {
                                 source={details.avatar}
                             />
                             {details.displayName && (
-                                <ExpensifyText style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                </ExpensifyText>
+                                </Text>
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate(isSMSLogin
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
-                                    </ExpensifyText>
+                                    </Text>
                                     <CommunicationsLink
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
                                         <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                            <ExpensifyText numberOfLines={1}>
+                                            <Text numberOfLines={1}>
                                                 {isSMSLogin
                                                     ? props.toLocalPhone(getPhoneNumber(details))
                                                     : details.login}
-                                            </ExpensifyText>
+                                            </Text>
                                         </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
                             {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('profilePage.preferredPronouns')}
-                                    </ExpensifyText>
-                                    <ExpensifyText numberOfLines={1}>
+                                    </Text>
+                                    <Text numberOfLines={1}>
                                         {pronouns}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('detailsPage.localTime')}
-                                    </ExpensifyText>
-                                    <ExpensifyText numberOfLines={1}>
+                                    </Text>
+                                    <Text numberOfLines={1}>
                                         {timezone.format('LT')}
                                         {' '}
                                         {currentTime}
-                                    </ExpensifyText>
+                                    </Text>
                                 </View>
                             ) : null}
                         </View>
+                        {details.login !== props.session.email && (
+                            <MenuItem
+                                title={`${props.translate('common.message')}${details.displayName}`}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Report.fetchOrCreateChatReport([props.session.email, details.login])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 ) : null}
             </View>
@@ -162,6 +174,9 @@ DetailsPage.displayName = 'DetailsPage';
 export default compose(
     withLocalize,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

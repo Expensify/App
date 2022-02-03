@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
@@ -19,7 +19,7 @@ const propTypes = {
 
 const WorkspaceTravelNoVBAView = props => (
     <>
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
             icon={Illustrations.JewelBoxYellow}
             menuItems={[
@@ -33,9 +33,9 @@ const WorkspaceTravelNoVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <ExpensifyText>{props.translate('workspace.travel.noVBACopy')}</ExpensifyText>
+                <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     </>
 );
 

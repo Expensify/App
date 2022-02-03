@@ -118,6 +118,9 @@ export default {
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
+    // Stores values put into the additional details step of the wallet KYC flow
+    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
+
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
@@ -142,9 +145,6 @@ export default {
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
-    // Notifies all tabs that they should sign out and clear storage.
-    SHOULD_SIGN_OUT: 'shouldSignOut',
-
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
@@ -154,6 +154,9 @@ export default {
     // Stores values for the request call form
     REQUEST_CALL_FORM: 'requestCallForm',
 
+    // The number of minutes a user has to wait for a call.
+    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
+
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
 
@@ -162,4 +165,22 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
+
+    // Are we loading the rename policy room command
+    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
+
+    // Is Keyboard shortcuts modal open?
+    IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
+
+    // Is close acount modal open?
+    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+
+    // Stores information about active wallet transfer amount, selectedAccountID, status, etc
+    WALLET_TRANSFER: 'walletTransfer',
+
+    // The policyID of the last workspace whose settings were accessed by the user
+    LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
+
+    // Validating Email?
+    USER_SIGN_UP: 'userSignUp',
 };

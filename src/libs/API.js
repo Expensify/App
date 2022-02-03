@@ -16,6 +16,7 @@ import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndErr
 let isAuthenticating;
 let credentials;
 let authToken;
+let currentUserEmail;
 
 function checkRequiredDataAndSetNetworkReady() {
     if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
@@ -37,6 +38,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
+        currentUserEmail = lodashGet(val, 'email', null);
         checkRequiredDataAndSetNetworkReady();
     },
 });
@@ -82,6 +84,10 @@ function addDefaultValuesToParameters(command, parameters) {
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
     // and prevents interfering with the cookie authToken that Expensify classic uses.
     finalParameters.api_setCookie = false;
+
+    // Unless email is already set include current user's email in every request and the server logs
+    finalParameters.email = lodashGet(parameters, 'email', currentUserEmail);
+
     return finalParameters;
 }
 
@@ -131,7 +137,7 @@ Network.registerRequestHandler((queuedRequest, finalParameters) => {
     Log.info('Making API request', false, {
         command: queuedRequest.command,
         type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.type,
+        shouldUseSecure: queuedRequest.shouldUseSecure,
         rvl: finalParameters.returnValueList,
     });
 });
@@ -359,8 +365,8 @@ function AddBillingCard(parameters) {
 
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.oldPassword
+ * @param {{password: String, oldPassword: String}} parameters
+ * @param {String} parameters.authToken
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -415,6 +421,17 @@ function CreateLogin(parameters) {
         'partnerUserID',
         'partnerUserSecret',
     ], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.fundID
+ * @returns {Promise}
+ */
+function DeleteFund(parameters) {
+    const commandName = 'DeleteFund';
+    requireParameters(['fundID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -530,6 +547,7 @@ function Graphite_Timer(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayIOU(parameters) {
@@ -541,6 +559,7 @@ function PayIOU(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
@@ -666,14 +685,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -715,7 +733,7 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {string} parameters.email
  * @returns {Promise}
  */
 function ResetPassword(parameters) {
@@ -728,12 +746,25 @@ function ResetPassword(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
- * @param {String} parameters.accountID
+ * @param {Number} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
+ * @returns {Promise}
+ */
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -745,6 +776,16 @@ function SetPassword(parameters) {
 function UpdateAccount(parameters) {
     const commandName = 'UpdateAccount';
     requireParameters(['subscribed'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function User_Delete(parameters) {
+    const commandName = 'User_Delete';
     return Network.post(commandName, parameters);
 }
 
@@ -955,7 +996,7 @@ function BankAccount_SetupWithdrawal(parameters) {
         'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
         'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
 
         // data from company step:
@@ -995,7 +1036,7 @@ function BankAccount_SetupWithdrawal(parameters) {
  */
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1088,6 +1129,15 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
+ * Get the current wait time in minutes for an inbox call
+ * @returns {Promise}
+ */
+function Inbox_CallUser_WaitTime() {
+    const commandName = 'Inbox_CallUser_WaitTime';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -1123,6 +1173,34 @@ function CreatePolicyRoom(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Renames a user-created policy room
+ * @param {Object} parameters
+ * @param {String} parameters.reportID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['reportID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * Transfer Wallet balance and takes either the bankAccoundID or fundID
+ * @param {Object} parameters
+ * @param {String} [parameters.bankAccountID]
+ * @param {String} [parameters.fundID]
+ * @returns {Promise}
+ */
+function TransferWalletBalance(parameters) {
+    const commandName = 'TransferWalletBalance';
+    if (!parameters.bankAccountID && !parameters.fundID) {
+        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
+    }
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1135,6 +1213,8 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
+    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1147,6 +1227,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
@@ -1165,9 +1246,11 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
+    SetWalletLinkedAccount,
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
+    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
@@ -1180,6 +1263,7 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
+    TransferWalletBalance,
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,

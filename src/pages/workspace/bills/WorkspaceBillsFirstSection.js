@@ -3,12 +3,12 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
@@ -35,7 +35,7 @@ const propTypes = {
 const WorkspaceBillsFirstSection = (props) => {
     const emailDomain = Str.extractEmailDomain(props.session.email);
     return (
-        <WorkspaceSection
+        <Section
             title={props.translate('workspace.bills.manageYourBills')}
             icon={Illustrations.InvoiceOrange}
             menuItems={[
@@ -51,13 +51,13 @@ const WorkspaceBillsFirstSection = (props) => {
             ]}
         >
             <View style={[styles.mv4]}>
-                <ExpensifyText>
+                <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
                         <TouchableOpacity
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
-                            <ExpensifyText style={[styles.textBlue]}>example.com@expensify.cash</ExpensifyText>
+                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
                         </TouchableOpacity>
                     ) : (
                         <CopyTextToClipboard
@@ -65,10 +65,10 @@ const WorkspaceBillsFirstSection = (props) => {
                             textStyles={[styles.textBlue]}
                         />
                     )}
-                    <ExpensifyText>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</ExpensifyText>
-                </ExpensifyText>
+                    <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
+                </Text>
             </View>
-        </WorkspaceSection>
+        </Section>
     );
 };
 

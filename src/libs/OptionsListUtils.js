@@ -164,13 +164,13 @@ function getParticipantNames(personalDetailList) {
  *
  * @param {Object} report
  * @param {Array} personalDetailList
- * @param {Boolean} isDefaultChatRoom
+ * @param {Boolean} isChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList, isDefaultChatRoom) {
+function getSearchText(report, personalDetailList, isChatRoom) {
     const searchTerms = [];
 
-    if (!isDefaultChatRoom) {
+    if (!isChatRoom) {
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
             searchTerms.push(personalDetail.login);
@@ -180,10 +180,10 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
         searchTerms.push(...report.reportName);
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
-        if (isDefaultChatRoom) {
-            const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(report, policies);
-            searchTerms.push(...defaultRoomSubtitle);
-            searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
+        if (isChatRoom) {
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+            searchTerms.push(...chatRoomSubtitle);
+            searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
         } else {
             searchTerms.push(...report.participants);
         }
@@ -216,8 +216,8 @@ function hasReportDraftComment(report) {
 function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const isDefaultChatRoom = ReportUtils.isDefaultRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
+    const isChatRoom = ReportUtils.isChatRoom(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
@@ -237,11 +237,16 @@ function createOption(personalDetailList, report, {
 
     let text;
     let alternateText;
-    if (isDefaultChatRoom) {
+    let icons;
+    if (isChatRoom) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : ReportUtils.getDefaultRoomSubtitle(report, policies);
+            : ReportUtils.getChatRoomSubtitle(report, policies);
+
+        // Chat rooms do not use icons from their users for the avatar so falling back on personalDetails
+        // doesn't make sense here
+        icons = lodashGet(report, 'icons', ['']);
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -250,11 +255,12 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        icons = lodashGet(report, 'icons', [personalDetail.avatar]);
     }
     return {
         text,
         alternateText,
-        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
+        icons,
         tooltipText,
         participantsList: personalDetailList,
 
@@ -267,13 +273,13 @@ function createOption(personalDetailList, report, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
+        searchText: getSearchText(report, personalDetailList, isChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
-        isDefaultChatRoom,
+        isChatRoom,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }
@@ -284,10 +290,10 @@ function createOption(personalDetailList, report, {
  * @param {String} searchValue
  * @param {String} searchText
  * @param {Set<String>} [participantNames]
- * @param {Boolean} isDefaultChatRoom
+ * @param {Boolean} isChatRoom
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
     const searchWords = _.map(
         searchValue
             .replace(/,/g, ' ')
@@ -297,7 +303,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || (!isDefaultChatRoom && participantNames.has(word));
+        return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
 }
 
@@ -352,6 +358,8 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
+
+    // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
@@ -365,7 +373,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
-    const personalDetailsOptions = [];
+    let personalDetailsOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
 
@@ -377,14 +385,18 @@ function getOptions(reports, personalDetails, activeReportID, {
         sortProperty = ['reportName'];
     }
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+
+    // Move the archived Rooms to the last
+    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report || !report.reportID || _.isEmpty(logins)) {
+        const shouldFilterNoParticipants = _.isEmpty(logins) && !ReportUtils.isChatRoom(report) && !ReportUtils.isDefaultRoom(report);
+        if (!report || !report.reportID || shouldFilterNoParticipants) {
             return;
         }
 
@@ -394,7 +406,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !ReportUtils.isDefaultRoom(report);
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
@@ -405,7 +417,11 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (ReportUtils.isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (ReportUtils.isChatRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+            return;
+        }
+
+        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
             return;
         }
 
@@ -456,9 +472,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList, isDefaultChatRoom} = reportOption;
+            const {searchText, participantsList, isChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 continue;
             }
 
@@ -503,21 +519,8 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // If we are prioritizing default rooms in search, do it only once we started something
     if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
-        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isDefaultChatRoom);
+        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isChatRoom);
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
-    }
-
-    // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (sortByReportTypeInSearch && searchValue !== '') {
-        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
-            if (option.isDefaultChatRoom || option.isArchivedRoom) {
-                return 3;
-            }
-            if (!option.login) {
-                return 2;
-            }
-            return 1;
-        }], ['asc']);
     }
 
     if (includePersonalDetails) {
@@ -528,9 +531,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantsList, isDefaultChatRoom} = personalDetailOption;
+            const {searchText, participantsList, isChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
             personalDetailsOptions.push(personalDetailOption);
@@ -559,6 +562,22 @@ function getOptions(reports, personalDetails, activeReportID, {
         userToInvite.icons = [defaultAvatarForUserToInvite];
     }
 
+    // If we are prioritizing 1:1 chats in search, do it only once we started searching
+    if (sortByReportTypeInSearch && searchValue !== '') {
+        // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
+        recentReportOptions.push(...personalDetailsOptions);
+        personalDetailsOptions = [];
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+            if (option.isChatRoom || option.isArchivedRoom) {
+                return 3;
+            }
+            if (!option.login) {
+                return 2;
+            }
+            return 1;
+        }], ['asc']);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -583,7 +602,7 @@ function getSearchOptions(
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
-        searchValue,
+        searchValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -652,7 +671,7 @@ function getNewChatOptions(
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
-        searchValue,
+        searchValue: searchValue.trim(),
         selectedOptions,
         excludeDefaultRooms: true,
         includeRecentReports: true,
@@ -680,7 +699,6 @@ function getSidebarOptions(
     betas,
 ) {
     let sideBarOptions = {
-        prioritizePinnedReports: true,
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
     };
@@ -698,6 +716,7 @@ function getSidebarOptions(
         maxRecentReportsToShow: 0, // Unlimited
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        prioritizePinnedReports: true,
         ...sideBarOptions,
     });
 }
@@ -759,7 +778,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isDefaultRoom(report)) {
+    if (ReportUtils.isChatRoom(report)) {
         return [''];
     }
     const sortedParticipants = _.map(report.participants, dmParticipant => ({

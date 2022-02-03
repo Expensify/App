@@ -1,7 +1,6 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Text} from 'react-native';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
+import Text from '../Text';
 
 const InlineCodeBlock = (props) => {
     const TDefaultRenderer = props.TDefaultRenderer;

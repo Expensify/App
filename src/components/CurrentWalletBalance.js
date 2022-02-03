@@ -1,6 +1,5 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {ActivityIndicator, Text} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
+import Text from './Text';
 
 const propTypes = {
     /** The user's wallet account */
@@ -17,11 +17,15 @@ const propTypes = {
         currentBalance: PropTypes.number,
     }),
 
+    /** Styles of the amount */
+    balanceStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+    balanceStyles: [],
 };
 
 const CurrentWalletBalance = (props) => {
@@ -41,7 +45,7 @@ const CurrentWalletBalance = (props) => {
     );
     return (
         <Text
-            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter]}
+            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, ...props.balanceStyles]}
         >
             {`${formattedBalance}`}
         </Text>

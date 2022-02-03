@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ExpensifyText from '../../../components/ExpensifyText';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import WorkspaceSection from '../WorkspaceSection';
+import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
@@ -17,7 +17,7 @@ const propTypes = {
 };
 
 const WorkspaceInvoicesFirstSection = props => (
-    <WorkspaceSection
+    <Section
         title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
         icon={Illustrations.MoneyEnvelopeBlue}
         menuItems={[
@@ -40,11 +40,11 @@ const WorkspaceInvoicesFirstSection = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <ExpensifyText>
+            <Text>
                 {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
-            </ExpensifyText>
+            </Text>
         </View>
-    </WorkspaceSection>
+    </Section>
 );
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;

@@ -16,17 +16,20 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
-import ExpensifyText from '../../components/ExpensifyText';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
+import TextInput from '../../components/TextInput';
+import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import WorkspaceSection from '../workspace/WorkspaceSection';
+import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
+import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
+import CONFIG from '../../CONFIG';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -87,8 +90,7 @@ class BankAccountStep extends React.Component {
     validate() {
         const errors = {};
 
-        // These are taken from BankCountry.js in Web-Secure
-        if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(this.state.routingNumber.trim())) {
@@ -159,6 +161,7 @@ class BankAccountStep extends React.Component {
             isSavings: params.account.isSavings,
             bankName: params.bankName,
             addressName: params.account.addressName,
+            mask: params.account.mask,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
             country: CONST.COUNTRY.US,
@@ -171,8 +174,10 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI;
+        const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
+        const plaidDesktopMessage = getPlaidDesktopMessage();
+        const bankAccountRoute = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH}${ROUTES.BANK_ACCOUNT}`;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -188,17 +193,26 @@ class BankAccountStep extends React.Component {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 {!subStep && (
                     <ScrollView style={[styles.flex1]}>
-                        <WorkspaceSection
+                        <Section
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />
-                        <ExpensifyText style={[styles.mh5, styles.mb5]}>
+                        <Text style={[styles.mh5, styles.mb1]}>
                             {this.props.translate('bankAccount.toGetStarted')}
-                        </ExpensifyText>
+                        </Text>
+                        {plaidDesktopMessage && (
+                            <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                                <TextLink href={bankAccountRoute}>
+                                    {this.props.translate(plaidDesktopMessage)}
+                                </TextLink>
+                            </View>
+                        )}
                         <MenuItem
                             icon={Expensicons.Bank}
                             title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
@@ -207,9 +221,9 @@ class BankAccountStep extends React.Component {
                             shouldShowRightIcon
                         />
                         {this.props.isPlaidDisabled && (
-                            <ExpensifyText style={[styles.formError, styles.mh5]}>
+                            <Text style={[styles.formError, styles.mh5]}>
                                 {this.props.translate('bankAccount.error.tooManyAttempts')}
-                            </ExpensifyText>
+                            </Text>
                         )}
                         <MenuItem
                             icon={Expensicons.Paycheck}
@@ -220,12 +234,12 @@ class BankAccountStep extends React.Component {
                         />
                         {!this.props.user.validated && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                <ExpensifyText style={[styles.mutedTextLabel, styles.mr4]}>
+                                <Text style={[styles.mutedTextLabel, styles.mr4]}>
                                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                </ExpensifyText>
-                                <ExpensifyText style={styles.mutedTextLabel}>
+                                </Text>
+                                <Text style={styles.mutedTextLabel}>
                                     {this.props.translate('bankAccount.validateAccountError')}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         )}
                         <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
@@ -259,15 +273,15 @@ class BankAccountStep extends React.Component {
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
                     >
-                        <ExpensifyText style={[styles.mb5]}>
+                        <Text style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
-                        </ExpensifyText>
+                        </Text>
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
@@ -275,7 +289,7 @@ class BankAccountStep extends React.Component {
                             disabled={shouldDisableInputs}
                             errorText={this.getErrorText('routingNumber')}
                         />
-                        <ExpensiTextInput
+                        <TextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
@@ -290,9 +304,9 @@ class BankAccountStep extends React.Component {
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <ExpensifyText>
+                                    <Text>
                                         {this.props.translate('common.iAcceptThe')}
-                                    </ExpensifyText>
+                                    </Text>
                                     <TextLink href="https://use.expensify.com/terms">
                                         {`Expensify ${this.props.translate('common.termsOfService')}`}
                                     </TextLink>

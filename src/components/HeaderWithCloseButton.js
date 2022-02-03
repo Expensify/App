@@ -5,16 +5,20 @@ import {
 } from 'react-native';
 import styles from '../styles/styles';
 import Header from './Header';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
-import InboxCallButton from './InboxCallButton';
 import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 
 const propTypes = {
     /** Title of the Header */
     title: PropTypes.string,
+
+    /** Subtitle of the header */
+    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress: PropTypes.func,
@@ -37,8 +41,8 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
-    /** Whether we should show a inbox call button */
-    shouldShowInboxCallButton: PropTypes.bool,
+    /** Whether we should show a get assistance (question mark) button */
+    shouldShowGetAssistanceButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
@@ -60,8 +64,8 @@ const propTypes = {
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
 
-    /** The task ID to associate with the call button, if we show it */
-    inboxCallTaskID: PropTypes.string,
+    /** The guides call taskID to associate with the get assistance button, if we show it */
+    guidesCallTaskID: PropTypes.string,
 
     /** Data to display a step counter in the header */
     stepCounter: PropTypes.shape({
@@ -74,6 +78,7 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
+    subtitle: '',
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
@@ -81,11 +86,11 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
-    shouldShowInboxCallButton: false,
+    shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
-    inboxCallTaskID: '',
+    guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
     threeDotsAnchorPosition: {
@@ -117,7 +122,7 @@ const HeaderWithCloseButton = props => (
             )}
             <Header
                 title={props.title}
-                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : props.subtitle}
             />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
@@ -134,7 +139,19 @@ const HeaderWithCloseButton = props => (
                     )
                 }
 
-                {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
+                {props.shouldShowGetAssistanceButton
+                && (
+                <Tooltip text={props.translate('getAssistancePage.questionMarkButtonTooltip')}>
+                    <TouchableOpacity
+                        onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(props.guidesCallTaskID))}
+                        style={[styles.touchableButtonImage, styles.mr0]}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('getAssistancePage.questionMarkButtonTooltip')}
+                    >
+                        <Icon src={Expensicons.QuestionMark} />
+                    </TouchableOpacity>
+                </Tooltip>
+                )}
 
                 {props.shouldShowThreeDotsButton && (
                     <ThreeDotsMenu

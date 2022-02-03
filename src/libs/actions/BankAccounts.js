@@ -4,9 +4,10 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
-import Navigation from '../Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PaymentMethods from './PaymentMethods';
+import Growl from '../Growl';
+import * as Localize from '../Localize';
 
 export {
     setupWithdrawalAccount,
@@ -80,7 +81,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
             if (response.jsonCode === 200) {
                 PaymentMethods.getPaymentMethods()
                     .then(() => {
-                        Navigation.goBack();
+                        PaymentMethods.continueSetup();
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                     });
                 return;
@@ -96,6 +97,27 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
         });
 }
 
+/**
+ * Deletes a bank account
+ *
+ * @param {Number} bankAccountID
+ */
+function deleteBankAccount(bankAccountID) {
+    API.DeleteBankAccount({
+        bankAccountID,
+    }).then((response) => {
+        if (response.jsonCode === 200) {
+            Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
+            Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
+        } else {
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+        }
+    }).catch(() => {
+        Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+    });
+}
+
 export {
     addPersonalBankAccount,
+    deleteBankAccount,
 };

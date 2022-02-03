@@ -19,6 +19,7 @@ export default {
     fontSizeLarge: 17,
     fontSizeHero: 36,
     fontSizeh1: 19,
+    fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
     fontSizeNormalHeight: 20,
     lineHeightHero: 40,
@@ -28,6 +29,7 @@ export default {
     iconSizeSmall: 16,
     iconSizeNormal: 20,
     iconSizeLarge: 24,
+    iconSizeXLarge: 28,
     iconSizeExtraLarge: 40,
     emojiSize: 20,
     iouAmountTextSize: 40,
@@ -38,4 +40,5 @@ export default {
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 16,
+    popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
 };

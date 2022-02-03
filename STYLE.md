@@ -222,11 +222,20 @@ Use `lodashGet()` to safely access object properties and `||` to short circuit n
    ```
 
 ## JSDocs
-- Avoid docs that don't add any additional information.
+
 - Always document parameters and return values.
-- Method descriptions are optional and should be added when it's not obvious what the purpose of the method is.
-- Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc)
+- Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
+- Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
+- If a parameter accepts more than one type use `*` to denote there is no single type.
+- Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
 - When specifying a return value use `@returns` instead of `@return`. If there is no return value do not include one in the doc.
+
+- Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
+- Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
+- Do not document default parameters. They are already documented by adding them to a declared function's arguments.
+- Do not use record types e.g. `{Object.<string, number>}`.
+- Do not create `@typedef` to use in JSDocs.
+- Do not use type unions e.g. `{(number|boolean)}`.
 
 ```javascript
 // Bad
@@ -277,16 +286,16 @@ render() {
 // Bad
 const UserInfo = ({name, email}) => (
 	<View>
-		<ExpensifyText>Name: {name}</ExpensifyText>
-		<ExpensifyText>Email: {email}</ExpensifyText>
+		<Text>Name: {name}</Text>
+		<Text>Email: {email}</Text>
 	</View>
 );
 
 // Good
 const UserInfo = props => (
     <View>
-        <ExpensifyText>Name: {props.name}</ExpensifyText>
-        <ExpensifyText>Email: {props.email}</ExpensifyText>
+        <Text>Name: {props.name}</Text>
+        <Text>Email: {props.email}</Text>
     </View>
 );
 ```
@@ -511,6 +520,48 @@ const propTypes = {
 }
 ```
 
+## Binding methods
+
+For class components, methods should be bound in the `constructor()` if passed directly as a prop or needing to be accessed via the component instance from outside of the component's execution context. Binding all methods in the constructor is unnecessary. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
+
+```javascript
+// Bad
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind(this);
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // No need to bind this since arrow function is used
+            <Button onPress={() => this.myMethod()} />
+        );
+    }
+}
+
+// Good
+class SomeComponent {
+    constructor(props) {
+        super(props);
+
+        this.myMethod = this.myMethod.bind(this);
+    }
+
+    myMethod() {...}
+
+    render() {
+        return (
+            // Passed directly to Button so this should be bound to the component
+            <Button onPress={this.myMethod} />
+        );
+    }
+}
+```
+
 ## Inline Ternarys
 * Use inline ternary statements when rendering optional pieces of templates. Notice the white space and formatting of the ternary.
 
@@ -701,15 +752,37 @@ class BComposedComponent extends React.Component
     render() {
         return (
             <AComponent {...props}>
-                <ExpensifyText>
+                <Text>
                     {this.state.whatever}
-                </ExpensifyText>
+                </Text>
             </AComponent>
         )
     }
     ...
 }
 ```
+
+## isMounted is an Antipattern
+
+Sometimes we must set React state when a resolved promise is handled. This can cause errors in the JS console because a promise does not have any awareness of whether a component we are setting state on still exists or has unmounted. It may be tempting in these situations to use an instance flag like `this.isComponentMounted` and then set it to `false` in `componentWillUnmount()`. The correct way to handle this is to use a "cancellable" promise.
+
+```js
+componentWillUnmount() {
+    if (!this.doSomethingPromise) {
+        return;
+    }
+
+    this.doSomethingPromise.cancel();
+}
+
+doSomethingThenSetState() {
+    this.doSomethingPromise = makeCancellablePromise(this.doSomething());
+    this.doSomethingPromise.promise
+        .then((value) => this.setState({value}));
+}
+```
+
+**Read more:** [https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html](https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html)
 
 ## Composition vs Inheritance
 

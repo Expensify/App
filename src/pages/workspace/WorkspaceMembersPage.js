@@ -16,9 +16,9 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
-import ExpensifyText from '../../components/ExpensifyText';
+import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -28,6 +28,7 @@ import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -227,9 +228,9 @@ class WorkspaceMembersPage extends React.Component {
                     {this.props.session.email === item.login && (
                         <View style={styles.peopleRowCell}>
                             <View style={[styles.badge, styles.peopleBadge]}>
-                                <ExpensifyText style={[styles.peopleBadgeText]}>
+                                <Text style={[styles.peopleBadgeText]}>
                                     {this.props.translate('common.admin')}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         </View>
                     )}
@@ -258,6 +259,8 @@ class WorkspaceMembersPage extends React.Component {
                     title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                 />
                 <ConfirmModal
@@ -272,14 +275,14 @@ class WorkspaceMembersPage extends React.Component {
                 />
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
-                        <ExpensifyButton
-                            small
+                        <Button
+                            medium
                             success
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                         />
-                        <ExpensifyButton
-                            small
+                        <Button
+                            medium
                             danger
                             style={[styles.ml2]}
                             isDisabled={this.state.selectedEmployees.length === 0}
@@ -296,9 +299,9 @@ class WorkspaceMembersPage extends React.Component {
                                 />
                             </View>
                             <View style={[styles.peopleRowCell, styles.flex1]}>
-                                <ExpensifyText style={[styles.textStrong, styles.ph5]}>
+                                <Text style={[styles.textStrong, styles.ph5]}>
                                     {this.props.translate('workspace.people.selectAll')}
-                                </ExpensifyText>
+                                </Text>
                             </View>
                         </View>
                         <FlatList

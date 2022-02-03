@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import * as PaymentMethods from './PaymentMethods';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -28,15 +29,26 @@ function fetchOnfidoToken() {
 }
 
 /**
- * Privately used to update the additionalDetails object in Onyx (which will have various effects on the UI)
- *
  * @param {Boolean} loading whether we are making the API call to validate the user's provided personal details
- * @param {String[]} [errorFields] an array of field names that should display errors in the UI
- * @param {String} [additionalErrorMessage] an additional error message to display in the UI
  * @private
  */
-function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMessage = '') {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading, errorFields, additionalErrorMessage});
+function setAdditionalDetailsLoading(loading) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {loading});
+}
+
+/**
+ * @param {Object} errorFields
+ */
+function setAdditionalDetailsErrors(errorFields) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
+}
+
+/**
+ * @param {String} additionalErrorMessage
+ */
+function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {additionalErrorMessage});
 }
 
 /**
@@ -70,19 +82,9 @@ function activateWallet(currentStep, parameters) {
         onfidoData = parameters.onfidoData;
         Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-        setAdditionalDetailsStep(true);
-
-        // Personal details are heavily validated on the API side. We will only do a quick check to ensure the values
-        // exist in some capacity and then stringify them.
-        const errorFields = _.reduce(CONST.WALLET.REQUIRED_ADDITIONAL_DETAILS_FIELDS, (missingFields, fieldName) => (
-            !personalDetails[fieldName] ? [...missingFields, fieldName] : missingFields
-        ), []);
-
-        if (!_.isEmpty(errorFields)) {
-            setAdditionalDetailsStep(false, errorFields);
-            return;
-        }
-
+        setAdditionalDetailsLoading(true);
+        setAdditionalDetailsErrors(null);
+        setAdditionalDetailsErrorMessage('');
         personalDetails = JSON.stringify(parameters.personalDetails);
     } else if (currentStep === CONST.WALLET.STEP.TERMS) {
         hasAcceptedTerms = parameters.hasAcceptedTerms;
@@ -104,7 +106,15 @@ function activateWallet(currentStep, parameters) {
 
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
-                        setAdditionalDetailsStep(false, response.data.fieldNames);
+                        // Errors for missing fields are returned from the API as an array of strings so we are converting this to an
+                        // object with field names as keys and boolean for values
+                        const errorFields = _.reduce(response.data.fieldNames, (errors, fieldName) => ({
+                            ...errors,
+                            [fieldName]: true,
+                        }), {});
+                        setAdditionalDetailsLoading(false);
+                        setAdditionalDetailsErrors(errorFields);
+                        setAdditionalDetailsErrorMessage('');
                         return;
                     }
 
@@ -116,23 +126,36 @@ function activateWallet(currentStep, parameters) {
                     ];
 
                     if (_.contains(errorTitles, response.title)) {
-                        setAdditionalDetailsStep(false, null, response.message);
+                        setAdditionalDetailsLoading(false);
+                        setAdditionalDetailsErrorMessage(response.message);
+                        setAdditionalDetailsErrors(null);
                         return;
                     }
 
-                    setAdditionalDetailsStep(false);
+                    setAdditionalDetailsLoading(false);
+                    setAdditionalDetailsErrors(null);
+                    setAdditionalDetailsErrorMessage('');
                     return;
                 }
 
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+            const userWallet = response.userWallet;
+            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet)
+                .then(() => {
+                    if (userWallet.currentStep !== CONST.WALLET.STEP.ACTIVATE || userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
+                        return;
+                    }
 
+                    PaymentMethods.continueSetup();
+                });
             if (currentStep === CONST.WALLET.STEP.ONFIDO) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-                setAdditionalDetailsStep(false);
+                setAdditionalDetailsLoading(false);
+                setAdditionalDetailsErrors(null);
+                setAdditionalDetailsErrorMessage('');
             } else if (currentStep === CONST.WALLET.STEP.TERMS) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }
@@ -159,9 +182,18 @@ function fetchUserWallet() {
         });
 }
 
+/**
+ * @param {Object} keyValuePair
+ */
+function updateAdditionalDetailsDraft(keyValuePair) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
+}
+
 export {
     fetchOnfidoToken,
-    setAdditionalDetailsStep,
     activateWallet,
     fetchUserWallet,
+    setAdditionalDetailsErrors,
+    updateAdditionalDetailsDraft,
+    setAdditionalDetailsErrorMessage,
 };

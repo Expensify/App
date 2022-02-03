@@ -28,6 +28,12 @@ const propTypes = {
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
 
+    /** Should we make this selectable with a checkbox */
+    shouldShowSelectedState: PropTypes.bool,
+
+    /** Whether this item is selected */
+    isSelected: PropTypes.bool,
+
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
 

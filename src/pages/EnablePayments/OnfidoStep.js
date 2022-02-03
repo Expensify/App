@@ -8,14 +8,13 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import ExpensifyButton from '../../components/ExpensifyButton';
+import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensifyText from '../../components/ExpensifyText';
-import Log from '../../libs/Log';
+import Text from '../../components/Text';
 import Growl from '../../libs/Growl';
 
 const propTypes = {
@@ -64,14 +63,15 @@ class OnfidoStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('onfidoStep.verifyIdentity')}
-                    onCloseButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 {
                     this.canShowOnfido() ? (
                         <Onfido
                             sdkToken={this.props.walletOnfidoData.sdkToken}
-                            onError={(error) => {
-                                Log.hmmm('Onfido error in OnfidoStep', {error});
+                            onError={() => {
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             }}
                             onUserExit={() => {
@@ -91,7 +91,7 @@ class OnfidoStep extends React.Component {
                             {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && (
                                 <>
                                     <View style={styles.justifyContentCenter}>
-                                        <ExpensifyText style={[styles.mb5]}>
+                                        <Text style={[styles.mb5]}>
                                             {this.props.translate('onfidoStep.acceptTerms')}
                                             <TextLink
                                                 href="https://onfido.com/facial-scan-policy-and-release/"
@@ -111,9 +111,9 @@ class OnfidoStep extends React.Component {
                                                 {this.props.translate('common.termsOfService')}
                                             </TextLink>
                                             .
-                                        </ExpensifyText>
+                                        </Text>
                                     </View>
-                                    <ExpensifyButton
+                                    <Button
                                         success
                                         text={this.props.translate('common.continue')}
                                         isLoading={this.props.walletOnfidoData.loading}
@@ -127,10 +127,10 @@ class OnfidoStep extends React.Component {
                                 && this.props.walletOnfidoData.loading && <FullscreenLoadingIndicator />}
                             {!this.props.walletOnfidoData.loading && this.props.walletOnfidoData.error && (
                                 <>
-                                    <ExpensifyText style={[styles.h3, styles.textStrong, styles.mb2]}>
+                                    <Text style={[styles.h3, styles.textStrong, styles.mb2]}>
                                         {this.props.walletOnfidoData.error}
-                                    </ExpensifyText>
-                                    <ExpensifyButton
+                                    </Text>
+                                    <Button
                                         success
                                         text={this.props.translate('onfidoStep.tryAgain')}
                                         onPress={() => {

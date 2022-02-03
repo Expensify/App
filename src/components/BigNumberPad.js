@@ -3,12 +3,15 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import ExpensifyButton from './ExpensifyButton';
+import Button from './Button';
 import ControlSelection from '../libs/ControlSelection';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const padNumbers = [
@@ -54,10 +57,10 @@ class BigNumberPad extends React.Component {
                             // avoid unccessary space before the first column.
                             const marginLeft = columnIndex > 0 ? styles.ml3 : {};
                             return (
-                                <ExpensifyButton
+                                <Button
                                     key={column}
                                     style={[styles.flex1, marginLeft]}
-                                    text={column}
+                                    text={column === '<' ? column : this.props.toLocaleDigit(column)}
                                     onLongPress={() => this.handleLongPress(column)}
                                     onPress={() => this.props.numberPressed(column)}
                                     onPressIn={ControlSelection.block}
@@ -78,4 +81,4 @@ class BigNumberPad extends React.Component {
 
 BigNumberPad.propTypes = propTypes;
 
-export default BigNumberPad;
+export default withLocalize(BigNumberPad);

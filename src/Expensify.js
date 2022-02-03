@@ -85,6 +85,7 @@ class Expensify extends PureComponent {
         ActiveClientManager.init();
         this.setNavigationReady = this.setNavigationReady.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
+        this.appStateChangeListener = null;
         this.state = {
             isNavigationReady: false,
             isOnyxMigrated: false,
@@ -110,7 +111,7 @@ class Expensify extends PureComponent {
                 this.setState({isOnyxMigrated: true});
             });
 
-        AppState.addEventListener('change', this.initializeClient);
+        this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
     }
 
     componentDidUpdate(prevProps) {
@@ -126,15 +127,17 @@ class Expensify extends PureComponent {
             const shouldHideSplash = !this.isAuthenticated() || authStackReady;
 
             if (shouldHideSplash) {
-                BootSplash
-                    .hide({fade: true})
-                    .then(() => this.setState({isSplashShown: false}));
+                BootSplash.hide();
+
+                // eslint-disable-next-line react/no-did-update-set-state
+                this.setState({isSplashShown: false});
             }
         }
     }
 
     componentWillUnmount() {
-        AppState.removeEventListener('change', this.initializeClient);
+        if (!this.appStateChangeListener) { return; }
+        this.appStateChangeListener.remove();
     }
 
     setNavigationReady() {
@@ -161,7 +164,8 @@ class Expensify extends PureComponent {
         BootSplash
             .getVisibilityStatus()
             .then((status) => {
-                Log.info('[BootSplash] splash screen status', false, {status});
+                const appState = AppState.currentState;
+                Log.info('[BootSplash] splash screen status', false, {appState, status});
 
                 if (status === 'visible') {
                     const props = _.omit(this.props, ['children', 'session']);
