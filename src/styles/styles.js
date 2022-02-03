@@ -141,6 +141,19 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
 
+    rateCol: {
+        margin: 0,
+        padding: 0,
+        flexBasis: '48%',
+    },
+
+    unitCol: {
+        margin: 0,
+        padding: 0,
+        marginLeft: '4%',
+        flexBasis: '48%',
+    },
+
     webViewStyles,
 
     link,
