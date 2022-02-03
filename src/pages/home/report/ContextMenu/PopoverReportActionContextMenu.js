@@ -24,6 +24,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportActionDraftMessage: '',
             isPopoverVisible: false,
             isDeleteCommentConfirmModalVisible: false,
+            shouldSetModalVisibilityForDeleteConfrmation: true,
             cursorRelativePosition: {
                 horizontal: 0,
                 vertical: 0,
@@ -229,16 +230,29 @@ class PopoverReportActionContextMenu extends React.Component {
         );
     }
 
+    /**
+     * Run the callback and return a noop function to reset it
+     * @param {Function} callback
+     * @return {Function}
+     */
+    runAndResetCallback(callback) {
+        callback();
+        return () => {};
+    }
+
     confirmDeleteAndHideModal() {
+        this.callbackWhenDeleteModalHide = () => this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal);
         Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
     hideDeleteModal() {
+        this.callbackWhenDeleteModalHide = () => this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal);
         this.setState({
             reportID: 0,
             reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
+            shouldSetModalVisibilityForDeleteConfrmation: true,
         });
     }
 
@@ -246,9 +260,19 @@ class PopoverReportActionContextMenu extends React.Component {
      * Opens the Confirm delete action modal
      * @param {Number} reportID
      * @param {Object} reportAction
+     * @param {Boolean} [shouldSetModalVisibility]
+     * @param {Function} [onConfirm]
+     * @param {Function} [onCancel]
      */
-    showDeleteModal(reportID, reportAction) {
-        this.setState({reportID, reportAction, isDeleteCommentConfirmModalVisible: true});
+    showDeleteModal(reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) {
+        this.onCancelDeleteModal = onCancel;
+        this.onComfirmDeleteModal = onConfirm;
+        this.setState({
+            reportID,
+            reportAction,
+            shouldSetModalVisibilityForDeleteConfrmation: shouldSetModalVisibility,
+            isDeleteCommentConfirmModalVisible: true,
+        });
     }
 
     render() {
@@ -278,8 +302,10 @@ class PopoverReportActionContextMenu extends React.Component {
                 <ConfirmModal
                     title={this.props.translate('reportActionContextMenu.deleteComment')}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
+                    shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfrmation}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteModal}
+                    onModalHide={this.callbackWhenDeleteModalHide}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
