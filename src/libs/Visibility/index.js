@@ -10,8 +10,8 @@ import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
  * @returns {Boolean}
  */
 function isVisible() {
-    return window.electronContextBridge
-        ? window.electronContextBridge.send(ELECTRON_EVENTS.REQUEST_VISIBILITY)
+    return window.electron
+        ? window.electron.send(ELECTRON_EVENTS.REQUEST_VISIBILITY)
         : document.visibilityState === 'visible';
 }
 

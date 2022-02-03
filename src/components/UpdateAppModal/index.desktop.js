@@ -8,7 +8,7 @@ const UpdateAppModal = (props) => {
         if (props.onSubmit) {
             props.onSubmit();
         }
-        window.electronContextBridge.send(ELECTRON_EVENTS.START_UPDATE);
+        window.electron.send(ELECTRON_EVENTS.START_UPDATE);
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
 };

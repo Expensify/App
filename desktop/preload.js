@@ -16,7 +16,7 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
     ELECTRON_EVENTS.UPDATE_DOWNLOADED,
 ];
 
-contextBridge.exposeInMainWorld('electronContextBridge', {
+contextBridge.exposeInMainWorld('electron', {
     send: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
             // eslint-disable-next-line no-console

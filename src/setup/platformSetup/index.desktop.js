@@ -12,12 +12,12 @@ export default function () {
     });
 
     // Send local notification when update is downloaded
-    window.electronContextBridge.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, () => {
+    window.electron.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, () => {
         LocalNotification.showUpdateAvailableNotification();
     });
 
     // Trigger action to show keyboard shortcuts
-    window.electronContextBridge.on(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, KeyboardShortcuts.showKeyboardShortcutModal);
+    window.electron.on(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, KeyboardShortcuts.showKeyboardShortcutModal);
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
