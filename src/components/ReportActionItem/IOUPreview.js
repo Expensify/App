@@ -116,7 +116,7 @@ const IOUPreview = (props) => {
             props.iouReport.total / 100,
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
-    const avatarTooltip = `${Str.removeSMSDomain(managerEmail)}, ${Str.removeSMSDomain(ownerEmail)}`;
+    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
