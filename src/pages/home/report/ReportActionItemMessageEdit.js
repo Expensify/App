@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -125,7 +125,13 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action);
+            ReportActionContextMenu.showDeleteModal(
+                this.props.reportID,
+                this.props.action,
+                false,
+                this.deleteDraft,
+                () => InteractionManager.runAfterInteractions(() => this.textInput.focus()),
+            );
             return;
         }
         Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
