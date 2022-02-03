@@ -854,6 +854,7 @@ export default {
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
         waitTime: {
             calculating: 'Calculating wait time...',
             fiveHoursPlus: 'The current wait time is longer than 5 hours.',
