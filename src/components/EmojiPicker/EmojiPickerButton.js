@@ -31,7 +31,7 @@ class EmojiPickerButton extends React.Component {
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                 ])}
                 disabled={this.props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(this.props.onModalHide, this.props.onEmojiSelected, this.props.onBeforeShowEmojiPicker, this.emojiPopoverAnchor)}
+                onPress={() => EmojiPickerAction.showEmojiPicker(this.props.onModalHide, this.props.onEmojiSelected, this.emojiPopoverAnchor)}
             >
                 {({hovered, pressed}) => (
                     <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
