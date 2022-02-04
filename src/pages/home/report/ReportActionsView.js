@@ -38,6 +38,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
+import EmojiPicker from '../../../components/EmojiPicker';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -582,6 +584,9 @@ class ReportActionsView extends React.Component {
                     extraData={extraData}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                <EmojiPicker
+                    ref={EmojiPickerAction.emojiPickerRef}
+                />
             </>
         );
     }
