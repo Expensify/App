@@ -1,9 +1,9 @@
 <div align="center">
-    <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+    <div style="display: flex; justify-content: center; align-items: center;">
         <a href="https://new.expensify.com">
             <img src="https://raw.githubusercontent.com/Expensify/App/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
         </a>
-        <h1 style="padding: 24px">+</h1>
+        <h1 style="margin: 24px">+</h1>
         <a href="https://www.electronjs.org/">
             <img src="https://raw.githubusercontent.com/Expensify/App/main/desktop/electron.png" width="64" height="64" alt="Electron Icon"/>
         </a>
