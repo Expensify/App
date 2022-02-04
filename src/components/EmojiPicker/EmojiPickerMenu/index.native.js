@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
@@ -56,8 +58,20 @@ class EmojiPickerMenu extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
+        this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
+        this.onEmojiSelected = this.onEmojiSelected.bind(this);
     }
 
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    onEmojiSelected(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        this.props.onEmojiSelected(emoji);
+    }
 
     /**
      * Check if its a landscape mode of mobile device
@@ -68,6 +82,18 @@ class EmojiPickerMenu extends Component {
         return this.props.windowWidth >= this.props.windowHeight;
     }
 
+    /**
+     * Update user preferred skin tone
+     *
+     * @param {Number} skinTone
+     */
+    updatePreferredSkinTone(skinTone) {
+        if (this.props.preferredSkinTone === skinTone) {
+            return;
+        }
+
+        this.props.updatePreferredSkinTone();
+    }
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -98,7 +124,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.onEmojiSelected(emoji, item)}
                 emoji={emojiCode}
             />
         );
@@ -137,6 +163,14 @@ EmojiPickerMenu.defaultProps = {
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />
