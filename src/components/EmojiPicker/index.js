@@ -1,44 +1,20 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {Pressable, Dimensions} from 'react-native';
+import {Dimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import Popover from '../Popover';
-import Tooltip from '../Tooltip';
-import Icon from '../Icon';
 import ONYXKEYS from '../../ONYXKEYS';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as Expensicons from '../Icon/Expensicons';
 import * as User from '../../libs/actions/User';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import getButtonState from '../../libs/getButtonState';
-import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
-    /** Flag to disable the emoji picker button */
-    isDisabled: PropTypes.bool,
-
-    /** Callback on emoji popover hide */
-    onModalHide: PropTypes.func,
-
-    /** Callback on before showing emoji picker */
-    onBeforeShowEmojiPicker: PropTypes.func,
-
-    /** Callback on emoji selection */
-    onEmojiSelected: PropTypes.func.isRequired,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    isDisabled: false,
-    onModalHide: () => {},
-    onBeforeShowEmojiPicker: () => {},
 };
 
 class EmojiPicker extends React.Component {
@@ -51,6 +27,8 @@ class EmojiPicker extends React.Component {
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+        this.onModalHide = () => {};
+        this.onEmojiSelected = () => {};
 
         this.state = {
             isEmojiPickerVisible: false,
@@ -95,26 +73,43 @@ class EmojiPicker extends React.Component {
     selectEmoji(emoji, emojiObject) {
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.hideEmojiPicker();
-        this.props.onEmojiSelected(emoji);
+        if (_.isFunction(this.onEmojiSelected)) {
+            this.onEmojiSelected(emoji);
+        }
     }
 
     hideEmojiPicker() {
         this.setState({isEmojiPickerVisible: false});
     }
 
-    showEmojiPicker() {
-        if (_.isFunction(this.props.onBeforeShowEmojiPicker)) {
-            this.props.onBeforeShowEmojiPicker();
-        }
-        this.setState({isEmojiPickerVisible: true});
-    }
-
-    measureEmojiPopoverAnchorPosition() {
-        if (!this.emojiPopoverAnchor) {
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
+     * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
+     * @param {Function} [onBeforeShowEmojiPicker=() => {}] - Run a callback before showing EmojiPicker
+     */
+    showEmojiPicker(onModalHide, onEmojiSelected, onBeforeShowEmojiPicker) {
+        if (this.state.isEmojiPickerVisible) {
             return;
         }
 
-        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
+        if (_.isFunction(onBeforeShowEmojiPicker)) {
+            onBeforeShowEmojiPicker();
+        }
+
+        this.onModalHide = onModalHide;
+        this.onEmojiSelected = onEmojiSelected;
+
+        this.setState({isEmojiPickerVisible: true});
+    }
+
+    measureEmojiPopoverAnchorPosition(emojiPopoverAnchor) {
+        if (!emojiPopoverAnchor) {
+            return;
+        }
+
+        emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
             emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
         }));
     }
@@ -141,7 +136,7 @@ class EmojiPicker extends React.Component {
                     isVisible={this.state.isEmojiPickerVisible}
                     onClose={this.hideEmojiPicker}
                     onModalShow={this.focusEmojiSearchInput}
-                    onModalHide={this.props.onModalHide}
+                    onModalHide={this.onModalHide}
                     hideModalContentWhileAnimating
                     animationInTiming={1}
                     animationOutTiming={1}
@@ -158,32 +153,12 @@ class EmojiPicker extends React.Component {
                         frequentlyUsedEmojis={this.props.frequentlyUsedEmojis}
                     />
                 </Popover>
-                <Pressable
-                    style={({hovered, pressed}) => ([
-                        styles.chatItemEmojiButton,
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
-                    ])}
-                    ref={el => this.emojiPopoverAnchor = el}
-                    onLayout={this.measureEmojiPopoverAnchorPosition}
-                    onPress={this.showEmojiPicker}
-                    disabled={this.props.isDisabled}
-                >
-                    {({hovered, pressed}) => (
-                        <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
-                            <Icon
-                                src={Expensicons.Emoji}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                            />
-                        </Tooltip>
-                    )}
-                </Pressable>
             </>
         );
     }
 }
 
 EmojiPicker.propTypes = propTypes;
-EmojiPicker.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
