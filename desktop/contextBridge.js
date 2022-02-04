@@ -17,6 +17,9 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
     ELECTRON_EVENTS.UPDATE_DOWNLOADED,
 ];
 
+/**
+ * The following methods will be available in the renderer process under `window.electron`.
+ */
 contextBridge.exposeInMainWorld('electron', {
     /**
      * Send data asynchronously from renderer process to main process.
