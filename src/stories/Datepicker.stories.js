@@ -17,7 +17,6 @@ export default {
         label: 'Select Date',
         placeholder: 'Date Placeholder',
         errorText: '',
-        hasError: false,
     },
 };
 
@@ -34,7 +33,7 @@ Default.args = {
 
 PreFilled.args = {
     label: 'Select Date',
-    value: new Date(2018, 7, 21),
+    defaultValue: new Date(2018, 7, 21),
 };
 
 export {

@@ -14,6 +14,13 @@ const propTypes = {
      */
     value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
+
+    /**
+     * Stores the drafted date/ default value to be set for the user.
+    */
+    defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+
+
     /* Restricts for selectable max date range for the picker */
     maximumDate: PropTypes.instanceOf(Date),
 

@@ -1,9 +1,12 @@
 import React from 'react';
+import moment from 'moment';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
+import DatePicker from '../components/DatePicker';
+import CONST from '../CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -13,7 +16,7 @@ import styles from '../styles/styles';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput},
+    subcomponents: {TextInput, DatePicker},
 };
 
 const Template = (args) => {
@@ -39,6 +42,9 @@ const Template = (args) => {
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
+            <View style={[styles.mt4]}>
+                <DatePicker label="DOB" inputID="dob" isFormInput shouldSaveDraft />
+            </View>
         </Form>
     );
 };
@@ -61,6 +67,9 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.dob) {
+            errors.dob = 'Please enter DOB';
+        }
         return errors;
     },
     onSubmit: (values) => {
@@ -76,6 +85,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        dob: new Date('1999-04-02'),
     },
 };
 

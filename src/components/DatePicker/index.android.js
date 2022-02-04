@@ -8,7 +8,9 @@ import {propTypes, defaultProps} from './datepickerPropTypes';
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
-
+        this.defaultValue = props.defaultValue
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            : '';
         this.state = {
             isPickerVisible: false,
         };
@@ -52,6 +54,7 @@ class DatePicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
+                    defaultValue={this.defaultValue}
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
