@@ -53,6 +53,9 @@ class BaseTextInput extends Component {
         }
 
         this.value = this.props.value;
+        if (this.props.value === '') {
+            this.input.clear();
+        }
 
         if (this.props.value) {
             this.activateLabel();
