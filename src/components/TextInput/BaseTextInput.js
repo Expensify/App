@@ -10,9 +10,10 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import InlineErrorText from '../InlineErrorText';
+import Text from '../Text';
 import * as styleConst from './styleConst';
 import TextInputWithName from '../TextInputWithName';
+import FormHelp from '../FormHelp';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -146,6 +147,9 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        const inputHelpText = this.props.errorText || this.props.hint;
+        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
+
         return (
             <View>
                 <View
@@ -196,6 +200,7 @@ class BaseTextInput extends Component {
                                         this.props.secureTextEntry && styles.secureInput,
                                     ]}
                                     multiline={this.props.multiline}
+                                    maxLength={this.props.maxLength}
                                     onFocus={this.onFocus}
                                     onBlur={this.onBlur}
                                     onChangeText={this.setValue}
@@ -219,11 +224,21 @@ class BaseTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {!_.isEmpty(this.props.errorText) && (
-                    <InlineErrorText>
-                        {this.props.errorText}
-                    </InlineErrorText>
-                )}
+                <FormHelp>
+                    {!_.isEmpty(inputHelpText) && (
+                        <Text style={[formHelpStyles]}>{inputHelpText}</Text>
+                    )}
+                    {!_.isNull(this.props.maxLength) && (
+                        <>
+                            <View style={styles.flex1} />
+                            <Text style={[formHelpStyles]}>
+                                {this.value.length}
+                                /
+                                {this.props.maxLength}
+                            </Text>
+                        </>
+                    )}
+                </FormHelp>
             </View>
         );
     }
