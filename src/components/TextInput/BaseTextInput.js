@@ -94,6 +94,9 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
+        if (this.props.onChange) {
+            this.props.onChange(value);
+        }
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
@@ -156,7 +159,7 @@ class BaseTextInput extends Component {
                             style={[
                                 styles.textInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
-                                (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+                                this.props.errorText && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (
@@ -180,11 +183,18 @@ class BaseTextInput extends Component {
                                     }}
                                     // eslint-disable-next-line
                                     {...inputProps}
-                                    value={this.value}
+                                    value={this.props.isFormInput ? undefined : this.value}
+                                    defaultValue={this.props.defaultValue}
                                     placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                     placeholderTextColor={themeColors.placeholderText}
                                     underlineColorAndroid="transparent"
-                                    style={[this.props.inputStyle, styles.flex1, styles.w100, !hasLabel && styles.pv0, this.props.secureTextEntry && styles.pr2]}
+                                    style={[
+                                        this.props.inputStyle,
+                                        styles.flex1,
+                                        styles.w100,
+                                        !hasLabel && styles.pv0,
+                                        this.props.secureTextEntry && styles.secureInput,
+                                    ]}
                                     multiline={this.props.multiline}
                                     onFocus={this.onFocus}
                                     onBlur={this.onBlur}

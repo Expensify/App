@@ -21,6 +21,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -319,6 +320,45 @@ function fetchIOUReportID(debtorEmail) {
     });
 }
 
+function configureReportNameAndIcons(reports, details) {
+    // The personalDetails of the participants contain their avatar images. Here we'll go over each
+    // report and based on the participants we'll link up their avatars to report icons. This will
+    // skip over default rooms which aren't named by participants.
+
+    const reportsToUpdate = {};
+    _.each(reports, (report) => {
+        if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+            return;
+        }
+        const isChatRoom = ReportUtils.isChatRoom(report);
+
+        // Chat rooms have a specific avatar so we can return any non-empty array but for 1:1 chats and group chats
+        // avatars are extracted from avatars of the participants.
+        const avatars = isChatRoom ? [''] : OptionsListUtils.getReportIcons(report, details);
+
+        // ReportName is already present in report for chatrooms but for 1:1 chats and group chats
+        // reportName is extracted from displayNames of the participants.
+        const reportName = isChatRoom
+            ? report.reportName
+            : _.chain(report.participants)
+                .filter(participant => participant !== currentUserEmail)
+                .map(participant => lodashGet(
+                    PersonalDetails.formatPersonalDetails(details),
+                    [participant, 'displayName'],
+                    participant,
+                ))
+                .value()
+                .join(', ');
+
+        reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+    });
+
+    // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+    // Any withOnyx subscribers to this key will also receive the complete updated props just once
+    // than updating props for each report and re-rendering had merge been used.
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+}
+
 /**
  * Fetches chat reports when provided a list of chat report IDs.
  * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
@@ -399,8 +439,11 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
+            const simplifiedReportsList = _.values(simplifiedReports);
+
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+            PersonalDetails.getFromReportParticipants(simplifiedReportsList)
+                .then(details => configureReportNameAndIcons(simplifiedReportsList, details));
             return fetchedReports;
         })
         .catch((err) => {
@@ -1170,11 +1213,7 @@ function addAction(reportID, text, file) {
         file,
         reportComment: commentText,
         clientID: optimisticReportActionID,
-
-        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
-        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
-        // the same way report actions can.
-        persist: !isAttachment,
+        persist: true,
     })
         .then((response) => {
             if (response.jsonCode === 408) {
@@ -1538,6 +1577,11 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
