@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Platform} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -290,7 +290,7 @@ class PaymentsPage extends React.Component {
                                 !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
                             ]}
                         >
-                            {this.props.isSmallScreenWidth && (
+                            {(Platform.OS !== 'web' || this.props.isSmallScreenWidth) && (
                                 <MenuItem
                                     title={this.state.formattedSelectedPaymentMethod.title}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
