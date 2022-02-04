@@ -41,9 +41,9 @@ import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
-import EmojiPicker from '../../../components/EmojiPicker';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
+import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 
 const propTypes = {
     /** Beta features list */
@@ -577,7 +577,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    <EmojiPicker
+                    <EmojiPickerButton
                         isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                         onModalHide={() => this.focus(true)}
                         onEmojiSelected={this.addEmojiToTextBox}
