@@ -298,10 +298,6 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
-    bgFaded: {
-        backgroundColor: 'rgba(0, 0, 0, 0.40)',
-    },
-
     textDanger: {
         color: colors.red,
     },
@@ -2428,6 +2424,11 @@ const styles = {
 
     closeAccountMessageInput: {
         minHeight: 140,
+    },
+
+    activityIndicatorFadedBg: {
+        borderRadius: variables.componentBorderRadiusNormal,
+        backgroundColor: 'rgba(0, 0, 0, 0.40)',
     },
 };
 

@@ -73,7 +73,7 @@ const ReportActionItemFragment = (props) => {
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
                                     style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
                                 >
-                                    <View style={[styles.p2, styles.borderTopRounded, styles.borderBottomRounded, styles.bgFaded]}>
+                                    <View style={[styles.p2, styles.activityIndicatorFadedBg]}>
                                         <ActivityIndicator
                                             size="large"
                                             color={themeColors.textSupporting}
