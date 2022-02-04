@@ -298,6 +298,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgFaded: {
+        backgroundColor: 'rgba(0, 0, 0, 0.40)',
+    },
+
     textDanger: {
         color: colors.red,
     },

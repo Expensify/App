@@ -71,13 +71,14 @@ const ReportActionItemFragment = (props) => {
                                     source={{uri: props.attachmentInfo.uri}}
                                     resizeMode="cover"
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
-                                    style={[styles.flex1, styles.justifyContentCenter]}
+                                    style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
                                 >
-                                    <ActivityIndicator
-                                        size="large"
-                                        color={themeColors.textSupporting}
-                                        style={[styles.flex1]}
-                                    />
+                                    <View style={[styles.p2, styles.borderTopRounded, styles.borderBottomRounded, styles.bgFaded]}>
+                                        <ActivityIndicator
+                                            size="large"
+                                            color={themeColors.textSupporting}
+                                        />
+                                    </View>
                                 </ImageBackground>
                             ) : (
                                 <ActivityIndicator
