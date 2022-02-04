@@ -414,7 +414,7 @@ export default {
             phrase4: 'View',
             phrase5: 'open jobs',
         },
-        googleButton: ({name}) => (name ? `Signed in: ${name}` : 'Google'),
+        googleButton: 'Google',
         emailOrPhoneNumber: 'Phone Number or Email',
         appleButton: 'Apple',
     },

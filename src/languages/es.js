@@ -414,7 +414,7 @@ export default {
             phrase4: 'Vista',
             phrase5: 'vacantes',
         },
-        googleButton: ({name}) => (name ? `Sesión iniciada: ${name}` : 'Google'),
+        googleButton: 'Google',
         emailOrPhoneNumber: 'Número de teléfono o email',
         appleButton: 'Apple',
     },
