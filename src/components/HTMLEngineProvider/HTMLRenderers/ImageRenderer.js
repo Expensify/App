@@ -49,18 +49,28 @@ const ImageRenderer = (props) => {
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
         >
-            {({show}) => (
-                <TouchableOpacity
-                    style={styles.noOutline}
-                    onPress={show}
-                >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
-                    />
-                </TouchableOpacity>
-            )}
+            {({show}) => {
+                const openModal = () => {
+                    // Blur the list item which got tapped so that it won't get refocused on modal close.
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                    show();
+                };
+
+                return (
+                    <TouchableOpacity
+                        style={styles.noOutline}
+                        onPress={openModal}
+                    >
+                        <ThumbnailImage
+                            previewSourceURL={previewSource}
+                            style={styles.webViewStyles.tagStyles.img}
+                            isAuthTokenRequired={isAttachment}
+                        />
+                    </TouchableOpacity>
+                );
+            }}
         </AttachmentModal>
     );
 };
