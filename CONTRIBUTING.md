@@ -69,6 +69,11 @@ Please follow these steps to propose a job:
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+#### Make sure you can test on all platforms
+* Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
+* You'll need a Mac to test the iOS and MacOS app.
+* In case you don't have one, here's a helpful [document](https://docs.google.com/document/d/1TD8A-SQbBN2EsnF98cEib2wiERK68fux2P0LGSkobrg/edit?usp=sharing) on how you might test all platforms on a Windows/Linux device.
+
 #### Check GitHub for existing proposals from other users
 
 1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
