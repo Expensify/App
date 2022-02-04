@@ -15,6 +15,7 @@ import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ReportActionItemCreated from './ReportActionItemCreated';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -118,6 +119,9 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.reportID} />;
+        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
@@ -168,7 +172,7 @@ class ReportActionItem extends Component {
                             >
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle action={this.props.action}>
+                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
                                             {children}
                                         </ReportActionItemSingle>
                                     )

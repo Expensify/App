@@ -12,6 +12,10 @@ You can create as many accounts as needed in order to test your changes directly
 ##### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
+#### Working on beta features
+
+Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
+
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
@@ -42,14 +46,16 @@ This is the most common scenario for contributors. The Expensify team posts new 
 #### Proposing a job that Expensify hasn’t posted
 
 It’s possible that you found a bug or enhancement that we haven’t posted to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement.
-- Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job. Please follow these steps to propose a job:
+- Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 - Note about proposed improvements: Expensify has the right not to pay the $250 reward if the suggested improvement is already planned. Currently, Expensify plans to implement all features of the old Expensify app in New Expensify.
+
+Please follow these steps to propose a job:
 
 1. Check to ensure an issue does not already exist for this topic in the [New Expensify Issue list](https://github.com/Expensify/App/issues). Please use your best judgement by searching for similar titles and issue descriptions.
 2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-6. If the issue happens in production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Include all relevant data, screenshots and examples in the post or thread.
+6. If the issue happens in production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in #expensify-open-source. View [this guide](https://github.com/Expensify/App/blob/main/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
 7. After review in #expensify-open-source, if you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 

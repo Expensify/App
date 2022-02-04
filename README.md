@@ -333,7 +333,7 @@ localize the following types of data when presented to the user (even accessibil
 
 - Texts: See [translate method](https://github.com/Expensify/App/blob/655ba416d552d5c88e57977a6e0165fb7eb7ab58/src/libs/translate.js#L15)
 - Date/time: see [DateUtils](https://github.com/Expensify/App/blob/f579946fbfbdc62acc5bd281dc75cabb803d9af0/src/libs/DateUtils.js)
-- Numbers and amounts: see [numberFormat](https://github.com/Expensify/App/tree/965f92fc2a5a2a0d01e6114bf5aa8755b9d9fd1a/src/libs/numberFormat)
+- Numbers and amounts: see [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
 In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/App/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
@@ -385,10 +385,10 @@ The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workf
 The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
 
 ### lockDeploys
-The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it prepares the staging branch for a production release by creating a new `PATCH` version (i.e: `1.0.57-5` -> `1.0.58.0`).
+The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
 
 ### finishReleaseCycle
-The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging, and creates a new `StagingDeployCash` deploy checklist.
+The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:

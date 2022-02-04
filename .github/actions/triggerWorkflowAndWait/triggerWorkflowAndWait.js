@@ -2,7 +2,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
-const promiseWhile = require('../../libs/promiseWhile');
+const {promiseWhile} = require('../../libs/promiseWhile');
 
 /**
  * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
@@ -17,13 +17,6 @@ const NEW_WORKFLOW_TIMEOUT = 120000;
  * @type {number}
  */
 const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
-
-/**
- * The rate in ms at which we'll poll the GitHub API to check for workflow status changes.
- * It's 10 seconds :)
- * @type {number}
- */
-const POLL_RATE = 10000;
 
 /**
  * URL prefixed to a specific workflow run
@@ -62,7 +55,7 @@ const run = function () {
             console.log(`Dispatching workflow: ${workflow}`);
             return GithubUtils.octokit.actions.createWorkflowDispatch({
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                repo: GithubUtils.APP_REPO,
                 workflow_id: workflow,
                 ref: 'main',
                 inputs,
@@ -77,7 +70,7 @@ const run = function () {
 
         // Wait for the new workflow to start
         .then(() => {
-            let waitTimer = -POLL_RATE;
+            let waitTimer = -GithubUtils.POLL_RATE;
             return promiseWhile(
                 () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                 _.throttle(
@@ -90,7 +83,7 @@ const run = function () {
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
 
                                 if (!hasNewWorkflowStarted) {
-                                    waitTimer += POLL_RATE;
+                                    waitTimer += GithubUtils.POLL_RATE;
                                     if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
                                         // eslint-disable-next-line max-len
                                         console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
@@ -109,14 +102,14 @@ const run = function () {
                                 console.warn('Failed to fetch latest workflow run.', err);
                             });
                     },
-                    POLL_RATE,
+                    GithubUtils.POLL_RATE,
                 ),
             );
         })
 
         // Wait for the new workflow run to finish
         .then(() => {
-            let waitTimer = -POLL_RATE;
+            let waitTimer = -GithubUtils.POLL_RATE;
             return promiseWhile(
                 () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
                 _.throttle(
@@ -124,12 +117,12 @@ const run = function () {
                         console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
                         return GithubUtils.octokit.actions.getWorkflowRun({
                             owner: GithubUtils.GITHUB_OWNER,
-                            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                            repo: GithubUtils.APP_REPO,
                             run_id: newWorkflowRunID,
                         })
                             .then(({data}) => {
                                 workflowCompleted = data.status === 'completed' && data.conclusion !== null;
-                                waitTimer += POLL_RATE;
+                                waitTimer += GithubUtils.POLL_RATE;
                                 if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
                                     // eslint-disable-next-line max-len
                                     const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunURL} did not complete.`);
@@ -151,7 +144,7 @@ const run = function () {
                                 }
                             });
                     },
-                    POLL_RATE,
+                    GithubUtils.POLL_RATE,
                 ),
             );
         });

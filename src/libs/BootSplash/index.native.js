@@ -1,19 +1,14 @@
-import RNBootSplash from 'react-native-bootsplash';
+import {NativeModules} from 'react-native';
 import Log from '../Log';
 
-// react-native-bootsplash 3.x could reject if not init (ex: when opening app via iOS >= 15 notifications)
-// As the splash screen is not visible on these cases, we chose to ignore these errors.
-function hide(config) {
-    Log.info('[BootSplash] hiding splash screen', false);
+const BootSplash = NativeModules.BootSplash;
 
-    return RNBootSplash
-        .hide(config)
-        .catch((error) => {
-            Log.alert('[BootSplash] hiding failed', {message: error.message, error}, false);
-        });
+function hide() {
+    Log.info('[BootSplash] hiding splash screen', false);
+    BootSplash.hide();
 }
 
 export default {
     hide,
-    getVisibilityStatus: RNBootSplash.getVisibilityStatus,
+    getVisibilityStatus: BootSplash.getVisibilityStatus,
 };

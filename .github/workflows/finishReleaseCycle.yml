@@ -87,12 +87,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create new BUILD version
+      - name: Create new PATCH version
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
+          INPUTS: '{ "SEMVER_LEVEL": "PATCH" }'
 
       - name: Update staging branch to trigger staging deploy
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main

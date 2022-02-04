@@ -30,10 +30,10 @@ const propTypes = {
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
-    /** Array of bank account objects */
+    /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** Array of card objects */
+    /** List of cards */
     cardList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc */
         cardName: PropTypes.string,
@@ -45,6 +45,13 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
+    /** Whether the add Payment button be shown on the list */
+    shouldShowAddPaymentMethodButton: PropTypes.bool,
+
+    /** Type to filter the payment Method list */
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+
+    /** User wallet props */
     userWallet: PropTypes.shape({
         /** The ID of the linked account */
         walletLinkedAccountID: PropTypes.number,
@@ -53,19 +60,33 @@ const propTypes = {
         walletLinkedAccountType: PropTypes.string,
     }),
 
+    /** Type of active/highlighted payment method */
+    actionPaymentMethodType: PropTypes.oneOf([..._.values(CONST.PAYMENT_METHODS), '']),
+
+    /** ID of active/highlighted payment method */
+    activePaymentMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
+    /** ID of selected payment method */
+    selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     payPalMeUsername: '',
-    bankAccountList: [],
-    cardList: [],
+    bankAccountList: {},
+    cardList: {},
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
     isLoadingPayments: false,
     isAddPaymentMenuActive: false,
+    shouldShowAddPaymentMethodButton: true,
+    filterType: '',
+    actionPaymentMethodType: '',
+    activePaymentMethodID: '',
+    selectedMethodID: '',
 };
 
 class PaymentMethodList extends Component {
@@ -82,17 +103,29 @@ class PaymentMethodList extends Component {
      */
     createPaymentMethodList() {
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
+
+        if (!_.isEmpty(this.props.filterType)) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
+        }
+
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
+            iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {
             combinedPaymentMethods.push({
+                key: 'addFirstPaymentMethodHelpText',
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
+        }
+
+        if (!this.props.shouldShowAddPaymentMethodButton) {
+            return combinedPaymentMethods;
         }
 
         combinedPaymentMethods.push({
@@ -107,6 +140,16 @@ class PaymentMethodList extends Component {
         });
 
         return combinedPaymentMethods;
+    }
+
+    /**
+     * @param {Object} paymentMethod
+     * @param {String|Number} paymentMethod.methodID
+     * @param {String} paymentMethod.accountType
+     * @return {Boolean}
+     */
+    isPaymentMethodActive(paymentMethod) {
+        return paymentMethod.accountType === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
     }
 
     /**
@@ -125,13 +168,14 @@ class PaymentMethodList extends Component {
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
-                    key={item.key}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
                     badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
+                    shouldShowSelectedState={this.props.shouldShowSelectedState}
+                    isSelected={this.props.selectedMethodID === item.methodID}
                 />
             );
         }
@@ -150,6 +194,7 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
+                keyExtractor={item => item.key}
             />
         );
     }

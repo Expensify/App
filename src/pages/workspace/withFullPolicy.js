@@ -88,8 +88,9 @@ export default function (WrappedComponent) {
     const WithFullPolicy = (props) => {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
+        const isFromFullPolicy = lodashGet(props, 'policy.isFromFullPolicy', false) || lodashGet(props, `policy.policy_${policyID}.isFromFullPolicy`, false);
 
-        if (_.isString(policyID) && !_.isEmpty(policyID) && !isPreviousRouteInSameWorkspace(currentRoute.name, policyID)) {
+        if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
             Policy.loadFullPolicy(policyID);
             Policy.updateLastAccessedWorkspace(policyID);
         }
