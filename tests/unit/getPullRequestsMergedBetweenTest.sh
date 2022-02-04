@@ -138,106 +138,61 @@ assert_equal "$output" "[ '1' ]"
 success "Scenario #1 completed successfully!"
 
 
-title "Scenario #2: Locking the deploy checklist"
+title "Scenario #2: Merge a pull request with the checklist locked, but don't CP it"
 
-# Bump the version to 1.1.0 on main
-info "Bumping the version to 1.1.0 on main..."
+info "Creating PR #4 and merging it into main..."
 git checkout main
-git checkout -b version-bump
-npm --no-git-tag-version version 1.1.0 -m "Update version to 1.1.0"
-git add package.json package-lock.json
-git commit -m "Update version to $(print_version)"
+git checkout -b pr-4
+echo "Changes from PR #4" >> PR4.txt
+git add PR4.txt
+git commit -m "Changes from PR #4"
 git checkout main
-git merge version-bump --no-ff -m "Merge pull request #4 from Expensify/version-bump"
-info "Merged PR #4 to main"
-git branch -d version-bump
-success "Version bumped to $(print_version) on main!"
-
-# Merge main into staging
-info "Merging main into staging..."
-git checkout staging
-git checkout -b update-staging-from-main
-git merge --no-edit -Xtheirs main
-git checkout staging
-git merge update-staging-from-main --no-ff -m "Merge pull request #5 from Expensify/update-staging-from-main"
-info "Merged PR #5 into main"
-git branch -d update-staging-from-main
-success "Merged main into staging!"
-
-# Tag the new version on staging
-info "Tagging the new version on staging..."
-git checkout staging
-git tag "$(print_version)"
-success "Successfully created tag $(print_version)"
-
-# Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.0"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.0')
-assert_equal "$output" "[ '1' ]"
-
-# Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
-assert_equal "$output" "[]"
+git merge pr-4 --no-ff -m "Merge pull request #4 from Expensify/pr-4"
+info "Merged PR #4 into main"
+git branch -d pr-4
+success "Created PR #4 and merged it to main!"
 
 success "Scenario #2 completed successfully!"
 
 
-title "Scenario #3: Merge a pull request with the checklist locked, but don't CP it"
+title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
-info "Creating PR #6 and merging it into main..."
+info "Creating PR #5 and merging it into main..."
 git checkout main
-git checkout -b pr-6
-echo "Changes from PR #6" >> PR6.txt
-git add PR6.txt
-git commit -m "Changes from PR #6"
+git checkout -b pr-5
+echo "Changes from PR #5" >> PR5.txt
+git add PR5.txt
+git commit -m "Changes from PR #5"
 git checkout main
-git merge pr-6 --no-ff -m "Merge pull request #6 from Expensify/pr-6"
-info "Merged PR #6 into main"
-git branch -d pr-6
-success "Created PR #6 and merged it to main!"
+git merge pr-5 --no-ff -m "Merge pull request #5 from Expensify/pr-5"
+PR_5_MERGE_COMMIT="$(git log -1 --format='%H')"
+info "Merged PR #5 into main"
+git branch -d pr-5
+success "Created PR #5 and merged it to main!"
 
-success "Scenario #3 completed successfully!"
-
-
-title "Scenario #4: Merge a pull request with the checklist locked and CP it to staging"
-
-info "Creating PR #7 and merging it into main..."
-git checkout main
-git checkout -b pr-7
-echo "Changes from PR #7" >> PR7.txt
-git add PR7.txt
-git commit -m "Changes from PR #7"
-git checkout main
-git merge pr-7 --no-ff -m "Merge pull request #7 from Expensify/pr-7"
-PR_7_MERGE_COMMIT="$(git log -1 --format='%H')"
-info "Merged PR #7 into main"
-git branch -d pr-7
-success "Created PR #7 and merged it to main!"
-
-info "Bumping version to 1.1.1 on main..."
+info "Bumping version to 1.0.3 on main..."
 git checkout main
 git checkout -b version-bump
-npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
+npm --no-git-tag-version version 1.0.3 -m "Update version to 1.0.3"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
-git merge version-bump --no-ff -m "Merge pull request #8 from Expensify/version-bump"
+git merge version-bump --no-ff -m "Merge pull request #6 from Expensify/version-bump"
 VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
-info "Merged PR #8 into main"
+info "Merged PR #6 into main"
 git branch -d version-bump
-success "Bumped version to 1.1.1 on main!"
+success "Bumped version to 1.0.3 on main!"
 
-info "Cherry picking PR #7 and the version bump to staging..."
+info "Cherry picking PR #5 and the version bump to staging..."
 git checkout staging
-git checkout -b cherry-pick-staging-7
-git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_7_MERGE_COMMIT"
+git checkout -b cherry-pick-staging-5
+git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_5_MERGE_COMMIT"
 git cherry-pick -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
 git checkout staging
-git merge cherry-pick-staging-7 --no-ff -m "Merge pull request #9 from Expensify/cherry-pick-staging-7"
-git branch -d cherry-pick-staging-7
-info "Merged PR #9 into staging"
-success "Successfully cherry-picked PR #7 to staging!"
+git merge cherry-pick-staging-5 --no-ff -m "Merge pull request #7 from Expensify/cherry-pick-staging-5"
+git branch -d cherry-pick-staging-5
+info "Merged PR #7 into staging"
+success "Successfully cherry-picked PR #5 to staging!"
 
 info "Tagging the new version on staging..."
 git checkout staging
@@ -245,59 +200,59 @@ git tag "$(print_version)"
 success "Created tag $(print_version)"
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.1')
-assert_equal "$output" "[ '9', '7', '1' ]"
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
+assert_equal "$output" "[ '7', '5', '1' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
-assert_equal "$output" "[ '9', '7' ]"
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.0.3"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.0.3')
+assert_equal "$output" "[ '7', '5' ]"
 
-success "Scenario #4 completed successfully!"
+success "Scenario #3 completed successfully!"
 
 
-title "Scenario #5: Close the checklist"
-title "Scenario #5A: Run the production deploy"
+title "Scenario #4: Close the checklist"
+title "Scenario #4A: Run the production deploy"
 
 info "Updating production from staging..."
 git checkout production
 git checkout -b update-production-from-staging
 git merge --no-edit -Xtheirs staging
 git checkout production
-git merge update-production-from-staging --no-ff -m "Merge pull request #10 from Expensify/update-production-from-staging"
-info "Merged PR #10 into production"
+git merge update-production-from-staging --no-ff -m "Merge pull request #8 from Expensify/update-production-from-staging"
+info "Merged PR #8 into production"
 git branch -d update-production-from-staging
 success "Updated production from staging!"
 
 # Verify output for release body and production deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.1.1')
-assert_equal "$output" "[ '9', '7', '1' ]"
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
+assert_equal "$output" "[ '7', '5', '1' ]"
 
-success "Scenario #5A completed successfully!"
+success "Scenario #4A completed successfully!"
 
-title "Scenario #5B: Run the staging deploy and create a new checklist"
+title "Scenario #4B: Run the staging deploy and create a new checklist"
 
-info "Bumping version to 1.1.2 on main..."
+info "Bumping version to 1.1.0 on main..."
 git checkout main
 git checkout -b version-bump
-npm --no-git-tag-version version 1.1.2 -m "Update version to 1.1.2"
+npm --no-git-tag-version version 1.1.0 -m "Update version to 1.1.0"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
-git merge version-bump --no-ff -m "Merge pull request #11 from Expensify/version-bump"
-info "Merged PR #11 into main"
+git merge version-bump --no-ff -m "Merge pull request #9 from Expensify/version-bump"
+info "Merged PR #9 into main"
 git branch -d version-bump
-success "Successfully updated version to 1.1.2 on main!"
+success "Successfully updated version to 1.1.0 on main!"
 
 info "Updating staging from main..."
 git checkout staging
 git checkout -b update-staging-from-main
 git merge --no-edit -Xtheirs main
 git checkout staging
-git merge update-staging-from-main --no-ff -m "Merge pull request #12 from Expensify/update-staging-from-main"
-info "Merged PR #12 into staging"
+git merge update-staging-from-main --no-ff -m "Merge pull request #10 from Expensify/update-staging-from-main"
+info "Merged PR #10 into staging"
 git branch -d update-staging-from-main
 success "Successfully updated staging from main!"
 
@@ -307,46 +262,46 @@ git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
 # Verify output for new checklist and staging deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.2"
-output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.2')
-assert_equal "$output" "[ '6' ]"
+info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.0"
+output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.0')
+assert_equal "$output" "[ '4' ]"
 
-success "Scenario #5B completed successfully!"
+success "Scenario #4B completed successfully!"
 
 
-title "Scenario #6: Merging another pull request when the checklist is unlocked"
+title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
-info "Creating PR #13 and merging it to main..."
+info "Creating PR #11 and merging it to main..."
 git checkout main
-git checkout -b pr-13
-echo "Changes from PR #13" >> PR13.txt
-git add PR13.txt
-git commit -m "Changes from PR #13"
+git checkout -b pr-11
+echo "Changes from PR #11" >> PR11.txt
+git add PR11.txt
+git commit -m "Changes from PR #11"
 git checkout main
-git merge pr-13 --no-ff -m "Merge pull request #13 from Expensify/pr-13"
-info "Merged PR #13 into main"
-git branch -d pr-13
-success "Created PR #13 and merged it into main!"
+git merge pr-11 --no-ff -m "Merge pull request #11 from Expensify/pr-11"
+info "Merged PR #11 into main"
+git branch -d pr-11
+success "Created PR #11 and merged it into main!"
 
-info "Bumping version to 1.1.3 on main..."
+info "Bumping version to 1.1.1 on main..."
 git checkout main
 git checkout -b version-bump
-npm --no-git-tag-version version 1.1.3 -m "Update version to 1.1.3"
+npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
 git add package.json package-lock.json
 git commit -m "Update version to $(cat package.json | jq -r .version)"
 git checkout main
-git merge version-bump --no-ff -m "Merge pull request #14 from Expensify/version-bump"
-info "Merged PR #14 into main"
+git merge version-bump --no-ff -m "Merge pull request #12 from Expensify/version-bump"
+info "Merged PR #12 into main"
 git branch -d version-bump
-success "Bumped version to 1.1.3 on main!"
+success "Bumped version to 1.1.1 on main!"
 
 info "Merging main into staging..."
 git checkout staging
 git checkout -b update-staging-from-main
 git merge --no-edit -Xtheirs main
 git checkout staging
-git merge update-staging-from-main --no-ff -m "Merge pull request #15 from Expensify/update-staging-from-main"
-info "Merged PR #15 into staging"
+git merge update-staging-from-main --no-ff -m "Merge pull request #13 from Expensify/update-staging-from-main"
+info "Merged PR #13 into staging"
 git branch -d update-staging-from-main
 success "Merged main into staging!"
 
@@ -356,14 +311,14 @@ git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.3"
-output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.3')
-assert_equal "$output" "[ '13', '6' ]"
+info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.1"
+output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.1')
+assert_equal "$output" "[ '11', '4' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.1.2 1.1.3"
-output=$(node "$getPullRequestsMergedBetween" '1.1.2' '1.1.3')
-assert_equal "$output" "[ '13' ]"
+info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
+output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
+assert_equal "$output" "[ '11' ]"
 
 success "Scenario #6 completed successfully!"
 

@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const GithubUtils = require('../../libs/GithubUtils');
-const promiseWhile = require('../../libs/promiseWhile');
+const {promiseWhile} = require('../../libs/promiseWhile');
 
 const MAX_RETRIES = 30;
 const THROTTLE_DURATION = process.env.NODE_ENV === 'test' ? 5 : 5000;
@@ -17,7 +17,7 @@ const run = function () {
         () => !mergeabilityResolved && retryCount < MAX_RETRIES,
         _.throttle(() => GithubUtils.octokit.pulls.get({
             owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            repo: GithubUtils.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({data}) => {
