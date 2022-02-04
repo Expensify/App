@@ -31,7 +31,7 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
-    /** Error text to appear */
+    /** Error text to appear below input */
     errorText: PropTypes.string,
 
 };
