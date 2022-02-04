@@ -31,6 +31,20 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
+### C+ PR Review Checklist ([full steps here](../PR_REVIEW_CHECKLIST.md))
+<!--
+This is a checklist for Contributor Plus (C+) reviewers. If the PR is internal, these do not need to be checked off, but are still a nice reminder for what to look for when reviewing PRs.
+-->
+- [ ] Are screenshots or videos included for tests on all platforms?
+- [ ] Is there an issue linked in the `### Fixed Issues` section, and is it the correct one?
+- [ ] Are testing steps clear and do they cover the changes + possible regressions?
+- [ ] Do testing steps cover success & fail scenarios (if applicable)?
+- [ ] There are no console errors related to changes in this PR
+- [ ] I tested this PR on **all platforms**
+- [ ] Appropriate new regression steps are mentioned below
+- [ ] Code patterns were checked (see `Reviewing the code`)
+- [ ] Code reuse looks appropriate (see `Considerations around code reuse`)
+
 ### QA Steps
 <!---
 Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
@@ -44,6 +58,9 @@ For example:
 --->
 
 - [ ] Verify that no errors appear in the JS console
+
+
+### Regression Tests to add
 
 ### Tested On
 
