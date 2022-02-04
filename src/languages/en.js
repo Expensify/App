@@ -417,6 +417,9 @@ export default {
         googleButton: 'Google',
         emailOrPhoneNumber: 'Phone Number or Email',
         appleButton: 'Apple',
+        error: {
+            googleSignIn: 'Something went wrong with Google Sign in. Please try again.',
+        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',

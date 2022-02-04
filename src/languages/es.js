@@ -417,6 +417,9 @@ export default {
         googleButton: 'Google',
         emailOrPhoneNumber: 'Número de teléfono o email',
         appleButton: 'Apple',
+        error: {
+            googleSignIn: 'Ha ocurrido un error con el inicio de sesión de Google. Por favor, inténtalo de nuevo.',
+        },
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
