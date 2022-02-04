@@ -20,6 +20,7 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
+import signInWithGoogle from '../../signInWithGoogle';
 
 let credentials = {};
 Onyx.connect({
@@ -252,17 +253,25 @@ function signIn(password, twoFactorAuthCode) {
  * Sign the user into the application using the email and token value from Google Auth API.
  * It follows the same logic of signIn function to create a temporary login.
  *
- * @param {String} email
- * @param {String} token
+//  * @param {String} email
+//  * @param {String} token
  */
-function signInGoogle(email, token) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.SignInGoogle({email, token})
-        .then(({authToken}) => {
-            createTemporaryLogin(authToken, email);
+function signInGoogle() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true, isGoogleSigningIn: true});
+
+    signInWithGoogle()
+        .then((res) => {
+            API.SignInGoogle(res)
+                .then(({authToken, email}) => {
+                    createTemporaryLogin(authToken, email);
+                })
+                .catch((error) => {
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false, isGoogleSigningIn: false});
+                });
         })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false});
+        .catch(() => {
+            // TODO add text to en.js and es.js
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: 'Login issue', loading: false, isGoogleSigningIn: false});
         });
 }
 

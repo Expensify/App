@@ -1,3 +1,4 @@
+// import React, {useState} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -6,7 +7,6 @@ import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import useGoogleLogin from '../libs/useGoogleLogin';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -22,6 +22,9 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
+
+        /** Flag to show spinner in Google Sign In button when user clicks on it */
+        isGoogleSigningIn: PropTypes.bool,
     }),
 
     /** Callback to trigger when the button "Email or Phone Number" is pressed */
@@ -34,13 +37,9 @@ const defaultProps = {
     account: {},
 };
 
+
 function SignInOptions(props) {
-    const {
-        googleAuthLoaded, signIn, isSigningIn, name,
-    } = useGoogleLogin({
-        onSuccess: res => Session.signInGoogle(res.email, res.token),
-    });
-    const buttonsDisabled = props.account.loading || isSigningIn;
+    const buttonsDisabled = props.account.loading && props.account.isGoogleSigningIn;
     return (
         <>
             <View style={[styles.mt5]}>
@@ -54,10 +53,10 @@ function SignInOptions(props) {
             <View style={[styles.mt3]}>
                 <Button
                     success
-                    text={props.translate('signInPage.googleButton', {name})}
-                    isLoading={isSigningIn || !googleAuthLoaded}
+                    text={props.translate('signInPage.googleButton')}
+                    isLoading={props.account.isGoogleSigningIn}
                     isDisabled={buttonsDisabled}
-                    onPress={signIn}
+                    onPress={() => Session.signInGoogle()}
                 />
             </View>
             <View style={[styles.mt3]}>
