@@ -21,8 +21,6 @@ const defaultProps = {
     isDisabled: false,
 };
 
-//
-
 class EmojiPickerButton extends React.Component {
     render() {
         return (
