@@ -33,7 +33,6 @@ const data = [
             'Merge pull request #1563 from Expensify/version-bump-e6498075e301df3e9c8d7866ea391a23c19ed9b0',
             'Update version to 1.0.1-470',
             '[IS-1500] Updated textalignInput utility',
-            'Merge pull request #1 from Expensify/master',
             'Merge pull request #2 from Expensify/main',
             'fix: set pdf width on large screens',
         ],
