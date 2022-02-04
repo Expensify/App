@@ -56,7 +56,7 @@ class BaseTextInput extends Component {
 
         // Since BaseTextInput value is depend on this.value
         // Providing value to BaseTextInput via props.value will be late one step behind
-        // So at componentDidUpdate we update the real value of TextInput 
+        // So at componentDidUpdate we update the real value of TextInput
         // If this.props.value is empty string, we must clear the TextInput
         if (this.props.value === '') {
             this.input.clear();
