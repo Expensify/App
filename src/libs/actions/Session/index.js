@@ -260,18 +260,17 @@ function signInGoogle() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true, isGoogleSigningIn: true});
 
     signInWithGoogle()
-        .then((res) => {
-            API.SignInGoogle(res)
-                .then(({authToken, email}) => {
-                    createTemporaryLogin(authToken, email);
-                })
-                .catch((error) => {
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false, isGoogleSigningIn: false});
-                });
-        })
+        .then(res => API.SignInGoogle(res)
+            .then(({authToken, email}) => {
+                createTemporaryLogin(authToken, email);
+            }))
         .catch(() => {
-            // TODO add text to en.js and es.js
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: 'Login issue', loading: false, isGoogleSigningIn: false});
+            // Set the same error message when signInWithGoogle or API.SignInGoogle fails
+            Onyx.merge(ONYXKEYS.ACCOUNT, {
+                error: Localize.translateLocal('signInPage.error.googleSignIn'),
+                loading: false,
+                isGoogleSigningIn: false,
+            });
         });
 }
 
