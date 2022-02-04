@@ -2,16 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator} from 'react-native';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import Navigation from '../libs/Navigation/Navigation';
-import AddPaymentMethodMenu from './AddPaymentMethodMenu';
-import getClickedElementLocation from '../libs/getClickedElementLocation';
-import * as PaymentUtils from '../libs/PaymentUtils';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import ONYXKEYS from '../ONYXKEYS';
-import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import Log from '../libs/Log';
+import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
+import Navigation from '../../libs/Navigation/Navigation';
+import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
+import getClickedElementLocation from '../../libs/getClickedElementLocation';
+import * as PaymentUtils from '../../libs/PaymentUtils';
+import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import ONYXKEYS from '../../ONYXKEYS';
+import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -52,6 +52,7 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
+        window.removeEventListener('resize', null);
         PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
     }
@@ -79,6 +80,19 @@ class KYCWall extends React.Component {
     }
 
     /**
+     * Set position of the transfer payment menu
+     *
+     * @param {Object} position
+     */
+
+    setPositionAddPaymentMenu(position) {
+        this.setState({
+            anchorPositionTop: position.anchorPositionTop,
+            anchorPositionLeft: position.anchorPositionLeft,
+        });
+    }
+
+    /**
      * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
@@ -89,13 +103,17 @@ class KYCWall extends React.Component {
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
-            const {anchorPositionTop, anchorPositionLeft} = this.getAnchorPosition(clickedElementLocation);
+            let clickedElementLocation = getClickedElementLocation(event.nativeEvent);
+            let position = this.getAnchorPosition(clickedElementLocation);
+            window.addEventListener('resize', () => {
+                clickedElementLocation = getClickedElementLocation(event.nativeEvent);
+                position = this.getAnchorPosition(clickedElementLocation);
+                this.setPositionAddPaymentMenu(position);
+            });
             this.setState({
                 shouldShowAddPaymentMenu: true,
-                anchorPositionTop,
-                anchorPositionLeft,
             });
+            this.setPositionAddPaymentMenu(position);
             return;
         }
 
