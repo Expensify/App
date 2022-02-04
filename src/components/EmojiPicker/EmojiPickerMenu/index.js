@@ -382,6 +382,11 @@ class EmojiPickerMenu extends Component {
         return this.props.isSmallScreenWidth && this.props.windowWidth >= this.props.windowHeight;
     }
 
+    /**
+     * Update user preferred skin tone
+     *
+     * @param {Number} skinTone
+     */
     updatePreferredSkinTone(skinTone) {
         if (this.props.preferredSkinTone === skinTone) {
             return;
