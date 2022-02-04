@@ -18,6 +18,16 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
 ];
 
 contextBridge.exposeInMainWorld('electron', {
+    /**
+     * Send data asynchronously from renderer process to main process.
+     * Note that this is a one-way channel – main will not respond. In order to get a response from main, either:
+     *
+     * - Use `sendSync`
+     * - Or implement `invoke` if you want to maintain asynchronous communication: https://www.electronjs.org/docs/latest/api/ipc-renderer#ipcrendererinvokechannel-args
+     *
+     * @param {String} channel
+     * @param {*} data
+     */
     send: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
             throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
@@ -25,6 +35,14 @@ contextBridge.exposeInMainWorld('electron', {
 
         ipcRenderer.send(channel, data);
     },
+
+    /**
+     * Send data synchronously from renderer process to main process. Main process may return a result.
+     *
+     * @param {String} channel
+     * @param {*} data
+     * @returns {*}
+     */
     sendSync: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
             throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
@@ -32,6 +50,13 @@ contextBridge.exposeInMainWorld('electron', {
 
         return ipcRenderer.sendSync(channel, data);
     },
+
+    /**
+     * Set up a listener for events emitted from the main process and sent to the renderer process.
+     *
+     * @param {String} channel
+     * @param {Function} func
+     */
     on: (channel, func) => {
         if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
             throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
