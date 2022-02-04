@@ -20,27 +20,21 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
 contextBridge.exposeInMainWorld('electron', {
     send: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
-            // eslint-disable-next-line no-console
-            console.warn(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
-            return;
+            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
         }
 
         ipcRenderer.send(channel, data);
     },
     sendSync: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
-            // eslint-disable-next-line no-console
-            console.warn(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
-            return;
+            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
         }
 
         return ipcRenderer.sendSync(channel, data);
     },
     on: (channel, func) => {
         if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
-            // eslint-disable-next-line no-console
-            console.warn(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
-            return;
+            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
         }
 
         // Deliberately strip event as it includes `sender`
