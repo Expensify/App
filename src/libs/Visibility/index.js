@@ -11,7 +11,7 @@ import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
  */
 function isVisible() {
     return window.electron
-        ? window.electron.send(ELECTRON_EVENTS.REQUEST_VISIBILITY)
+        ? window.electron.sendSync(ELECTRON_EVENTS.REQUEST_VISIBILITY)
         : document.visibilityState === 'visible';
 }
 

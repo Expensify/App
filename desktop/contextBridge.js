@@ -27,6 +27,15 @@ contextBridge.exposeInMainWorld('electron', {
 
         ipcRenderer.send(channel, data);
     },
+    sendSync: (channel, data) => {
+        if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
+            // eslint-disable-next-line no-console
+            console.warn(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+            return;
+        }
+
+        return ipcRenderer.sendSync(channel, data);
+    },
     on: (channel, func) => {
         if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
             // eslint-disable-next-line no-console
