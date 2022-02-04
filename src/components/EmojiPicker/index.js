@@ -10,11 +10,9 @@ import * as User from '../../libs/actions/User';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 import CONST from '../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 class EmojiPicker extends React.Component {
@@ -162,7 +160,6 @@ EmojiPicker.propTypes = propTypes;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
