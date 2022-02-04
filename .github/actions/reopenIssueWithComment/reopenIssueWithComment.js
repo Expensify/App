@@ -8,7 +8,7 @@ function reopenIssueWithComment() {
     console.log(`Reopening issue #${issueNumber}`);
     return GithubUtils.octokit.issues.update({
         owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+        repo: GithubUtils.APP_REPO,
         issue_number: issueNumber,
         state: 'open',
     })
@@ -16,7 +16,7 @@ function reopenIssueWithComment() {
             console.log(`Commenting on issue #${issueNumber}`);
             return GithubUtils.octokit.issues.createComment({
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                repo: GithubUtils.APP_REPO,
                 issue_number: issueNumber,
                 body: comment,
             });

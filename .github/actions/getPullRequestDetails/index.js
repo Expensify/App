@@ -15,7 +15,7 @@ const GithubUtils = __nccwpck_require__(7999);
 
 const DEFAULT_PAYLOAD = {
     owner: GithubUtils.GITHUB_OWNER,
-    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+    repo: GithubUtils.APP_REPO,
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
@@ -146,8 +146,8 @@ const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 
 const GITHUB_OWNER = 'Expensify';
-const EXPENSIFY_CASH_REPO = 'App';
-const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/App';
+const APP_REPO = 'App';
+const APP_REPO_URL = 'https://github.com/Expensify/App';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -158,6 +158,13 @@ const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
 const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
 const INTERNAL_QA_LABEL = 'InternalQA';
+
+/**
+ * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
+ * It's 10 seconds :)
+ * @type {number}
+ */
+const POLL_RATE = 10000;
 
 class GithubUtils {
     /**
@@ -206,7 +213,7 @@ class GithubUtils {
     static getStagingDeployCash() {
         return this.octokit.issues.listForRepo({
             owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+            repo: APP_REPO,
             labels: STAGING_DEPLOY_CASH_LABEL,
             state: 'open',
         })
@@ -414,7 +421,7 @@ class GithubUtils {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
         return this.octokit.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+            repo: APP_REPO,
             state: 'all',
             sort: 'created',
             direction: 'desc',
@@ -457,7 +464,7 @@ class GithubUtils {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+            repo: APP_REPO,
             workflow_id: workflow,
         })
             .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
@@ -483,7 +490,7 @@ class GithubUtils {
      * @returns {String}
      */
     static getPullRequestURLFromNumber(number) {
-        return `${EXPENSIFY_CASH_URL}/pull/${number}`;
+        return `${APP_REPO_URL}/pull/${number}`;
     }
 
     /**
@@ -550,7 +557,7 @@ class GithubUtils {
     static getActorWhoClosedIssue(issueNumber) {
         return this.octokit.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+            repo: APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         })
@@ -561,11 +568,12 @@ class GithubUtils {
 
 module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
-module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
+module.exports.APP_REPO = APP_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
 module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
 module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
+module.exports.POLL_RATE = POLL_RATE;
 
 
 /***/ }),

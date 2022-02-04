@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Input label */
@@ -19,9 +20,6 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
-
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -33,9 +31,24 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.getInputIDPropTypes(props),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
+    isFormInput: false,
     label: '',
     name: '',
     errorText: '',
@@ -52,6 +65,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
+    shouldSaveDraft: false,
 };
 
 export {propTypes, defaultProps};
