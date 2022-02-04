@@ -55,6 +55,7 @@ class DatePicker extends React.Component {
                     editable={false}
                     disabled={this.props.disabled}
                     defaultValue={this.defaultValue}
+                    onBlur={this.props.onBlur}
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker

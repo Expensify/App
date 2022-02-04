@@ -1,12 +1,11 @@
 import React from 'react';
-import moment from 'moment';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import DatePicker from '../components/DatePicker';
-import CONST from '../CONST';
+
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -43,7 +42,12 @@ const Template = (args) => {
                 isFormInput
             />
             <View style={[styles.mt4]}>
-                <DatePicker label="DOB" inputID="dob" isFormInput shouldSaveDraft />
+                <DatePicker
+                    label="DOB"
+                    inputID="dob"
+                    isFormInput
+                    shouldSaveDraft
+                />
             </View>
         </Form>
     );
@@ -92,7 +96,7 @@ const defaultArgs = {
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
-InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
+InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: '', dob: ''}};
 
 export default story;
 export {

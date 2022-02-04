@@ -73,6 +73,7 @@ class Datepicker extends React.Component {
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}
+                onBlur={this.props.onBlur}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}
