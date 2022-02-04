@@ -12,7 +12,7 @@ const TextInput = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
-        inputStyle={[styles.baseTextInput]}
+        inputStyle={[styles.baseTextInput, styles.baseTextInputPaddingHorizontal]}
     />
 ));
 
