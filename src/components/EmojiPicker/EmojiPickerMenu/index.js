@@ -89,6 +89,7 @@ class EmojiPickerMenu extends Component {
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
+        this.onEmojiSelected = this.onEmojiSelected.bind(this);
 
         this.currentScrollOffset = 0;
 
@@ -392,7 +393,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone();
+        this.props.updatePreferredSkinTone(skinTone);
     }
 
     /**

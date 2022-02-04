@@ -15,6 +15,7 @@ class EmojiPicker extends React.Component {
         this.selectEmoji = this.selectEmoji.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+        this.measureContent = this.measureContent.bind(this);
         this.onModalHide = () => {};
         this.onEmojiSelected = () => {};
 
@@ -97,6 +98,7 @@ class EmojiPicker extends React.Component {
         return (
             <EmojiPickerMenu
                 onEmojiSelected={this.selectEmoji}
+                ref={el => this.emojiSearchInput = el}
                 updatePreferredSkinTone={User.setPreferredSkinTone}
             />
         );

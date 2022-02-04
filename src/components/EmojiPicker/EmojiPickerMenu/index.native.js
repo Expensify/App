@@ -92,7 +92,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone();
+        this.props.updatePreferredSkinTone(skinTone);
     }
 
     /**
