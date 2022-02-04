@@ -1,10 +1,10 @@
 import React from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
-import Popover from '../Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import * as User from '../../libs/actions/User';
 import CONST from '../../CONST';
+import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 
 class EmojiPicker extends React.Component {
     constructor(props) {
@@ -87,6 +87,15 @@ class EmojiPicker extends React.Component {
         }));
     }
 
+    measureContent() {
+        return (
+            <EmojiPickerMenu
+                onEmojiSelected={this.selectEmoji}
+                updatePreferredSkinTone={User.setPreferredSkinTone}
+            />
+        );
+    }
+
     /**
      * Focus the search input in the emoji picker.
      */
@@ -101,7 +110,7 @@ class EmojiPicker extends React.Component {
         // There is no way to disable animations and they are really laggy, because there are so many
         // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
         return (
-            <Popover
+            <PopoverWithMeasuredContent
                 isVisible={this.state.isEmojiPickerVisible}
                 onClose={this.hideEmojiPicker}
                 onModalShow={this.focusEmojiSearchInput}
@@ -110,16 +119,21 @@ class EmojiPicker extends React.Component {
                 animationInTiming={1}
                 animationOutTiming={1}
                 anchorPosition={{
-                    bottom: 10, // 500 - this.state.emojiPopoverAnchorPosition.vertical,
-                    left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
+                    vertical: this.state.emojiPopoverAnchorPosition.vertical,
+                    horizontal: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
                 }}
+                anchorOrigin={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                measureContent={this.measureContent}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
                     ref={el => this.emojiSearchInput = el}
                     updatePreferredSkinTone={User.setPreferredSkinTone}
                 />
-            </Popover>
+            </PopoverWithMeasuredContent>
         );
     }
 }
