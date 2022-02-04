@@ -87,6 +87,12 @@ class EmojiPicker extends React.Component {
         }));
     }
 
+
+    /**
+     * Used to calculate the EmojiPicker Dimensions
+     *
+     * @returns {JSX}
+     */
     measureContent() {
         return (
             <EmojiPickerMenu
@@ -120,7 +126,7 @@ class EmojiPicker extends React.Component {
                 animationOutTiming={1}
                 anchorPosition={{
                     vertical: this.state.emojiPopoverAnchorPosition.vertical,
-                    horizontal: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
+                    horizontal: this.state.emojiPopoverAnchorPosition.horizontal,
                 }}
                 anchorOrigin={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
