@@ -250,11 +250,9 @@ function signIn(password, twoFactorAuthCode) {
 }
 
 /**
- * Sign the user into the application using the email and token value from Google Auth API.
- * It follows the same logic of signIn function to create a temporary login.
+ * Sign the user into their Google account first and then sign them into the application using the email and token
+ * value returned by the first function. It follows the same logic of signIn function to create a temporary login.
  *
-//  * @param {String} email
-//  * @param {String} token
  */
 function signInGoogle() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true, isGoogleSigningIn: true});
