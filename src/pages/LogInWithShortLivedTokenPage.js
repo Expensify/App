@@ -57,6 +57,13 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
+        // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
+        if (email !== this.props.session.email) {
+            Session.signOut();
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+            return;
+        }
+
         // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
             return;
@@ -66,13 +73,24 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        if (!this.props.betas || !this.props.session.authToken || email !== this.props.session.email) {
+        if (!this.props.betas || !this.props.session.authToken) {
             return;
         }
 
+        const email = lodashGet(this.props.route.params, 'email', '');
+
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+
+        // User is signing in to a different account sign them out and sign in again
+        if (email !== this.props.session.email) {
+            const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+            const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+            Session.signOut();
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+            return;
+        }
+
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
             return;
