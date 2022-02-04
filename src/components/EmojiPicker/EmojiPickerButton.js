@@ -24,23 +24,6 @@ const defaultProps = {
 //
 
 class EmojiPickerButton extends React.Component {
-    constructor(props) {
-        super(props);
-        this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
-        this.showEmojiPicker = this.showEmojiPicker.bind(this);
-    }
-
-    showEmojiPicker() {
-        EmojiPickerAction.showEmojiPicker(this.props.onModalHide, this.props.onEmojiSelected, this.props.onBeforeShowEmojiPicker);
-    }
-
-    measureEmojiPopoverAnchorPosition() {
-        if (!EmojiPickerAction.emojiPickerRef || !EmojiPickerAction.emojiPickerRef.current) {
-            return;
-        }
-        EmojiPickerAction.emojiPickerRef.current.measureEmojiPopoverAnchorPosition(this.emojiPopoverAnchor);
-    }
-
     render() {
         return (
             <Pressable
@@ -50,8 +33,7 @@ class EmojiPickerButton extends React.Component {
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                 ])}
                 disabled={this.props.isDisabled}
-                onPress={this.showEmojiPicker}
-                onLayout={this.measureEmojiPopoverAnchorPosition}
+                onPress={() => EmojiPickerAction.showEmojiPicker(this.props.onModalHide, this.props.onEmojiSelected, this.props.onBeforeShowEmojiPicker, this.emojiPopoverAnchor)}
             >
                 {({hovered, pressed}) => (
                     <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
