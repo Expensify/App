@@ -35,13 +35,13 @@ For example:
 <!--
 This is a checklist for Contributor Plus (C+) reviewers. If the PR is internal, these do not need to be checked off, but are still a nice reminder for what to look for when reviewing PRs.
 -->
-- [ ] Are screenshots or videos included for tests on all platforms?
-- [ ] Is there an issue linked in the `### Fixed Issues` section, and is it the correct one?
+- [ ] Are screenshots or videos included for tests on all platforms? ([required](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms))
+- [ ] I (the C+ assigned to review this PR) also tested this PR on **all platforms**
+- [ ] Is the correct issue linked in the `### Fixed Issues` section?
 - [ ] Are testing steps clear and do they cover the changes + possible regressions?
 - [ ] Do testing steps cover success & fail scenarios (if applicable)?
 - [ ] There are no console errors related to changes in this PR
-- [ ] I tested this PR on **all platforms**
-- [ ] Appropriate new regression steps are mentioned below
+- [ ] Appropriate new regression steps are mentioned below (if applicable)
 - [ ] Code patterns were checked (see `Reviewing the code`)
 - [ ] Code reuse looks appropriate (see `Considerations around code reuse`)
 

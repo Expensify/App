@@ -93,6 +93,6 @@ While trying to keep our code DRY (don't repeat yourself), you may find you're w
         2. Do that refactor first (as a separate job, if it qualifies), merge it, test for regressions.
         3. Proceed with the original issue.
 
-# Time to submit!
+# Submit / approve the PR
 
-While the steps above can be tedious to follow the first time you submit / review a PR, over time they become more natural. The goal is not to waste everyone's time reviewing PRs, the goal is to have the best product, with the best engineers writing the best code.
+While the steps above can be tedious to follow the first time you submit or review a PR, over time they will become more natural. The goal of these steps is to make sure we create the best product, with the best engineers writing the best code.
