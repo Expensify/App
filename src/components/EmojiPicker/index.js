@@ -95,17 +95,18 @@ class EmojiPicker extends React.Component {
 
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
+        this.emojiPopoverAnchor = emojiPopoverAnchor;
 
         this.setState({isEmojiPickerVisible: true});
-        this.measureEmojiPopoverAnchorPosition(emojiPopoverAnchor);
+        this.measureEmojiPopoverAnchorPosition();
     }
 
-    measureEmojiPopoverAnchorPosition(emojiPopoverAnchor) {
-        if (!emojiPopoverAnchor) {
+    measureEmojiPopoverAnchorPosition() {
+        if (!this.emojiPopoverAnchor) {
             return;
         }
 
-        emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
+        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
             emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
         }));
     }
