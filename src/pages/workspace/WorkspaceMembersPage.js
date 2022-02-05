@@ -29,6 +29,7 @@ import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import FixedFooter from '../../components/FixedFooter';
 import OfflineText from '../../components/OfflineText';
+import themeColors from '../../styles/themes/default';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 
@@ -225,6 +226,8 @@ class WorkspaceMembersPage extends React.Component {
                                 icons: [item.avatar],
                                 keyForList: item.login,
                             }}
+                            textStyles={item.pending && [{color: themeColors.offline}]}
+                            alternateTextStyles={item.pending && [{color: themeColors.offline}]}
                         />
                     </View>
                     {this.props.session.email === item.login && (
@@ -247,12 +250,24 @@ class WorkspaceMembersPage extends React.Component {
             return <Navigation.DismissModal />;
         }
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyEmployeeList)
-            .map(email => this.props.personalDetails[email])
-            .filter()
-            .sortBy(person => person.displayName.toLowerCase())
-            .value();
+        const pendingInvitationList = lodashGet(this.props, 'policy.pendingInvitations', []);
+        const removableMembers = _.without(
+            policyEmployeeList.concat(pendingInvitationList),
+            this.props.session.email,
+            this.props.policy.owner
+        );
+
+        const employeeListData = _.map(policyEmployeeList,
+            email => this.props.personalDetails[email]);
+
+        const pendingInvitationsData = _.map(pendingInvitationList,
+            email => {return {...this.props.personalDetails[email], pending: true}});
+
+        const data = _.sortBy(
+            employeeListData.concat(pendingInvitationsData),
+            (person) => person && person.displayName.toLowerCase()
+        );
+
         const policyID = lodashGet(this.props.route, 'params.policyID');
 
         return (

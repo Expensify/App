@@ -92,7 +92,8 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList];
+        const pendingInvitations = lodashGet(this.props, 'policy.pendingInvitations', []);
+        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList, ...pendingInvitations];
     }
 
     /**
@@ -213,11 +214,12 @@ class WorkspaceInvitePage extends React.Component {
         if (!this.validate() || !this.submitActive) {
             return;
         }
-
         this.submitActive = false;
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         Policy.invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
+
+        Navigation.goBack();
     }
 
     /**

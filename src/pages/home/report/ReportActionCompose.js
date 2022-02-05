@@ -32,7 +32,6 @@ import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -41,16 +40,15 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import OfflineText from './../../../components/OfflineText';
+import OfflineText from '../../../components/OfflineText';
 
 const propTypes = {
     /** Beta features list */
@@ -96,12 +94,6 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
-
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
@@ -116,7 +108,6 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
     myPersonalDetails: {},
@@ -755,7 +746,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
-    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

@@ -338,6 +338,7 @@ function clearRequestQueue() {
 
 export {
     post,
+    isOffline,
     pauseRequestQueue,
     PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,

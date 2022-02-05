@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
+import stylePropTypes from '../../../styles/stylePropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -63,6 +64,12 @@ const propTypes = {
     /** Whether to disable the interactivity of this row */
     disableRowInteractivity: PropTypes.bool,
 
+    /** Addtional styles to be passed to displayNameStyle **/
+    textStyles: stylePropTypes,
+
+    /** Addtional styles to be passed to alternateTextStyle **/
+    alternateTextStyles: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -79,6 +86,8 @@ const defaultProps = {
     isDisabled: false,
     optionIsFocused: false,
     disableRowInteractivity: false,
+    textStyles: [],
+    alternateTextStyles: [],
 };
 
 const OptionRow = (props) => {
@@ -87,12 +96,16 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+
+    const additionalTextStyles = props.textStyles;
     const displayNameStyle = props.mode === 'compact'
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle];
+        ? [styles.optionDisplayName, ...texrUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, ...additionalTextStyles]
+        : [styles.optionDisplayName, ...textUnreadStyle, ...additionalTextStyles];
+    const additionalAlternateTextStyles = props.alternateTextStyles || [];
     const alternateTextStyle = props.mode === 'compact'
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, ...additionalAlternateTextStyles]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, ...additionalAlternateTextStyles];
+
     const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
@@ -272,6 +285,14 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
+        return false;
+    }
+
+    if (!_.isEqual(prevProps.textStyles, nextProps.textStyles)) {
+        return false;
+    }
+
+    if (!_.isEqual(prevProps.alternateTextStyles, nextProps.alternateTextStyles)) {
         return false;
     }
 

@@ -1,12 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import compose from '../libs/compose';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import {withNetwork, withPersonalDetails} from '../components/OnyxProvider';
+import {withNetwork} from '../components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Icon from '../components/Icon';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -74,13 +70,11 @@ class OfflineText extends React.PureComponent {
              </>);
 
         const content = 
-            //!this.props.network.isOffline && this.props.showEmptyStringOnOnline 
-            false && this.props.showEmptyStringOnOnline 
+            !this.props.network.isOffline && this.props.showEmptyStringOnOnline
             ? null 
-            : offlineContent 
+            : offlineContent;
         return (
-            //this.props.network.isOffline || this.props.showEmptyStringOnOnline ? (
-            true?(
+            this.props.network.isOffline || this.props.showEmptyStringOnOnline ? (
                 <View style={this.props.outerContainerStyles}>
                     <View style={[styles.flexRow, ...this.props.innerContainerStyles, {width: '100%'}]}
                     >
