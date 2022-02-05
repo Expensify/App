@@ -338,7 +338,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             fetchedReports = reportSummaryList;
 
             // Fetch last viewed report because we want to get its informations as soon as possible.
-            let earlyReport = _.find(fetchedReports,report => report.reportID === lastViewedReportID);
+            const earlyReport = _.find(fetchedReports, report => report.reportID === lastViewedReportID);
             const simplifiedEarlyReport = getSimplifiedReportObject(earlyReport);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${earlyReport.reportID}`, simplifiedEarlyReport);
 
