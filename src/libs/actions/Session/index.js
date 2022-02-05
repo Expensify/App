@@ -265,7 +265,7 @@ function signInGoogle() {
         .catch(() => {
             // Set the same error message when signInWithGoogle or API.SignInGoogle fails
             Onyx.merge(ONYXKEYS.ACCOUNT, {
-                error: Localize.translateLocal('signInPage.error.googleSignIn'),
+                error: 'signInPage.error.googleSignIn',
                 loading: false,
                 isGoogleSigningIn: false,
             });

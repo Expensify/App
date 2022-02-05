@@ -69,7 +69,7 @@ function SignInOptions(props) {
             {lodashGet(props.account, 'error', '') && (
                 <View style={[styles.mt3]}>
                     <Text style={[styles.formError]}>
-                        {props.account.error}
+                        {props.translate(props.account.error)}
                     </Text>
                 </View>
             )}
