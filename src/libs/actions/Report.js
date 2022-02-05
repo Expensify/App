@@ -215,7 +215,7 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
-        newMarkerSequenceNumber: getUnreadActionCount(report) === 0 ? 0 : getLastReadSequenceNumber(report.reportID) + 1,
+        newMarkerSequenceNumber: getUnreadActionCount(report) === 0 ? 0 : lastReadSequenceNumbers[report.reportID] + 1,
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
