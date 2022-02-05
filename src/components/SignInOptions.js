@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -66,7 +66,7 @@ function SignInOptions(props) {
                     text={props.translate('signInPage.appleButton')}
                 />
             </View>
-            {lodashGet(props.account, 'error', '') && (
+            {!_.isEmpty(props.account.error) && (
                 <View style={[styles.mt3]}>
                     <Text style={[styles.formError]}>
                         {props.translate(props.account.error)}
