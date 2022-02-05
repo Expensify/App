@@ -49,6 +49,7 @@ const defaultProps = {
     maximumDate: undefined,
     isFormInput: false,
     shouldSaveDraft: false,
+    errorText: '',
 
 };
 
