@@ -376,7 +376,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // variable called simplifiedReports which hold the participants (minus the current user) for each report.
             // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
             // personal details of all the participants and even link up their avatars to report icons.
-            const reportIOUData = {};            
+            const reportIOUData = {};
             _.each(fetchedReports, (report) => {
                 const simplifiedReport = getSimplifiedReportObject(report);
                 simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
