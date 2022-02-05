@@ -337,6 +337,11 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
+            // Fetch last viewed report because we want to get its informations as soon as possible.
+            let earlyReport = _.find(fetchedReports,report => report.reportID === lastViewedReportID);
+            const simplifiedEarlyReport = getSimplifiedReportObject(earlyReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${earlyReport.reportID}`, simplifiedEarlyReport);
+
             // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
             if (jsonCode === 404 && shouldRedirectIfInaccessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
