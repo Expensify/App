@@ -21,26 +21,6 @@ function getGoogleApi() {
     return window.gapi;
 }
 
-/**
- * Effect hook that loads Google script into the DOM, initialize the Google API and returns a function to signIn the
- * user with their Google account
- *
- * @returns {Promise<{ token: string, email: string }>}
- */
-function signInWithGoogle() {
-    if (!lodashGet(getGoogleApi(), 'auth2')) {
-        return Promise.reject(new Error('Google Auth not ready'));
-    }
-    const GoogleAuth = getGoogleApi().auth2.getAuthInstance();
-    return GoogleAuth.signIn().then((res) => {
-        const basicProfile = res.getBasicProfile();
-        const authResponse = res.getAuthResponse();
-        return {
-            token: authResponse.id_token,
-            email: basicProfile.getEmail(),
-        };
-    });
-}
 
 /**
  * Load Google script into the DOM and initialize the Google Auth API
@@ -55,4 +35,22 @@ loadScript(
     })),
 );
 
-export default signInWithGoogle;
+/**
+ * Function to signIn the user with their Google account
+ *
+ * @returns {Promise<{ token: string, email: string }>}
+ */
+export default function signInWithGoogle() {
+    if (!lodashGet(getGoogleApi(), 'auth2')) {
+        return Promise.reject(new Error('Google Auth not ready'));
+    }
+    const GoogleAuth = getGoogleApi().auth2.getAuthInstance();
+    return GoogleAuth.signIn().then((res) => {
+        const basicProfile = res.getBasicProfile();
+        const authResponse = res.getAuthResponse();
+        return {
+            token: authResponse.id_token,
+            email: basicProfile.getEmail(),
+        };
+    });
+}
