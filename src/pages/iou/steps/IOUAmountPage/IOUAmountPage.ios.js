@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-state */
 import React from 'react';
 import {
     View,
@@ -82,10 +83,10 @@ class IOUAmountPage extends React.Component {
         this.calculateAmountAndSelection = this.calculateAmountAndSelection.bind(this);
         this.state = {
             amount: props.selectedAmount,
-        };
-        this.selection = {
-            start: props.selectedAmount.length,
-            end: props.selectedAmount.length,
+            selection: {
+                start: props.selectedAmount.length,
+                end: props.selectedAmount.length,
+            },
         };
     }
 
@@ -106,7 +107,7 @@ class IOUAmountPage extends React.Component {
      * @param {*} e
      */
     onSelectionChange(e) {
-        this.selection = e.nativeEvent.selection;
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -170,20 +171,20 @@ class IOUAmountPage extends React.Component {
      * @returns {Object}
      */
 
-    calculateAmountAndSelection(key, amount) {
-        const {start, end} = this.selection;
+    calculateAmountAndSelection(key, selection, amount) {
+        const {start, end} = selection;
 
         // Backspace button is pressed
         if (key === '<' || (key === 'Backspace' && this.state.amount.length > 0)) {
             if (end === 0) {
-                return {amount, selection: this.selection};
+                return {amount, selection};
             }
 
             if (start === end && start > 0) {
                 const newAmount = amount.slice(0, start - 1) + amount.slice(end);
 
                 if (!this.validateAmount(newAmount)) {
-                    return {amount, selection: this.selection};
+                    return {amount, selection};
                 }
 
                 return {amount: newAmount, selection: {start: start - 1, end: end - 1}};
@@ -192,10 +193,10 @@ class IOUAmountPage extends React.Component {
             return {amount: newAmount, selection: {start, end: start}};
         }
 
-        // Normal Keys
+        // Number/decimal Keys
         const newAmount = `${amount.slice(0, start)}${key}${amount.slice(end)}`;
         if (!this.validateAmount(newAmount)) {
-            return {amount, selection: this.selection};
+            return {amount, selection};
         }
 
         return {amount: newAmount, selection: {start: start + 1, end: start + 1}};
@@ -209,27 +210,8 @@ class IOUAmountPage extends React.Component {
      */
     updateAmountNumberPad(key) {
         return this.setState((prevState) => {
-            const {amount, selection} = this.calculateAmountAndSelection(key, prevState.amount);
-            this.selection = selection;
-
-            // Update UI to reflect selection changes.
-            this.textInput.setNativeProps({selection});
-            return {amount};
-        });
-    }
-
-    /**
-     * Update amount on amount change
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} text - Changed text from user input
-     */
-    updateAmount(text) {
-        this.setState((prevState) => {
-            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
-            return this.validateAmount(amount)
-                ? {amount: this.stripCommaFromAmount(amount)}
-                : prevState;
+            const {amount, selection} = this.calculateAmountAndSelection(key, prevState.selection, prevState.amount);
+            return {amount, selection};
         });
     }
 
@@ -282,6 +264,7 @@ class IOUAmountPage extends React.Component {
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
                 </View>
