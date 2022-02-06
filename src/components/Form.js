@@ -122,6 +122,7 @@ class Form extends React.Component {
      * @returns {React.Component}
      */
     childrenWrapperWithProps(children) {
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
         return React.Children.map(children, (child) => {
             // Just render the child if it is not a valid React element, e.g. text within a <Text> component
             if (!React.isValidElement(child)) {
