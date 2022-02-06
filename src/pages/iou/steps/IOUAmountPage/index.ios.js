@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import BigNumberPad from '../../../../components/BigNumberPad';
