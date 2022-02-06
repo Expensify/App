@@ -393,17 +393,6 @@ function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
 }
 
-/**
- * Return LoginField label margin.
- *
- * @param {Boolean} addedPhone
- * @param {Boolean} validatedPhone
- * @returns {Object}
- */
-function getLoginFieldLabelMargin(addedPhone, validatedPhone) {
-    return addedPhone && !validatedPhone ? {marginBottom: 0} : {};
-}
-
 export {
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -428,5 +417,4 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
-    getLoginFieldLabelMargin,
 };

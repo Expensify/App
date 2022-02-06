@@ -13,7 +13,6 @@ import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
-import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** Label to display on login form */
@@ -42,6 +41,7 @@ class LoginField extends Component {
         };
         this.timeout = null;
         this.onResendClicked = this.onResendClicked.bind(this);
+        this.getLabelMargin = this.getLabelMargin.bind(this);
     }
 
     /**
@@ -63,6 +63,18 @@ class LoginField extends Component {
             }, 5000);
         }
     }
+
+    /**
+    * Return label margin.
+    *
+    * @param {Boolean} addedPhone
+    * @param {Boolean} validatedPhone
+    * @returns {Object}
+    */
+    getLabelMargin(addedPhone, validatedPhone) {
+        return addedPhone && !validatedPhone ? styles.mb0 : {};
+    }
+
 
     render() {
         let note;
@@ -87,7 +99,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={[styles.formLabel, StyleUtils.getLoginFieldLabelMargin(this.props.login.partnerUserID, this.props.login.validatedDate)]}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, this.getLabelMargin(this.props.login.partnerUserID, this.props.login.validatedDate)]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
