@@ -65,14 +65,11 @@ class LoginField extends Component {
     }
 
     /**
-    * Return label margin.
-    *
-    * @param {Boolean} addedPhone
-    * @param {Boolean} validatedPhone
+    * Zero bottom margin for no phone or unverified phone
     * @returns {Object}
     */
-    getLabelMargin(addedPhone, validatedPhone) {
-        return addedPhone && !validatedPhone ? styles.mb0 : {};
+    getLabelMargin() {
+        return this.props.login.partnerUserID && !this.props.login.validatedDate ? styles.mb0 : {};
     }
 
 
@@ -99,7 +96,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={[styles.formLabel, this.getLabelMargin(this.props.login.partnerUserID, this.props.login.validatedDate)]}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, this.getLabelMargin()]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
