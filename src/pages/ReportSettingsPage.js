@@ -18,6 +18,7 @@ import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 
 const propTypes = {
@@ -47,6 +48,13 @@ const propTypes = {
 
         /** The current user's notification preference for this report */
         notificationPreference: PropTypes.string,
+    }).isRequired,
+
+    /** All reports shared with the user */
+    reports: PropTypes.shape({
+        reportName: PropTypes.string,
+        type: PropTypes.string,
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
@@ -84,12 +92,58 @@ class ReportSettingsPage extends Component {
 
         this.state = {
             newRoomName: this.props.report.reportName,
-            error: '',
+            errors: {},
         };
+
+        this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
+    }
+
+    validateAndRenameReport() {
+        if (!this.validate()) {
+            return;
+        }
+        Report.renameReport(this.props.report.reportID, this.state.newRoomName);
+    }
+
+    validate() {
+        const errors = {};
+
+        // We error if the user doesn't enter a room name or left blank
+        if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
+            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+        }
+
+        // We error if the room name already exists. We don't care if it matches the original name provided in this
+        // component because then we are not changing the room's name.
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
+            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        }
+
+        // Certain names are reserved for default rooms and should not be used for policy rooms.
+        if (ValidationUtils.isReservedRoomName(this.state.newRoomName)) {
+            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
+        }
+
+        this.setState({errors});
+        return _.isEmpty(errors);
+    }
+
+    /**
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setState(prevState => ({
+            [inputKey]: value,
+            errors: {
+                ...prevState.errors,
+                [inputKey]: '',
+            },
+        }));
     }
 
     render() {
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report) || this.props.isLoadingRenamePolicyRoom;
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
         return (
@@ -131,26 +185,23 @@ class ReportSettingsPage extends Component {
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex3]}>
                                 <RoomNameInput
-                                    onChangeText={newRoomName => this.setState({newRoomName})}
-                                    onChangeError={error => this.setState({error})}
                                     initialValue={this.state.newRoomName}
-                                    disabled={shouldDisableRename}
                                     policyID={linkedWorkspace && linkedWorkspace.id}
+                                    errorText={this.state.errors.newRoomName}
+                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                    disabled={shouldDisableRename}
                                 />
                             </View>
                             <Button
-                                success={!shouldDisableRename}
+                                success
+                                pressOnEnter
                                 text={this.props.translate('common.save')}
-                                onPress={() => Report.renameReport(this.props.report.reportID, this.state.newRoomName)}
+                                onPress={this.validateAndRenameReport}
                                 style={[styles.ml2, styles.flex1]}
                                 textStyles={[styles.label]}
                                 innerStyles={[styles.reportSettingsChangeNameButton]}
-                                isDisabled={Boolean(
-                                    shouldDisableRename
-                                    || this.state.newRoomName === this.props.report.reportName
-                                    || this.state.error,
-                                )}
                                 isLoading={this.props.isLoadingRenamePolicyRoom}
+                                isDisabled={shouldDisableRename}
                             />
                         </View>
                     </View>
@@ -201,6 +252,9 @@ export default compose(
         },
         isLoadingRenamePolicyRoom: {
             key: ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);

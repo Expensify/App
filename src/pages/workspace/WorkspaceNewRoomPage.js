@@ -21,6 +21,7 @@ import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -93,12 +94,6 @@ class WorkspaceNewRoomPage extends React.Component {
     validate() {
         const errors = {};
 
-        const isExistingRoomName = _.some(
-            _.values(this.props.reports),
-            report => report && report.policyID === this.state.policyID
-            && report.reportName === this.state.roomName,
-        );
-
         // We error if the user doesn't enter a room name or left blank
         if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
@@ -106,12 +101,12 @@ class WorkspaceNewRoomPage extends React.Component {
 
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        if (isExistingRoomName) {
+        if (ValidationUtils.isExistingRoomName(this.state.roomName, this.props.reports, this.state.policyID)) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, this.state.roomName)) {
+        if (ValidationUtils.isReservedRoomName(this.state.roomName)) {
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
@@ -162,7 +157,6 @@ class WorkspaceNewRoomPage extends React.Component {
                             <RoomNameInput
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
-                                shouldShowErrorOnChange={false}
                                 errorText={this.state.errors.roomName}
                                 onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             />
