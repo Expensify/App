@@ -55,7 +55,7 @@ Please follow these steps to propose a job:
 2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-6. If the issue happens in production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Include all relevant data, screenshots and examples in the post or thread.
+6. If the issue happens in production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in #expensify-open-source. View [this guide](https://github.com/Expensify/App/blob/main/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
 7. After review in #expensify-open-source, if you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
@@ -68,6 +68,11 @@ Please follow these steps to propose a job:
 
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
+
+#### Make sure you can test on all platforms
+* Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
+* You'll need a Mac to test the iOS and MacOS app.
+* In case you don't have one, here's a helpful [document](https://docs.google.com/document/d/1TD8A-SQbBN2EsnF98cEib2wiERK68fux2P0LGSkobrg/edit?usp=sharing) on how you might test all platforms on a Windows/Linux device.
 
 #### Check GitHub for existing proposals from other users
 
@@ -109,7 +114,7 @@ Please follow these steps to propose a job:
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
 14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
+16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
