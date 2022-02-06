@@ -221,6 +221,7 @@ function createOption(personalDetailList, report, {
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
+    const isLastMessageAttachment = report ? ReportUtils.isReportMessageAttachment(report.lastMessageText) : false;
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
         : {};
@@ -230,7 +231,7 @@ function createOption(personalDetailList, report, {
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + Str.htmlDecode(report.lastMessageText)
+        + (isLastMessageAttachment ? `[${Localize.translateLocal('common.attachment')}]` : Str.htmlDecode(report.lastMessageText))
         : '';
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
@@ -281,7 +282,6 @@ function createOption(personalDetailList, report, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
-        isLastMessageAttachment: showChatPreviewLine ? lodashGet(report, 'isLastMessageAttachment', false) : false,
     };
 }
 

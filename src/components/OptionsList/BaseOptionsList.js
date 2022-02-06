@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import OptionRow from '../../pages/home/sidebar/OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
-import * as Localize from '../../libs/Localize';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 
 const propTypes = {
@@ -98,13 +97,9 @@ class BaseOptionsList extends Component {
      * @return {Component}
      */
     renderItem({item, index, section}) {
-        const updatedItem = item;
-        if (item.isLastMessageAttachment) {
-            updatedItem.alternateText = `[${Localize.translateLocal('common.attachment')}]`;
-        }
         return (
             <OptionRow
-                option={updatedItem}
+                option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
                 backgroundColor={this.props.optionBackgroundColor}

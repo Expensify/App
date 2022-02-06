@@ -216,7 +216,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastMessageTimestamp,
-        lastMessageText: isLastMessageAttachment ? Localize.translateLocal('common.attachment') : lastMessageText,
+        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
         notificationPreference,
@@ -224,7 +224,6 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
-        isLastMessageAttachment,
     };
 }
 
@@ -1107,16 +1106,12 @@ function addAction(reportID, text, file) {
     const textForNewComment = isAttachment ? '[Attachment]'
         : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
 
-    // Remove HTML from text when applying optimistic offline comment
-    const lastMessageText = isAttachment ? Localize.translateLocal('common.attachment') : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
-
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
-        lastMessageText: ReportUtils.formatReportLastMessageText(lastMessageText),
+        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
-        isLastMessageAttachment: isAttachment,
     });
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
