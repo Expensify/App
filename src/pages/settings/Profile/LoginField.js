@@ -72,7 +72,6 @@ class LoginField extends Component {
         return this.props.login.partnerUserID && !this.props.login.validatedDate ? styles.mb0 : {};
     }
 
-
     render() {
         let note;
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
