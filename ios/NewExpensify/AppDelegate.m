@@ -4,6 +4,7 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
+#import <React/RCTI18nUtil.h>
 #import <Firebase.h>
 
 #import "RCTBootSplash.h"
@@ -37,6 +38,9 @@ static void InitializeFlipper(UIApplication *application) {
   // Configure firebase
   [FIRApp configure];
 
+  [[RCTI18nUtil sharedInstance] allowRTL:NO];
+  [[RCTI18nUtil sharedInstance] forceRTL:NO];
+  [[RCTI18nUtil sharedInstance] swapLeftAndRightInRTL:NO];
 #ifdef FB_SONARKIT_ENABLED
   InitializeFlipper(application);
 #endif
