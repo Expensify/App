@@ -80,6 +80,7 @@
     "pusher-js": "^7.0.0",
     "react": "^17.0.2",
     "react-collapse": "^5.1.0",
+    "react-content-loader": "^6.1.0",
     "react-dom": "^17.0.2",
     "react-native": "0.66.4",
     "react-native-collapsible": "^1.6.0",
