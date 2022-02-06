@@ -216,7 +216,7 @@ class PaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
-        const isPopoverBottomMount = this.props.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
+        const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
