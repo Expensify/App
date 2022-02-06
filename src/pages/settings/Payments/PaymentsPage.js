@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity, Platform} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -216,6 +216,7 @@ class PaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
+        const isPopoverBottomMount = this.props.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -290,7 +291,7 @@ class PaymentsPage extends React.Component {
                                 !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
                             ]}
                         >
-                            {(Platform.OS !== 'web' || this.props.isSmallScreenWidth) && (
+                            {isPopoverBottomMount && (
                                 <MenuItem
                                     title={this.state.formattedSelectedPaymentMethod.title}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
