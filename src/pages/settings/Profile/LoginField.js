@@ -13,6 +13,7 @@ import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** Label to display on login form */
@@ -86,7 +87,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={[styles.formLabel, (this.props.login.partnerUserID && !this.props.login.validatedDate) && styles.mb0]}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, StyleUtils.getLoginFieldLabelMargin(this.props.login.partnerUserID, this.props.login.validatedDate)]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
