@@ -5,21 +5,21 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import BigNumberPad from '../../../../components/BigNumberPad';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import withLocalize from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
-import Button from '../../../../components/Button';
-import Text from '../../../../components/Text';
-import CONST from '../../../../CONST';
-import TextInputAutoWidthWithoutKeyboard from '../../../../components/TextInputAutoWidthWithoutKeyboard';
-import {propTypes, defaultProps} from './IOUAmountPropTypes';
+import ONYXKEYS from '../../../../../ONYXKEYS';
+import styles from '../../../../../styles/styles';
+import BigNumberPad from '../../../../../components/BigNumberPad';
+import withWindowDimensions from '../../../../../components/withWindowDimensions';
+import Navigation from '../../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../../ROUTES';
+import withLocalize from '../../../../../components/withLocalize';
+import compose from '../../../../../libs/compose';
+import Button from '../../../../../components/Button';
+import Text from '../../../../../components/Text';
+import CONST from '../../../../../CONST';
+import TextInputAutoWidthWithoutKeyboard from '../../../../../components/TextInputAutoWidthWithoutKeyboard';
+import {propTypes, defaultProps} from '../IOUAmountPropTypes';
 
-class IOUAmountPage extends React.Component {
+class IOUAmount extends React.Component {
     constructor(props) {
         super(props);
 
@@ -139,8 +139,8 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
+IOUAmount.propTypes = propTypes;
+IOUAmount.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -149,4 +149,4 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountPage);
+)(IOUAmount);
