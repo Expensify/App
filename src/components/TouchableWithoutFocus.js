@@ -38,12 +38,12 @@ class TouchableWithoutFocus extends React.Component {
             return;
         }
         this.props.onPress();
-        this.inputRef.blur();
+        this.touchableRef.blur();
     }
 
     render() {
         return (
-            <TouchableOpacity onPress={this.onPress} ref={e => this.inputRef = e} style={this.props.styles}>
+            <TouchableOpacity onPress={this.onPress} ref={e => this.touchableRef = e} style={this.props.styles}>
                 {this.props.children}
             </TouchableOpacity>
         );
