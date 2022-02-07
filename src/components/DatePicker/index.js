@@ -81,6 +81,8 @@ class Datepicker extends React.Component {
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
                 disabled={this.props.disabled}
+                shouldSaveDraft={this.props.shouldSaveDraft}
+                isFormInput={this.props.isFormInput}
             />
         );
     }

@@ -80,6 +80,8 @@ class Datepicker extends React.Component {
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
                     defaultValue={this.props.defaultValue}
+                    shouldSaveDraft={this.props.shouldSaveDraft}
+                    isFormInput={this.props.isFormInput}
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}
