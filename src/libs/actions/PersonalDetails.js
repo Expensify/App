@@ -278,7 +278,7 @@ function setAvatar(file) {
                 error.jsonCode = response.jsonCode;
                 throw error;
             }
-            setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
+            setPersonalDetails({avatar: response.s3url, avatarUploading: false});
         })
         .catch((error) => {
             setPersonalDetails({avatarUploading: false});
