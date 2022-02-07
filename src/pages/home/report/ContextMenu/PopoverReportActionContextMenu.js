@@ -229,7 +229,7 @@ class PopoverReportActionContextMenu extends React.Component {
     /**
      * Run the callback and return a noop function to reset it
      * @param {Function} callback
-     * @return {Function}
+     * @returns {Function}
      */
     runAndResetCallback(callback) {
         callback();
