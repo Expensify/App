@@ -141,7 +141,7 @@ const IOUPreview = (props) => {
                                     <MultipleAvatars
                                         avatarImageURLs={[managerAvatar, ownerAvatar]}
                                         secondAvatarStyle={[styles.secondAvatarInline]}
-                                        tooltip={avatarTooltip}
+                                        avatarTooltips={avatarTooltip}
                                     />
                                 </View>
                             </View>

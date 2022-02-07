@@ -139,7 +139,7 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
-                                tooltip={avatarTooltip}
+                                avatarTooltips={avatarTooltip}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames

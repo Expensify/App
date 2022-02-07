@@ -177,7 +177,7 @@ const OptionRow = (props) => {
                                         ]}
                                         isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
-                                        tooltip={avatarTooltip}
+                                        avatarTooltips={avatarTooltip}
                                     />
                                 )
                             }
