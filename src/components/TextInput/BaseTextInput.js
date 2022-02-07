@@ -57,13 +57,14 @@ class BaseTextInput extends Component {
         this.input.focus();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         // activate or deactivate the label when value is changed programmatically from outside
-        if (prevProps.value === this.props.value) {
+        if (this.value === this.props.value) {
             return;
         }
 
         this.value = this.props.value;
+        this.input.setNativeProps({text: this.value});
 
         if (this.props.value) {
             this.activateLabel();
@@ -211,7 +212,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        value={this.value}
+                                        defaultValue={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
