@@ -22,7 +22,7 @@ if [[ EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build\`? Do you need to merge master?${NC}"
+    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build\`? Do you need to merge main?${NC}"
     echo "$DIFF_OUTPUT" | $LIB_PATH/diff-so-fancy | less --tabs=4 -RFX
     exit 1
 fi
