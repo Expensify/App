@@ -141,6 +141,19 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
 
+    rateCol: {
+        margin: 0,
+        padding: 0,
+        flexBasis: '48%',
+    },
+
+    unitCol: {
+        margin: 0,
+        padding: 0,
+        marginLeft: '4%',
+        flexBasis: '48%',
+    },
+
     webViewStyles,
 
     link,
@@ -1207,13 +1220,6 @@ const styles = {
         paddingVertical: 16,
     },
 
-    chatContentEmpty: {
-        paddingTop: 16,
-        paddingBottom: 16,
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
     // Chat Item
     chatItem: {
         display: 'flex',
@@ -1790,7 +1796,7 @@ const styles = {
         height: 80,
     },
 
-    emptyStateAvatar: {
+    roomHeaderAvatar: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
         borderRadius: 100,
@@ -2210,7 +2216,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 100,
+        minHeight: 115,
     },
 
     peopleRow: {
@@ -2432,6 +2438,10 @@ const styles = {
 
     transferBalanceBalance: {
         fontSize: 48,
+    },
+
+    closeAccountMessageInput: {
+        minHeight: 140,
     },
 };
 

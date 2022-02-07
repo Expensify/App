@@ -86,6 +86,10 @@ function signOut() {
     Onyx.set(ONYXKEYS.SESSION, null);
     Onyx.set(ONYXKEYS.CREDENTIALS, null);
     Timing.clearData();
+}
+
+function signOutAndRedirectToSignIn() {
+    signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
 }
@@ -256,6 +260,7 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} accountID
  * @param {String} email
  * @param {String} shortLivedToken
+ * @param {String} exitTo
  */
 function signInWithShortLivedToken(accountID, email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
@@ -531,6 +536,7 @@ export {
     signIn,
     signInWithShortLivedToken,
     signOut,
+    signOutAndRedirectToSignIn,
     reopenAccount,
     resendValidationLink,
     resetPassword,

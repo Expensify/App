@@ -4,7 +4,7 @@ For almost all of our code style rules, refer to the [Airbnb JavaScript Style Gu
 
 When writing ES6 or React code, please also refer to the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react).
 
-There are a few things that we have customized for our tastes which will take presidence over Airbnb's guide.
+There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 
 ## Functions
   - Always wrap the function expression for immediately-invoked function expressions (IIFE) in parens:
@@ -41,7 +41,7 @@ There are a few things that we have customized for our tastes which will take pr
     }
     ```
 
-  - Place 1 space before the function keyword and the opening paren for anonymous functions. This does not count for named functions.
+  - Place 1 space before the function keyword and the opening parent for anonymous functions. This does not count for named functions.
 
     ```javascript
     // Bad
@@ -329,7 +329,7 @@ export {
 ## Classes and constructors
 
 #### Class syntax
-Using the `class` syntax is preferred wherever appropriate. Airbnb has clear [guidelines](https://github.com/airbnb/javascript#classes--constructors) in their JS styleguide which promotes using the _class_ syntax. Dont manipulate the `prototype` directly. The `class` syntax is generally considered more concise and easier to understand.
+Using the `class` syntax is preferred wherever appropriate. Airbnb has clear [guidelines](https://github.com/airbnb/javascript#classes--constructors) in their JS style guide which promotes using the _class_ syntax. Don't manipulate the `prototype` directly. The `class` syntax is generally considered more concise and easier to understand.
 
 #### Constructor
 Classes have a default constructor if one is not specified. No need to write a constructor function that is empty or just delegates to a parent class.
@@ -562,7 +562,7 @@ class SomeComponent {
 }
 ```
 
-## Inline Ternarys
+## Inline Ternaries
 * Use inline ternary statements when rendering optional pieces of templates. Notice the white space and formatting of the ternary.
 
 ```javascript
