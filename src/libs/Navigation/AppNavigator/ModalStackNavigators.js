@@ -24,7 +24,7 @@ import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalM
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
-import EnablePaymentsPage from '../../../pages/EnablePayments';
+import EnablePaymentsPage from '../../../pages/EnablePayments/EnablePaymentsPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
