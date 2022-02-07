@@ -1,8 +1,6 @@
 import React from 'react';
 import {TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-
-
 const propTypes = {
     /** Element that should be clickable  */
     children: PropTypes.oneOfType([
