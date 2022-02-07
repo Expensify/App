@@ -86,7 +86,7 @@ class IOUAmountPage extends React.Component {
 
 
     render() {
-        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
+        const formattedAmount = this.props.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
             <>
                 <View style={[
