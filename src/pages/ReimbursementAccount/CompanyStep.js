@@ -43,6 +43,7 @@ class CompanyStep extends React.Component {
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
+            console.log(typeof ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'));
 
         this.state = {
             companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
