@@ -20,6 +20,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ChatGhostUI from '../../components/ChatGhostUI';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
@@ -66,14 +67,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** The policies which the user has access to */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-
-        /** The type of the policy */
-        type: PropTypes.string,
-    })).isRequired,
+    isLoadingReportData: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -89,6 +83,7 @@ const defaultProps = {
     },
     isComposerFullSize: false,
     betas: [],
+    isLoadingReportData: false,
 };
 
 /**
@@ -162,7 +157,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
+        return (this.state.isLoading || !getReportID(this.props.route)) && !this.props.isLoadingReportData;
     }
 
     /**
@@ -207,27 +202,26 @@ class ReportScreen extends React.Component {
 
         const reportID = getReportID(this.props.route);
 
-        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let reportClosedAction;
-        if (isArchivedRoom) {
-            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-        }
-
-        return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
-                <KeyboardAvoidingView>
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-
-                    <View
-                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    >
-                        {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                        {!this.shouldShowLoader() && (
-                            <ReportActionsView
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                >
+                    {
+                    this.props.isLoadingReportData && <ChatGhostUI />
+                  }
+                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    {!this.shouldShowLoader() && (
+                        <ReportActionsView
+                            reportID={reportID}
+                            reportActions={this.props.reportActions}
+                            report={this.props.report}
+                            session={this.props.session}
+                        />
+                    )}
+                    {this.props.session.shouldShowComposeInput && (
+                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                            <ReportActionCompose
+                                onSubmit={this.onSubmitComment}
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
@@ -288,7 +282,7 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
+    isLoadingReportData: {
+        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     },
 })(ReportScreen);
