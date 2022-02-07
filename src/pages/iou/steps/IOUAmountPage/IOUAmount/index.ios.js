@@ -17,7 +17,7 @@ import Button from '../../../../../components/Button';
 import Text from '../../../../../components/Text';
 import CONST from '../../../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../../../components/TextInputAutoWidthWithoutKeyboard';
-import {propTypes, defaultProps} from '../IOUAmountPropTypes';
+import {propTypes, defaultProps} from './IOUAmountPropTypes';
 
 class IOUAmount extends React.Component {
     constructor(props) {
