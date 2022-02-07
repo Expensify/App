@@ -64,8 +64,7 @@ const MultipleAvatars = (props) => {
     }
 
     return (
-
-        <View pointerEvents="none" style={avatarContainerStyles}>
+        <View style={avatarContainerStyles}>
             <View
                 style={singleAvatarStyles}
             >
