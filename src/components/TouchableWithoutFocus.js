@@ -2,13 +2,10 @@ import React from 'react';
 import {TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 
-const defaultPropTypes = {
-    styles: [],
-};
 
 const propTypes = {
 
-    /** Child node that should be touchable  */
+    /** element that should be clickable  */
     children: PropTypes.oneOfType([
         PropTypes.node,
         PropTypes.func,
@@ -19,6 +16,10 @@ const propTypes = {
 
     /** Styles that should be passed to touchable container */
     styles: PropTypes.arrayOf(PropTypes.object),
+};
+
+const defaultProps = {
+    styles: [],
 };
 
 /**
@@ -48,6 +49,6 @@ class TouchableWithoutFocus extends React.Component {
 }
 
 TouchableWithoutFocus.propTypes = propTypes;
-TouchableWithoutFocus.defaultProps = defaultPropTypes;
+TouchableWithoutFocus.defaultProps = defaultProps;
 
 export default TouchableWithoutFocus;
