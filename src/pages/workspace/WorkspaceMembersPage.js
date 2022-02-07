@@ -335,10 +335,7 @@ class WorkspaceMembersPage extends React.Component {
                 >
                     <OfflineText
                         outerContainerStyles={styles.memberPageOfflineTextContainerStyle}
-                        message={"You appear to be offline.  Pending invitations will send when you are onlines"}
-
-                        //Pending invitations will send when you are onlines
-                        //innerContainerStyles={}
+                        message={this.props.translate('workspace.people.offlineMessage')}
                     ></OfflineText>
                 </FixedFooter>
             </ScreenWrapper>
