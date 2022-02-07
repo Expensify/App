@@ -146,6 +146,27 @@ class TransferBalancePage extends React.Component {
      */
     navigateToChooseTransferAccount(filterPaymentMethodType) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
+
+        // If we only have a single option for the given paymentMethodType do not force the user to make a selection
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+            this.props.payPalMeUsername,
+            this.props.userWallet,
+        );
+
+        const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
+        if (filteredMethods.length === 1) {
+            const account = _.first(filteredMethods);
+            PaymentMethods.saveWalletTransferAccountTypeAndID(
+                filterPaymentMethodType,
+                filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                    ? account.bankAccountID
+                    : account.fundID,
+            );
+            return;
+        }
+
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
     }
 
@@ -272,6 +293,9 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
