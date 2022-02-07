@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import IOUAmountPage from './steps/IOUAmountPage';
+import BaseIOUAmountPage from './steps/BaseIOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
@@ -397,7 +397,7 @@ class IOUModal extends Component {
                                             direction={this.getDirection()}
                                             style={[styles.flex1, styles.pageWrapper]}
                                         >
-                                            <IOUAmountPage
+                                            <BaseIOUAmountPage
                                                 onStepComplete={(amount) => {
                                                     this.setState({amount});
                                                     this.navigateToNextStep();
