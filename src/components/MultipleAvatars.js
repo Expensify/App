@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
@@ -25,7 +24,7 @@ const propTypes = {
     isArchivedRoom: PropTypes.bool,
 
     /** Tooltip for the Avatar */
-    tooltip: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
+    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -34,6 +33,7 @@ const defaultProps = {
     secondAvatarStyle: [styles.secondAvatarHovered],
     isChatRoom: false,
     isArchivedRoom: false,
+    avatarTooltips: [],
 };
 
 const MultipleAvatars = (props) => {
@@ -49,10 +49,9 @@ const MultipleAvatars = (props) => {
     }
 
     if (props.avatarImageURLs.length === 1) {
-        const tooltipToPass = _.isArray(props.tooltip) ? props.tooltip.join(', ') : props.tooltip;
         return (
             <View style={avatarContainerStyles}>
-                <Tooltip text={tooltipToPass}>
+                <Tooltip text={props.avatarTooltips[0]}>
                     <Avatar
                         source={props.avatarImageURLs[0]}
                         size={props.size}
@@ -64,17 +63,13 @@ const MultipleAvatars = (props) => {
         );
     }
 
-    const tooltip = props.tooltip;
-    const tooltipForFirstAvatar = _.isArray(tooltip) ? tooltip[0] : tooltip;
-    const tooltipForAvatarCount = _.isArray(tooltip) && tooltip.length > 1 ? tooltip.slice(1).join(', ') : '';
-
     return (
 
-        <View style={avatarContainerStyles}>
+        <View pointerEvents="none" style={avatarContainerStyles}>
             <View
                 style={singleAvatarStyles}
             >
-                <Tooltip text={tooltipForFirstAvatar}>
+                <Tooltip text={props.avatarTooltips[0]} absolute>
                     <Image
                         source={{uri: props.avatarImageURLs[0]}}
                         style={singleAvatarStyles}
@@ -84,14 +79,14 @@ const MultipleAvatars = (props) => {
                     style={secondAvatarStyles}
                 >
                     {props.avatarImageURLs.length === 2 ? (
-                        <Tooltip text={tooltipForAvatarCount}>
+                        <Tooltip text={props.avatarTooltips[1]} absolute>
                             <Image
                                 source={{uri: props.avatarImageURLs[1]}}
                                 style={singleAvatarStyles}
                             />
                         </Tooltip>
                     ) : (
-                        <Tooltip text={tooltipForAvatarCount}>
+                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
                             <View
                                 style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
