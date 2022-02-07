@@ -64,10 +64,10 @@ const propTypes = {
     /** Whether to disable the interactivity of this row */
     disableRowInteractivity: PropTypes.bool,
 
-    /** Addtional styles to be passed to displayNameStyle **/
+    /** Addtional styles to be passed to displayNameStyle */
     textStyles: stylePropTypes,
 
-    /** Addtional styles to be passed to alternateTextStyle **/
+    /** Addtional styles to be passed to alternateTextStyle  */
     alternateTextStyles: stylePropTypes,
 
     ...withLocalizePropTypes,
