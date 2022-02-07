@@ -65,7 +65,8 @@ class LoginField extends Component {
     }
 
     /**
-    * Zero bottom margin for no phone or unverified phone
+    * Zero bottom margin for phone/email's label when it's unverified
+    * When phone/email is not verified the resend button increase the gap between label and text so the bottom margin is not required
     * @returns {Object}
     */
     getLabelMargin() {
