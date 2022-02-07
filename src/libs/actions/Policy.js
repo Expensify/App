@@ -278,7 +278,7 @@ function loadFullPolicy(policyID) {
 
     if (_.isEmpty(lodashGet(allPolicies[key], 'pendingInvitations', []))) {
         getFullPolicy();
-    }else{ 
+    }else{
         // If there is pendingInvitations, wait until invite user API call finish
         setTimeout(() => {getFullPolicy(true)}, 3000);
     }
@@ -399,8 +399,8 @@ function invite(logins, welcomeNote, policyID) {
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = allPolicies[key];
-    
-    // Always insert invited logins to pendingInvitations first 
+
+    // Always insert invited logins to pendingInvitations first
     const pendingInvitations = _.uniq([...policy.pendingInvitations, ...newEmployeeList]);
     const alertMessage = '';
 

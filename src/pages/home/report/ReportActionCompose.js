@@ -732,7 +732,6 @@ class ReportActionCompose extends React.Component {
                     alternateComponent={<ReportTypingIndicator reportID={this.props.reportID} />}
                     >
                 </OfflineText>
-                
             </View>
         );
     }

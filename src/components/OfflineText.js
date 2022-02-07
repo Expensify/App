@@ -69,19 +69,19 @@ class OfflineText extends React.PureComponent {
                 </Text>
              </>);
 
-        const content = 
+        const content =
             !this.props.network.isOffline && this.props.showEmptyStringOnOnline
-            ? null 
+            ? null
             : offlineContent;
         return (
             this.props.network.isOffline || this.props.showEmptyStringOnOnline ? (
                 <View style={this.props.outerContainerStyles}>
                     <View style={[styles.flexRow, ...this.props.innerContainerStyles, {width: '100%'}]}
                     >
-                        {content} 
+                        {content}
                     </View>
                 </View>
-            ) : this.props.alternateComponent 
+            ) : this.props.alternateComponent
         );
     }
 }
