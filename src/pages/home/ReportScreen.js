@@ -18,6 +18,7 @@ import KeyboardSpacer from '../../components/KeyboardSpacer';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ChatGhostUI from '../../components/ChatGhostUI';
 import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
@@ -58,6 +59,8 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    isLoadingReportData: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -72,6 +75,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     betas: [],
+    isLoadingReportData: false,
 };
 
 /**
@@ -129,7 +133,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
+        return (this.state.isLoading || !getReportID(this.props.route)) && !this.props.isLoadingReportData;
     }
 
     /**
@@ -174,6 +178,9 @@ class ReportScreen extends React.Component {
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
+                    {
+                    this.props.isLoadingReportData && <ChatGhostUI />
+                  }
                     <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
                     {!this.shouldShowLoader() && (
                         <ReportActionsView
@@ -219,5 +226,8 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isLoadingReportData: {
+        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     },
 })(ReportScreen);
