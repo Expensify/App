@@ -6,7 +6,6 @@ import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import TouchableWithoutFocus from '../../TouchableWithoutFocus';
 
-
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
 
