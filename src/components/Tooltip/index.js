@@ -163,6 +163,7 @@ class Tooltip extends PureComponent {
     }
 
     render() {
+        // Skip the tooltip and return the children, if the text is empty.
         if (_.isEmpty(this.props.text)) {
             return this.props.children;
         }
