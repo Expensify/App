@@ -18,7 +18,6 @@ import Text from '../../../../components/Text';
 import CONST from '../../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../../components/TextInputAutoWidthWithoutKeyboard';
 import {propTypes, defaultProps} from './IOUAmountPropTypes';
-import * as AmountUtils from './IOUAmountUtils';
 
 class IOUAmountPage extends React.Component {
     constructor(props) {
@@ -27,7 +26,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.focusTextInput = AmountUtils.focusTextInput.bind(this);
+        this.focusTextInput = this.props.focusTextInput.bind(this);
         this.state = {
             amount: props.selectedAmount,
             selection: {
@@ -65,7 +64,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmountNumberPad(key) {
         return this.setState((prevState) => {
-            const {amount, selection} = AmountUtils.calculateAmountAndSelection(key, prevState.selection, prevState.amount);
+            const {amount, selection} = this.props.calculateAmountAndSelection(key, prevState.selection, prevState.amount);
             return {amount, selection};
         });
     }
@@ -78,9 +77,9 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = AmountUtils.replaceAllDigits(text, this.props.fromLocaleDigit);
-            return AmountUtils.validateAmount(amount)
-                ? {amount: AmountUtils.stripCommaFromAmount(amount)}
+            const amount = this.props.replaceAllDigits(text, this.props.fromLocaleDigit);
+            return this.props.validateAmount(amount)
+                ? {amount: this.props.stripCommaFromAmount(amount)}
                 : prevState;
         });
     }
