@@ -6,7 +6,7 @@ import {InteractionManager} from 'react-native';
 import CONST from '../../../../CONST';
 import IOUAmount from './IOUAmount';
 
-class BaseIOUAmountPage extends Component {
+class IOUAmountPage extends Component {
     constructor(props) {
         super(props);
         this.calculateAmountLength = this.calculateAmountLength.bind(this);
@@ -145,4 +145,4 @@ class BaseIOUAmountPage extends Component {
     }
 }
 
-export default BaseIOUAmountPage;
+export default IOUAmountPage;
