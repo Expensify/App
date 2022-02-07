@@ -6,6 +6,7 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -17,6 +18,8 @@ const propTypes = {
 
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -39,10 +42,20 @@ class ThumbnailImage extends PureComponent {
         // Width of the thumbnail works better as a constant than it does
         // a percentage of the screen width since it is relative to each screen
         // Note: Clamp minimum width 40px to support touch device
-        const thumbnailScreenWidth = lodashClamp(width, 40, 250);
+        let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const scaleFactor = width / thumbnailScreenWidth;
         const imageHeight = height / scaleFactor;
-        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 0, this.props.windowHeight * 0.40);
+
+        const aspectRatio = (height / width);
+
+        if (thumbnailScreenHeight > thumbnailScreenWidth) {
+            thumbnailScreenWidth = Math.round(thumbnailScreenHeight * (1 / aspectRatio));
+        } else {
+            thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
+        }
+
+        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: thumbnailScreenHeight});
     }
 
     render() {
@@ -71,4 +84,4 @@ class ThumbnailImage extends PureComponent {
 
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
-export default ThumbnailImage;
+export default withWindowDimensions(ThumbnailImage);
