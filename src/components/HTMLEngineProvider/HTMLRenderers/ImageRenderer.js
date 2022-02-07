@@ -1,10 +1,11 @@
 import React from 'react';
-import {TouchableOpacity} from 'react-native';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
+import TouchableWithoutFocus from '../../TouchableWithoutFocus';
+
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -49,28 +50,18 @@ const ImageRenderer = (props) => {
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
         >
-            {({show}) => {
-                const openModal = () => {
-                    // Blur the list item which got tapped so that it won't get refocused on modal close.
-                    if (document.activeElement) {
-                        document.activeElement.blur();
-                    }
-                    show();
-                };
-
-                return (
-                    <TouchableOpacity
-                        style={styles.noOutline}
-                        onPress={openModal}
-                    >
-                        <ThumbnailImage
-                            previewSourceURL={previewSource}
-                            style={styles.webViewStyles.tagStyles.img}
-                            isAuthTokenRequired={isAttachment}
-                        />
-                    </TouchableOpacity>
-                );
-            }}
+            {({show}) => (
+                <TouchableWithoutFocus
+                    style={styles.noOutline}
+                    onPress={show}
+                >
+                    <ThumbnailImage
+                        previewSourceURL={previewSource}
+                        style={styles.webViewStyles.tagStyles.img}
+                        isAuthTokenRequired={isAttachment}
+                    />
+                </TouchableWithoutFocus>
+            )}
         </AttachmentModal>
     );
 };
