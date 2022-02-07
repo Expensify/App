@@ -12,7 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Network from '../../libs/Network';
 import NetworkConnection from '../NetworkConnection';
-import NetworkRequestQueueUtils from '../../libs/NetworkRequestQueueUtils'
+import NetworkRequestQueueUtils from '../../libs/NetworkRequestQueueUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -267,32 +267,22 @@ function loadFullPolicy(policyID) {
 
                 const currentPolicy = _.clone(allPolicies[key]);
                 const simplifiedPolicyObject = getSimplifiedPolicyObject(policy);
-                const ongoingPendings =
-                    shouldClearPendingInvitations
-                    ? []
-                    : _.difference(currentPolicy.pendingInvitations, simplifiedPolicyObject.employeeList);
 
                 const updatedPolicy = {
                     ...currentPolicy,
                     ...simplifiedPolicyObject,
-                    pendingInvitations: ongoingPendings
+                    pendingInvitations: []
                 };
                 Onyx.set(key, updatedPolicy);
             });
     }
 
-    getFullPolicy();
-
-    // "loadFullPolicy" will be automacally  called on network reconnects
-    // "getFullPolicy" will be called one more time if pendingInvitations list is not empty
-    // This means, on reconnects there is an API request to invite a user.
-    // We should wait the API to finish and retrieve the policy data again and then update workspace onyx data accordingly.
-    // pendingInvitations will be cleared on the second call
-    setTimeout(() => {
-       if (!_.isEmpty(allPolicies[key].pendingInvitations)) {
-           getFullPolicy(true);
-       }
-    }, 8000);
+    if (_.isEmpty(lodashGet(allPolicies[key], 'pendingInvitations', []))) {
+        getFullPolicy();
+    }else{ 
+        // If there is pendingInvitations, wait until invite user API call finish
+        setTimeout(() => {getFullPolicy(true)}, 3000);
+    }
 }
 
 /**
@@ -317,7 +307,7 @@ function isAdminOfFreePolicy(policies) {
  */
 function removePendingInvitations(policy, members) {
     // No pendingInvitations if network is online
-    if (!Network.isOffline) {
+    if (!Network.isNetworkOffline()) {
         return [policy, members];
     }
 
@@ -355,11 +345,11 @@ function removeMembers(members, policyID) {
 
     // Make a shallow copy to preserve original data and remove the members
     let policy = _.clone(allPolicies[key]);
-    policy.employeeList = _.without(policy.employeeList, ...members);
 
     // Remaining members that need API call to remove it
     let remainingMembers;
     [policy, remainingMembers] = removePendingInvitations(policy, members);
+    policy.employeeList = _.without(policy.employeeList, ...remainingMembers);
 
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
@@ -376,7 +366,6 @@ function removeMembers(members, policyID) {
     })
         .then((data) => {
             if (data.jsonCode === 200) {
-                updateEmployeeList(data, policyID);
                 return;
             }
 
@@ -388,7 +377,7 @@ function removeMembers(members, policyID) {
             }
 
             const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
-            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
+            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...remainingMembers];
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
@@ -409,7 +398,7 @@ function invite(logins, welcomeNote, policyID) {
     const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
-    //const policy = _.clone(allPolicies[key]);
+    const policy = allPolicies[key];
     
     // Always insert invited logins to pendingInvitations first 
     const pendingInvitations = _.uniq([...policy.pendingInvitations, ...newEmployeeList]);
@@ -442,8 +431,13 @@ function invite(logins, welcomeNote, policyID) {
             // Save the personalDetails for the invited user in Onyx
             if (data.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
+                const nextPolicy = _.clone(allPolicies[key]);
+                const nextEmployeeList = _.intersection(newEmployeeList, nextPolicy.pendingInvitations);
+                nextPolicy.employeeList = _.uniq([...nextPolicy.employeeList, ...nextEmployeeList]); 
+                nextPolicy.pendingInvitations = _.difference(nextPolicy.pendingInvitations, nextEmployeeList);
+                Onyx.set(key, nextPolicy);
 
-                updateEmployeeList(data, policyID);
+                //updateEmployeeList(data, policyID);
                 return;
             }
 
@@ -552,15 +546,15 @@ function updateLastAccessedWorkspace(policyID) {
 /**
  * loadFullPolicy of lastAccessedWorkspacePolicyID
  */
-function fetchLastAccessedWorkspace() {
+const fetchLastAccessedWorkspace = _.throttle(() => {
     if (lastAccessedWorkspacePolicyID) {
         loadFullPolicy(lastAccessedWorkspacePolicyID);
     }
-}
+}, 10000, {leading: false, trailing: true});
 
-// When the app reconnects from being offline and connection has been stable
-// User could be viewing workspace setting page or member page
-// We call fetchLastAccessedWorkspace to give update data of the page
+
+// User could be viewing workspace setting page or member page on network reconnects
+// We call fetchLastAccessedWorkspace to update workspace data
 NetworkConnection.onReconnect(fetchLastAccessedWorkspace);
 
 export {

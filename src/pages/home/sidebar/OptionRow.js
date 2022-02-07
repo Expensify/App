@@ -99,7 +99,7 @@ const OptionRow = (props) => {
 
     const additionalTextStyles = props.textStyles;
     const displayNameStyle = props.mode === 'compact'
-        ? [styles.optionDisplayName, ...texrUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, ...additionalTextStyles]
+        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, ...additionalTextStyles]
         : [styles.optionDisplayName, ...textUnreadStyle, ...additionalTextStyles];
     const additionalAlternateTextStyles = props.alternateTextStyles || [];
     const alternateTextStyle = props.mode === 'compact'

@@ -336,9 +336,15 @@ function clearRequestQueue() {
     networkRequestQueue = [];
 }
 
+/**
+ * Return value of isOffline
+ */
+function isNetworkOffline() {
+    return isOffline;
+}
+
 export {
     post,
-    isOffline,
     pauseRequestQueue,
     PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
@@ -349,4 +355,5 @@ export {
     registerRequestHandler,
     setIsReady,
     registerRequestSkippedHandler,
+    isNetworkOffline,
 };
