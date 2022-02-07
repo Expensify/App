@@ -14,8 +14,8 @@ const propTypes = {
     /** Where to place the popover */
     popoverPlacement: PropTypes.string,
 
-    /** Is resize event happens on the web/desktop? */
-    isResizeListen: PropTypes.bool,
+    /** Listen for window resize event on web and desktop */
+    listenResize: PropTypes.bool,
 
     ...userWalletPropTypes,
 };
@@ -24,7 +24,7 @@ const defaultProps = {
     // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
     popoverPlacement: 'top',
-    isResizeListen: false,
+    listenResize: false,
 };
 
 export {propTypes, defaultProps};

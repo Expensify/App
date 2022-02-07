@@ -4,10 +4,11 @@ import BaseKYCWall from './BaseKYCWall';
 
 const KYCWall = props => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseKYCWall {...props} isResizeListen />
+    <BaseKYCWall {...props} listenResize />
 );
 
 KYCWall.propTypes = propTypes;
 KYCWall.defaultProps = defaultProps;
 KYCWall.displayName = 'KYCWall';
+
 export default KYCWall;

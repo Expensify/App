@@ -13,8 +13,8 @@ const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
 
-    /** Is resize event happens on the web/desktop? */
-    isResizeListen: PropTypes.bool,
+    /** Listen for window resize event on web and desktop. */
+    listenResize: PropTypes.bool,
 
     ...withLocalizePropTypes,
 
@@ -27,7 +27,7 @@ const defaultProps = {
     },
     betas: [],
     isLoadingPaymentMethods: true,
-    isResizeListen: false,
+    listenResize: false,
 };
 
 export {propTypes, defaultProps};
