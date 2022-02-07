@@ -151,7 +151,7 @@ class TransferBalancePage extends React.Component {
         const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            this.props.payPalMeUsername,
+            '',
             this.props.userWallet,
         );
 
@@ -291,9 +291,6 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
