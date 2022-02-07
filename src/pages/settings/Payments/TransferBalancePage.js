@@ -160,9 +160,7 @@ class TransferBalancePage extends React.Component {
             const account = _.first(filteredMethods);
             PaymentMethods.saveWalletTransferAccountTypeAndID(
                 filterPaymentMethodType,
-                filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                    ? account.bankAccountID
-                    : account.fundID,
+                account.methodID,
             );
             return;
         }
