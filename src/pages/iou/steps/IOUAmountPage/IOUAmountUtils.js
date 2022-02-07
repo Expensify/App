@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import {InteractionManager} from 'react-native';
 import CONST from '../../../../CONST';
 
 /**
@@ -73,16 +74,16 @@ function calculateAmountAndSelection(key, selection, amount) {
     const {start, end} = selection;
 
     // Backspace button is pressed
-    if (key === '<' || (key === 'Backspace' && this.state.amount.length > 0)) {
+    if (key === '<' || (key === 'Backspace' && amount.length > 0)) {
         if (end === 0) {
-            return {amount, selection: this.selection};
+            return {amount, selection};
         }
 
         if (start === end && start > 0) {
             const newAmount = amount.slice(0, start - 1) + amount.slice(end);
 
             if (!validateAmount(newAmount)) {
-                return {amount, selection: this.selection};
+                return {amount, selection};
             }
 
             return {amount: newAmount, selection: {start: start - 1, end: end - 1}};
@@ -94,12 +95,27 @@ function calculateAmountAndSelection(key, selection, amount) {
     // Normal Keys
     const newAmount = `${amount.slice(0, start)}${key}${amount.slice(end)}`;
     if (!validateAmount(newAmount)) {
-        return {amount, selection: this.selection};
+        return {amount, selection};
     }
 
     return {amount: newAmount, selection: {start: start + 1, end: start + 1}};
 }
 
+/**
+ * Focus text input
+ */
+function focusTextInput() {
+    // Component may not initialized due to navigation transitions
+    // Wait until interactions are complete before trying to focus
+    InteractionManager.runAfterInteractions(() => {
+        // Focus text input
+        if (!this.textInput) {
+            return;
+        }
+
+        this.textInput.focus();
+    });
+}
 
 export {
     calculateAmountLength,
@@ -107,4 +123,5 @@ export {
     stripCommaFromAmount,
     replaceAllDigits,
     calculateAmountAndSelection,
+    focusTextInput,
 };

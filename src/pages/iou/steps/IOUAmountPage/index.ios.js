@@ -2,7 +2,6 @@ import React from 'react';
 import {
     View,
     TouchableOpacity,
-    InteractionManager,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -27,8 +26,8 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
-        this.focusTextInput = this.focusTextInput.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.focusTextInput = AmountUtils.focusTextInput.bind(this);
         this.state = {
             amount: props.selectedAmount,
             selection: {
@@ -56,22 +55,6 @@ class IOUAmountPage extends React.Component {
      */
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
-    }
-
-    /**
-     * Focus text input
-     */
-    focusTextInput() {
-        // Component may not initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!this.textInput) {
-                return;
-            }
-
-            this.textInput.focus();
-        });
     }
 
     /**
