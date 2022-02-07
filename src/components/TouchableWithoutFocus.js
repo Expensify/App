@@ -21,15 +21,12 @@ const propTypes = {
     styles: PropTypes.arrayOf(PropTypes.object),
 };
 
-
 /**
  * This component prevents the tapped element from capturing focus
- * @param {Object} props
- * @returns {React.Component}
  */
 class TouchableWithoutFocus extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.onPress = this.onPress.bind(this);
     }
 
@@ -52,6 +49,5 @@ class TouchableWithoutFocus extends React.Component {
 
 TouchableWithoutFocus.propTypes = propTypes;
 TouchableWithoutFocus.defaultProps = defaultPropTypes;
-TouchableWithoutFocus.displayName = 'TouchableWithoutFocus';
 
 export default TouchableWithoutFocus;
