@@ -17,9 +17,9 @@ import Button from '../../../../../components/Button';
 import Text from '../../../../../components/Text';
 import CONST from '../../../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../../../components/TextInputAutoWidthWithoutKeyboard';
-import {propTypes, defaultProps} from '../IOUAmountPropTypes';
+import {propTypes, defaultProps} from './IOUAmountPropTypes';
 
-class IOUAmountComponent extends React.Component {
+class IOUAmount extends React.Component {
     constructor(props) {
         super(props);
 
@@ -142,8 +142,8 @@ class IOUAmountComponent extends React.Component {
     }
 }
 
-IOUAmountComponent.propTypes = propTypes;
-IOUAmountComponent.defaultProps = defaultProps;
+IOUAmount.propTypes = propTypes;
+IOUAmount.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -152,4 +152,4 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountComponent);
+)(IOUAmount);
