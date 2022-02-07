@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 
 const propTypes = {
-    /** element that should be clickable  */
+    /** Element that should be clickable  */
     children: PropTypes.oneOfType([
         PropTypes.node,
         PropTypes.func,
