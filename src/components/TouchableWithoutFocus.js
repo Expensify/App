@@ -23,7 +23,7 @@ const propTypes = {
 
 
 /**
- *
+ * This component prevents the tapped element from capturing focus
  * @param {Object} props
  * @returns {React.Component}
  */
@@ -37,8 +37,8 @@ class TouchableWithoutFocus extends React.Component {
         if (!this.props.onPress) {
             return;
         }
-        this.props.onPress();
         this.touchableRef.blur();
+        this.props.onPress();
     }
 
     render() {
