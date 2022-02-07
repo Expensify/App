@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let persistedRequests;
 Onyx.connect({
@@ -29,7 +29,7 @@ function modifyPersistedRequest_Policy_Employees_Merge(policyID, logins) {
     const updatedPersistedRequest = _.compact(_.map(
         persistedRequests,
         (req) => {
-            if (req.command !== commandName || req.data.policyID !== policyID){
+            if (req.command !== commandName || req.data.policyID !== policyID) {
                 return req;
             }
 
@@ -46,14 +46,13 @@ function modifyPersistedRequest_Policy_Employees_Merge(policyID, logins) {
             }
             const removedLoginsRequest = _.clone(req);
             removedLoginsRequest.data.employees = JSON.stringify(
-                _.map(newlogins,
-                    login => {
-                      return ({email: OptionsListUtils.addSMSDomainIfPhoneNumber(login)});
-                    }
-                ));
+                _.map(newlogins, login => ({email: OptionsListUtils.addSMSDomainIfPhoneNumber(login)})),
+            );
+
             return removedLoginsRequest;
-        })
-    );
+        },
+    ));
+
     if (isModified) {
         Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, updatedPersistedRequest);
     }
@@ -62,4 +61,3 @@ function modifyPersistedRequest_Policy_Employees_Merge(policyID, logins) {
 export default {
     modifyPersistedRequest_Policy_Employees_Merge,
 };
-

@@ -742,7 +742,7 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
-            offlineMessage: "You appear to be offline.  Pending invitations will send when you are onlines",
+            offlineMessage: 'You appear to be offline.  Pending invitations will send when you are onlines',
             error: {
                 memberIsNotInSync: 'Member list is not in sync. Synchronizing the member list.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',

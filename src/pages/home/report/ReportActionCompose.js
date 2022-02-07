@@ -415,7 +415,6 @@ class ReportActionCompose extends React.Component {
         }));
     }
 
-
     /**
      * Hide the ReportActionContextMenu modal popover.
      */
@@ -730,8 +729,7 @@ class ReportActionCompose extends React.Component {
                     outerContainerStyles={[styles.chatItemComposeSecondaryRow]}
                     innerContainerStyles={[styles.chatItemComposeSecondaryRowOffset]}
                     alternateComponent={<ReportTypingIndicator reportID={this.props.reportID} />}
-                    >
-                </OfflineText>
+                />
             </View>
         );
     }

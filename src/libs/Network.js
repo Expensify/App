@@ -333,7 +333,7 @@ function clearRequestQueue() {
 }
 
 /**
- * Return value of isOffline
+ * @returns {Boolean} Return value of isOffline
  */
 function isNetworkOffline() {
     return isOffline;

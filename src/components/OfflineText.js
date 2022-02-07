@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import compose from '../libs/compose';
-import {withNetwork} from '../components/OnyxProvider';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import Icon from '../components/Icon';
-import * as Expensicons from '../components/Icon/Expensicons';
-import Text from '../components/Text';
+import {withNetwork} from './OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import stylePropTypes from '../styles/stylePropTypes';
@@ -34,14 +34,14 @@ const propTypes = {
     message: PropTypes.string,
 
     /** Component to be displayed if network is online */
-    alternateComponent: PropTypes.object,
+    alternateComponent: PropTypes.node,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: false},
-    outerContainerStyles : [],
+    outerContainerStyles: [],
     innerContainerStyles: [],
     showEmptyStringOnOnline: false,
     messageStyles: [],
@@ -50,10 +50,6 @@ const defaultProps = {
 };
 
 class OfflineText extends React.PureComponent {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const offlineContent = (
             <>
@@ -67,21 +63,23 @@ class OfflineText extends React.PureComponent {
                 <Text style={[styles.offlineTextMessageStyle, ...this.props.messageStyles]}>
                     {this.props.message || this.props.translate('reportActionCompose.youAppearToBeOffline')}
                 </Text>
-             </>);
+            </>
+        );
 
-        const content =
-            !this.props.network.isOffline && this.props.showEmptyStringOnOnline
+        const content = !this.props.network.isOffline && this.props.showEmptyStringOnOnline
             ? null
             : offlineContent;
+
         return (
-            this.props.network.isOffline || this.props.showEmptyStringOnOnline ? (
-                <View style={this.props.outerContainerStyles}>
-                    <View style={[styles.flexRow, ...this.props.innerContainerStyles, {width: '100%'}]}
-                    >
-                        {content}
+            this.props.network.isOffline || this.props.showEmptyStringOnOnline
+                ? (
+                    <View style={this.props.outerContainerStyles}>
+                        <View style={[styles.flexRow, ...this.props.innerContainerStyles, {width: '100%'}]}>
+                            {content}
+                        </View>
                     </View>
-                </View>
-            ) : this.props.alternateComponent
+                )
+                : this.props.alternateComponent
         );
     }
 }

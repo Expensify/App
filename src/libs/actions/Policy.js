@@ -10,9 +10,9 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Network from '../../libs/Network';
+import * as Network from '../Network';
 import NetworkConnection from '../NetworkConnection';
-import NetworkRequestQueueUtils from '../../libs/NetworkRequestQueueUtils';
+import NetworkRequestQueueUtils from './NetworkRequestQueueUtils';
 import * as Report from './Report';
 
 const allPolicies = {};
@@ -252,7 +252,7 @@ function createAndGetPolicyList() {
  */
 function loadFullPolicy(policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const getFullPolicy = (shouldClearPendingInvitations = false) => {
+    const getFullPolicy = () => {
         API.GetFullPolicy(policyID)
             .then((data) => {
                 if (data.jsonCode !== 200) {
@@ -270,17 +270,17 @@ function loadFullPolicy(policyID) {
                 const updatedPolicy = {
                     ...currentPolicy,
                     ...simplifiedPolicyObject,
-                    pendingInvitations: []
+                    pendingInvitations: [],
                 };
                 Onyx.set(key, updatedPolicy);
             });
-    }
+    };
 
     if (_.isEmpty(lodashGet(allPolicies[key], 'pendingInvitations', []))) {
         getFullPolicy();
-    }else{
+    } else {
         // If there is pendingInvitations, wait until invite user API call finish
-        setTimeout(() => {getFullPolicy(true)}, 3000);
+        setTimeout(() => getFullPolicy(), 3000);
     }
 }
 
@@ -297,34 +297,35 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
- * Remove pendingInvitations emails from worksppace onyx data
- * and NetworkRequestQueue onyx data
+ * Modify NetworkRequestQueue Onyx on invite member API call
+ * Return new pendingInvitations emails and remainingMembers that need API call to remove
  *
- * @param {String} policyID
+ * @param {String} policy
  * @param {Array} members
- *
+ * @returns {Array} [newPendingInvitations, remainingMembers]
  */
 function removePendingInvitations(policy, members) {
     // No pendingInvitations if network is online
     if (!Network.isNetworkOffline()) {
-        return [policy, members];
+        return [policy.pendingInvitations, members];
     }
 
     // pendingInvitations that API calls are still running and queued in persisted Onyx NetworkRequestQueue
     const ongoingPendingInvitations = _.intersection(policy.pendingInvitations, members);
-    if (_.isEmpty(ongoingPendingInvitations)){
-        return [policy, members];
+    if (_.isEmpty(ongoingPendingInvitations)) {
+        return [policy.pendingInvitations, members];
     }
 
     // Modify the invitation request API to exclude the removed members
     NetworkRequestQueueUtils.modifyPersistedRequest_Policy_Employees_Merge(
-        policy.id, ongoingPendingInvitations
+        policy.id, ongoingPendingInvitations,
     );
 
-    policy.pendingInvitations = _.difference(policy.pendingInvitations, ongoingPendingInvitations);
+    const newPendingInvitations = _.difference(policy.pendingInvitations, ongoingPendingInvitations);
+
     // Remaining members that needs new API call to remove the members
     const remainingMembers = _.difference(members, ongoingPendingInvitations);
-    return [policy, remainingMembers];
+    return [newPendingInvitations, remainingMembers];
 }
 
 /**
@@ -342,19 +343,18 @@ function removeMembers(members, policyID) {
 
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
 
-    // Make a shallow copy to preserve original data and remove the members
-    let policy = _.clone(allPolicies[key]);
+    const policy = _.clone(allPolicies[key]);
 
     // Remaining members that need API call to remove it
-    let remainingMembers;
-    [policy, remainingMembers] = removePendingInvitations(policy, members);
+    const [newPendingInvitations, remainingMembers] = removePendingInvitations(policy, members);
+    policy.pendingInvitations = newPendingInvitations;
     policy.employeeList = _.without(policy.employeeList, ...remainingMembers);
 
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
 
     // All members are in pendingInvitations, so there is no need to request  API call.
-    if (_.isEmpty(remainingMembers)){
+    if (_.isEmpty(remainingMembers)) {
         return;
     }
 
@@ -368,8 +368,7 @@ function removeMembers(members, policyID) {
                 return;
             }
 
-            // User email not present
-            // Member is not synched, we shall sync the members list
+            // User email not present. Member is not synched, we shall sync the members list
             if (data.jsonCode === 402) {
                 loadFullPolicy(policyID);
                 Growl.show(Localize.translateLocal('workspace.people.error.memberIsNotInSync'), CONST.GROWL.ERROR, 3000);
@@ -409,15 +408,15 @@ function invite(logins, welcomeNote, policyID) {
 
     const revertPendingInvitationsList = () => {
         const policyDataWithoutPending = _.clone(allPolicies[key]);
-        policyDataWithoutPending.pendingInvitations =
-            _.without(policyDataWithoutPending.pendingInvitations, ...newEmployeeList);
+        policyDataWithoutPending.pendingInvitations = _.without(
+            policyDataWithoutPending.pendingInvitations, ...newEmployeeList,
+        );
 
         Onyx.set(key, policyDataWithoutPending);
     };
 
     const showGrowlError = (additionalMessage = '') => {
-        let errorMessage = Localize.translateLocal('workspace.invite.genericFailureMessage') 
-            + ' '+ additionalMessage;
+        const errorMessage = `${Localize.translateLocal('workspace.invite.genericFailureMessage')} ${additionalMessage}`;
         Growl.error(errorMessage, 5000);
     };
 
@@ -433,7 +432,7 @@ function invite(logins, welcomeNote, policyID) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
                 const nextPolicy = _.clone(allPolicies[key]);
                 const nextEmployeeList = _.intersection(newEmployeeList, nextPolicy.pendingInvitations);
-                nextPolicy.employeeList = _.uniq([...nextPolicy.employeeList, ...nextEmployeeList]); 
+                nextPolicy.employeeList = _.uniq([...nextPolicy.employeeList, ...nextEmployeeList]);
                 nextPolicy.pendingInvitations = _.difference(nextPolicy.pendingInvitations, nextEmployeeList);
                 Onyx.set(key, nextPolicy);
 
@@ -446,10 +445,11 @@ function invite(logins, welcomeNote, policyID) {
                 showGrowlError(` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`);
                 return;
             }
+
             // Show the user feedback that the addition failed
             showGrowlError();
         })
-        .catch((e) => {
+        .catch(() => {
             // If the operationg failed undo the optimistic addition
             revertPendingInvitationsList();
 
@@ -605,12 +605,9 @@ function updateLastAccessedWorkspace(policyID) {
 /**
  * loadFullPolicy of lastAccessedWorkspacePolicyID
  */
-const fetchLastAccessedWorkspace = _.throttle(() => {
-    if (lastAccessedWorkspacePolicyID) {
-        loadFullPolicy(lastAccessedWorkspacePolicyID);
-    }
-}, 10000, {leading: false, trailing: true});
-
+const fetchLastAccessedWorkspace = _.throttle(
+    () => lastAccessedWorkspacePolicyID && loadFullPolicy(lastAccessedWorkspacePolicyID), 10000, {leading: false, trailing: true},
+);
 
 // User could be viewing workspace setting page or member page on network reconnects
 // We call fetchLastAccessedWorkspace to update workspace data

@@ -744,7 +744,9 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            offlineMessage: 'You appear to be offline.  Pending invitations will send when you are onlines',
             error: {
+                memberIsNotInSync: 'Member list is not in sync. Synchronizing the member list.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
             },
         },

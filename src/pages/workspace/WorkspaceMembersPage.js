@@ -254,18 +254,18 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = _.without(
             policyEmployeeList.concat(pendingInvitationList),
             this.props.session.email,
-            this.props.policy.owner
+            this.props.policy.owner,
         );
 
         const employeeListData = _.map(policyEmployeeList,
             email => this.props.personalDetails[email]);
 
         const pendingInvitationsData = _.map(pendingInvitationList,
-            email => {return {...this.props.personalDetails[email], pending: true}});
+            email => ({...this.props.personalDetails[email], pending: true}));
 
         const data = _.sortBy(
             employeeListData.concat(pendingInvitationsData),
-            (person) => person && person.displayName.toLowerCase()
+            person => person && person.displayName.toLowerCase(),
         );
 
         const policyID = lodashGet(this.props.route, 'params.policyID');
@@ -327,7 +327,6 @@ class WorkspaceMembersPage extends React.Component {
                             keyExtractor={item => item.login}
                             showsVerticalScrollIndicator={false}
                         />
-                        
                     </View>
                 </View>
                 <FixedFooter
@@ -336,7 +335,7 @@ class WorkspaceMembersPage extends React.Component {
                     <OfflineText
                         outerContainerStyles={styles.memberPageOfflineTextContainerStyle}
                         message={this.props.translate('workspace.people.offlineMessage')}
-                    ></OfflineText>
+                    />
                 </FixedFooter>
             </ScreenWrapper>
         );
