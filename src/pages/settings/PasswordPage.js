@@ -159,7 +159,10 @@ class PasswordPage extends Component {
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.p5}
-                        keyboardShouldPersistTaps
+
+                        // to allow children of the scroll view to catch taps. when keyboard is opened.
+                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                        keyboardShouldPersistTaps="always"
                     >
                         <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
