@@ -31,19 +31,19 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### C+ PR Review Checklist ([full steps here](../PR_REVIEW_CHECKLIST.md))
+### Contributor Plus (C+) PR Review Checklist ([full steps here](../PR_REVIEW_CHECKLIST.md))
 <!--
-This is a checklist for Contributor Plus (C+) reviewers. If the PR is internal, these do not need to be checked off, but are still a nice reminder for what to look for when reviewing PRs.
+This is a checklist for C+ reviewers. If the PR is internal, these do not need to be checked off, but are still a nice reminder for what to look for when reviewing PRs.
 -->
-- [ ] Are screenshots or videos included for tests on all platforms? ([required](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms))
-- [ ] I (the C+ assigned to review this PR) also tested this PR on **all platforms**
+- [ ] Are screenshots or videos included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)?
+- [ ] Did you test this PR on **all platforms**?
 - [ ] Is the correct issue linked in the `### Fixed Issues` section?
 - [ ] Are testing steps clear and do they cover the changes + possible regressions?
 - [ ] Do testing steps cover success & fail scenarios (if applicable)?
-- [ ] There are no console errors related to changes in this PR
-- [ ] Appropriate new regression steps are mentioned below (if applicable)
-- [ ] Code patterns were checked (see `Reviewing the code`)
-- [ ] Code reuse looks appropriate (see `Considerations around code reuse`)
+- [ ] Are there any console errors related to changes in this PR?
+- [ ] Are new regression steps are mentioned below? (if applicable, tag Expensify/Applause leads to add these to the regression test suite)
+- [ ] Were code patterns checked? (see [Reviewing the code](../PR_REVIEW_CHECKLIST.md#reviewing-the-code))
+- [ ] Does code reuse look appropriate? (see [Considerations around code reuse](../PR_REVIEW_CHECKLIST.md#considerations-around-code-reuse))
 
 ### QA Steps
 <!---
