@@ -248,31 +248,6 @@ function createAndGetPolicyList() {
 }
 
 /**
- * Update employeeList and clear pendingInvitations of a workspace Onyx data
- * based on policyData retrieved from server
- *
- * @param {Object} policyData: response data retrieved from server
- * @param {String} policyID
- *
- */
-function updateEmployeeList(policyData, policyID) {
-    const employeeList =getSimplifiedEmployeeList(
-        lodashGet(policyData, 'value.employeeList', null)
-        ? lodashGet(policyData, 'value.employeeList', null)
-        : lodashGet(policyData, 'policy.employeeList', null)
-    );
-
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-
-    // Make a shallow copy to preserve original data and remove the members
-    const policy = _.clone(allPolicies[key]);
-    policy.employeeList = employeeList;
-    policy.pendingInvitations = [];
-
-    Onyx.set(key, policy);
-}
-
-/**
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
@@ -397,6 +372,7 @@ function removeMembers(members, policyID) {
             // Member is not synched, we shall sync the members list
             if (data.jsonCode === 402) {
                 loadFullPolicy(policyID);
+                Growl.show(Localize.translateLocal('workspace.people.error.memberIsNotInSync'), CONST.GROWL.ERROR, 3000);
                 return;
             }
 
@@ -461,7 +437,6 @@ function invite(logins, welcomeNote, policyID) {
                 nextPolicy.pendingInvitations = _.difference(nextPolicy.pendingInvitations, nextEmployeeList);
                 Onyx.set(key, nextPolicy);
 
-                //updateEmployeeList(data, policyID);
                 return;
             }
 

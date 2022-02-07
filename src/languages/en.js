@@ -743,6 +743,7 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                memberIsNotInSync: 'Member list is not in sync. Synchronizing the member list.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
             },
         },
