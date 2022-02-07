@@ -247,7 +247,10 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
+                ...getSimplifiedPolicyObject(policy, true),
+            });
         });
 }
 
