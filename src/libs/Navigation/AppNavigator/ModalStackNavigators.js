@@ -14,7 +14,7 @@ import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialSettingsPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
-import SettingsAboutPage from '../../../pages/settings/AboutPage';
+import SettingsAboutPage from '../../../pages/settings/AboutPage/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
