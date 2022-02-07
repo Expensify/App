@@ -81,7 +81,7 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            welcomeNote: this.getWelcomeNotePlaceholder(),
+            welcomeNote: this.getWelcomeNote(),
         };
     }
 
@@ -99,7 +99,7 @@ class WorkspaceInvitePage extends React.Component {
      *
      * @returns {Object}
      */
-    getWelcomeNotePlaceholder() {
+    getWelcomeNote() {
         return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
@@ -215,7 +215,7 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
+        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
     }
 
     /**
@@ -299,7 +299,6 @@ class WorkspaceInvitePage extends React.Component {
                                     multiline
                                     containerStyles={[styles.workspaceInviteWelcome]}
                                     value={this.state.welcomeNote}
-                                    placeholder={this.getWelcomeNotePlaceholder()}
                                     onChangeText={text => this.setState({welcomeNote: text})}
                                 />
                             </View>

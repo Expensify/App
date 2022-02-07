@@ -100,7 +100,7 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={[styles.flex1, styles.m5]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
                         <View>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
