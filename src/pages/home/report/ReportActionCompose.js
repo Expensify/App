@@ -49,6 +49,7 @@ import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import OfflineText from '../../../components/OfflineText';
+import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
 
 const propTypes = {
     /** Beta features list */
@@ -139,7 +140,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
-        this.isVirtualKeyboardOpen = this.isVirtualKeyboardOpen.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -345,19 +345,20 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
+
+        this.textInput.scrollTop = this.textInput.scrollHeight;
     }
 
     /**
-     * Whether virtual keyboard is open or not
+     * As of January 2022, the VirtualKeyboard web API is not available in all browsers yet
+     * If it is unavailable, we default to assuming that the virtual keyboard is open on touch-enabled devices.
+     * See https://github.com/Expensify/App/issues/6767 for additional context.
+     *
      * @returns {Boolean}
      */
-    isVirtualKeyboardOpen() {
-        // check if platform is web and supports virtualkeyboard
-        if (navigator && 'virtualkeyboard' in navigator) {
-            const keyboardPosition = navigator.virtualKeyboard.boundingRect.y;
-            return keyboardPosition > 0;
-        }
-        return canUseTouchScreen();
+    shouldAssumeVirtualKeyboardIsOpen() {
+        const isOpen = VirtualKeyboard.isOpen();
+        return _.isNull(isOpen) ? canUseTouchScreen() : isOpen;
     }
 
     /**
@@ -366,7 +367,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e || this.isVirtualKeyboardOpen()) {
+        if (!e || this.shouldAssumeVirtualKeyboardIsOpen()) {
             return;
         }
 
@@ -512,7 +513,7 @@ class ReportActionCompose extends React.Component {
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
-                    (this.state.isFocused || this.state.isDraggingOver)
+                    (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,

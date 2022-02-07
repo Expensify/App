@@ -16,6 +16,7 @@ import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndErr
 let isAuthenticating;
 let credentials;
 let authToken;
+let currentUserEmail;
 
 function checkRequiredDataAndSetNetworkReady() {
     if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
@@ -37,6 +38,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
+        currentUserEmail = lodashGet(val, 'email', null);
         checkRequiredDataAndSetNetworkReady();
     },
 });
@@ -82,6 +84,10 @@ function addDefaultValuesToParameters(command, parameters) {
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
     // and prevents interfering with the cookie authToken that Expensify classic uses.
     finalParameters.api_setCookie = false;
+
+    // Unless email is already set include current user's email in every request and the server logs
+    finalParameters.email = lodashGet(parameters, 'email', currentUserEmail);
+
     return finalParameters;
 }
 
@@ -131,7 +137,7 @@ Network.registerRequestHandler((queuedRequest, finalParameters) => {
     Log.info('Making API request', false, {
         command: queuedRequest.command,
         type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.type,
+        shouldUseSecure: queuedRequest.shouldUseSecure,
         rvl: finalParameters.returnValueList,
     });
 });
@@ -359,8 +365,8 @@ function AddBillingCard(parameters) {
 
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.oldPassword
+ * @param {{password: String, oldPassword: String}} parameters
+ * @param {String} parameters.authToken
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -679,14 +685,13 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -728,7 +733,7 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {string} parameters.email
  * @returns {Promise}
  */
 function ResetPassword(parameters) {
@@ -741,7 +746,7 @@ function ResetPassword(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
- * @param {String} parameters.accountID
+ * @param {Number} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
@@ -1088,6 +1093,31 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function Policy_CustomUnit_Update(parameters) {
+    const commandName = 'Policy_CustomUnit_Update';
+    requireParameters(['policyID', 'customUnit'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.customUnitID
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function Policy_CustomUnitRate_Update(parameters) {
+    const commandName = 'Policy_CustomUnitRate_Update';
+    requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} [parameters.policyID]
  * @returns {Promise}
  */
@@ -1169,6 +1199,19 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
+ * Renames a user-created policy room
+ * @param {Object} parameters
+ * @param {String} parameters.reportID
+ * @param {String} parameters.reportName
+ * @return {Promise}
+ */
+function RenameReport(parameters) {
+    const commandName = 'RenameReport';
+    requireParameters(['reportID', 'reportName'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -1195,6 +1238,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
+    RenameReport,
     DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
@@ -1248,6 +1292,8 @@ export {
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
+    Policy_CustomUnit_Update,
+    Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
     Policy_Delete,

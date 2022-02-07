@@ -16,45 +16,18 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new PATCH version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+      - name: Wait for staging deploys to finish
+        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "PATCH" }'
 
-      - name: Update staging branch
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
-
-      - name: Pull staging to get the new version
+      - name: Comment in StagingDeployCash to give Applause the 🟢 to begin QA
         run: |
-          git checkout staging
-          git pull origin staging
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-          echo "New version is ${{ env.NEW_VERSION }}"
-
-        # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
-        # list of pull requests that were merged between this version tag and another.
-        # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
-        # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
-      - name: Tag version
-        run: git tag ${{ env.NEW_VERSION }}
-
-      - name: Update StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
-        with:
+          gh issue comment \
+          $(gh issue list --label StagingDeployCash --json number --jq '.[0].number') \
+          --body ":rocket: All staging deploys are complete, @Expensify/applauseleads please begin QA on version https://github.com/Expensify/App/releases/tag/$(< package.json jq -r .version) :rocket:"
+        env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change

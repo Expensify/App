@@ -293,6 +293,8 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (!_.isEqual(prevProps.alternateTextStyles, nextProps.alternateTextStyles)) {
+    // Re-render when the text changes
+    if (prevProps.option.text !== nextProps.option.text) {
         return false;
     }
 
