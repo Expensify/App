@@ -43,6 +43,21 @@ const propTypes = {
         selectedCurrencyCode: PropTypes.string,
     }),
 
+    /** Brings focus to textInput on updates */
+    focusTextInput: PropTypes.func.isRequired,
+
+    /** Calculate values of amount and selection on Keypress */
+    calculateAmountAndSelection: PropTypes.func.isRequired,
+
+    /** Replaces each character by calling `convertFn`. */
+    replaceAllDigits: PropTypes.func.isRequired,
+
+    /** Returns amount without commas */
+    stripCommaFromAmount: PropTypes.func.isRequired,
+
+    /** Validate the new value of amount on keypress */
+    validateAmount: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
