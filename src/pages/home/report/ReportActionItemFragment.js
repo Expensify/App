@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import compose from '../../../libs/compose';
+import colors from '../../../styles/colors';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -73,12 +74,10 @@ const ReportActionItemFragment = (props) => {
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
                                     style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
                                 >
-                                    <View style={[styles.p2, styles.activityIndicatorFadedBg]}>
-                                        <ActivityIndicator
-                                            size="large"
-                                            color={themeColors.textSupporting}
-                                        />
-                                    </View>
+                                    <ActivityIndicator
+                                        size="large"
+                                        color={colors.gray1}
+                                    />
                                 </ImageBackground>
                             ) : (
                                 <ActivityIndicator

@@ -2425,11 +2425,6 @@ const styles = {
     closeAccountMessageInput: {
         minHeight: 140,
     },
-
-    activityIndicatorFadedBg: {
-        borderRadius: variables.componentBorderRadiusNormal,
-        backgroundColor: 'rgba(0, 0, 0, 0.40)',
-    },
 };
 
 export default styles;
