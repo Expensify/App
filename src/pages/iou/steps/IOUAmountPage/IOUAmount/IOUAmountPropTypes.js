@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../../../../../components/withWindowDimensions';
 import {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import CONST from '../../../../../CONST';
 
