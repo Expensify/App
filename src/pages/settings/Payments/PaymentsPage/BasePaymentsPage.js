@@ -93,7 +93,7 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
         let position = getClickedElementLocation(nativeEvent);
-        if (this.props.listenResize) {
+        if (this.props.shouldListenForResize) {
             window.addEventListener('resize', () => {
                 position = getClickedElementLocation(nativeEvent);
                 this.setPositionAddPaymentMenu(position);
@@ -168,7 +168,7 @@ class BasePaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        if (this.props.listenResize) {
+        if (this.props.shouldListenForResize) {
             window.removeEventListener('resize', null);
         }
         this.setState({shouldShowAddPaymentMenu: false});
@@ -178,7 +178,7 @@ class BasePaymentsPage extends React.Component {
      * Hide the default / delete modal
      */
     hideDefaultDeleteMenu() {
-        if (this.props.listenResize) {
+        if (this.props.shouldListenForResize) {
             window.removeEventListener('resize', null);
         }
         this.setState({shouldShowDefaultDeleteMenu: false});

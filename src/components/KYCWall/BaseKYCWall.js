@@ -34,7 +34,7 @@ class KYCWall extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.props.listenResize) {
+        if (this.props.shouldListenForResize) {
             window.removeEventListener('resize', null);
         }
         PaymentMethods.kycWallRef.current = null;
@@ -63,7 +63,6 @@ class KYCWall extends React.Component {
      *
      * @param {Object} position
      */
-
     setPositionAddPaymentMenu(position) {
         this.setState({
             anchorPositionTop: position.anchorPositionTop,
@@ -84,7 +83,7 @@ class KYCWall extends React.Component {
             Log.info('[KYC Wallet] User does not have valid payment method');
             let clickedElementLocation = getClickedElementLocation(event.nativeEvent);
             let position = this.getAnchorPosition(clickedElementLocation);
-            if (this.props.listenResize) {
+            if (this.props.shouldListenForResize) {
                 window.addEventListener('resize', () => {
                     clickedElementLocation = getClickedElementLocation(event.nativeEvent);
                     position = this.getAnchorPosition(clickedElementLocation);

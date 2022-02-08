@@ -14,7 +14,7 @@ const propTypes = {
     isLoadingPaymentMethods: PropTypes.bool,
 
     /** Listen for window resize event on web and desktop. */
-    listenResize: PropTypes.bool,
+    shouldListenForResize: PropTypes.bool,
 
     ...withLocalizePropTypes,
 
@@ -27,7 +27,7 @@ const defaultProps = {
     },
     betas: [],
     isLoadingPaymentMethods: true,
-    listenResize: false,
+    shouldListenForResize: false,
 };
 
 export {propTypes, defaultProps};
