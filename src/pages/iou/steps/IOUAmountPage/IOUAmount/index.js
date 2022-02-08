@@ -50,7 +50,7 @@ class IOUAmount extends React.Component {
 
     /**
      * Callback function to update UI-triggered selection changes in local selection.
-     * @param {*} e
+     * @param {Event} e
      */
     onSelectionChange(e) {
         this.selection = e.nativeEvent.selection;

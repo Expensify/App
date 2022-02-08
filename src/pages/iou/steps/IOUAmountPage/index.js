@@ -26,9 +26,9 @@ class IOUAmountPage extends Component {
         const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
 
         /*
-    Return the sum of leading zeroes length and absolute amount length(including fraction digits).
-    When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
-    */
+        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+        */
         return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
     }
 
@@ -123,8 +123,8 @@ class IOUAmountPage extends Component {
      * Focus text input
      */
     focusTextInput() {
-    // Component may not initialized due to navigation transitions
-    // Wait until interactions are complete before trying to focus
+        // Component may not initialized due to navigation transitions
+        // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
         // Focus text input
             if (!this.textInput) {

@@ -50,7 +50,7 @@ class IOUAmount extends React.Component {
 
     /**
      * Callback function to update UI-triggered selection changes in local selection.
-     * @param {*} e
+     * @param {Event} e
      */
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
@@ -119,7 +119,6 @@ class IOUAmount extends React.Component {
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {canUseTouchScreen()
-
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
