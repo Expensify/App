@@ -764,8 +764,14 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
+            kilometers: '',
+            miles: '',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
+            trackDistance: '',
+            trackDistanceCopy: '',
+            trackDistanceRate: '',
+            trackDistanceUnit: '',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -856,6 +862,7 @@ export default {
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
         waitTime: {
             calculating: 'Calculando el tiempo de espera...',
             fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',

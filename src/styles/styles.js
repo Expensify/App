@@ -141,6 +141,19 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
 
+    rateCol: {
+        margin: 0,
+        padding: 0,
+        flexBasis: '48%',
+    },
+
+    unitCol: {
+        margin: 0,
+        padding: 0,
+        marginLeft: '4%',
+        flexBasis: '48%',
+    },
+
     webViewStyles,
 
     link,
@@ -675,6 +688,8 @@ const styles = {
     },
 
     textInputAndIconContainer: {
+        flex: 1,
+        height: '100%',
         zIndex: -1,
         flexDirection: 'row',
     },
@@ -2198,7 +2213,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 100,
+        minHeight: 115,
     },
 
     peopleRow: {
