@@ -101,7 +101,12 @@ class IOUAmountPage extends Component {
 
                 return {amount: newAmount, selection: {start: start - 1, end: end - 1}};
             }
+
             const newAmount = amount.slice(0, start) + amount.slice(end);
+            if (!this.validateAmount(newAmount)) {
+                return {amount, selection};
+            }
+
             return {amount: newAmount, selection: {start, end: start}};
         }
 
