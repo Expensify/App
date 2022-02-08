@@ -26,7 +26,7 @@ const defaultProps = {
 class TouchableWithoutFocus extends React.Component {
     constructor(props) {
         super(props);
-        this.pressAndBlur = this.onPress.bind(this);
+        this.pressAndBlur = this.pressAndBlur.bind(this);
     }
 
     pressAndBlur() {
