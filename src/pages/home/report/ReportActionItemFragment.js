@@ -14,7 +14,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import compose from '../../../libs/compose';
-import colors from '../../../styles/colors';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -28,9 +27,17 @@ const propTypes = {
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
+
+        /** The file name of attachment */
         name: PropTypes.string,
+
+        /** The file size of the attachment in bytes. */
         size: PropTypes.number,
+
+        /** The MIME type of the attachment. */
         type: PropTypes.string,
+
+        /** The source of attachment */
         uri: PropTypes.string,
     }),
 
@@ -76,7 +83,7 @@ const ReportActionItemFragment = (props) => {
                                 >
                                     <ActivityIndicator
                                         size="large"
-                                        color={colors.gray1}
+                                        color={themeColors.uploadPreviewActivityIndicator}
                                     />
                                 </ImageBackground>
                             ) : (
