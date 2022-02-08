@@ -47,7 +47,7 @@ class DatePicker extends React.Component {
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
-                    ref={el => this.textInput = el}
+                    ref={this.props.forwardedRef}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
@@ -76,4 +76,7 @@ class DatePicker extends React.Component {
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default DatePicker;
+export default (React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <DatePicker {...props} forwardedRef={ref} />
+)));

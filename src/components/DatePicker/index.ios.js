@@ -73,7 +73,7 @@ class Datepicker extends React.Component {
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
-                    ref={el => this.textInput = el}
+                    ref={this.props.forwardedRef}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
@@ -132,4 +132,8 @@ Datepicker.defaultProps = defaultProps;
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default withLocalize(Datepicker);
+export default
+withLocalize(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <Datepicker {...props} forwardedRef={ref} />
+)));
