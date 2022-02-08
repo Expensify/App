@@ -285,7 +285,7 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isBlockedFromConcierge = !_.isEmpty(this.props.blockedFromConcierge) && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
 
         return (
             <ScreenWrapper>

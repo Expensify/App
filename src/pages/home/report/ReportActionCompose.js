@@ -40,6 +40,7 @@ import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/current
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
+import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPicker from '../../../components/EmojiPicker';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
@@ -229,7 +230,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.roomIsArchived');
         }
 
-        if (ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge)) {
+        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
@@ -403,7 +404,7 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
-        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
+        const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
         const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 
