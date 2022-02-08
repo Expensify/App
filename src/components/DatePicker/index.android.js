@@ -47,7 +47,7 @@ class DatePicker extends React.Component {
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
-                    ref={input => this.textInput = input}
+                    ref={el => this.textInput = el}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}

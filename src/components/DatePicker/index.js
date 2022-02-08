@@ -67,7 +67,7 @@ class Datepicker extends React.Component {
         return (
             <TextInput
                 forceActiveLabel={!this.props.isSmallScreenWidth}
-                ref={input => this.textInput = input}
+                ref={el => this.textInput = el}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}
