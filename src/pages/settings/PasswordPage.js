@@ -160,7 +160,7 @@ class PasswordPage extends Component {
                         style={styles.flex1}
                         contentContainerStyle={styles.p5}
 
-                        // to allow children of the scroll view to catch taps. when keyboard is opened.
+                        // Allow the user to click show password while password input is focused.
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         keyboardShouldPersistTaps="always"
                     >
