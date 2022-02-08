@@ -24,7 +24,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportActionDraftMessage: '',
             isPopoverVisible: false,
             isDeleteCommentConfirmModalVisible: false,
-            shouldSetModalVisibilityForDeleteConfrmation: true,
+            shouldSetModalVisibilityForDeleteConfirmation: true,
             cursorRelativePosition: {
                 horizontal: 0,
                 vertical: 0,
@@ -248,7 +248,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportID: 0,
             reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
-            shouldSetModalVisibilityForDeleteConfrmation: true,
+            shouldSetModalVisibilityForDeleteConfirmation: true,
         });
     }
 
@@ -266,7 +266,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.setState({
             reportID,
             reportAction,
-            shouldSetModalVisibilityForDeleteConfrmation: shouldSetModalVisibility,
+            shouldSetModalVisibilityForDeleteConfirmation: shouldSetModalVisibility,
             isDeleteCommentConfirmModalVisible: true,
         });
     }
@@ -298,7 +298,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 <ConfirmModal
                     title={this.props.translate('reportActionContextMenu.deleteComment')}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
-                    shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfrmation}
+                    shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteModal}
                     onModalHide={this.callbackWhenDeleteModalHide}
