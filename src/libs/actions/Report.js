@@ -641,7 +641,10 @@ function updateReportWithNewAction(
 
         // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
         // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
+        // If lastReadSequenceNumbers[reportID] is undefined (fetchAllReports isn't completed yet), fallback to local unreadActionCount
+        unreadActionCount: lastReadSequenceNumbers[reportID]
+            ? newMaxSequenceNumber - lastReadSequenceNumbers[reportID] - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID])
+            : lodashGet(allReports, [reportID, 'unreadActionCount'], 0) + 1,
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
