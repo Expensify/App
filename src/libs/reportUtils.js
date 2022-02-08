@@ -3,7 +3,6 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
-import * as User from './actions/User';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -181,22 +180,13 @@ function isConciergeChatReport(report) {
 }
 
 /**
- * Returns true if the user is blocked from Concierge
  *
- * @param {Object} report
- * @param {Object} blockedFromConcierge
+ * @param {*} report
  * @returns {Boolean}
  */
-function isBlockedFromConciergeChat(report, blockedFromConcierge) {
-    const isConciergeChat = report.participants
+function chatIncludesConcierge(report) {
+    return report.participants
             && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
-
-    let isBlockedFromConcierge = false;
-    if (isConciergeChat && !_.isEmpty(blockedFromConcierge)) {
-        isBlockedFromConcierge = User.isBlockedFromConcierge(blockedFromConcierge.expiresAt);
-    }
-
-    return isBlockedFromConcierge;
 }
 
 /**
@@ -265,6 +255,6 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
-    isBlockedFromConciergeChat,
     formatReportLastMessageText,
+    chatIncludesConcierge,
 };
