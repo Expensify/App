@@ -52,8 +52,11 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
+        /** The report name */
         reportName: PropTypes.string,
+        /** The report type */
         type: PropTypes.string,
+        /** ID of the policy */
         policyID: PropTypes.string,
     }).isRequired,
 
@@ -193,8 +196,7 @@ class ReportSettingsPage extends Component {
                                 />
                             </View>
                             <Button
-                                success
-                                pressOnEnter
+                                success={!shouldDisableRename}
                                 text={this.props.translate('common.save')}
                                 onPress={this.validateAndRenameReport}
                                 style={[styles.ml2, styles.flex1]}

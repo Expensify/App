@@ -26,8 +26,11 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.shape({
+        /** The report name */
         reportName: PropTypes.string,
+        /** The report type */
         type: PropTypes.string,
+        /** ID of the policy */
         policyID: PropTypes.string,
     }).isRequired,
 

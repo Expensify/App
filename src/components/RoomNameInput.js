@@ -64,14 +64,6 @@ class RoomNameInput extends Component {
         this.originalRoomName = props.initialValue;
     }
 
-    componentDidUpdate(_prevProps, prevState) {
-        // As we are modifying the text input, we'll bubble up any changes/errors so the parent component can see it
-        if (prevState.roomName === this.state.roomName) {
-            return;
-        }
-        this.props.onChangeText(this.state.roomName);
-    }
-
     /**
      * Modifies the room name to follow our conventions:
      * - Max length 80 characters
@@ -101,6 +93,7 @@ class RoomNameInput extends Component {
                 onChangeText={(roomName) => {
                     const modifiedRoomName = this.modifyRoomName(roomName);
                     this.setState({roomName: modifiedRoomName});
+                    this.props.onChangeText(modifiedRoomName);
                 }}
                 value={this.state.roomName.substring(1)}
                 errorText={this.props.errorText}
