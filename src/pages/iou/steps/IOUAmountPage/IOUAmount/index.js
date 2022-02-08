@@ -59,6 +59,7 @@ class IOUAmount extends React.Component {
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 8 digits and 2 decimal digit to enable Next button
+     *
      * @param {String} key
      * @returns {String}
      */
