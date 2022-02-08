@@ -419,9 +419,8 @@ export default {
         phrase2: 'términos de servicio',
         phrase3: 'y',
         phrase4: 'política de privacidad',
-        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS',
-        phrase6: 'ID:2017010) de conformidad con sus',
-        phrase7: 'licencias',
+        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase6: 'licencias',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
@@ -679,7 +678,7 @@ export default {
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
     validationStep: {
-        headerTitle: 'Validar',
+        headerTitle: 'Validar cuenta bancaria',
         buttonText: 'Finalizar configuración',
         maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation".',

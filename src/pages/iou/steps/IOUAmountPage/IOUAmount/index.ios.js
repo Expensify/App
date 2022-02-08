@@ -8,7 +8,6 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import styles from '../../../../../styles/styles';
 import BigNumberPad from '../../../../../components/BigNumberPad';
-import withWindowDimensions from '../../../../../components/withWindowDimensions';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import withLocalize from '../../../../../components/withLocalize';
@@ -18,6 +17,7 @@ import Text from '../../../../../components/Text';
 import CONST from '../../../../../CONST';
 import TextInputAutoWidthWithoutKeyboard from '../../../../../components/TextInputAutoWidthWithoutKeyboard';
 import {propTypes, defaultProps} from './IOUAmountPropTypes';
+import canUseTouchScreen from '../../../../../libs/canUseTouchscreen';
 
 class IOUAmount extends React.Component {
     constructor(props) {
@@ -118,7 +118,8 @@ class IOUAmount extends React.Component {
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {this.props.isSmallScreenWidth
+                    {canUseTouchScreen
+
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
@@ -143,7 +144,6 @@ IOUAmount.propTypes = propTypes;
 IOUAmount.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
