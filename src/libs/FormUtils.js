@@ -5,6 +5,7 @@
  * @returns {Object} returns an Error object if isFormInput is supplied but inputID is falsey or not a string
  */
 function getInputIDPropTypes(props) {
+    console.log(props)
     if (!props.isFormInput) {
         return;
     }

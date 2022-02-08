@@ -46,6 +46,7 @@ const propTypes = {
 const defaultProps = {
     ...defaultFieldPropTypes,
     value: undefined,
+    defaultValue: undefined,
     maximumDate: undefined,
     isFormInput: false,
     shouldSaveDraft: false,
