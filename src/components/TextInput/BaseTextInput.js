@@ -58,7 +58,7 @@ class BaseTextInput extends Component {
     }
 
     componentDidUpdate() {
-        // activate or deactivate the label when value is changed programmatically from outside
+        // Activate or deactivate the label when value is changed programmatically from outside
         if (this.value === this.props.value) {
             return;
         }
