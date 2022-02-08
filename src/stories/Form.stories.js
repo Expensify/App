@@ -41,14 +41,13 @@ const Template = (args) => {
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
-            <View style={[styles.mt4]}>
-                <DatePicker
-                    label="DOB"
-                    inputID="dob"
-                    isFormInput
-                    shouldSaveDraft
-                />
-            </View>
+            <DatePicker
+                label="DOB"
+                inputID="dob"
+                isFormInput
+                containerStyles={[styles.mt4]}
+                shouldSaveDraft
+            />
         </Form>
     );
 };
@@ -89,7 +88,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
-        dob: new Date('1999-04-02'),
+        dob: '1999-04-02',
     },
 };
 

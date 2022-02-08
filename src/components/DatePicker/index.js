@@ -22,7 +22,7 @@ class Datepicker extends React.Component {
         * raise change events with a date value - each change will produce a date
         * and make us reset the text input */
         this.defaultValue = props.defaultValue
-            ? moment(props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : undefined;
     }
 
