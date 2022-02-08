@@ -30,9 +30,6 @@ class TouchableWithoutFocus extends React.Component {
     }
 
     pressAndBlur() {
-        if (!this.props.onPress) {
-            return;
-        }
         this.touchableRef.blur();
         this.props.onPress();
     }
