@@ -6,7 +6,6 @@ import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import DatePicker from '../components/DatePicker';
 
-
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
