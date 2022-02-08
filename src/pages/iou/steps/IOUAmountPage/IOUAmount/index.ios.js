@@ -118,7 +118,7 @@ class IOUAmount extends React.Component {
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {canUseTouchScreen
+                    {canUseTouchScreen()
 
                         ? (
                             <BigNumberPad
