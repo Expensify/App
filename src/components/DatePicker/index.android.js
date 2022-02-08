@@ -8,8 +8,8 @@ import {propTypes, defaultProps} from './datepickerPropTypes';
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
-        this.defaultValue = props.defaultValue
-            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
+        this.defaultValue = props.value
+            ? moment(props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
         this.state = {
             isPickerVisible: false,

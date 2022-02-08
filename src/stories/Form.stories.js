@@ -46,6 +46,7 @@ const Template = (args) => {
                     label="DOB"
                     inputID="dob"
                     isFormInput
+                    shouldSaveDraft
                 />
             </View>
         </Form>
