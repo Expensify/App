@@ -1,6 +1,8 @@
 name: Jest Unit Tests
 
 on:
+  workflow_dispatch:
+    branches-ignore: [staging, production]
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
