@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
+import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 
 const propTypes = {
     /** All the data of the action */
@@ -157,7 +158,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                            toggleReportActionComposeView(false);
+                            toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
