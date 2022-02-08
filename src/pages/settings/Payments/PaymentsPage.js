@@ -216,6 +216,8 @@ class PaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
+
+        // determine if the popover appears from the bottom of the screen or not.
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
