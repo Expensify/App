@@ -25,10 +25,10 @@ class Datepicker extends React.Component {
 
     componentDidMount() {
         // Adds nice native datepicker on web/desktop. Not possible to set this through props
-        this.inputRef.setAttribute('type', 'date');
-        this.inputRef.classList.add('expensify-datepicker');
+        this.textInput.setAttribute('type', 'date');
+        this.textInput.classList.add('expensify-datepicker');
         if (this.props.maximumDate) {
-            this.inputRef.setAttribute('max', moment(this.props.maximumDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.textInput.setAttribute('max', moment(this.props.maximumDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     }
 
@@ -55,19 +55,19 @@ class Datepicker extends React.Component {
      * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
     showDatepicker() {
-        if (!this.inputRef) {
+        if (!this.textInput) {
             return;
         }
 
-        this.inputRef.click();
+        this.textInput.click();
     }
 
     render() {
-        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : undefined;
+        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <TextInput
                 forceActiveLabel={!this.props.isSmallScreenWidth}
-                ref={input => this.inputRef = input}
+                ref={input => this.textInput = input}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}

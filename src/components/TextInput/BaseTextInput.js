@@ -220,7 +220,7 @@ class BaseTextInput extends Component {
                     </TouchableWithoutFeedback>
                 </View>
                 {!_.isEmpty(this.props.errorText) && (
-                    <InlineErrorText additionalStyles={hasLabel ? [styles.ml2] : []}>
+                    <InlineErrorText styles={hasLabel ? [styles.ml2] : []}>
                         {this.props.errorText}
                     </InlineErrorText>
                 )}

@@ -9,12 +9,12 @@ const propTypes = {
     children: PropTypes.string,
 
     /** Styling for inline error text */
-    additionalStyles: PropTypes.oneOfType(PropTypes.array),
+    styles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     children: 'Error',
-    additionalStyles: [],
+    styles: [],
 };
 
 const InlineErrorText = (props) => {
@@ -23,7 +23,7 @@ const InlineErrorText = (props) => {
     }
 
     return (
-        <Text style={[...props.additionalStyles, styles.formError, styles.mt1]}>{props.children}</Text>
+        <Text style={[...props.styles, styles.formError, styles.mt1]}>{props.children}</Text>
     );
 };
 
