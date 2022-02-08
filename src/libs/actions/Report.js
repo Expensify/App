@@ -320,45 +320,6 @@ function fetchIOUReportID(debtorEmail) {
     });
 }
 
-function configureReportNameAndIcons(reports, details) {
-    // The personalDetails of the participants contain their avatar images. Here we'll go over each
-    // report and based on the participants we'll link up their avatars to report icons. This will
-    // skip over default rooms which aren't named by participants.
-
-    const reportsToUpdate = {};
-    _.each(reports, (report) => {
-        if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
-            return;
-        }
-        const isChatRoom = ReportUtils.isChatRoom(report);
-
-        // Chat rooms have a specific avatar so we can return any non-empty array but for 1:1 chats and group chats
-        // avatars are extracted from avatars of the participants.
-        const avatars = isChatRoom ? [''] : OptionsListUtils.getReportIcons(report, details);
-
-        // ReportName is already present in report for chatrooms but for 1:1 chats and group chats
-        // reportName is extracted from displayNames of the participants.
-        const reportName = isChatRoom
-            ? report.reportName
-            : _.chain(report.participants)
-                .filter(participant => participant !== currentUserEmail)
-                .map(participant => lodashGet(
-                    PersonalDetails.formatPersonalDetails(details),
-                    [participant, 'displayName'],
-                    participant,
-                ))
-                .value()
-                .join(', ');
-
-        reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
-    });
-
-    // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
-    // Any withOnyx subscribers to this key will also receive the complete updated props just once
-    // than updating props for each report and re-rendering had merge been used.
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
-}
-
 /**
  * Fetches chat reports when provided a list of chat report IDs.
  * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
@@ -439,11 +400,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
-            const simplifiedReportsList = _.values(simplifiedReports);
-
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(simplifiedReportsList)
-                .then(details => configureReportNameAndIcons(simplifiedReportsList, details));
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return fetchedReports;
         })
         .catch((err) => {

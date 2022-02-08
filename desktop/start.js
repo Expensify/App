@@ -23,8 +23,10 @@ portfinder.getPortPromise({
     ];
     concurrently(processes, {
         inputStream: process.stdin,
-        killOthers: ['failure'],
         prefix: 'name',
+
+        // Like Harry Potter and he-who-must-not-be-named, "neither can live while the other survives"
+        killOthers: ['success', 'failure'],
     }).then(
         () => process.exit(0),
         () => process.exit(1),

@@ -4,9 +4,11 @@ import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
 import Icon from './Icon';
+import Tooltip from './Tooltip';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** The text to display and copy to the clipboard */
@@ -14,6 +16,8 @@ const propTypes = {
 
     /** Styles to apply to the text */
     textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -53,13 +57,15 @@ class CopyTextToClipboard extends React.Component {
                 style={[styles.flexRow, styles.cursorPointer]}
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
-                <Icon
-                    src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
-                    fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    inline
-                />
+                <Tooltip text={this.props.translate('reportActionContextMenu.copyToClipboard')}>
+                    <Icon
+                        src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
+                        fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                        inline
+                    />
+                </Tooltip>
             </Text>
         );
     }
@@ -68,4 +74,4 @@ class CopyTextToClipboard extends React.Component {
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
 
-export default CopyTextToClipboard;
+export default withLocalize(CopyTextToClipboard);
