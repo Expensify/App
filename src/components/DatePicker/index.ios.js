@@ -24,7 +24,9 @@ class Datepicker extends React.Component {
             isPickerVisible: false,
             selectedDate: props.defaultValue ? moment(props.defaultValue).toDate() : new Date(),
         };
-
+        this.defaultValue = props.defaultValue
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            : '';
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
         this.selectDate = this.selectDate.bind(this);
@@ -79,9 +81,10 @@ class Datepicker extends React.Component {
                     editable={false}
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
-                    defaultValue={this.props.defaultValue}
+                    defaultValue={this.defaultValue}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
+                    inputID={this.props.inputID}
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}

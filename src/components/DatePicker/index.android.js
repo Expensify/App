@@ -58,6 +58,7 @@ class DatePicker extends React.Component {
                     onBlur={this.props.onBlur}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
+                    inputID={this.props.inputID}
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
