@@ -26,10 +26,10 @@ const defaultProps = {
 class TouchableWithoutFocus extends React.Component {
     constructor(props) {
         super(props);
-        this.onPress = this.onPress.bind(this);
+        this.pressAndBlur = this.onPress.bind(this);
     }
 
-    onPress() {
+    pressAndBlur() {
         if (!this.props.onPress) {
             return;
         }
@@ -39,7 +39,7 @@ class TouchableWithoutFocus extends React.Component {
 
     render() {
         return (
-            <TouchableOpacity onPress={this.onPress} ref={e => this.touchableRef = e} style={this.props.styles}>
+            <TouchableOpacity onPress={this.pressAndBlur} ref={e => this.touchableRef = e} style={this.props.styles}>
                 {this.props.children}
             </TouchableOpacity>
         );
