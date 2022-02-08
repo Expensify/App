@@ -230,10 +230,11 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
- * Checks if the expiresAt date of a user's ban is before right now
+ * Checks the blockedFromConcierge object to see if it has an expiresAt key,
+ * and if so whether the expiresAt date of a user's ban is before right now
  *
  * @param {Object} blockedFromConcierge
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isBlockedFromConcierge(blockedFromConcierge) {
     if (_.isEmpty(blockedFromConcierge)) {
