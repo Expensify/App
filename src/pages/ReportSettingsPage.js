@@ -54,8 +54,10 @@ const propTypes = {
     reports: PropTypes.shape({
         /** The report name */
         reportName: PropTypes.string,
+
         /** The report type */
         type: PropTypes.string,
+
         /** ID of the policy */
         policyID: PropTypes.string,
     }).isRequired,
