@@ -146,8 +146,4 @@ const webpackConfig = {
     },
 };
 
-if (platform === 'desktop') {
-    webpackConfig.target = 'electron-renderer';
-}
-
 module.exports = webpackConfig;
