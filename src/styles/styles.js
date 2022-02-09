@@ -682,12 +682,9 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
+        paddingHorizontal: 11,
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-    },
-
-    baseTextInputPaddingHorizontal: {
-        paddingHorizontal: 11,
     },
 
     textInputAndIconContainer: {
