@@ -40,8 +40,8 @@ export default {
     APP_NAME: 'NewExpensify',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
-        URL_EXPENSIFY_COM: expensifyURL,
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
+        EXPENSIFY_URL: expensifyURL,
         URL_EXPENSIFY_SECURE: secureURLRoot,
         NEW_EXPENSIFY_URL: newExpensifyURL,
         URL_API_ROOT: expensifyURLRoot,

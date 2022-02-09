@@ -107,7 +107,7 @@ const AddressSearch = (props) => {
             }}
             requestUrl={{
                 useOnPlatform: 'web',
-                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
             }}
             textInputProps={{
                 InputComp: TextInput,
