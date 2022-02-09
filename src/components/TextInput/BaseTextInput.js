@@ -13,7 +13,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import TextInputWithName from '../TextInputWithName';
-import FormHelp from '../FormHelp';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -224,21 +223,30 @@ class BaseTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                <FormHelp>
-                    {!_.isEmpty(inputHelpText) && (
-                        <Text style={[formHelpStyles]}>{inputHelpText}</Text>
-                    )}
-                    {!_.isNull(this.props.maxLength) && (
-                        <>
-                            <View style={styles.flex1} />
-                            <Text style={[formHelpStyles]}>
-                                {this.value.length}
-                                /
-                                {this.props.maxLength}
-                            </Text>
-                        </>
-                    )}
-                </FormHelp>
+                {(!_.isEmpty(inputHelpText) || !_.isNull(this.props.maxLength)) && (
+                    <View
+                        style={[
+                            styles.mt1,
+                            styles.flexRow,
+                            styles.justifyContentBetween,
+                            styles.ph3,
+                        ]}
+                    >
+                        {!_.isEmpty(inputHelpText) && (
+                            <Text style={[formHelpStyles]}>{inputHelpText}</Text>
+                        )}
+                        {!_.isNull(this.props.maxLength) && (
+                            <>
+                                <View style={styles.flex1} />
+                                <Text style={[formHelpStyles]}>
+                                    {this.value.length}
+                                    /
+                                    {this.props.maxLength}
+                                </Text>
+                            </>
+                        )}
+                    </View>
+                )}
             </View>
         );
     }
