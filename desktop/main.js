@@ -23,10 +23,6 @@ const port = process.env.PORT || 8080;
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
 
-// TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
-// the electron app from making any API requests.
-app.commandLine.appendSwitch('disable-web-security');
-
 // This is necessary for NetInfo to work correctly as it does not handle the NetworkInformation API events correctly
 // See: https://github.com/electron/electron/issues/22597
 app.commandLine.appendSwitch('enable-network-information-downlink-max');
@@ -90,7 +86,7 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send('show-keyboard-shortcuts-modal');
+    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
 // Defines the system-level menu item for manually triggering an update after
@@ -109,17 +105,17 @@ const keyboardShortcutsMenu = new MenuItem({
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
-        autoUpdater.on('update-downloaded', (info) => {
+        autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             downloadedVersion = info.version;
             updateAppMenuItem.enabled = true;
             if (browserWindow.isVisible()) {
-                browserWindow.webContents.send('update-downloaded', info.version);
+                browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
             }
         });
 
-        ipcMain.on('start-update', quitAndInstallWithUpdate);
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -145,7 +141,8 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    nodeIntegration: true,
+                    preload: `${__dirname}/contextBridge.js`,
+                    contextIsolation: true,
                 },
                 titleBarStyle: 'hidden',
             });
@@ -201,15 +198,17 @@ const mainWindow = (() => {
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
-            browserWindow.webContents.on('new-window', (e, url) => {
-                // make sure local urls stay in electron perimeter
-                if (url.substr(0, 'file://'.length) === 'file://') {
-                    return;
+            browserWindow.webContents.setWindowOpenHandler(({url}) => {
+                const denial = {action: 'deny'};
+
+                // Make sure local urls stay in electron perimeter
+                if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    return denial;
                 }
 
-                // and open every other protocol in the browser
-                e.preventDefault();
-                return shell.openExternal(url);
+                // Open every other protocol in the default browser, not Electron
+                shell.openExternal(url);
+                return denial;
             });
 
             // Flag to determine is user is trying to quit the whole application altogether
