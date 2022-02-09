@@ -227,12 +227,11 @@ function createOption(personalDetailList, report, {
         : {};
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageText = report
-        ? (hasMultipleParticipants && lastActorDetails
-            ? `${lastActorDetails.displayName}: `
-            : '')
-        + (isLastMessageAttachment ? `[${Localize.translateLocal('common.attachment')}]` : Str.htmlDecode(report.lastMessageText))
+    const lastMessageTextFromReport = report && (isLastMessageAttachment ? `[${Localize.translateLocal('common.attachment')}]` : Str.htmlDecode(report.lastMessageText));
+    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
+        ? `${lastActorDetails.displayName}: `
         : '';
+    lastMessageText += report ? lastMessageTextFromReport : '';
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
