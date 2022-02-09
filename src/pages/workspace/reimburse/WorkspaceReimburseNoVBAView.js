@@ -83,9 +83,13 @@ class WorkspaceReimburseNoVBAView extends React.Component {
 
     getRateDisplayValue(value) {
         const numValue = parseFloat(value);
-        return !Number.isNaN(numValue)
-            ? numValue.toFixed(2).toString()
-            : '';
+        if (Number.isNaN(numValue)) {
+            return '';
+        }
+        const fraction = numValue.toString().split('.')[1];
+        return !fraction || fraction.length < 2
+            ? numValue.toFixed(2)
+            : numValue.toString();
     }
 
     setRate(value) {
