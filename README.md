@@ -70,9 +70,9 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `EXPENSIFY_URL_CASH` - The root URL used for the website
+- `NEW_EXPENSIFY_URL` - The root URL used for the website
 - `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
-- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com

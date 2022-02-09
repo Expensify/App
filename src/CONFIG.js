@@ -7,8 +7,8 @@ import CONST from './CONST';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
-const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
 const expensifyURLSecure = Url.addTrailingForwardSlash(lodashGet(
@@ -21,7 +21,7 @@ const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : exp
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
     if (!useNgrok && expensifyURL.includes('dev') && !expensifyURLSecure.includes('dev')) {
-        throw new Error('EXPENSIFY_URL_SECURE must end with .dev when EXPENSIFY_URL_COM ends with .dev');
+        throw new Error('EXPENSIFY_URL_SECURE must end with .dev when EXPENSIFY_URL ends with .dev');
     }
 
     if (useNgrok && !secureNgrokURL) {
