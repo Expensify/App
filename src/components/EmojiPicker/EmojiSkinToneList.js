@@ -2,13 +2,12 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as Emojis from '../../../../assets/emojis';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
-import getSkinToneEmojiFromIndex from './EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import styles from '../../styles/styles';
+import * as Emojis from '../../../assets/emojis';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Text from '../Text';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
-
+import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
 const propTypes = {
 
@@ -52,7 +51,7 @@ class EmojiSkinToneList extends Component {
     render() {
         const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         return (
-            <View style={[styles.flexRow, styles.p1, styles.ph4]}>
+            <View style={[styles.flexRow, styles.p1, styles.ph4, styles.emojiPickerContainer]}>
                 {
                     !this.state.isSkinToneListVisible && (
                         <Pressable
