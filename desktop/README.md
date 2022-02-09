@@ -1,3 +1,47 @@
+<div align="center">
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <a href="https://new.expensify.com">
+            <img src="https://raw.githubusercontent.com/Expensify/App/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
+        </a>
+        <h1 style="margin: 24px">+</h1>
+        <a href="https://www.electronjs.org/">
+            <img src="https://raw.githubusercontent.com/Expensify/App/main/desktop/electron.png" width="64" height="64" alt="Electron Icon"/>
+        </a>
+    </div>
+    <h1>
+        <a href="https://new.expensify.com">
+            New Expensify
+        </a>
+        +
+        <a href="https://www.electronjs.org/">
+            Electron
+        </a>
+    </h1>
+</div>
+
+#### Table of Contents
+
+* [Architecture](#architecture)
+* [Testing Electron Auto-Update](#testing-electron-auto-update)
+
+# Architecture
+The New Expensify desktop app is built using [Electron.js](https://www.electronjs.org/). We try our best to maintain Electron best practices, particularly when it comes to [security](https://www.electronjs.org/docs/latest/tutorial/security). 
+
+The desktop app is organized in three pieces:
+
+1. The Electron main process 
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/main.js.
+   - This file has access to the full set of Electron and Node.JS APIs. 
+2. The Electron renderer process
+   - This is the webpack-bundled version of our react-native-web app (except using `index.desktop.js` files instead of `index.website.js`, where applicable)
+   - This is _very_ similar to our web app, and code in this process should assume it will be run in the context of a browser (no access to `require`, Electron, or Node.js APis)
+3. The context bridge
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/contextBridge.js
+   - The context bridge enables communication between the main and renderer processes. For example, if the renderer process needs to make use of a Node.js or Electron API it must:
+     1. Define an event in https://github.com/Expensify/App/blob/main/desktop/ELECTRON_EVENTS.js
+     2. Add that event to the whitelist defined in the context bridge
+     3. Set up a handler for the event in the main process that can respond to the renderer process back through the bridge, if necessary.
+
 # Testing Electron Auto-Update
 Testing the auto-update process can be a little involved. The most effective way to test this involves setting up your own release channel locally and making sure that you can notarize your builds.
 

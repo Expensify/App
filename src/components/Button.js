@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,6 +8,7 @@ import Text from './Text';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** The text for the button label */
@@ -101,7 +101,7 @@ const defaultProps = {
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
+        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
