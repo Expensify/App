@@ -21,7 +21,7 @@ const FormHelp = (props) => {
                 styles.mt1,
                 styles.flexRow,
                 styles.justifyContentBetween,
-                styles.baseTextInputPaddingHorizontal,
+                styles.ph3,
             ]}
         >
             {props.children}
