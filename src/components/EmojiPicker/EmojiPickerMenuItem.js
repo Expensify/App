@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import getButtonState from '../../../libs/getButtonState';
-import Hoverable from '../../../components/Hoverable';
-import Text from '../../../components/Text';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
+import Hoverable from '../Hoverable';
+import Text from '../Text';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
