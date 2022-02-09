@@ -17,6 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowD
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 
@@ -29,9 +30,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -47,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    updatePreferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -392,7 +389,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone(skinTone);
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**

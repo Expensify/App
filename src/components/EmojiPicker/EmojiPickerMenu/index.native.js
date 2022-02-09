@@ -13,6 +13,7 @@ import Text from '../../Text';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -20,9 +21,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -91,7 +89,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone(skinTone);
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -156,7 +154,6 @@ class EmojiPickerMenu extends Component {
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = {
     preferredSkinTone: undefined,
-    updatePreferredSkinTone: undefined,
 };
 
 export default compose(

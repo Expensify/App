@@ -569,7 +569,6 @@ class ReportActionCompose extends React.Component {
                         isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                         onModalHide={() => this.focus(true)}
                         onEmojiSelected={this.addEmojiToTextBox}
-                        onBeforeShowEmojiPicker={() => this.textInput.blur()}
                     />
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
