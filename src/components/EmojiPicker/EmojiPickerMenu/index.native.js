@@ -59,7 +59,6 @@ class EmojiPickerMenu extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
-        this.onEmojiSelected = this.onEmojiSelected.bind(this);
     }
 
     /**

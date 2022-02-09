@@ -580,9 +580,7 @@ class ReportActionsView extends React.Component {
                     extraData={extraData}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                <EmojiPicker
-                    ref={EmojiPickerAction.emojiPickerRef}
-                />
+                <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
             </>
         );
     }

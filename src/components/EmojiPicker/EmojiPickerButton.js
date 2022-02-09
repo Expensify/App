@@ -21,6 +21,7 @@ const defaultProps = {
     isDisabled: false,
 };
 
+// Defined as a class component as it uses `this.emojiPopoverAnchor` ref
 class EmojiPickerButton extends React.Component {
     render() {
         return (
