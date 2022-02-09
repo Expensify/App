@@ -44,6 +44,7 @@ jobs:
 
   chooseDeployActions:
     runs-on: ubuntu-latest
+    needs: confirmPassingBuild
     outputs:
       mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
       isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
