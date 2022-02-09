@@ -23,7 +23,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const StatementModal = props => (
+const WalletStatementModal = props => (
     <>
         <Modal
         >
@@ -34,7 +34,7 @@ const StatementModal = props => (
     </>
 );
 
-StatementModal.propTypes = propTypes;
-StatementModal.displayName = 'StatementModal';
-export default withLocalize(StatementModal);
+WalletStatementModal.propTypes = propTypes;
+WalletStatementModal.displayName = 'WalletStatementModal';
+export default withLocalize(WalletStatementModal);
 

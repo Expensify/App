@@ -218,6 +218,11 @@ export default {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
+            Wallet_Statement: {
+                screens: {
+                    Wallet_Statement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                },
+            },
         },
     },
 };

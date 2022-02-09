@@ -89,6 +89,7 @@ export default {
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
+    WALLET_STATEMENT_WITH_DATE: `statements/:year/:month`,
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_INITIAL: 'workspace/:policyID',
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
