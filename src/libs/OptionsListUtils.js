@@ -221,13 +221,14 @@ function createOption(personalDetailList, report, {
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
-    const isLastMessageAttachment = report ? ReportUtils.isReportMessageAttachment(report.lastMessageText) : false;
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
         : {};
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageTextFromReport = report && (isLastMessageAttachment ? `[${Localize.translateLocal('common.attachment')}]` : Str.htmlDecode(report.lastMessageText));
+    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment(lodashGet(report, 'lastMessageText', ''))
+        ? `[${Localize.translateLocal('common.attachment')}]`
+        : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
     let lastMessageText = report && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
