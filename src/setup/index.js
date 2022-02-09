@@ -1,3 +1,4 @@
+import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -34,6 +35,11 @@ export default function () {
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
     });
+
+    // force app layout to work left to right.
+    I18nManager.allowRTL(false);
+    I18nManager.forceRTL(false);
+    I18nManager.swapLeftAndRightInRTL(false);
 
     // Perform any other platform-specific setup
     platformSetup();
