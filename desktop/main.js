@@ -151,7 +151,7 @@ const mainWindow = (() => {
             });
 
             if (!isDev) {
-                const newDotURL = isProduction ? 'https://new.expensify.com' : 'https://staging.new.expensify.com'
+                const newDotURL = isProduction ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
 
                 // Modify the request origin for requests sent to our API
                 const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
@@ -167,7 +167,7 @@ const mainWindow = (() => {
                 browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
                     // eslint-disable-next-line no-param-reassign
                     details.responseHeaders['access-control-allow-origin'] = ['app://-'];
-                    callback({ responseHeaders: details.responseHeaders });
+                    callback({responseHeaders: details.responseHeaders});
                 });
             }
 
