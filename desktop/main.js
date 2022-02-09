@@ -14,6 +14,9 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 
+// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electron.config.js)
+const {isProduction} = Boolean(require('../package.json'));
+
 const isDev = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 8080;
 

@@ -3,6 +3,7 @@ module.exports = {
     productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
+        isProduction: Boolean(process.env.SHOULD_DEPLOY_PRODUCTION),
     },
     mac: {
         category: 'public.app-category.finance',
