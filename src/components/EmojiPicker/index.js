@@ -62,14 +62,9 @@ class EmojiPicker extends React.Component {
      *
      * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
      * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
-     * @param {Function} [onBeforeShowEmojiPicker=() => {}] - Run a callback before showing EmojiPicker
      * @param {Element} emojiPopoverAnchor - Element to which Popover is anchored
      */
-    showEmojiPicker(onModalHide, onEmojiSelected, onBeforeShowEmojiPicker, emojiPopoverAnchor) {
-        if (_.isFunction(onBeforeShowEmojiPicker)) {
-            onBeforeShowEmojiPicker();
-        }
-
+    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor) {
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
