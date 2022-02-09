@@ -1,3 +1,9 @@
+/**
+ * iOS has incorrect selection(caret) position when using setNativeProps
+ * to update text and selection concurrently.
+ * Issue: https://github.com/facebook/react-native/issues/33077
+ */
+
 import React from 'react';
 import {
     View,
@@ -19,12 +25,6 @@ import TextInputAutoWidthWithoutKeyboard from '../../../../../components/TextInp
 import {propTypes, defaultProps} from './IOUAmountPropTypes';
 import canUseTouchScreen from '../../../../../libs/canUseTouchscreen';
 
-/**
- * Uncontrolled selection and text updates (concurrently) seem
- * to behave inconsistently on iOS builds (caret remains stationary).
- * Keeping selection controlled on iOS devices keeping track of issue being
- * fixed upstream. Issue: https://github.com/facebook/react-native/issues/33077
- */
 class IOUAmount extends React.Component {
     constructor(props) {
         super(props);
