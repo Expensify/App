@@ -43,6 +43,7 @@ const ReportActionItemMessage = (props) => {
                             key={`actionFragment-${props.action.sequenceNumber}-${index}`}
                             fragment={fragment}
                             isAttachment={props.action.isAttachment}
+                            attachmentInfo={props.action.attachmentInfo}
                             loading={props.action.loading}
                     />
                 ))}

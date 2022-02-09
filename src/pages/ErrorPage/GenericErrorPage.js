@@ -60,7 +60,7 @@ const GenericErrorPage = props => (
                         <Button
                             medium
                             onPress={() => {
-                                Session.signOut();
+                                Session.signOutAndRedirectToSignIn();
                                 props.onRefresh();
                             }}
                             text={props.translate('initialSettingsPage.signOut')}
@@ -78,6 +78,6 @@ const GenericErrorPage = props => (
 );
 
 GenericErrorPage.propTypes = propTypes;
-GenericErrorPage.displayName = 'GenericErrorPage';
+GenericErrorPage.displayName = 'ErrorPage';
 
 export default withLocalize(GenericErrorPage);
