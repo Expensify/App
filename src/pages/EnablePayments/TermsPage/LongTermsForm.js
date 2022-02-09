@@ -116,7 +116,7 @@ const LongTermsForm = () => (
             {' '}
             {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
             {' '}
-            {CONST.ACTIVE_EXPENSIFY_URL}
+            {CONST.NEW_EXPENSIFY_URL}
             .
         </Text>
         <Text style={[styles.mb6, styles.textMicroSupporting]}>
