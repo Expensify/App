@@ -13,7 +13,6 @@ const propTypes = {
 
     /** For attribute for label */
     for: PropTypes.string,
-
 };
 
 const defaultProps = {
