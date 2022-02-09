@@ -17,6 +17,7 @@ const includeModules = [
     'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
+    'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
     'react-native-onyx',
@@ -96,15 +97,15 @@ const webpackConfig = {
             },
 
             // Rule for react-native-web-webview
-            {
-                test: /postMock.html$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name].[ext]',
-                    },
-                },
-            },
+            // {
+            //     test: /postMock.html$/,
+            //     use: {
+            //         loader: 'file-loader',
+            //         options: {
+            //             name: '[name].[ext]',
+            //         },
+            //     },
+            // },
 
             // Gives the ability to load local images
             {

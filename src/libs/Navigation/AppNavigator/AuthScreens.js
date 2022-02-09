@@ -358,7 +358,7 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="WalletStatement"
+                    name="Wallet_Statement"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.WalletStatementStackNavigator}
                     listeners={modalScreenListeners}
