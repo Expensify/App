@@ -120,17 +120,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    onEmojiSelected(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
-        this.props.onEmojiSelected(emoji);
-    }
-
-    /**
      * On text input selection change
      *
      * @param {Event} event
@@ -159,7 +148,7 @@ class EmojiPickerMenu extends Component {
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.onEmojiSelected(emoji, item);
+                this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
             }
 
@@ -199,6 +188,17 @@ class EmojiPickerMenu extends Component {
 
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        this.props.onEmojiSelected(emoji);
     }
 
     /**
@@ -425,7 +425,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}

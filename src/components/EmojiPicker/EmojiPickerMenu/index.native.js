@@ -67,7 +67,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    onEmojiSelected(emoji, emojiObject) {
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.props.onEmojiSelected(emoji);
     }
@@ -123,7 +123,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 emoji={emojiCode}
             />
         );
