@@ -221,7 +221,6 @@ class OptionsSelector extends Component {
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         onBlur={e => this.relatedTarget = e.relatedTarget}
-                        onFocus={() => this.relatedTarget = null}
                         selectTextOnFocus
                     />
                 </View>
