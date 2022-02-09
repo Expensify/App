@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import Modal from '../../components/Modal/index.ios';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -24,14 +25,14 @@ const propTypes = {
 };
 
 const WalletStatementModal = props => (
-    <>
+    <ScreenWrapper>
         <Modal
         >
             <HeaderWithCloseButton
                 title={props.translate('reportActionCompose.sendAttachment')}
             />
         </Modal>
-    </>
+    </ScreenWrapper>
 );
 
 WalletStatementModal.propTypes = propTypes;

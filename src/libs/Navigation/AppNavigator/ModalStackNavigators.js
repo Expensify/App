@@ -314,9 +314,9 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
-const WalletStatement = createModalStackNavigator([{
+const WalletStatementStackNavigator = createModalStackNavigator([{
     Component: WalletStatementModal,
-    name: 'Wallet_Statement_Root',
+    name: 'WalletStatement_Root',
 }]);
 
 export {
@@ -336,5 +336,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     RequestCallModalStackNavigator,
-    WalletStatement,
+    WalletStatementStackNavigator,
 };

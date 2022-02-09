@@ -220,7 +220,7 @@ export default {
             },
             Wallet_Statement: {
                 screens: {
-                    Wallet_Statement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                    WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
         },
