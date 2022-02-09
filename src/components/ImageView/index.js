@@ -22,7 +22,7 @@ class ImageView extends PureComponent {
         this.state = {
             containerHeight: 0,
             containerWidth: 0,
-            isZoomed: false,
+            isZoomed: true,
             isDragging: false,
             isMouseDown: false,
             initialScrollLeft: 0,
@@ -161,7 +161,7 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]}
-                        resizeMode="center"
+                        resizeMode="contain"
                     />
                 </View>
             );
