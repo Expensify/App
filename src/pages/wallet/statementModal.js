@@ -1,16 +1,12 @@
-import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import React from 'react';
 import PropTypes from 'prop-types';
-import Header from '../../components/Header';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import Modal from '../../components/Modal/index.ios';
-import themeColors from '../../styles/themes/default';
+import {WebView} from 'react-native-webview';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {WebView} from 'react-native-webview';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -42,7 +38,7 @@ const WalletStatementModal = props => (
             />
             <WebView
                 originWhitelist={['*']}
-                source={{ html: '<h1>Hello world</h1>' }}
+                source={{html: '<h1>Hello world</h1>'}}
             />
         </Modal>
     </ScreenWrapper>
@@ -51,4 +47,3 @@ const WalletStatementModal = props => (
 WalletStatementModal.propTypes = propTypes;
 WalletStatementModal.displayName = 'WalletStatementModal';
 export default withLocalize(WalletStatementModal);
-

@@ -97,15 +97,15 @@ const webpackConfig = {
             },
 
             // Rule for react-native-web-webview
-            // {
-            //     test: /postMock.html$/,
-            //     use: {
-            //         loader: 'file-loader',
-            //         options: {
-            //             name: '[name].[ext]',
-            //         },
-            //     },
-            // },
+            {
+                test: /postMock.html$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                    },
+                },
+            },
 
             // Gives the ability to load local images
             {
