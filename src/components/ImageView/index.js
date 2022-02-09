@@ -174,11 +174,17 @@ class ImageView extends PureComponent {
                     const {width, height} = e.nativeEvent.layout;
                     const imageWidth = this.state.imgWidth;
                     const imageHeight = this.state.imgHeight;
+                    // eslint-disable-next-line react/no-access-state-in-setstate
+                    let isZoomed = this.state.isZoomed;
+                    if (this.state.containerHeight === 0) {
+                        isZoomed = imageWidth < width && imageHeight < height;
+                    }
                     const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
                     this.setState({
                         containerHeight: height,
                         containerWidth: width,
                         zoomScale: scale,
+                        isZoomed,
                     });
                 }}
                 style={[
