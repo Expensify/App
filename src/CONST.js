@@ -200,8 +200,6 @@ const CONST = {
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
-    NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
