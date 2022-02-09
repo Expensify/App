@@ -94,14 +94,13 @@ class RoomNameInput extends Component {
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
      * Also checks to see if this room name already exists, and displays an error message if so.
-     * @param {Event} e
+     * @param {Event} event
      *
      */
-    checkAndModifyRoomName(e) {
-        // console.log("Debug event",event);
-        const event = e.nativeEvent;
-        const roomName = event.text;
-        const target = event.target;
+    checkAndModifyRoomName(event) {
+        const nativeEvent = event.nativeEvent;
+        const roomName = nativeEvent.text;
+        const target = nativeEvent.target;
         const selection = target.selectionStart;
 
         const modifiedRoomNameWithoutHash = roomName
