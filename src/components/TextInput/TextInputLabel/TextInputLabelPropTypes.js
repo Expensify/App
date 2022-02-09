@@ -17,7 +17,6 @@ const propTypes = {
 
 const defaultProps = {
     for: '',
-    textAlign: 'left',
 };
 
 export {
