@@ -41,7 +41,7 @@ This is a checklist for C+ reviewers. If the PR is internal, these do not need t
 - [ ] Are testing steps clear and do they cover the changes + possible regressions?
 - [ ] Do testing steps cover success & fail scenarios (if applicable)?
 - [ ] Are there any console errors related to changes in this PR?
-- [ ] Are new regression steps are mentioned below? (if applicable, tag Expensify/Applause leads to add these to the regression test suite)
+- [ ] Are new regression steps mentioned below? (if applicable, tag Expensify/QA team leads to add these to the regression test suite)
 - [ ] Were code patterns checked? (see [Reviewing the code](../PR_REVIEW_CHECKLIST.md#reviewing-the-code))
 - [ ] Does code reuse look appropriate? (see [Considerations around code reuse](../PR_REVIEW_CHECKLIST.md#considerations-around-code-reuse))
 

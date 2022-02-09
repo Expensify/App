@@ -42,8 +42,8 @@ This document lists specific checks that should be done when reviewing a PR. Thi
 2. Test the changes on **all platforms**. Follow this guide (needs link) to set up each platform.
     - If you’re unable to boot a platform for any reason, ask for help in the #expensify-open-source Slack channel. Your issue might already have been addressed there, so be sure to search first.
 3. Should we add regression testing for code introduced in this PR?
-    - If the PR introduces **new** pages, features, etc. then we **should** have new regression tests written. Please note this in your PR so that Applause can make sure it gets added.
-    - If the PR fixes a bug, Applause will check to make sure the existing regression testing steps already cover the workflow fixed by the bug.
+    - If the PR introduces **new** pages, features, etc. then we **should** have new regression tests written. Please note this in your PR so that the QA team can make sure it gets added.
+    - If the PR fixes a bug, the QA team will check to make sure the existing regression testing steps already cover the workflow fixed by the bug.
 
 # Reviewing the code
 
