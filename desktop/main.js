@@ -150,6 +150,27 @@ const mainWindow = (() => {
                 titleBarStyle: 'hidden',
             });
 
+            if (!isDev) {
+                const newDotURL = isProduction ? 'https://new.expensify.com' : 'https://staging.new.expensify.com'
+
+                // Modify the request origin for requests sent to our API
+                const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+                browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                    // eslint-disable-next-line no-param-reassign
+                    details.requestHeaders.origin = newDotURL;
+                    // eslint-disable-next-line no-param-reassign
+                    details.requestHeaders.referer = newDotURL;
+                    callback({requestHeaders: details.requestHeaders});
+                });
+
+                // Modify access-control-allow-origin header for the response
+                browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    // eslint-disable-next-line no-param-reassign
+                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
+                    callback({ responseHeaders: details.responseHeaders });
+                });
+            }
+
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
             if (isDev) {
                 browserWindow.setTitle('New Expensify');
