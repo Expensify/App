@@ -109,6 +109,7 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -235,6 +236,7 @@ const CONST = {
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
+            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         },
         STATE_NUM: {
             OPEN: 0,
