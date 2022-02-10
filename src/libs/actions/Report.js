@@ -158,7 +158,7 @@ function getChatReportName(fullReport, chatType) {
         .join(', ');
 }
 
-function checkPusherCommentEventComingFirst(simplifiedReport) {
+function modifySimplifiedReportOnPusherComeFirst(simplifiedReport) {
     const nextMaxSequenceNumber = lodashGet(simplifiedReport, 'maxSequenceNumber', 0);
     const currentMaxSeqNumber = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
     console.log(maxSequenceNumber, ' <= then now => ', currentMaxSeqNumber);
@@ -170,6 +170,8 @@ function checkPusherCommentEventComingFirst(simplifiedReport) {
     const modifiedSimplifiedReport = simplifiedReport;
     modifiedSimplifiedReport.maxSequenceNumber = currentMaxSeqNumber;
     modifiedSimplifiedReport.lastMessageText = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
+
+    unreadActionCount: getUnreadActionCount(report),
 }
 
 /**
