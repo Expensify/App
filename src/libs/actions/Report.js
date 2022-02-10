@@ -158,6 +158,20 @@ function getChatReportName(fullReport, chatType) {
         .join(', ');
 }
 
+function checkPusherCommentEventComingFirst(simplifiedReport) {
+    const nextMaxSequenceNumber = lodashGet(simplifiedReport, 'maxSequenceNumber', 0);
+    const currentMaxSeqNumber = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
+    console.log(maxSequenceNumber, ' <= then now => ', currentMaxSeqNumber);
+    const isPusherComentEventComeFirst = currentMaxSeqNumber > nextMaxSequenceNumber; 
+    if (!isPusherEventComeFirst) {
+        return simplifiedReport;
+    }
+    const currentReport = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
+    const modifiedSimplifiedReport = simplifiedReport;
+    modifiedSimplifiedReport.maxSequenceNumber = currentMaxSeqNumber;
+    modifiedSimplifiedReport.lastMessageText = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
+}
+
 /**
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
