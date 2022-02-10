@@ -76,13 +76,13 @@ class BaseTextInput extends Component {
     }
 
     onFocus(event) {
-        if (this.props.onFocus) {this.props.onFocus(event);}
+        if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
     onBlur(event) {
-        if (this.props.onBlur) {this.props.onBlur(event);}
+        if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
     }
@@ -181,7 +181,7 @@ class BaseTextInput extends Component {
                             <View style={[styles.textInputAndIconContainer]}>
                                 <TextInputWithName
                                     ref={(ref) => {
-                                        if (typeof this.props.innerRef === 'function') {this.props.innerRef(ref);}
+                                        if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                         this.input = ref;
                                     }}
                                     // eslint-disable-next-line
