@@ -69,6 +69,11 @@ Please follow these steps to propose a job:
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+#### Make sure you can test on all platforms
+* Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
+* You'll need a Mac to test the iOS and MacOS app.
+* In case you don't have one, here's a helpful [document](https://docs.google.com/document/d/1TD8A-SQbBN2EsnF98cEib2wiERK68fux2P0LGSkobrg/edit?usp=sharing) on how you might test all platforms on a Windows/Linux device.
+
 #### Check GitHub for existing proposals from other users
 
 1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
@@ -109,7 +114,7 @@ Please follow these steps to propose a job:
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
 14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
+16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
