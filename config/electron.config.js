@@ -1,15 +1,17 @@
 const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
 
+const isStagingBuild = process.env.NODE_ENV === 'staging';
+
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
-        electronEnvironment: process.env.SHOULD_DEPLOY_PRODUCTION ? ENVIRONMENT.PRODUCTION : ENVIRONMENT.STAGING,
+        electronEnvironment: isStagingBuild ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? './desktop/icon.png' : './desktop/icon-stg.png',
+        icon: isStagingBuild ? './desktop/icon-stg.png' : './desktop/icon.png',
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
@@ -22,7 +24,7 @@ module.exports = {
     },
     publish: [{
         provider: 's3',
-        bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
+        bucket: isStagingBuild ? 'staging-expensify-cash' : 'expensify-cash',
         channel: 'latest',
     }],
     afterSign: './desktop/notarize.js',
