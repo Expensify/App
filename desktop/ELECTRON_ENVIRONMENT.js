@@ -25,7 +25,6 @@ function isProd() {
 }
 
 module.exports = {
-    getEnvironment,
     isDev,
     isProd,
 };
