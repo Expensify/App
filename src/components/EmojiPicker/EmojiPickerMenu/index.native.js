@@ -143,7 +143,7 @@ class EmojiPickerMenu extends Component {
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
-                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
