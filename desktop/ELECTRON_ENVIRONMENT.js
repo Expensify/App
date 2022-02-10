@@ -1,4 +1,4 @@
-// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electron.config.js)
+// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electronBuilder.config.js)
 // It will be `PROD` on production, `STG` on staging, and `undefined` on dev (because dev doesn't use electron-builder)
 const {electronEnvironment} = require('../package.json');
 const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
