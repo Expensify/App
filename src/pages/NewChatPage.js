@@ -259,7 +259,6 @@ class NewChatPage extends Component {
                                             });
                                         }}
                                         headerMessage={headerMessage}
-                                        disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                     />
