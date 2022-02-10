@@ -76,13 +76,13 @@ class BaseTextInput extends Component {
     }
 
     onFocus(event) {
-        if (this.props.onFocus) { this.props.onFocus(event); }
+        if (this.props.onFocus) {this.props.onFocus(event);}
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
     onBlur(event) {
-        if (this.props.onBlur) { this.props.onBlur(event); }
+        if (this.props.onBlur) {this.props.onBlur(event);}
         this.setState({isFocused: false});
         this.deactivateLabel();
     }
@@ -181,7 +181,7 @@ class BaseTextInput extends Component {
                             <View style={[styles.textInputAndIconContainer]}>
                                 <TextInputWithName
                                     ref={(ref) => {
-                                        if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                        if (typeof this.props.innerRef === 'function') {this.props.innerRef(ref);}
                                         this.input = ref;
                                     }}
                                     // eslint-disable-next-line
@@ -236,14 +236,11 @@ class BaseTextInput extends Component {
                             <Text style={[formHelpStyles]}>{inputHelpText}</Text>
                         )}
                         {!_.isNull(this.props.maxLength) && (
-                            <>
-                                <View style={styles.flex1} />
-                                <Text style={[formHelpStyles]}>
-                                    {this.value.length}
-                                    /
-                                    {this.props.maxLength}
-                                </Text>
-                            </>
+                            <Text style={[formHelpStyles, styles.flex1, styles.textAlignRight]}>
+                                {this.value.length}
+                                /
+                                {this.props.maxLength}
+                            </Text>
                         )}
                     </View>
                 )}
