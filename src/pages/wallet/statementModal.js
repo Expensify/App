@@ -1,20 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {WebView} from 'react-native-webview';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
+import Str from 'expensify-common/lib/str';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import CONST from '../../CONST';
-import Modal from '../../components/Modal/index.ios';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ROUTES from '../../ROUTES';
-import Onyx, {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import CONFIG from '../../CONFIG';
-import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,20 +45,18 @@ const defaultProps = {
     },
 };
 
-// ${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}
-
 const WalletStatementModal = (props) => {
-    const month = props.route.params.month;
-    const year = props.route.params.year;
+    const month = lodashGet(props, 'route.params.month', null);
+    const year = lodashGet(props, 'route.params.year', null);
 
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statement`;
 
     const authToken = lodashGet(props, 'session.authToken', null);
-    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}&authToken=${authToken}`;
-    console.log(url);
-    console.log(authToken);
+    // const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}&authToken=${authToken}`;
+    // const url = `https://www.expensify.com/statement.php?period=202112&authToken=${authToken}`;
+    const url = `https://www.expensify.com/statement.php?authToken=${authToken}`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -71,7 +66,7 @@ const WalletStatementModal = (props) => {
             <WebView
                 originWhitelist={['https://*']}
                 source={{
-                    uri: 'https://www.expensify.com/statement.php?period=202110',
+                    uri: url,
                     headers: {
                         Cookie: `authToken=${authToken}`,
                     },
