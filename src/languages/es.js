@@ -220,7 +220,6 @@ export default {
         },
     },
     notificationPreferences: {
-        description: '¿Cuán seguido quieres que te notifiquemos acerca de nuevos mensajes en esta sala de chat?',
         label: 'Avisar sobre nuevos mensajes',
         immediately: 'Inmediatamente',
         daily: 'Cada día',
