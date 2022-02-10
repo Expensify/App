@@ -70,7 +70,7 @@ class RoomNameInput extends Component {
         this.originalRoomName = props.initialValue;
 
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
-        this.checkRoomName = this.checkRoomName.bind(this);
+        this.checkExistingRoomName = this.checkExistingRoomName.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -84,7 +84,7 @@ class RoomNameInput extends Component {
 
         // If the selected policyID has changed we need to check if the room name already exists on this new policy.
         if (prevProps.policyID !== this.props.policyID) {
-            this.checkRoomName(this.state.roomName);
+            this.checkExistingRoomName(this.state.roomName);
         }
     }
 
@@ -110,7 +110,7 @@ class RoomNameInput extends Component {
             .toLowerCase();
         const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
 
-        this.checkRoomName(finalRoomName);
+        this.checkExistingRoomName(finalRoomName);
 
         this.setState({
             roomName: finalRoomName,
@@ -127,7 +127,7 @@ class RoomNameInput extends Component {
      * @param {String} roomName
      *
      */
-    checkRoomName(roomName) {
+    checkExistingRoomName(roomName) {
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
             report => report && report.policyID === this.props.policyID && report.reportName === roomName,
