@@ -65,7 +65,7 @@ function processPersistedRequestsQueue() {
         .catch((error) => {
             const retryCount = NetworkRequestQueue.incrementRetries(request);
             getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-            if (retryCount >= CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
+            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
                 // Request failed too many times removing from persisted storage
                 NetworkRequestQueue.removeRetryableRequest(request);
             }
@@ -241,7 +241,7 @@ function processNetworkRequestQueue() {
                         error: error.message,
                     });
 
-                    if (retryCount < CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
+                    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
                         networkRequestQueue.push(queuedRequest);
                         return;
                     }
