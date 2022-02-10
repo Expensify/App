@@ -5,8 +5,46 @@ on:
     branches: [main]
 
 jobs:
+  confirmPassingBuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run lint
+        id: lint
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        with:
+          WORKFLOW: lint.yml
+
+      - name: Run tests
+        id: tests
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        with:
+          WORKFLOW: test.yml
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   chooseDeployActions:
     runs-on: ubuntu-latest
+    needs: confirmPassingBuild
     outputs:
       mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
       isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
@@ -167,10 +205,10 @@ jobs:
           number: ${{ steps.getMergedPullRequest.outputs.number }}
           body: |
             @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
-            
+
             I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md), so here are some points to take note of :memo::
 
-            1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time. 
+            1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time.
             2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn't work as expected or causes a regression, you'll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.
             3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:
 
