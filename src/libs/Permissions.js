@@ -63,7 +63,6 @@ function canUseInternationalization(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-
 function canUseIOUSend(betas) {
     return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
 }
@@ -72,7 +71,6 @@ function canUseIOUSend(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-
 function canUseWallet(betas) {
     return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET) || canUseAllBetas(betas);
 }
@@ -84,9 +82,16 @@ function canUseWallet(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-
 function canUsePolicyRooms(betas) {
     return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUsePolicyExpenseChat(betas) {
+    return _.contains(betas, CONST.BETAS.BETA_POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
 }
 
 export default {
@@ -99,4 +104,5 @@ export default {
     canUseIOUSend,
     canUseWallet,
     canUsePolicyRooms,
+    canUsePolicyExpenseChat,
 };

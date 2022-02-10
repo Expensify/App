@@ -24,11 +24,14 @@ const POINTER_WIDTH = 12;
  *                           and the left edge of the wrapped component.
  * @param {Number} componentWidth - The width of the wrapped component.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
+ * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
+ *                                         A positive value shifts it to the right,
+ *                                         and a negative value shifts it to the left.
  * @returns {Number}
  */
-function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth) {
+function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
     // First find the left and right edges of the tooltip (by default, it is centered on the component).
-    const componentCenter = xOffset + (componentWidth / 2);
+    const componentCenter = xOffset + (componentWidth / 2) + manualShiftHorizontal;
     const tooltipLeftEdge = componentCenter - (tooltipWidth / 2);
     const tooltipRightEdge = componentCenter + (tooltipWidth / 2);
 
@@ -85,7 +88,7 @@ export default function getTooltipStyles(
 
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
-    const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth);
+    const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal);
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
