@@ -7,6 +7,7 @@ import CONST from '../../CONST';
 import Modal from '../../components/Modal/index.ios';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -26,23 +27,16 @@ const propTypes = {
 
 const WalletStatementModal = props => (
     <ScreenWrapper>
-        <Modal
-            onClose={Navigation.dismissModal}
-            isVisible
-            type={props.isSmallScreenWidth
-                ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        >
-            <HeaderWithCloseButton
-                title={"Statements Page"}
-            />
-            <WebView
-                originWhitelist={['*']}
-                source={{uri: 'https://reactnative.dev/'}}
-                containerStyle={{ flex: 0, height: 300, width: 300, marginTop: 20 }}
-                style={{ flex: 0, height: 300, width: 300, marginTop: 20,}}
-            />
-        </Modal>
+        <HeaderWithCloseButton
+            title={"Statements Page"}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+        />
+        <WebView
+            originWhitelist={['*']}
+            source={{uri: 'http://www.expensify.com.dev/statement?period=202110'}}
+            // containerStyle={{ flex: 0, height: 300, width: 300, marginTop: 20 }}
+            // style={{ flex: 0, height: 300, width: 300, marginTop: 20,}}
+        />
     </ScreenWrapper>
 );
 
