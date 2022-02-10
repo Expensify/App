@@ -136,7 +136,6 @@ class IOUParticipantsRequest extends Component {
                     });
                 }}
                 headerMessage={headerMessage}
-                disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 shouldDelayFocus

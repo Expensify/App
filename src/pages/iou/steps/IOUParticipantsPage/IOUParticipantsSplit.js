@@ -227,7 +227,6 @@ class IOUParticipantsSplit extends Component {
                             });
                         }}
                         headerMessage={headerMessage}
-                        disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         shouldDelayFocus
