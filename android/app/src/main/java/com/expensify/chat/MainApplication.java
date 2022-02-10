@@ -8,6 +8,7 @@ import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.existfragger.rnimagesize.RNImageSizePackage;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.facebook.react.ReactInstanceManager;

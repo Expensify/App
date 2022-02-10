@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {WebView} from 'react-native-webview';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import Modal from '../../components/Modal/index.ios';
-import {WebView} from 'react-native-webview';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
@@ -34,11 +34,13 @@ const WalletStatementModal = props => (
                 : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
         >
             <HeaderWithCloseButton
-                title={props.translate('reportActionCompose.sendAttachment')}
+                title={"Statements Page"}
             />
             <WebView
                 originWhitelist={['*']}
-                source={{html: '<h1>Hello world</h1>'}}
+                source={{uri: 'https://reactnative.dev/'}}
+                containerStyle={{ flex: 0, height: 300, width: 300, marginTop: 20 }}
+                style={{ flex: 0, height: 300, width: 300, marginTop: 20,}}
             />
         </Modal>
     </ScreenWrapper>
