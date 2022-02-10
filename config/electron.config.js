@@ -29,5 +29,6 @@ module.exports = {
         './dist/**/*',
         './desktop/*.js',
         './src/libs/checkForUpdates.js',
+        './src/CONST/ENVIRONMENT.js',
     ],
 };
