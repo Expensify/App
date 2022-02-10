@@ -261,7 +261,6 @@ class NewChatPage extends Component {
                                             });
                                         }}
                                         headerMessage={headerMessage}
-                                        disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                         shouldFocusOnSelectRow={this.props.isGroupChat}
