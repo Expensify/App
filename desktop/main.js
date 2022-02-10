@@ -11,13 +11,10 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const ELECTRON_ENVIRONMENT = require('./ELECTRON_ENVIRONMENT');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 
-// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electron.config.js)
-const {isProduction} = Boolean(require('../package.json'));
-
-const isDev = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 8080;
 
 /**
@@ -44,7 +41,7 @@ autoUpdater.logger.transports.file.level = 'info';
 _.assign(console, log.functions);
 
 // setup Hot reload
-if (isDev) {
+if (ELECTRON_ENVIRONMENT.isDev()) {
     try {
         require('electron-reloader')(module, {
             watchRenderer: false,
@@ -127,12 +124,12 @@ const electronUpdater = browserWindow => ({
 });
 
 const mainWindow = (() => {
-    const loadURL = isDev
+    const loadURL = ELECTRON_ENVIRONMENT.isDev()
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/../dist`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
-    if (isDev) {
+    if (ELECTRON_ENVIRONMENT.isDev()) {
         app.dock.setIcon(`${__dirname}/icon-dev.png`);
         app.setName('New Expensify');
     }
@@ -150,8 +147,8 @@ const mainWindow = (() => {
                 titleBarStyle: 'hidden',
             });
 
-            if (!isDev) {
-                const newDotURL = isProduction ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
+            if (!ELECTRON_ENVIRONMENT.isDev()) {
+                const newDotURL = ELECTRON_ENVIRONMENT.isProd() ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
 
                 // Modify the request origin for requests sent to our API
                 const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
@@ -172,7 +169,7 @@ const mainWindow = (() => {
             }
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (isDev) {
+            if (ELECTRON_ENVIRONMENT.isDev()) {
                 browserWindow.setTitle('New Expensify');
             }
 
@@ -310,7 +307,7 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (isDev) {
+            if (ELECTRON_ENVIRONMENT.isDev()) {
                 return;
             }
 
