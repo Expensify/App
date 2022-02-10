@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import * as Url from './libs/Url';
+import ENVIRONMENT from './ENVIRONMENT';
+import * as Url from '../libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
@@ -390,12 +391,6 @@ const CONST = {
         ADMIN: 'admin@expensify.com',
     },
 
-    ENVIRONMENT: {
-        DEV: 'DEV',
-        STAGING: 'STG',
-        PRODUCTION: 'PROD',
-    },
-
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
     // from backgound). The times are based on how long it generally seems to take for the app to become interactive
     // in each scenario.
@@ -613,5 +608,7 @@ const CONST = {
         ];
     },
 };
+
+CONST.ENVIRONMENT = ENVIRONMENT;
 
 export default CONST;
