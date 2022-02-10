@@ -11,10 +11,10 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const ELECTRON_ENVIRONMENT = require('./ELECTRON_ENVIRONMENT');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 
-const isDev = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 8080;
 
 /**
@@ -41,7 +41,7 @@ autoUpdater.logger.transports.file.level = 'info';
 _.assign(console, log.functions);
 
 // setup Hot reload
-if (isDev) {
+if (ELECTRON_ENVIRONMENT.isDev()) {
     try {
         require('electron-reloader')(module, {
             watchRenderer: false,
@@ -124,12 +124,12 @@ const electronUpdater = browserWindow => ({
 });
 
 const mainWindow = (() => {
-    const loadURL = isDev
+    const loadURL = ELECTRON_ENVIRONMENT.isDev()
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/../dist`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
-    if (isDev) {
+    if (ELECTRON_ENVIRONMENT.isDev()) {
         app.dock.setIcon(`${__dirname}/icon-dev.png`);
         app.setName('New Expensify');
     }
@@ -147,8 +147,38 @@ const mainWindow = (() => {
                 titleBarStyle: 'hidden',
             });
 
+            /*
+             * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
+             * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+             *
+             * To fix this, we'll:
+             *
+             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment.
+             *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
+             */
+            if (!ELECTRON_ENVIRONMENT.isDev()) {
+                const newDotURL = ELECTRON_ENVIRONMENT.isProd() ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
+
+                // Modify the origin and referer for requests sent to our API
+                const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+                browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                    // eslint-disable-next-line no-param-reassign
+                    details.requestHeaders.origin = newDotURL;
+                    // eslint-disable-next-line no-param-reassign
+                    details.requestHeaders.referer = newDotURL;
+                    callback({requestHeaders: details.requestHeaders});
+                });
+
+                // Modify access-control-allow-origin header for the response
+                browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    // eslint-disable-next-line no-param-reassign
+                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
+                    callback({responseHeaders: details.responseHeaders});
+                });
+            }
+
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (isDev) {
+            if (ELECTRON_ENVIRONMENT.isDev()) {
                 browserWindow.setTitle('New Expensify');
             }
 
@@ -286,7 +316,7 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (isDev) {
+            if (ELECTRON_ENVIRONMENT.isDev()) {
                 return;
             }
 

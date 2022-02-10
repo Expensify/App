@@ -1,8 +1,11 @@
+const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
+
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
+        electronEnvironment: process.env.SHOULD_DEPLOY_PRODUCTION ? ENVIRONMENT.PRODUCTION : ENVIRONMENT.STAGING,
     },
     mac: {
         category: 'public.app-category.finance',
