@@ -1,10 +1,12 @@
 const baseElectronBuilderConfig = require('./electronBuilder.base.config');
 
+const isStagingBuild = process.env.NODE_ENV === 'staging';
+
 module.exports = {
     ...baseElectronBuilderConfig,
     publish: [{
         provider: 's3',
-        bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
+        bucket: isStagingBuild ? 'staging-expensify-cash' : 'expensify-cash',
         channel: 'latest',
     }],
     afterSign: './desktop/notarize.js',
