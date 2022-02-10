@@ -25,6 +25,7 @@ module.exports = {
         bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
         channel: 'latest',
     }],
+    afterSign: './desktop/notarize.js',
     files: [
         './dist/**/*',
         './desktop/*.js',
