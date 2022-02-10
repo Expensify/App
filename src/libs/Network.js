@@ -63,10 +63,8 @@ function processPersistedRequestsQueue() {
             NetworkRequestQueue.removeRetryableRequest(request);
         })
         .catch((error) => {
-            const Log = getLogger();
-
             const retryCount = NetworkRequestQueue.incrementRetries(request);
-            Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
             if (retryCount >= CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
                 // Request failed too many times removing from persisted storage
                 NetworkRequestQueue.removeRetryableRequest(request);
@@ -236,10 +234,8 @@ function processNetworkRequestQueue() {
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
                 if (shouldRetry) {
-                    const Log = getLogger();
-
                     const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
-                    Log.info('A retrieable request failed', false, {
+                    getLogger().info('A retrieable request failed', false, {
                         retryCount,
                         command: queuedRequest.command,
                         error: error.message,
@@ -250,7 +246,7 @@ function processNetworkRequestQueue() {
                         return;
                     }
 
-                    Log.alert('Request was retried too many times with no success. No more retries left');
+                    getLogger().alert('Request was retried too many times with no success. No more retries left');
                 }
 
                 onError(queuedRequest, error);
