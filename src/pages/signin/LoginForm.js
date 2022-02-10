@@ -20,6 +20,9 @@ import LoginUtil from '../../libs/LoginUtil';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
+    /** Should we dismiss the keyboard when transitioning away from the page? */
+    blurOnSubmit: PropTypes.bool,
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -43,6 +46,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    blurOnSubmit: false,
 };
 
 class LoginForm extends React.Component {
@@ -65,6 +69,9 @@ class LoginForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.blurOnSubmit && this.props.blurOnSubmit) {
+            this.input.blur();
+        }
         if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }

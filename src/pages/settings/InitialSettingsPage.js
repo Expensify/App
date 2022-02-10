@@ -116,7 +116,7 @@ const defaultMenuItems = [
     {
         translationKey: 'initialSettingsPage.signOut',
         icon: Expensicons.Exit,
-        action: Session.signOut,
+        action: Session.signOutAndRedirectToSignIn,
     },
 ];
 

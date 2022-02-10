@@ -212,6 +212,9 @@ class BasePaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
+
+        // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
+        const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -286,7 +289,7 @@ class BasePaymentsPage extends React.Component {
                                 !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
                             ]}
                         >
-                            {this.props.isSmallScreenWidth && (
+                            {isPopoverBottomMount && (
                                 <MenuItem
                                     title={this.state.formattedSelectedPaymentMethod.title}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
