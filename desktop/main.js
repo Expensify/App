@@ -147,10 +147,19 @@ const mainWindow = (() => {
                 titleBarStyle: 'hidden',
             });
 
+            /*
+             * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
+             * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+             *
+             * To fix this, we'll:
+             *
+             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment.
+             *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
+             */
             if (!ELECTRON_ENVIRONMENT.isDev()) {
                 const newDotURL = ELECTRON_ENVIRONMENT.isProd() ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
 
-                // Modify the request origin for requests sent to our API
+                // Modify the origin and referer for requests sent to our API
                 const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
                 browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
                     // eslint-disable-next-line no-param-reassign
