@@ -135,7 +135,7 @@ class IOUConfirmationList extends Component {
         };
 
         this.toggleOption = this.toggleOption.bind(this);
-        this.onPress = this.onPress.bind(this);
+        this.confirm = this.confirm.bind(this);
     }
 
     componentDidMount() {
@@ -147,7 +147,7 @@ class IOUConfirmationList extends Component {
     /**
      * @param {String} value
      */
-    onPress(value) {
+    confirm(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             Log.info(`[IOU] Sending money via: ${value}`);
             this.props.onSendMoney(value);
@@ -387,7 +387,7 @@ class IOUConfirmationList extends Component {
                         <SettlementButton
                             isDisabled={shouldDisableButton}
                             isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                            onPress={this.onPress}
+                            onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             recipientPhoneNumber={recipient.phoneNumber}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
@@ -399,7 +399,7 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             isLoading={isLoading}
-                            onPress={(_event, value) => this.onPress(value)}
+                            onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}
