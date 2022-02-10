@@ -46,17 +46,14 @@ const defaultProps = {
 };
 
 const WalletStatementModal = (props) => {
-    const month = lodashGet(props, 'route.params.month', null);
-    const year = lodashGet(props, 'route.params.year', null);
-
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
+    const month = lodashGet(props, 'route.params.month', moment().month() + 1);
+    const year = lodashGet(props, 'route.params.year', moment().year());
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statement`;
 
     const authToken = lodashGet(props, 'session.authToken', null);
-    // const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}&authToken=${authToken}`;
-    // const url = `https://www.expensify.com/statement.php?period=202112&authToken=${authToken}`;
-    const url = `https://www.expensify.com/statement.php?authToken=${authToken}`;
+    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
