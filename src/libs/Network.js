@@ -247,11 +247,10 @@ function processNetworkRequestQueue() {
 
                     if (retryCount < CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
                         networkRequestQueue.push(queuedRequest);
-                    } else {
-                        Log.alert('Request was retried too many times with no success. No more retries left');
+                        return;
                     }
 
-                    return;
+                    Log.alert('Request was retried too many times with no success. No more retries left');
                 }
 
                 onError(queuedRequest, error);
