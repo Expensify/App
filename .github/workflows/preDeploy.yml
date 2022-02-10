@@ -138,6 +138,21 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+  # Check if actor is member of Expensify organization
+  isTeamMember:
+    runs-on: ubuntu-latest
+
+    outputs:
+      isValid: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
+
+    steps:
+      - name: Check whether the actor is member of Expensify organization
+        id: checkActor
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'OSBotify' }}
