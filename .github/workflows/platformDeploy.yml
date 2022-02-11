@@ -243,7 +243,7 @@ jobs:
 
       - name: Set iOS version in ENV
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
 
       - name: Run Fastlane for App Store release
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -329,11 +329,11 @@ jobs:
 
       - name: Deploy production to S3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/
 
       - name: Deploy staging to S3
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://staging-expensify-cash/
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
