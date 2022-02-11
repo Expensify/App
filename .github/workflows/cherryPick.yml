@@ -100,10 +100,10 @@ jobs:
       - name: Save correct NEW_VERSION to env
         run: |
           if [ -z ${{ github.event.inputs.NEW_VERSION }} ]; then
-            echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> $GITHUB_ENV
+            echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> "$GITHUB_ENV"
             echo "New version is ${{ env.NEW_VERSION }}"
           else
-            echo "NEW_VERSION=${{ github.event.inputs.NEW_VERSION }}" >> $GITHUB_ENV
+            echo "NEW_VERSION=${{ github.event.inputs.NEW_VERSION }}" >> "$GITHUB_ENV"
             echo "New version is ${{ env.NEW_VERSION }}"
           fi;
 
