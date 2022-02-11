@@ -29,9 +29,9 @@ module.exports = {
         internetEnabled: true,
     },
     files: [
-        './dist/**/*',
-        './desktop/*.js',
-        './src/libs/checkForUpdates.js',
-        './src/CONST/ENVIRONMENT.js',
+        '../dist/**/*',
+        '*.js',
+        '../src/libs/checkForUpdates.js',
+        '../src/CONST/ENVIRONMENT.js',
     ],
 };
