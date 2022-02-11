@@ -47,13 +47,15 @@ const defaultProps = {
 
 const WalletStatementModal = (props) => {
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
-    const month = lodashGet(props, 'route.params.month', moment().month() + 1);
-    const year = lodashGet(props, 'route.params.year', moment().year());
+    const month = lodashGet(props.route.params, 'month', moment().month());
+    const year = lodashGet(props.route.params, 'year', moment().year());
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statement`;
 
-    const authToken = lodashGet(props, 'session.authToken', null);
-    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}`;
+    // const authToken = lodashGet(props, 'session.authToken', null);
+    // const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}`;
+    const authToken = '21B34D8D824054245CE02209BE282D7DBA8BA9B29CE1DAFB5541E6D955DE1798660BBB21A94C4413E8D1AD34B5EAEC3A9C70FC845618C581C9CA6470C342C4EF1CFE9E11B947F791C264EAD69FE882525A326F368929C16C21611A9BEE7AAEFCAAFF5166F5A9BA04D4244FD0DE06E59E561FFB8313502D77C959AA365295A331F32195368493B196929BF7B4DF5EC529F9A90A80683C1555B68E3E972D17526B22138612DA0905B03910A266EAB4957111C857880C3AEB1ED80731199CD9D056EB59EC87D48C30C523E62F3DC74183FD6B36453984EF87EC57D50ABCF17C4FDEA05F09464D6CB69F8AF52683D6E49B98E1D0DB98D3C127FC94824BE952CE6ACDC4C90113194716F8FF68171A0E62BC8C59B809272A80D3F5902251255816AAA51892FD1DD374997A88E3F817AB32208A';
+    const url = `https://www.expensify.com/statement.php`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
