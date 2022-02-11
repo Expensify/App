@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import withLocalize from '../../components/withLocalize';
+import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {walletStatementPropTypes} from './WalletStatementModalPropTypes';

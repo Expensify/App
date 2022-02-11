@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 
-export const walletStatementPropTypes = {
+const walletStatementPropTypes = {
 
     /** URL for oldDot (expensify.com) statements page to display */
     statementPageURL: PropTypes.string,
 };
+
+export default walletStatementPropTypes;
