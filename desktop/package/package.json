@@ -1,15 +1,13 @@
 {
   "name": "new.expensify.desktop",
-  "version": "untracked",
-  "description": "Desktop package and dependencies",
-  "main": "main.js",
+  "description": "Desktop package native dependencies",
+  "main": "./dist/main.js",
   "scripts": {},
   "dependencies": {
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.3.5",
     "electron-serve": "^1.0.0",
-    "electron-updater": "^4.3.4",
-    "underscore": "^1.13.1"
+    "electron-updater": "^4.3.4"
   },
   "author": "Expensify, Inc.",
   "license": "MIT",

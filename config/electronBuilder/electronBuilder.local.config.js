@@ -1,4 +1,5 @@
 const ENVIRONMENT = require('../../src/CONST/ENVIRONMENT');
+const {version} = require('../../package.json');
 
 const isStaging = process.env.ELECTRON_ENV === 'staging';
 
@@ -12,7 +13,7 @@ module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'New Expensify',
     extraMetadata: {
-        main: './desktop/main.js',
+        version,
         electronEnvironment: isStaging ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
     },
     mac: {
@@ -30,13 +31,11 @@ module.exports = {
         internetEnabled: true,
     },
     files: [
-        './dist/**/*',
-        './desktop/*.js',
-        './src/libs/checkForUpdates.js',
-        './src/CONST/ENVIRONMENT.js',
+        '!**/*/.well-known',
+        '!**/*/favicon*',
     ],
     directories: {
-        app: 'desktop',
+        app: 'desktop/package',
         output: 'desktop-build',
     },
 };

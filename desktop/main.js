@@ -126,7 +126,7 @@ const electronUpdater = browserWindow => ({
 const mainWindow = (() => {
     const loadURL = ELECTRON_ENVIRONMENT.isDev()
         ? win => win.loadURL(`http://localhost:${port}`)
-        : serve({directory: `${__dirname}/../dist`});
+        : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (ELECTRON_ENVIRONMENT.isDev()) {
