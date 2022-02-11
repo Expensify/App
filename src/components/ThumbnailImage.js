@@ -47,8 +47,8 @@ class ThumbnailImage extends PureComponent {
         let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.40);
         const aspectRatio = height / width;
 
-        // If thumbnail height is greater than its width, then the image is potrait otherwise landsapce.
-        // For potrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
+        // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
+        // For portrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
         if (thumbnailScreenHeight > thumbnailScreenWidth) {
             thumbnailScreenWidth = Math.round(thumbnailScreenHeight * (1 / aspectRatio));
         } else {
