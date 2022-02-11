@@ -551,15 +551,19 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
             return;
         }
 
-        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
+        // If the message is deleted, we should
+        // 1. update the last read in case the deleted message is being counted in the unreadActionCount
+        // 2. Get the previous lastMessageText and update it in Onyx
         setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: ReportActions.getLastMessageText(reportID),
+        });
     });
 
     // If this is the most recent message, update the lastMessageText in the report object as well
-    const previousMessageText = ReportActions.getPreviousMessageText(reportID);
-    if (sequenceNumber === reportMaxSequenceNumbers[reportID] || !message.text) {
+    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || previousMessageText,
+            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || '',
         });
     }
 }
