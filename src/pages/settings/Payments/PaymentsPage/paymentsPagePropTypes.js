@@ -16,6 +16,12 @@ const propTypes = {
     /** Listen for window resize event on web and desktop. */
     shouldListenForResize: PropTypes.bool,
 
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        currentBalance: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -28,6 +34,7 @@ const defaultProps = {
     betas: [],
     isLoadingPaymentMethods: true,
     shouldListenForResize: false,
+    userWallet: {},
 };
 
 export {propTypes, defaultProps};
