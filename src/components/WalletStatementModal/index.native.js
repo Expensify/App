@@ -37,7 +37,7 @@ const WalletStatementModal = (props) => {
                     Cookie: `authToken=${authToken}`,
                 },
             }}
-            incognito  //'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
         />
     );
 };
