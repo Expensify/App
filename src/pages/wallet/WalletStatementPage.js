@@ -12,6 +12,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import CONFIG from '../../CONFIG';
+import WalletStatementModal from '../../components/WalletStatementModal';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,7 +46,7 @@ const defaultProps = {
     },
 };
 
-const WalletStatementModal = (props) => {
+const WalletStatementPage = (props) => {
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
     const month = lodashGet(props.route.params, 'month', moment().month());
     const year = lodashGet(props.route.params, 'year', moment().year());
@@ -62,22 +63,23 @@ const WalletStatementModal = (props) => {
                 title={Str.recapitalize(title)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <WebView
-                originWhitelist={['https://*']}
-                source={{
-                    uri: url,
-                    headers: {
-                        Cookie: `authToken=${authToken}`,
-                    },
-                }}
-            />
+            {/*<WebView*/}
+            {/*    originWhitelist={['https://*']}*/}
+            {/*    source={{*/}
+            {/*        uri: url,*/}
+            {/*        headers: {*/}
+            {/*            Cookie: `authToken=${authToken}`,*/}
+            {/*        },*/}
+            {/*    }}*/}
+            {/*/>*/}
+            <WalletStatementModal url={url}/>
         </ScreenWrapper>
     );
 };
 
-WalletStatementModal.propTypes = propTypes;
-WalletStatementModal.defaultProps = defaultProps;
-WalletStatementModal.displayName = 'WalletStatementModal';
+WalletStatementPage.propTypes = propTypes;
+WalletStatementPage.defaultProps = defaultProps;
+WalletStatementPage.displayName = 'WalletStatementPage';
 export default compose(
     withLocalize,
     withOnyx({
@@ -88,4 +90,4 @@ export default compose(
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
-)(WalletStatementModal);
+)(WalletStatementPage);

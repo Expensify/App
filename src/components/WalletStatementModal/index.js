@@ -1,5 +1,10 @@
 import React, {Component} from 'react';
 import {Linking} from 'react-native';
+import PropTypes from 'prop-types';
+
+const propTypes = {
+    url: PropTypes.string.isRequired,
+};
 
 class WalletStatementModal extends Component {
     constructor(props) {
@@ -14,6 +19,10 @@ class WalletStatementModal extends Component {
         // }
         //
         // document.addEventListener('mousedown', this.closeOnOutsideClick);
+    }
+
+    render() {
+        return null;
     }
 }
 
