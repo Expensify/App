@@ -182,7 +182,7 @@ function getSimplifiedReportObject(report) {
         // We convert the line-breaks in html to space ' ' before striping the tags
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+            .replace(/(<([^>]+)>)/gi, '');
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
