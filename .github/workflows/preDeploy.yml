@@ -14,14 +14,14 @@ jobs:
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           WORKFLOW: lint.yml
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Run tests
         id: tests
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           WORKFLOW: test.yml
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
