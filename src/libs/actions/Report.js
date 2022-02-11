@@ -560,7 +560,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
         });
     });
 
-    // If this is the most recent message, update the lastMessageText in the report object as well
+    // If this is the most recent message and it wasn't deleted, update the lastMessageText in the report object as well
     const lastMessageText = ReportUtils.formatReportLastMessageText(message.text);
     if (lastMessageText && sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastMessageText});

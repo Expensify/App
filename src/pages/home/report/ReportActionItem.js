@@ -97,7 +97,7 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        // Block menu on the message being Edited or is already deleted
+        // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
@@ -119,10 +119,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        // We don't want to display anything for a deleted action
-        if (ReportUtils.isDeletedAction(this.props.action)) {
-            return <></>;
-        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.reportID} />;
         }
