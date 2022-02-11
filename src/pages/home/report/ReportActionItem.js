@@ -119,6 +119,9 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        if (ReportUtils.isDeletedAction(this.props.action)) {
+            return <></>;
+        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.reportID} />;
         }
