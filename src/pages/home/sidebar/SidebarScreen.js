@@ -185,7 +185,7 @@ class SidebarScreen extends Component {
                                     {
                                         icon: Expensicons.Receipt,
                                         text: this.props.translate('iou.splitBill'),
-                                        onSelected: () => Navigation.navigate(ROUTES.getWalletStatementWithDateRoute(202112)),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
                                 ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [

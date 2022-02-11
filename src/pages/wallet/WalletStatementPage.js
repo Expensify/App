@@ -31,13 +31,12 @@ const propTypes = {
 const WalletStatementPage = (props) => {
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
     const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
-    const year = yearMonth.substring(0, 4) ?? moment().year();
-    const month = yearMonth.substring(4) ?? moment().month();
+    const year = yearMonth.substring(0, 4) || moment().year();
+    const month = yearMonth.substring(4) || moment().month();
     const monthName = moment(month, 'M').format('MMMM');
-    const title = `${monthName} ${year} statement`;
+    const title = `${monthName} ${year} statements`;
 
-    // const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${year}${month}`;
-    const url = `https://www.expensify.com/statement.php`;
+    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${yearMonth}`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
