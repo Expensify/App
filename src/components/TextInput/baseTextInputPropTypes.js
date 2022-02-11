@@ -60,6 +60,12 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
+
+    /** Maximum characters allowed */
+    maxLength: PropTypes.number,
+
+    /** Hint text to display below the TextInput */
+    hint: PropTypes.string,
 };
 
 const defaultProps = {
@@ -86,6 +92,8 @@ const defaultProps = {
     hideFocusedState: false,
     innerRef: () => {},
     shouldSaveDraft: false,
+    maxLength: null,
+    hint: '',
 };
 
 export {propTypes, defaultProps};
