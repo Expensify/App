@@ -43,6 +43,7 @@ jobs:
 
       - name: Lint actions
         run: |
+          echo "::add-matcher::.github/workflows/actionlint-matcher.json"
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
           ./actionlint -color
         shell: bash
