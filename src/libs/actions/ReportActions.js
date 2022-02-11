@@ -95,8 +95,19 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
     }, 0);
 }
 
+function getPreviousMessageText(reportID) {
+    for (let i = reportActionsMaxSequenceNumbers[reportID]; i >= 0; i--) {
+        const message = lodashGet(reportActions, [reportID, i, 'message', 0, 'text'], '');
+        if (message !== '') {
+            return message;
+        }
+    }
+    return '';
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
+    getPreviousMessageText,
 };
