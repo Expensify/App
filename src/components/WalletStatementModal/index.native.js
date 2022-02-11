@@ -29,17 +29,18 @@ const defaultProps = {
 const WalletStatementModal = (props) => {
     const authToken = lodashGet(props, 'session.authToken', null);
     return (
-            <WebView
-                originWhitelist={['https://*']}
-                source={{
-                    uri: props.statementPageURL,
-                    headers: {
-                        Cookie: `authToken=${authToken}`,
-                    },
-                }}
-                // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-                incognito
-            />
+        <WebView
+            originWhitelist={['https://*']}
+            source={{
+                uri: props.statementPageURL,
+                headers: {
+                    Cookie: `authToken=${authToken}`,
+                },
+            }}
+
+            // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+            incognito
+        />
     );
 };
 
