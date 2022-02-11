@@ -7,8 +7,8 @@ const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
  * @returns {String} – One of ['PROD', 'STG', 'DEV']
  */
 function getEnvironment() {
-    // If we are on dev, then the NODE_ENV environment variable will be present (set by the executing shell in start.js)
-    if (process.env.NODE_ENV === 'development') {
+    // If we are on dev, then the ELECTRON_ENVIRONMENT environment variable will be present (set in package.json desktop script `npm run desktop`)
+    if (process.env.ELECTRON_ENV === ENVIRONMENT.DEV) {
         return ENVIRONMENT.DEV;
     }
 

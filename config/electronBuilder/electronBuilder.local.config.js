@@ -1,6 +1,6 @@
 const ENVIRONMENT = require('../../src/CONST/ENVIRONMENT');
 
-const isStaging = process.env.NODE_ENV === 'staging';
+const isStaging = process.env.ELECTRON_ENV === 'staging';
 
 /**
  * The basic app configurations for the production and staging Electron builds,
