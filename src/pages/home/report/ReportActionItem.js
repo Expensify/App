@@ -98,7 +98,7 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited or is already deleted
-        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
+        if (this.props.draftMessage) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -119,6 +119,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        // We don't want to display anything for a deleted action
         if (ReportUtils.isDeletedAction(this.props.action)) {
             return <></>;
         }
@@ -193,7 +194,6 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-                                    && !ReportUtils.isDeletedAction(this.props.action)
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
