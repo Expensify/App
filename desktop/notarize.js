@@ -1,5 +1,5 @@
 const {notarize} = require('electron-notarize');
-const electron = require('../config/electronBuilder/electronBuilder.config');
+const electron = require('../config/electronBuilder/electronBuilder.ghactions.config');
 
 exports.default = function notarizing(context) {
     const {electronPlatformName, appOutDir} = context;

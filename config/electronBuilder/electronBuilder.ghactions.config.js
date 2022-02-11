@@ -1,4 +1,4 @@
-const baseElectronBuilderConfig = require('./electronBuilder.base.config');
+const baseElectronBuilderConfig = require('./electronBuilder.local.config');
 
 const isStagingBuild = process.env.NODE_ENV === 'staging';
 

@@ -6,7 +6,7 @@ const isStagingBuild = process.env.NODE_ENV === 'staging';
  * The basic app configurations for the production and staging Electron builds,
  * without the pieces that require code signing, notarizing, and publishing.
  *
- * This has been separated from main electronBuilder.config.js file to make it easier to run local production or staging builds.
+ * This has been separated from main electronBuilder.ghactions.config.js file to make it easier to run local production or staging builds.
  */
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
