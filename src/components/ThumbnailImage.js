@@ -43,12 +43,12 @@ class ThumbnailImage extends PureComponent {
         // a percentage of the screen width since it is relative to each screen
         // Note: Clamp minimum width 40px to support touch device
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
-        const scaleFactor = width / thumbnailScreenWidth;
-        const imageHeight = height / scaleFactor;
+        const imageHeight = height / (width / thumbnailScreenWidth);
         let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.40);
+        const aspectRatio = height / width;
 
-        const aspectRatio = (height / width);
-
+        // If thumbnail height is greater than its width, then the image is potrait otherwise landsapce.
+        // For potrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
         if (thumbnailScreenHeight > thumbnailScreenWidth) {
             thumbnailScreenWidth = Math.round(thumbnailScreenHeight * (1 / aspectRatio));
         } else {
