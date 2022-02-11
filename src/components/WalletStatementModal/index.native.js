@@ -70,7 +70,6 @@ const WalletStatementModal = (props) => {
                         Cookie: `authToken=${authToken}`,
                     },
                 }}
-                sharedCookiesEnabled
             />
         </ScreenWrapper>
     );

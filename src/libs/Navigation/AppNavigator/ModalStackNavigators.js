@@ -30,7 +30,7 @@ import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
-import WalletStatementModal from '../../../pages/wallet/statementModal';
+import WalletStatementPage from '../../../pages/wallet/WalletStatementPage';
 import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
@@ -315,7 +315,7 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
 }]);
 
 const WalletStatementStackNavigator = createModalStackNavigator([{
-    Component: WalletStatementModal,
+    Component: WalletStatementPage,
     name: 'WalletStatement_Root',
 }]);
 
