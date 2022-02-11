@@ -40,10 +40,3 @@ jobs:
 
       - name: Validate actions and workflows
         run: npm run gh-actions-validate
-
-      - name: Lint actions
-        run: |
-          echo "::add-matcher::.github/workflows/actionlint-matcher.json"
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-          ./actionlint -color
-        shell: bash

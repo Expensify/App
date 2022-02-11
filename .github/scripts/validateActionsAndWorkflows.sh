@@ -1,6 +1,6 @@
 #!/bin/bash
-#
-# Validates the Github Actions and workflows using the json schemas provided by https://www.schemastore.org/json/
+
+echo 'Validates the Github Actions and workflows using the json schemas provided by (https://www.schemastore.org/json/)'
 
 # Track exit codes separately so we can run a full validation, report errors, and exit with the correct code
 declare EXIT_CODE=0
@@ -16,5 +16,18 @@ find ./workflows/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./temp
 
 # Cleanup after ourselves and delete the schemas
 rm -rf ./tempSchemas
+
+echo 'Lint Github Actions via actionlint (https://github.com/rhysd/actionlint)'
+
+# If we are running this on a non-CI machine (e.g. locally), install shellcheck
+if [[ -z "${CI}" ]]; then
+  brew install shellcheck
+fi
+
+bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+./actionlint -color
+
+# Cleanup after ourselves and delete the schemas and actionlint
+rm -rf ./tempSchemas ./actionlint
 
 exit $EXIT_CODE
