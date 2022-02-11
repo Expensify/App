@@ -45,7 +45,7 @@ class ThumbnailImage extends PureComponent {
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const scaleFactor = width / thumbnailScreenWidth;
         const imageHeight = height / scaleFactor;
-        let thumbnailScreenHeight = lodashClamp(imageHeight, 0, this.props.windowHeight * 0.40);
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.40);
 
         const aspectRatio = (height / width);
 
@@ -55,7 +55,7 @@ class ThumbnailImage extends PureComponent {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
 
-        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: thumbnailScreenHeight});
+        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
     }
 
     render() {
