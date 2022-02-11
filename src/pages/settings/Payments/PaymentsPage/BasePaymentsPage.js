@@ -1,59 +1,35 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import PaymentMethodList from './PaymentMethodList';
-import ROUTES from '../../../ROUTES';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import PasswordPopover from '../../../components/PasswordPopover';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import Popover from '../../../components/Popover';
-import MenuItem from '../../../components/MenuItem';
-import Text from '../../../components/Text';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import getClickedElementLocation from '../../../libs/getClickedElementLocation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Permissions from '../../../libs/Permissions';
-import ConfirmPopover from '../../../components/ConfirmPopover';
-import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
-import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import walletTransferPropTypes from './walletTransferPropTypes';
-import ConfirmModal from '../../../components/ConfirmModal';
-import KYCWall from '../../../components/KYCWall';
+import PaymentMethodList from '../PaymentMethodList';
+import ROUTES from '../../../../ROUTES';
+import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import PasswordPopover from '../../../../components/PasswordPopover';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import styles from '../../../../styles/styles';
+import withLocalize from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView/index';
+import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import Popover from '../../../../components/Popover';
+import MenuItem from '../../../../components/MenuItem';
+import Text from '../../../../components/Text';
+import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
+import getClickedElementLocation from '../../../../libs/getClickedElementLocation';
+import withWindowDimensions from '../../../../components/withWindowDimensions';
+import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import Permissions from '../../../../libs/Permissions';
+import ConfirmPopover from '../../../../components/ConfirmPopover';
+import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
+import CONST from '../../../../CONST';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import ConfirmModal from '../../../../components/ConfirmModal';
+import KYCWall from '../../../../components/KYCWall';
+import {propTypes, defaultProps} from './paymentsPagePropTypes';
 
-const propTypes = {
-    /** Wallet balance transfer props */
-    walletTransfer: walletTransferPropTypes,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
-
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    walletTransfer: {
-        shouldShowConfirmModal: false,
-    },
-    betas: [],
-    isLoadingPaymentMethods: true,
-};
-
-class PaymentsPage extends React.Component {
+class BasePaymentsPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -95,6 +71,20 @@ class PaymentsPage extends React.Component {
     }
 
     /**
+     * Set position of the payment menu
+     *
+     * @param {Object} position
+     */
+    setPositionAddPaymentMenu(position) {
+        this.setState({
+            anchorPositionTop: position.bottom,
+
+            // We want the position to be 13px to the right of the left border
+            anchorPositionLeft: position.left + 13,
+        });
+    }
+
+    /**
      * Display the delete/default menu, or the add payment method menu
      *
      * @param {Object} nativeEvent
@@ -102,7 +92,13 @@ class PaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        const position = getClickedElementLocation(nativeEvent);
+        let position = getClickedElementLocation(nativeEvent);
+        if (this.props.shouldListenForResize) {
+            window.addEventListener('resize', () => {
+                position = getClickedElementLocation(nativeEvent);
+                this.setPositionAddPaymentMenu(position);
+            });
+        }
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -131,21 +127,15 @@ class PaymentsPage extends React.Component {
                 shouldShowDefaultDeleteMenu: true,
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
-                anchorPositionTop: position.bottom,
-
-                // We want the position to be 13px to the right of the left border
-                anchorPositionLeft: position.left + 13,
                 formattedSelectedPaymentMethod,
             });
-        } else {
-            this.setState({
-                shouldShowAddPaymentMenu: true,
-                anchorPositionTop: position.bottom,
-
-                // We want the position to be 13px to the right of the left border
-                anchorPositionLeft: position.left + 13,
-            });
+            this.setPositionAddPaymentMenu(position);
+            return;
         }
+        this.setState({
+            shouldShowAddPaymentMenu: true,
+        });
+        this.setPositionAddPaymentMenu(position);
     }
 
     /**
@@ -178,6 +168,9 @@ class PaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
+        if (this.props.shouldListenForResize) {
+            window.removeEventListener('resize', null);
+        }
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
@@ -185,6 +178,9 @@ class PaymentsPage extends React.Component {
      * Hide the default / delete modal
      */
     hideDefaultDeleteMenu() {
+        if (this.props.shouldListenForResize) {
+            window.removeEventListener('resize', null);
+        }
         this.setState({shouldShowDefaultDeleteMenu: false});
     }
 
@@ -393,8 +389,8 @@ class PaymentsPage extends React.Component {
     }
 }
 
-PaymentsPage.propTypes = propTypes;
-PaymentsPage.defaultProps = defaultProps;
+BasePaymentsPage.propTypes = propTypes;
+BasePaymentsPage.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -411,4 +407,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(PaymentsPage);
+)(BasePaymentsPage);
