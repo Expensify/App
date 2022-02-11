@@ -1,6 +1,6 @@
 import {Component} from 'react';
 import {Linking} from 'react-native';
-import {walletStatementPropTypes} from './WalletStatementModalPropTypes';
+import walletStatementPropTypes from './WalletStatementModalPropTypes';
 
 class WalletStatementModal extends Component {
     componentDidMount() {
