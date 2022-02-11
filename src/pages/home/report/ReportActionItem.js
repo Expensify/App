@@ -24,7 +24,6 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
-import * as ReportUtils from '../../../libs/reportUtils';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 
 const propTypes = {
