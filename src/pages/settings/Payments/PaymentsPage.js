@@ -40,6 +40,12 @@ const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
 
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        currentBalance: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -242,12 +248,12 @@ class PaymentsPage extends React.Component {
                                     popoverPlacement="bottom"
                                 >
                                     {triggerKYCFlow => (
-                                        <MenuItem
+                                        { <MenuItem
                                             title={this.props.translate('common.transferBalance')}
                                             icon={Expensicons.Transfer}
                                             onPress={triggerKYCFlow}
                                             shouldShowRightIcon
-                                        />
+                                        />}
                                     )}
                                 </KYCWall>
                             </>
@@ -409,6 +415,9 @@ export default compose(
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             initWithStoredValues: false,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(PaymentsPage);
