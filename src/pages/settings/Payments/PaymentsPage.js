@@ -240,22 +240,23 @@ class PaymentsPage extends React.Component {
                                 <View style={[styles.mv5]}>
                                     <CurrentWalletBalance />
                                 </View>
-                                <KYCWall
-                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                    popoverPlacement="bottom"
-                                >
-                                    {triggerKYCFlow => (
-                                        { <MenuItem
-                                            title={this.props.translate('common.transferBalance')}
-                                            icon={Expensicons.Transfer}
-                                            onPress={triggerKYCFlow}
-                                            shouldShowRightIcon
-                                        />}
-                                    )}
-                                </KYCWall>
+                                {this.props.userWallet.currentBalance > 0 && (
+                                    <KYCWall
+                                        onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                        addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                        addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                        popoverPlacement="bottom"
+                                    >
+                                        {triggerKYCFlow => (
+                                            <MenuItem
+                                                title={this.props.translate('common.transferBalance')}
+                                                icon={Expensicons.Transfer}
+                                                onPress={triggerKYCFlow}
+                                                shouldShowRightIcon
+                                            />
+                                        )}
+                                    </KYCWall>)}
                             </>
                         )}
                         <Text
