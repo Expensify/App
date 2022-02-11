@@ -14,6 +14,10 @@ curl https://json.schemastore.org/github-workflow.json --output ./tempSchemas/gi
 find ./actions/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-action.json -d file --strict=false || EXIT_CODE=1
 find ./workflows/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-workflow.json -d file --strict=false || EXIT_CODE=1
 
+if (( $EXIT_CODE == 1 )) then
+  exit $EXIT_CODE
+fi
+
 # Cleanup after ourselves and delete the schemas
 rm -rf ./tempSchemas
 
@@ -25,9 +29,9 @@ if [[ -z "${CI}" ]]; then
 fi
 
 bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-./actionlint -color
+./actionlint -color || EXIT_CODE=1
 
-# Cleanup after ourselves and delete the schemas and actionlint
-rm -rf ./tempSchemas ./actionlint
+# Cleanup after ourselves and delete actionlint
+rm -rf ./actionlint
 
 exit $EXIT_CODE
