@@ -1,6 +1,6 @@
 const ENVIRONMENT = require('../../src/CONST/ENVIRONMENT');
 
-const isStagingBuild = process.env.NODE_ENV === 'staging';
+const isStaging = process.env.NODE_ENV === 'staging';
 
 /**
  * The basic app configurations for the production and staging Electron builds,
@@ -13,11 +13,11 @@ module.exports = {
     productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
-        electronEnvironment: isStagingBuild ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
+        electronEnvironment: isStaging ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: isStagingBuild ? './desktop/icon-stg.png' : './desktop/icon.png',
+        icon: isStaging ? './desktop/icon-stg.png' : './desktop/icon.png',
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
