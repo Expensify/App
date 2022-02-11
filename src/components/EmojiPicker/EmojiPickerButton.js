@@ -21,32 +21,31 @@ const defaultProps = {
     isDisabled: false,
 };
 
-// Defined as a class component as it uses `this.emojiPopoverAnchor` ref
-class EmojiPickerButton extends React.Component {
-    render() {
-        return (
-            <Pressable
-                ref={el => this.emojiPopoverAnchor = el}
-                style={({hovered, pressed}) => ([
-                    styles.chatItemEmojiButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
-                ])}
-                disabled={this.props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(this.props.onModalHide, this.props.onEmojiSelected, this.emojiPopoverAnchor)}
-            >
-                {({hovered, pressed}) => (
-                    <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
-                        <Icon
-                            src={Expensicons.Emoji}
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                        />
-                    </Tooltip>
-                )}
-            </Pressable>
-        );
-    }
-}
+const EmojiPickerButton = (props) => {
+    let emojiPopoverAnchor = null;
+    return (
+        <Pressable
+            ref={el => emojiPopoverAnchor = el}
+            style={({hovered, pressed}) => ([
+                styles.chatItemEmojiButton,
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+            ])}
+            disabled={props.isDisabled}
+            onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
+        >
+            {({hovered, pressed}) => (
+                <Tooltip text={props.translate('reportActionCompose.emoji')}>
+                    <Icon
+                        src={Expensicons.Emoji}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                    />
+                </Tooltip>
+            )}
+        </Pressable>
+    );
+};
 
+EmojiPickerButton.displayName = 'EmojiPickerButton';
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 export default withLocalize(EmojiPickerButton);
