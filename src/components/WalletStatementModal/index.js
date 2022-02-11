@@ -1,10 +1,6 @@
 import React, {Component} from 'react';
 import {Linking} from 'react-native';
-import PropTypes from 'prop-types';
-
-const propTypes = {
-    url: PropTypes.string.isRequired,
-};
+import {walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 class WalletStatementModal extends Component {
     constructor(props) {
@@ -12,7 +8,7 @@ class WalletStatementModal extends Component {
     }
 
     componentDidMount() {
-        Linking.openURL(url);
+        Linking.openURL(this.props.statementPageURL);
     }
 
     render() {
@@ -20,7 +16,7 @@ class WalletStatementModal extends Component {
     }
 }
 
-WalletStatementModal.propTypes = propTypes;
+WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.displayName = 'WalletStatementModal';
 export default WalletStatementModal;
 

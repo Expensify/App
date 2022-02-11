@@ -47,7 +47,7 @@ const WalletStatementPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <WalletStatementModal
-                url={url}
+                statementPageURL={url}
             />
         </ScreenWrapper>
     );

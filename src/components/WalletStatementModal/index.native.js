@@ -3,15 +3,10 @@ import PropTypes from 'prop-types';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
-import Str from 'expensify-common/lib/str';
-import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import withLocalize from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import CONFIG from '../../CONFIG';
+import {walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -22,7 +17,7 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    url: PropTypes.string.isRequired,
+    ...walletStatementPropTypes,
 };
 
 const defaultProps = {
@@ -38,7 +33,7 @@ const WalletStatementModal = (props) => {
             <WebView
                 originWhitelist={['https://*']}
                 source={{
-                    uri: props.url,
+                    uri: props.statementPageURL,
                     headers: {
                         Cookie: `authToken=${authToken}`,
                     },
