@@ -13,7 +13,7 @@
     "ios": "npm run check-metro-bundler-port && react-native run-ios",
     "ipad": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "ipad-sm": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
-    "desktop": "node desktop/start.js",
+    "desktop": "export NODE_ENV=development && node desktop/start.js",
     "start": "react-native start",
     "web": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.prod.js",
