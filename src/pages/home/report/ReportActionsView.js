@@ -333,7 +333,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .map((item, index) => ({action: item, index}))
