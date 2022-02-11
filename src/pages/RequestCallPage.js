@@ -95,11 +95,11 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
+        const {fName, lName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
-            firstName,
+            firstName: fName,
             hasFirstNameError: false,
-            lastName,
+            lastName: lName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
@@ -203,27 +203,34 @@ class RequestCallPage extends Component {
      *
      * @returns {Object}
      */
-    getFirstAndLastName({login, displayName}) {
-        let firstName;
-        let lastName;
+    getFirstAndLastName({
+        login,
+        displayName,
+        firstName,
+        lastName,
+    }) {
+        let fName;
+        let lName;
 
-        if (Str.removeSMSDomain(login) === displayName) {
-            firstName = '';
-            lastName = '';
+        if (firstName && lastName) {
+            fName = firstName;
+            lName = lastName;
+        } else if (Str.removeSMSDomain(login) === displayName) {
+            fName = '';
+            lName = '';
         } else {
             const firstSpaceIndex = displayName.indexOf(' ');
             const lastSpaceIndex = displayName.lastIndexOf(' ');
 
             if (firstSpaceIndex === -1) {
-                firstName = displayName;
-                lastName = '';
+                fName = displayName;
+                lName = '';
             } else {
-                firstName = displayName.substring(0, firstSpaceIndex);
-                lastName = displayName.substring(lastSpaceIndex);
+                fName = displayName.substring(0, firstSpaceIndex);
+                lName = displayName.substring(lastSpaceIndex);
             }
         }
-
-        return {firstName, lastName};
+        return {fName, lName};
     }
 
     getWaitTimeMessageKey(minutes) {
