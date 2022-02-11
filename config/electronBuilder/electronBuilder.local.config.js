@@ -30,12 +30,13 @@ module.exports = {
         internetEnabled: true,
     },
     files: [
-        '../dist/**/*',
-        '*.js',
-        '../src/libs/checkForUpdates.js',
-        '../src/CONST/ENVIRONMENT.js',
+        './dist/**/*',
+        './desktop/*.js',
+        './src/libs/checkForUpdates.js',
+        './src/CONST/ENVIRONMENT.js',
     ],
     directories: {
-        output: '../desktop-build',
+        app: 'desktop',
+        output: 'desktop-build',
     },
 };
