@@ -20,11 +20,8 @@ const propTypes = {
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
 
-            /** The statement year */
-            year: PropTypes.string.isRequired,
-
-            /** The statement month */
-            month: PropTypes.string.isRequired,
+            /** The statement year and month as one string, i.e. 202110 */
+            yearMonth: PropTypes.string.isRequired,
         }).isRequired,
     }).isRequired,
 
@@ -33,8 +30,9 @@ const propTypes = {
 
 const WalletStatementPage = (props) => {
     moment.locale(lodashGet(props, 'preferredLocale', 'en'));
-    const month = lodashGet(props.route.params, 'month', moment().month());
-    const year = lodashGet(props.route.params, 'year', moment().year());
+    const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
+    const year = yearMonth.substring(0, 4) ?? moment().year();
+    const month = yearMonth.substring(4) ?? moment().month();
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statement`;
 
