@@ -57,6 +57,7 @@ const defaultProps = {
     },
     betas: [],
     isLoadingPaymentMethods: true,
+    userWallet: {},
 };
 
 class PaymentsPage extends React.Component {
@@ -256,7 +257,8 @@ class PaymentsPage extends React.Component {
                                                 shouldShowRightIcon
                                             />
                                         )}
-                                    </KYCWall>)}
+                                    </KYCWall>
+                                )}
                             </>
                         )}
                         <Text
