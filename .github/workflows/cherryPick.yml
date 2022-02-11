@@ -98,8 +98,10 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Save correct NEW_VERSION to env
+        env:
+          NEW_VERSION: ${{ github.event.inputs.NEW_VERSION }}
         run: |
-          if [ -z ${{ github.event.inputs.NEW_VERSION }} ]; then
+          if [ -z "$NEW_VERSION" ]; then
             echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> "$GITHUB_ENV"
             echo "New version is ${{ env.NEW_VERSION }}"
           else

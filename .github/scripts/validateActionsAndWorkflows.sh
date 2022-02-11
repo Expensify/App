@@ -21,6 +21,7 @@ fi
 # Cleanup after ourselves and delete the schemas
 rm -rf ./tempSchemas
 
+echo
 echo 'Lint Github Actions via actionlint (https://github.com/rhysd/actionlint)'
 
 # If we are running this on a non-CI machine (e.g. locally), install shellcheck

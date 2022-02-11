@@ -18,10 +18,10 @@ jobs:
 
       - name: Get URL, title, & number of new deploy blocker (issue)
         if: ${{ github.event_name == 'issues' }}
+        env:
+          TITLE: ${{ github.event.issue.title }}
         run: |
-          echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}" >> "$GITHUB_ENV"
-          echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_ENV"
-          echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "'${{ github.event.issue.title }}'")" >> "$GITHUB_ENV"
+          { echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}"; echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}"; echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "$TITLE")";} >> "$GITHUB_ENV"
 
       - name: Update StagingDeployCash with new deploy blocker
         uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
