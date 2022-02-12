@@ -183,7 +183,7 @@ const mainWindow = (() => {
                 const path = require('path');
                 const devEnvConfig = dotenv.config({path: path.resolve(__dirname, '../.env')}).parsed;
 
-                if (devEnvConfig.USE_WEB_PROXY === 'true') {
+                if (devEnvConfig.USE_WEB_PROXY !== 'false') {
                     browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
                         // eslint-disable-next-line no-param-reassign
                         details.responseHeaders['access-control-allow-origin'] = ['http://localhost:8080'];
