@@ -152,7 +152,6 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
-          organization: Expensify
           team: expensify-expensify
 
   newContributorWelcomeMessage:
