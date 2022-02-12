@@ -59,13 +59,6 @@ function SignInOptions(props) {
                     onPress={() => Session.signInGoogle()}
                 />
             </View>
-            <View style={[styles.mt3]}>
-                <Button
-                    success
-                    isDisabled={buttonsDisabled}
-                    text={props.translate('signInPage.appleButton')}
-                />
-            </View>
             {!_.isEmpty(props.account.error) && (
                 <View style={[styles.mt3]}>
                     <Text style={[styles.formError]}>
