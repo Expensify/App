@@ -259,9 +259,7 @@ function signInGoogle() {
 
     signInWithGoogle()
         .then(res => API.SignInGoogle(res)
-            .then(({authToken, email}) => {
-                createTemporaryLogin(authToken, email);
-            }))
+            .then(({authToken, email}) => createTemporaryLogin(authToken, email)))
         .catch(() => {
             // Set the same error message when signInWithGoogle or API.SignInGoogle fails
             Onyx.merge(ONYXKEYS.ACCOUNT, {
