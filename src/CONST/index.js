@@ -174,6 +174,16 @@ const CONST = {
             shortcutKey: 'C',
             modifiers: ['CTRL'],
         },
+        ARROW_UP: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowUp',
+            modifiers: [],
+        },
+        ARROW_DOWN: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowDown',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'Ctrl',

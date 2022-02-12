@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
@@ -91,7 +92,6 @@ class OptionsSelector extends Component {
     constructor(props) {
         super(props);
 
-        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
 
@@ -105,6 +105,70 @@ class OptionsSelector extends Component {
             setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             this.textInput.focus();
+        }
+
+        this.setupKeyHandlers();
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeKeyHandlers();
+    }
+
+    setupKeyHandlers() {
+        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+
+        // Setup and attach keypress handler for pressing the button with Enter key
+        this.unsubscribeEnterKeyHandler = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
+            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
+            this.selectRow(allOptions[this.state.focusedIndex]);
+        }, enterConfig.descriptionKey, enterConfig.modifiers, true);
+
+        this.unsubscribeArrowUpKeyHandler = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
+            this.setState((prevState) => {
+                let newFocusedIndex = prevState.focusedIndex - 1;
+
+                // Wrap around to the bottom of the list
+                if (newFocusedIndex < 0) {
+                    newFocusedIndex = allOptions.length - 1;
+                }
+
+                const {index, sectionIndex} = allOptions[newFocusedIndex];
+                this.scrollToFocusedIndex(sectionIndex, index);
+                return {focusedIndex: newFocusedIndex};
+            });
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
+
+        this.unsubscribeArrowDownKeyHandler = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
+            this.setState((prevState) => {
+                let newFocusedIndex = prevState.focusedIndex + 1;
+
+                // Wrap around to the top of the list
+                if (newFocusedIndex > allOptions.length - 1) {
+                    newFocusedIndex = 0;
+                }
+
+                const {index, sectionIndex} = allOptions[newFocusedIndex];
+                this.scrollToFocusedIndex(sectionIndex, index);
+                return {focusedIndex: newFocusedIndex};
+            });
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
+    }
+
+    unsubscribeKeyHandlers() {
+        if (this.unsubscribeEnterKeyHandler) {
+            this.unsubscribeEnterKeyHandler();
+        }
+
+        if (this.unsubscribeArrowUpKeyHandler) {
+            this.unsubscribeArrowUpKeyHandler();
+        }
+
+        if (this.unsubscribeArrowDownKeyHandler) {
+            this.unsubscribeArrowDownKeyHandler();
         }
     }
 
@@ -133,68 +197,7 @@ class OptionsSelector extends Component {
     }
 
     /**
-     * Delegate key presses to specific callbacks
-     *
-     * @param {SyntheticEvent} e
-     */
-    handleKeyPress(e) {
-        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-
-        if (allOptions.length === 0) {
-            return;
-        }
-
-        if (this.props.disableArrowKeysActions && e.nativeEvent.key.startsWith('Arrow')) {
-            return;
-        }
-
-        switch (e.nativeEvent.key) {
-            case 'Enter': {
-                this.selectRow(allOptions[this.state.focusedIndex]);
-                e.preventDefault();
-                break;
-            }
-
-            case 'ArrowDown': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex + 1;
-
-                    // Wrap around to the top of the list
-                    if (newFocusedIndex > allOptions.length - 1) {
-                        newFocusedIndex = 0;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-                e.preventDefault();
-                break;
-            }
-
-            case 'ArrowUp': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex - 1;
-
-                    // Wrap around to the bottom of the list
-                    if (newFocusedIndex < 0) {
-                        newFocusedIndex = allOptions.length - 1;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-                e.preventDefault();
-                break;
-            }
-
-            default:
-        }
-    }
-
-    /**
-     * Completes the follow up actions after a row is selected
+     * Completes the follow-up actions after a row is selected
      *
      * @param {Object} option
      */
@@ -213,7 +216,6 @@ class OptionsSelector extends Component {
                         ref={el => this.textInput = el}
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
-                        onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
