@@ -179,7 +179,6 @@ const mainWindow = (() => {
             }
 
             if (ELECTRON_ENVIRONMENT.isDev()) {
-                require('dotenv').config();
                 if (process.env.USE_WEB_PROXY !== 'false') {
                     browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
                         // eslint-disable-next-line no-param-reassign
