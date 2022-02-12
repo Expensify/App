@@ -1,3 +1,5 @@
+// This is a polyfill for InternetExplorer to support the modern KeyboardEvent.key and KeyboardEvent.code instead of KeyboardEvent.keyCode
+import 'shim-keyboard-event-key';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -66,15 +68,54 @@ function getDisplayName(key, modifiers) {
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
-    if (!(event instanceof KeyboardEvent)) {
+    const correctedKey = event.key.toLowerCase();
+
+    if (events[correctedKey] === undefined) {
         return;
     }
 
-    const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key, eventModifiers);
+    const eventCallbacks = events[correctedKey];
 
-    // Loop over all the callbacks
-    _.every(eventHandlers[displayName], (callback) => {
+    // Loop over all the callbacks in reverse
+    _.every(eventCallbacks.reverse(), (callback) => {
+        const pressedModifiers = _.all(callback.modifiers, (modifier) => {
+            if (modifier === 'shift' && !event.shiftKey) {
+                return false;
+            }
+            if (modifier === 'control' && !event.ctrlKey) {
+                return false;
+            }
+            if (modifier === 'alt' && !event.altKey) {
+                return false;
+            }
+            if (modifier === 'meta' && !event.metaKey) {
+                return false;
+            }
+            return true;
+        });
+
+        const extraModifiers = _.difference(['shift', 'control', 'alt', 'meta'], callback.modifiers);
+
+        // returns true if extra modifiers are pressed
+        const pressedExtraModifiers = _.some(extraModifiers, (extraModifier) => {
+            if (extraModifier === 'shift' && event.shiftKey) {
+                return true;
+            }
+            if (extraModifier === 'control' && event.ctrlKey) {
+                return true;
+            }
+            if (extraModifier === 'alt' && event.altKey) {
+                return true;
+            }
+            if (extraModifier === 'meta' && event.metaKey) {
+                return true;
+            }
+            return false;
+        });
+        if (!pressedModifiers || pressedExtraModifiers) {
+            return true;
+        }
+
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -105,7 +146,16 @@ document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: tru
 document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
 
 /**
- * Unsubscribes a keyboard event handler.
+ * Unsubscribes to a keyboard event.
+ * @param {String} key The key to stop watching
+ * @private
+ */
+function unsubscribe(key) {
+    events[key].pop();
+}
+
+/**
+ * Add key to the shortcut map
  *
  * @param {String} displayName The display name for the key combo to stop watching
  * @param {String} callbackID The specific ID given to the callback at the time it was added
@@ -145,21 +195,12 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
-    const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
-    const displayName = getDisplayName(key, platformAdjustedModifiers);
-    if (!_.has(eventHandlers, displayName)) {
-        eventHandlers[displayName] = [];
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
+    const correctedKey = key.toLowerCase();
+    if (events[correctedKey] === undefined) {
+        events[correctedKey] = [];
     }
-
-    const callbackID = Str.guid();
-    eventHandlers[displayName].splice(priority, 0, {
-        id: callbackID,
-        callback,
-        captureOnInputs,
-        shouldPreventDefault,
-        shouldBubble,
-    });
+    events[correctedKey].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
 
     if (descriptionKey) {
         documentedShortcuts[displayName] = {
@@ -169,8 +210,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
             modifiers,
         };
     }
-
-    return () => unsubscribe(displayName, callbackID);
+    return () => unsubscribe(correctedKey);
 }
 
 /**
