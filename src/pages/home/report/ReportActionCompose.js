@@ -4,6 +4,7 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
+    Platform,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -44,7 +45,6 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPicker from '../../../components/EmojiPicker';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-
 
 const propTypes = {
     /** Beta features list */
@@ -133,20 +133,23 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.setTextAndSelectionOfTextInput = this.setTextAndSelectionOfTextInput.bind(this);
+        this.reFocusAfterEmojiPickerHide = this.reFocusAfterEmojiPickerHide.bind(this);
+        this.blurTextInputBeforeEmojiPickerShown = this.blurTextInputBeforeEmojiPickerShown.bind(this);
+
+        this.currentSelection = null;
+        this.isEmojiPickerShown = false;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            selection: {
-                start: props.comment.length,
-                end: props.comment.length,
-            },
         };
     }
 
     componentDidMount() {
+        this.setTextAndSelectionOfTextInput(this.comment, {start: this.comment.length, end: this.comment.length});
         ReportActionComposeFocusManager.onComposerFocus(() => {
             if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
                 return;
@@ -179,7 +182,8 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        if (this.isEmojiPickerShown) { return; }
+        this.currentSelection = e.nativeEvent.selection;
     }
 
     /**
@@ -242,23 +246,60 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Set text input value and selection, then call updateComment with newText parameter
+     *
+     * @param {String} newText
+     * @param {Object} selection: {start: number, end: number}
+     */
+    setTextAndSelectionOfTextInput(newText, selection) {
+        if (Platform.OS === 'web') {
+            // react-native-web
+            // because setNativeProps in react-native-web is slow and doesn't have good support
+            this.textInput.value = newText;
+            this.textInput.setSelectionRange(selection.start, selection.end);
+        } else {
+            this.textInput.setNativeProps({text: newText, selection});
+
+            // Relasing selection handling to system
+            setTimeout(() => this.textInput.setNativeProps({selection: {start: undefined, end: undefined}}), 0);
+        }
+        this.updateComment(newText);
+    }
+
+    /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateComment(newComment);
+        const {start, end} = this.currentSelection;
+
+        const newComment = this.comment.slice(0, start)
+            + emoji
+            + this.comment.slice(end, this.comment.length);
+
+        const nextSelection = {
+            start: start + emoji.length,
+            end: start + emoji.length,
+        };
+
+        this.setTextAndSelectionOfTextInput(newComment, nextSelection);
+    }
+
+    /**
+     * Callback after emoji picker finish and hidden
+     */
+    reFocusAfterEmojiPickerHide() {
+        this.focus(true);
+        this.isEmojiPickerShown = false;
+    }
+
+    /**
+     * Callback before emoji picker shown
+     */
+    blurTextInputBeforeEmojiPickerShown() {
+        this.isEmojiPickerShown = true;
+        this.textInput.blur();
     }
 
     /**
@@ -310,18 +351,18 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        this.textInput.setNativeProps({text: newComment});
-        this.setState({
-            isCommentEmpty: newComment.length === 0,
-        });
-
-        // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
+            if (this.state.isCommentEmpty) {
+                this.setState({isCommentEmpty: false});
+            }
             Report.setReportWithDraft(this.props.reportID.toString(), true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
+            if (!this.state.isCommentEmpty) {
+                this.setState({isCommentEmpty: true});
+            }
             Report.setReportWithDraft(this.props.reportID.toString(), false);
         }
 
@@ -551,7 +592,6 @@ class ReportActionCompose extends React.Component {
                                         this.setState({isDraggingOver: false});
                                     }}
                                     style={[styles.textInputCompose, styles.flex4]}
-                                    defaultValue={this.props.comment}
                                     maxLines={16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
@@ -559,7 +599,6 @@ class ReportActionCompose extends React.Component {
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                     isDisabled={isComposeDisabled || isBlockedFromConcierge || isArchivedChatRoom}
-                                    selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
 
@@ -568,9 +607,9 @@ class ReportActionCompose extends React.Component {
                     </AttachmentModal>
                     <EmojiPicker
                         isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
-                        onModalHide={() => this.focus(true)}
+                        onModalHide={this.reFocusAfterEmojiPickerHide}
                         onEmojiSelected={this.addEmojiToTextBox}
-                        onBeforeShowEmojiPicker={() => this.textInput.blur()}
+                        onBeforeShowEmojiPicker={this.blurTextInputBeforeEmojiPickerShown}
                     />
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
