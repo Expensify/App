@@ -1,0 +1,104 @@
+// import Config from 'react-native-config';
+// import lodashGet from 'lodash/get';
+
+const {OAuth2Client} = require('google-auth-library');
+const http = require('http');
+const url = require('url');
+const open = require('open');
+
+const options = {
+    callbackPath: '/callback',
+    loopbackRedirectPort: '3000',
+    loopbackRedirectHost: 'http://localhost',
+};
+
+/**
+* Create a new OAuth2Client, and go through the OAuth2 content
+* workflow.  Return the full client to the callback.
+* @returns {Promise<any>}
+*/
+function getAuthenticatedClient() {
+    return new Promise((resolve, reject) => {
+    // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
+    // which should be downloaded from the Google Developers Console.
+        const oAuth2Client = new OAuth2Client({
+            // clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
+            clientId: '1016036866283-cop3sd9or3nlb4innbkn3im8t4oo4u7d.apps.googleusercontent.com',
+            clientSecret: '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',
+
+            // redirectUri: 'http://127.0.0.1:42813/callback',
+            // redirectUri: 'http://localhost:3000/callback',
+            redirectUri: `${options.loopbackRedirectHost}:${options.loopbackRedirectPort}${options.callbackPath}`,
+
+        });
+
+        // Generate the url that will be used for the consent dialog.
+        const authorizeUrl = oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: 'https://www.googleapis.com/auth/userinfo.profile',
+        });
+
+        // Open an http server to accept the oauth callback. In this simple example, the
+        // only request to our webserver is to /oauth2callback?code=<code>
+        const server = http.createServer((req, res) => {
+            try {
+                if (req.url && url.parse(req.url).pathname === options.callbackPath) {
+                    // acquire the code from the querystring, and close the web server.
+                    const qs = new url.URL(req.url, options.loopbackRedirectHost)
+                        .searchParams;
+                    const code = qs.get('code');
+                    console.log(`Code is ${code}`);
+                    res.end('Authentication successful! Please return to New Expensify.');
+
+                    // Now that we have the code, use that to acquire tokens.
+                    oAuth2Client.getToken(code).then((r) => {
+                        // Make sure to set the credentials on the OAuth2 client.
+                        oAuth2Client.setCredentials(r.tokens);
+                        console.info('Tokens acquired.');
+                        resolve(oAuth2Client);
+                        server.close();
+                    }).catch(reject);
+                } else {
+                    res.end();
+                }
+            } catch (e) {
+                reject(e);
+            }
+        }).listen(options.loopbackRedirectPort, () => {
+            // open the browser to the authorize url to start the workflow
+            open(authorizeUrl, {wait: false}).then(cp => cp.unref());
+        }).on('error', e => reject(e));
+
+        // destroyer(server);
+    });
+}
+
+/**
+ * Function to signIn the user with their Google account
+ *
+ * @returns {Promise<{ token: string, email: string }>}
+ */
+export default function signInWithGoogle() {
+    return getAuthenticatedClient().then((oAuth2Client) => {
+        console.log(oAuth2Client);
+
+        // Make a simple request to the People API using our pre-authenticated client. The `request()` method
+        // takes an GaxiosOptions object.  Visit https://github.com/JustinBeckwith/gaxios.
+        return oAuth2Client.request({
+            url: 'https://people.googleapis.com/v1/people/me',
+
+            // url: 'https://www.googleapis.com/oauth2/v2/userinfo',
+        }).then((res) => {
+            console.log(res.data);
+
+            // After acquiring an access_token, you may want to check on the audience, expiration,
+            // or original scopes requested.  You can do that with the `getTokenInfo` method.
+            return oAuth2Client.getTokenInfo(
+                oAuth2Client.credentials.access_token,
+            ).then((tokenInfo) => {
+                console.log(tokenInfo);
+                return {email: '', token: ''};
+            });
+        });
+    });
+}
