@@ -791,6 +791,27 @@ function getReportIcons(report, personalDetails) {
     return _.map(sortedParticipants, item => item.avatar);
 }
 
+/**
+ * Flattens an array of sections into a single array of options.
+ * Each object in this array is enhanced to have:
+ *
+ *   1. A `sectionIndex`, which represents the index of the section it came from
+ *   2. An `index`, which represents the index of the option within the section it came from.
+ *
+ * @param {Array<Object>} sections
+ * @returns {Array<Object>}
+ */
+function flattenSections(sections) {
+    return _.reduce(sections, (allOptions, section, sectionIndex) => ([
+        ...allOptions,
+        ..._.map(section.data, (option, index) => ({
+            ...option,
+            index,
+            sectionIndex,
+        })),
+    ]), []);
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -804,4 +825,5 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
     getReportIcons,
+    flattenSections,
 };

@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import OptionsList from './OptionsList';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
@@ -11,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
 
 const propTypes = {
-    /** Wether we should wait before focusing the TextInput, useful when using transitions  */
+    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
 
     /** Callback to fire when a row is tapped */
@@ -114,6 +115,10 @@ class OptionsSelector extends Component {
      * @param {Number} itemIndex
      */
     scrollToFocusedIndex(sectionIndex, itemIndex) {
+        if (!this.list) {
+            return;
+        }
+
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
@@ -133,15 +138,7 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        // We are mapping over all the options to combine them into a single array and also saving the section index
-        // index within that section so we can navigate
-        const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
-            [...options, ..._.map(section.data, (option, index) => ({
-                ...option,
-                index,
-                sectionIndex,
-            }))]
-        ), []);
+        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
 
         if (allOptions.length === 0) {
             return;
@@ -171,8 +168,6 @@ class OptionsSelector extends Component {
                     this.scrollToFocusedIndex(sectionIndex, index);
                     return {focusedIndex: newFocusedIndex};
                 });
-
-
                 e.preventDefault();
                 break;
             }

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -136,28 +137,18 @@ class IOUConfirmationList extends Component {
         this.state = {
             participants: formattedParticipants,
         };
+        this.state.focusedIndex = OptionsListUtils.flattenSections(this.getSections()).length;
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+        this.scrollToFocusedIndex = this.scrollToFocusedIndex.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
     }
 
     componentDidMount() {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-    }
-
-    /**
-     * @param {String} value
-     */
-    confirm(value) {
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onSendMoney(value);
-        } else {
-            Log.info(`[IOU] Requesting money via: ${value}`);
-            this.props.onConfirm(this.getSplits());
-        }
     }
 
     /**
@@ -202,7 +193,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the sections needed for the OptionsSelector
-     * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
     getSections() {
@@ -231,12 +221,12 @@ class IOUConfirmationList extends Component {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset: 1,
             }, {
                 title: undefined,
                 data: formattedUnselectedParticipants,
                 shouldShow: !_.isEmpty(formattedUnselectedParticipants),
-                indexOffset: 0,
+                indexOffset: 1 + formattedSelectedParticipants.length,
             });
         } else {
             const formattedParticipants = OptionsListUtils.getIOUConfirmationOptionsFromParticipants(this.props.participants,
@@ -344,6 +334,103 @@ class IOUConfirmationList extends Component {
         });
     }
 
+    /**
+     * Scrolls to the focused index within the SectionList
+     *
+     * @param {Number} sectionIndex
+     * @param {Number} itemIndex
+     */
+    scrollToFocusedIndex(sectionIndex, itemIndex) {
+        if (!this.list) {
+            return;
+        }
+
+        // Note: react-native's SectionList automatically strips out any empty sections.
+        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+        let adjustedSectionIndex = sectionIndex;
+        for (let i = 0; i < sectionIndex; i++) {
+            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+                adjustedSectionIndex--;
+            }
+        }
+
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
+    }
+
+
+    /**
+     * Delegate key presses to specific callbacks
+     *
+     * @param {SyntheticEvent} e
+     */
+    handleKeyPress(e) {
+        const allOptions = OptionsListUtils.flattenSections(this.getSections());
+        switch (e.nativeEvent.key) {
+            case 'Enter': {
+                if (this.state.focusedIndex === allOptions.length) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                if (this.props.hasMultipleParticipants) {
+                    this.toggleOption(allOptions[this.state.focusedIndex]);
+                }
+
+                break;
+            }
+            case 'ArrowDown': {
+                this.setState((prevState) => {
+                    let newFocusedIndex = prevState.focusedIndex + 1;
+
+                    // Wrap around to the top of the list
+                    if (newFocusedIndex > allOptions.length - 1) {
+                        newFocusedIndex = 0;
+                    }
+
+                    const {index, sectionIndex} = allOptions[newFocusedIndex];
+                    this.scrollToFocusedIndex(sectionIndex, index);
+                    return {focusedIndex: newFocusedIndex};
+                });
+                e.preventDefault();
+                break;
+            }
+
+            case 'ArrowUp': {
+                this.setState((prevState) => {
+                    let newFocusedIndex = prevState.focusedIndex - 1;
+
+                    // Wrap around to the bottom of the list
+                    if (newFocusedIndex < 0) {
+                        newFocusedIndex = allOptions.length - 1;
+                    }
+
+                    const {index, sectionIndex} = allOptions[newFocusedIndex];
+                    this.scrollToFocusedIndex(sectionIndex, index);
+                    return {focusedIndex: newFocusedIndex};
+                });
+                e.preventDefault();
+                break;
+            }
+
+            default:
+        }
+    }
+
+    /**
+     * @param {String} value
+     */
+    confirm(value) {
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            Log.info(`[IOU] Sending money via: ${value}`);
+            this.props.onSendMoney(value);
+        } else {
+            Log.info(`[IOU] Requesting money via: ${value}`);
+            this.props.onConfirm(this.getSplits());
+        }
+    }
+
     render() {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
@@ -356,9 +443,9 @@ class IOUConfirmationList extends Component {
             <>
                 <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
                     <OptionsList
+                        ref={e => this.list = e}
                         sections={this.getSections()}
-                        disableArrowKeysActions
-                        disableFocusOptions
+                        focusedIndex={this.state.focusedIndex}
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
@@ -373,6 +460,7 @@ class IOUConfirmationList extends Component {
                         ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
+                        onKeyPress={this.handleKeyPress}
                         onChangeText={this.props.onUpdateComment}
                         placeholder={this.props.translate('common.optional')}
                         placeholderTextColor={themeColors.placeholderText}
@@ -400,7 +488,13 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             isLoading={isLoading}
-                            onPress={(_event, value) => this.confirm(value)}
+                            onPress={(_event, value) => {
+                                const allOptions = OptionsListUtils.flattenSections(this.getSections());
+                                if (this.state.focusedIndex !== allOptions.length) {
+                                    return;
+                                }
+                                this.confirm(value);
+                            }}
                             options={this.splitOrRequestOptions}
                         />
                     )}
