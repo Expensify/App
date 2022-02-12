@@ -52,7 +52,7 @@ function getAuthenticatedClient() {
         // Generate the url that will be used for the consent dialog.
         const authorizeUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
-            scope: 'https://www.googleapis.com/auth/userinfo.profile',
+            scope: 'email',
         });
 
         // Open an http server to accept the oauth callback. In this simple example, the
@@ -102,9 +102,8 @@ export default function signInWithGoogle() {
         // Make a simple request to the People API using our pre-authenticated client. The `request()` method
         // takes an GaxiosOptions object.  Visit https://github.com/JustinBeckwith/gaxios.
         return oAuth2Client.request({
-            url: 'https://people.googleapis.com/v1/people/me',
 
-            // url: 'https://www.googleapis.com/oauth2/v2/userinfo',
+            url: 'https://www.googleapis.com/oauth2/v2/userinfo',
         }).then((res) => {
             console.log(res.data);
 
@@ -116,6 +115,9 @@ export default function signInWithGoogle() {
                 console.log(tokenInfo);
                 return {email: '', token: ''};
             });
+        }).catch((err) => {
+            debugger;
+            console.log(err);
         });
     });
 }
