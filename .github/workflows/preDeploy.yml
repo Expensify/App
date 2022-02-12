@@ -138,12 +138,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  # Check if actor is member of Expensify organization
+  # Check if actor is member of Expensify organization by looking for expensify-expensify team
   isOrganizationMember:
     runs-on: ubuntu-latest
 
     outputs:
-      isMember: ${{ contains(fromJSON(steps.checkActor.outputs.teams), 'expensify-expensify') }}
+      isExpensifyEmployee: ${{ steps.checkActor.outputs.isTeamMember }}
 
     steps:
       - name: Check whether the actor is member of Expensify organization
@@ -153,6 +153,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
           organization: Expensify
+          team: expensify-expensify
 
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
