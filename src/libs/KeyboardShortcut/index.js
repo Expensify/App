@@ -1,3 +1,5 @@
+// This is a polyfill for InternetExplorer to support the modern KeyboardEvent.key and KeyboardEvent.code instead of KeyboardEvent.keyCode
+import 'shim-keyboard-event-key';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import getOperatingSystem from '../getOperatingSystem';
@@ -19,16 +21,17 @@ function getKeyboardShortcuts() {
  * @param {Event} event
  * @private
  */
-function bindHandlerToKeyupEvent(event) {
-    if (events[event.keyCode] === undefined) {
+function bindHandlerToKeydownEvent(event) {
+    const correctedKey = event.key.toLowerCase();
+
+    if (events[correctedKey] === undefined) {
         return;
     }
 
-    const eventCallbacks = events[event.keyCode];
-    const reversedEventCallbacks = [...eventCallbacks].reverse();
+    const eventCallbacks = events[correctedKey];
 
-    // Loop over all the callbacks
-    _.every(reversedEventCallbacks, (callback) => {
+    // Loop over all the callbacks in reverse
+    _.every(eventCallbacks.reverse(), (callback) => {
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
@@ -87,36 +90,16 @@ function bindHandlerToKeyupEvent(event) {
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
-
-/**
- * Returns keyCode for a given key
- * @param {String} key The key to watch, i.e. 'K' or 'Escape'
- * @returns {Number} The key's keyCode, i.e. 75 or 27
- * @private
- */
-function getKeyCode(key) {
-    // For keys that have longer names we must catch and return the correct key key.charCodeAt(0) would return the
-    // key code for 'E' (the letter at index 0 in the string) not 'Escape'
-    switch (key) {
-        case 'Enter':
-            return 13;
-        case 'Escape':
-            return 27;
-        default:
-            return key.charCodeAt(0);
-    }
-}
+document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
 
 /**
  * Unsubscribes to a keyboard event.
- * @param {Number} key The key to stop watching
+ * @param {String} key The key to stop watching
  * @private
  */
 function unsubscribe(key) {
-    const keyCode = getKeyCode(key);
-    events[keyCode].pop();
+    events[key].pop();
 }
 
 /**
@@ -155,16 +138,16 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
-    const keyCode = getKeyCode(key);
-    if (events[keyCode] === undefined) {
-        events[keyCode] = [];
+    const correctedKey = key.toLowerCase();
+    if (events[correctedKey] === undefined) {
+        events[correctedKey] = [];
     }
-    events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+    events[correctedKey].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
 
     if (descriptionKey) {
         addKeyToMap(key, modifiers, descriptionKey);
     }
-    return () => unsubscribe(key);
+    return () => unsubscribe(correctedKey);
 }
 
 /**
