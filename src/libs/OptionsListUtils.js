@@ -802,14 +802,17 @@ function getReportIcons(report, personalDetails) {
  * @returns {Array<Object>}
  */
 function flattenSections(sections) {
-    return _.reduce(sections, (allOptions, section, sectionIndex) => ([
-        ...allOptions,
-        ..._.map(section.data, (option, index) => ({
-            ...option,
-            index,
-            sectionIndex,
-        })),
-    ]), []);
+    const allOptions = [];
+    _.each(sections, (section, sectionIndex) => {
+        _.each(section.data, (option, optionIndex) => {
+            allOptions.push({
+                ...option,
+                sectionIndex,
+                index: optionIndex,
+            });
+        });
+    });
+    return allOptions;
 }
 
 export {
