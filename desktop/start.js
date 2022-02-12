@@ -9,7 +9,7 @@ portfinder.getPortPromise({
 }).then((port) => {
     const processes = [
         {
-            command: `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --platform desktop`,
+            command: `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env.platform desktop`,
             name: 'Renderer',
             prefixColor: 'red.dim',
 

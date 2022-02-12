@@ -1,16 +1,11 @@
-const _ = require('underscore');
 const path = require('path');
-const {IgnorePlugin} = require('webpack');
+const {IgnorePlugin, DefinePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const dotenv = require('dotenv');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
-
-// Check for a --platform command line argument (default to 'web')
-// If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .website.js files.
-const platformIndex = _.findIndex(process.argv, arg => arg === '--platform');
-const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
-const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
 const includeModules = [
     'react-native-animatable',
@@ -25,7 +20,16 @@ const includeModules = [
     'react-native-google-places-autocomplete',
 ].join('|');
 
-const webpackConfig = {
+/**
+ * Get a production grade config for web or desktop
+ * @param {Object} env
+ * @param {String} env.envFile path to the env file to be used
+ * @param {'web'|'desktop'} env.platform
+ * @returns {Configuration}
+ */
+const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
+    mode: 'production',
+    devtool: 'source-map',
     entry: {
         app: './index.js',
     },
@@ -60,6 +64,19 @@ const webpackConfig = {
         }),
         new IgnorePlugin(/^\.\/locale$/, /moment$/),
         new CustomVersionFilePlugin(),
+        new DefinePlugin({
+            __REACT_WEB_CONFIG__: JSON.stringify(
+                dotenv.config({path: envFile}).parsed,
+            ),
+
+            // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
+            // react-native-render-html uses variable to log exclusively during development.
+            // See https://reactnative.dev/docs/javascript-environment
+            __DEV__: /staging|prod/.test(envFile) === false,
+        }),
+
+        // This allows us to interactively inspect JS bundle contents
+        ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
     ],
     module: {
         rules: [
@@ -78,7 +95,6 @@ const webpackConfig = {
                  */
                 exclude: [
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
-                    platformExclude,
                 ],
             },
             {
@@ -86,7 +102,6 @@ const webpackConfig = {
                 loader: 'eslint-loader',
                 exclude: [
                     /node_modules|\.native\.js$/,
-                    platformExclude,
                 ],
                 options: {
                     cache: false,
@@ -142,8 +157,9 @@ const webpackConfig = {
         // without this, web will try to use native implementations and break in not very obvious ways.
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
+        // This also skips packing web only dependencies to desktop and vice versa
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
-};
+});
 
 module.exports = webpackConfig;
