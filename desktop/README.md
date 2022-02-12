@@ -23,6 +23,7 @@
 
 * [Architecture](#architecture)
 * [Testing Electron Auto-Update](#testing-electron-auto-update)
+* [Packaging](#packaging)
 
 # Architecture
 The New Expensify desktop app is built using [Electron.js](https://www.electronjs.org/). We try our best to maintain Electron best practices, particularly when it comes to [security](https://www.electronjs.org/docs/latest/tutorial/security). 
@@ -121,3 +122,17 @@ AWS_ACCESS_KEY_ID=RootUserKey AWS_SECRET_ACCESS_KEY=RootPassKey APPLE_ID=YOUR_AP
 This command will create a build, notarize it, and push your build to the server. Note that it can take around 10 minutes for the command to complete.
 
 Once the command finishes, revert the version update in `package.json`, remove `--publish always` from the `desktop-build` command, and again run the `npm run desktop-build` command above **including the args**. After the build is done, you'll find `NewExpensify.dmg` in the `dist/` folder in the root of the project. Open the `.dmg` and install the app. Your app will attempt to auto-update in the background.
+
+# Packaging
+To avoid bundling unnecessary `node_modules` we use a [2 package structure](https://www.electron.build/tutorials/two-package-structure)
+The root [package.json](../package.json) serves for `devDependencies` and web (renderer) `dependencies`
+The [desktop/package/package.json](./package/package.json) servers for desktop (electron-main) specific dependencies
+Webpack uses root package dependencies and src to bundle `www` - all necessary dependencies are copied to that folder
+We use Webpack again to bundle the `main` scripts that init electron and render `www` content.
+
+## See what is getting packaged in the app
+You can inspect the app package content in the `desktop-build` folder 
+To see the actual `app.asar` content run the following script
+```shell
+npx asar extract desktop-build/mac/New\ Expensify.app/Contents/Resources/app.asar ./unpacked-asar
+```
