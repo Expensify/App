@@ -11,6 +11,23 @@ const options = {
     loopbackRedirectPort: '3000',
     loopbackRedirectHost: 'http://localhost',
 };
+let server = null;
+
+// Download your OAuth2 configuration from the Google
+// const keys = require('./oauth2.keys.json');
+
+function createServer(callback) {
+    if (server) {
+        // if a server is already running, we close it so that we free the port
+        // and restart the process
+        return server.close().then(() => {
+            server = http.createServer(callback);
+            return server;
+        });
+    }
+    server = http.createServer(callback);
+    return server;
+}
 
 /**
 * Create a new OAuth2Client, and go through the OAuth2 content
@@ -40,7 +57,7 @@ function getAuthenticatedClient() {
 
         // Open an http server to accept the oauth callback. In this simple example, the
         // only request to our webserver is to /oauth2callback?code=<code>
-        const server = http.createServer((req, res) => {
+        createServer((req, res) => {
             try {
                 if (req.url && url.parse(req.url).pathname === options.callbackPath) {
                     // acquire the code from the querystring, and close the web server.
