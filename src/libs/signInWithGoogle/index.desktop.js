@@ -36,10 +36,11 @@ function createServer(callback) {
 */
 function getAuthenticatedClient() {
     return new Promise((resolve, reject) => {
-    // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
-    // which should be downloaded from the Google Developers Console.
+        // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
+        // which should be downloaded from the Google Developers Console.
         const oAuth2Client = new OAuth2Client({
             // clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
+            // TODO: clientSecret is from a testing project, the real ones will be hidden in some way
             clientId: '1016036866283-cop3sd9or3nlb4innbkn3im8t4oo4u7d.apps.googleusercontent.com',
             clientSecret: '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',
 
@@ -51,7 +52,6 @@ function getAuthenticatedClient() {
 
         // Generate the url that will be used for the consent dialog.
         const authorizeUrl = oAuth2Client.generateAuthUrl({
-            access_type: 'offline',
             scope: 'email',
         });
 
@@ -102,19 +102,22 @@ export default function signInWithGoogle() {
         // Make a simple request to the People API using our pre-authenticated client. The `request()` method
         // takes an GaxiosOptions object.  Visit https://github.com/JustinBeckwith/gaxios.
         return oAuth2Client.request({
-
             url: 'https://www.googleapis.com/oauth2/v2/userinfo',
         }).then((res) => {
             console.log(res.data);
+            return {
+                email: res.data.email,
+                token: oAuth2Client.credentials.id_token,
+            };
 
-            // After acquiring an access_token, you may want to check on the audience, expiration,
-            // or original scopes requested.  You can do that with the `getTokenInfo` method.
-            return oAuth2Client.getTokenInfo(
-                oAuth2Client.credentials.access_token,
-            ).then((tokenInfo) => {
-                console.log(tokenInfo);
-                return {email: '', token: ''};
-            });
+            // // After acquiring an access_token, you may want to check on the audience, expiration,
+            // // or original scopes requested.  You can do that with the `getTokenInfo` method.
+            // return oAuth2Client.getTokenInfo(
+            //     oAuth2Client.credentials.access_token,
+            // ).then((tokenInfo) => {
+            //     console.log(tokenInfo);
+
+            // });
         }).catch((err) => {
             debugger;
             console.log(err);
