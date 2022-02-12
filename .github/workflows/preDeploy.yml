@@ -139,14 +139,14 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   # Check if actor is member of Expensify organization by looking for expensify-expensify team
-  isOrganizationMember:
+  isExpensifyEmployee:
     runs-on: ubuntu-latest
 
     outputs:
       isExpensifyEmployee: ${{ steps.checkActor.outputs.isTeamMember }}
 
     steps:
-      - name: Check whether the actor is member of Expensify organization
+      - name: Check whether the actor is member of expensify-expensify team
         id: checkActor
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
@@ -157,8 +157,8 @@ jobs:
 
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
-    needs: isOrganizationMember
-    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isOrganizationMember.outputs.isMember) }}
+    needs: isExpensifyEmployee
+    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.isExpensifyEmployee) }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
