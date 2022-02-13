@@ -31,6 +31,7 @@ const picker = {
     borderStyle: 'solid',
     borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
+    textAlign: 'left',
 };
 
 const link = {
