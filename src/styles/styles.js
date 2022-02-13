@@ -123,6 +123,7 @@ const webViewStyles = {
 
         p: {
             marginTop: 0,
+            marginBottom: 0,
         },
     },
 
