@@ -146,6 +146,25 @@ class TransferBalancePage extends React.Component {
      */
     navigateToChooseTransferAccount(filterPaymentMethodType) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
+
+        // If we only have a single option for the given paymentMethodType do not force the user to make a selection
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+            '',
+            this.props.userWallet,
+        );
+
+        const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
+        if (filteredMethods.length === 1) {
+            const account = _.first(filteredMethods);
+            PaymentMethods.saveWalletTransferAccountTypeAndID(
+                filterPaymentMethodType,
+                account.methodID,
+            );
+            return;
+        }
+
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
     }
 
@@ -157,8 +176,8 @@ class TransferBalancePage extends React.Component {
 
         const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(this.props.userWallet.currentBalance, selectedPaymentType);
         const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
-        const canTransfer = transferAmount > 0;
-        const isButtonDisabled = !canTransfer || !selectedAccount;
+        const isTransferable = transferAmount > 0;
+        const isButtonDisabled = !isTransferable || !selectedAccount;
 
         return (
             <ScreenWrapper>
@@ -243,7 +262,7 @@ class TransferBalancePage extends React.Component {
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
-                                    amount: canTransfer
+                                    amount: isTransferable
                                         ? this.props.numberFormat(
                                             transferAmount / 100,
                                             {style: 'currency', currency: 'USD'},

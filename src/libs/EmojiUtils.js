@@ -172,7 +172,6 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
-
 export {
     isSingleEmoji,
     getDynamicHeaderIndices,

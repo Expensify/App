@@ -143,7 +143,7 @@ function getValidMergedPRs(commitMessages) {
             return mergedPRs;
         }
 
-        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:master|main|version-|update-staging-from-main|update-production-from-staging))/);
+        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
         if (!_.isNull(match) && match[1]) {
             mergedPRs.push(match[1]);
         }

@@ -9,7 +9,9 @@ import createCallback from './createCallback';
 import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
 let isReady = false;
+let isOffline = false;
 let isQueuePaused = false;
+let persistedRequestsQueueRunning = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -25,81 +27,95 @@ const [onRequest, registerRequestHandler] = createCallback();
 const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
-
-let didLoadPersistedRequests;
-let isOffline;
-
-const PROCESS_REQUEST_DELAY_MS = 1000;
+const [getLogger, registerLogHandler] = createCallback();
 
 /**
- * Process the offline NETWORK_REQUEST_QUEUE
- * @param {Array<Object> | null} persistedRequests - Requests
+ * @param {Object} request
+ * @param {String} request.command
+ * @param {Object} request.data
+ * @param {String} request.type
+ * @param {Boolean} request.shouldUseSecure
+ * @returns {Promise}
  */
-function processOfflineQueue(persistedRequests) {
-    // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
-    // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
-    // otherwise requests will be duplicated.
-    // We only process the persisted requests when
-    // a) Client is leader.
-    // b) User is online.
-    // c) requests are not already loaded,
-    // d) When there is at least one request
-    if (!ActiveClientManager.isClientTheLeader()
-        || isOffline
-        || didLoadPersistedRequests
-        || !persistedRequests
-        || !persistedRequests.length) {
+function processRequest(request) {
+    const finalParameters = _.isFunction(enhanceParameters)
+        ? enhanceParameters(request.command, request.data)
+        : request.data;
+
+    onRequest(request, finalParameters);
+    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+}
+
+function processPersistedRequestsQueue() {
+    const persistedRequests = NetworkRequestQueue.getPersistedRequests();
+
+    // This sanity check is also a recursion exit point
+    if (isOffline || _.isEmpty(persistedRequests)) {
+        return Promise.resolve();
+    }
+
+    const tasks = _.map(persistedRequests, request => processRequest(request)
+        .then((response) => {
+            if (response.jsonCode !== CONST.HTTP_STATUS_CODE.SUCCESS) {
+                throw new Error(`Persisted request failed due to jsonCode: ${response.jsonCode}`);
+            }
+
+            NetworkRequestQueue.removeRetryableRequest(request);
+        })
+        .catch((error) => {
+            const retryCount = NetworkRequestQueue.incrementRetries(request);
+            getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                // Request failed too many times removing from persisted storage
+                NetworkRequestQueue.removeRetryableRequest(request);
+            }
+        }));
+
+    // Do a recursive call in case the queue is not empty after processing the current batch
+    return Promise.all(tasks)
+        .then(processPersistedRequestsQueue);
+}
+
+function flushPersistedRequestsQueue() {
+    if (persistedRequestsQueueRunning) {
         return;
     }
 
-    // Queue processing expects handlers but due to we are loading the requests from Storage
-    // we just noop them to ignore the errors.
-    _.each(persistedRequests, (request) => {
-        request.resolve = () => {};
-        request.reject = () => {};
-    });
+    // NETWORK_REQUEST_QUEUE is shared across clients, thus every client/tab will have a copy
+    // It is very important to only process the queue from leader client otherwise requests will be duplicated.
+    if (!ActiveClientManager.isClientTheLeader()) {
+        return;
+    }
 
-    // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
-    // this once when the app initializes
-    networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-    NetworkRequestQueue.clearPersistedRequests();
-    didLoadPersistedRequests = true;
+    persistedRequestsQueueRunning = true;
+
+    // Ensure persistedRequests are read from storage before proceeding with the queue
+    const connectionId = Onyx.connect({
+        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+        callback: () => {
+            Onyx.disconnect(connectionId);
+            processPersistedRequestsQueue()
+                .finally(() => persistedRequestsQueueRunning = false);
+        },
+    });
 }
 
-// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
+// We subscribe to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        if (!val) {
+    callback: (network) => {
+        if (!network) {
             return;
         }
 
         // Client becomes online, process the queue.
-        if (isOffline && !val.isOffline) {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-                callback: processOfflineQueue,
-            });
-            Onyx.disconnect(connection);
+        if (isOffline && !network.isOffline) {
+            flushPersistedRequestsQueue();
         }
-        isOffline = val.isOffline;
+
+        isOffline = network.isOffline;
     },
-});
-
-// Subscribe to NETWORK_REQUEST_QUEUE queue as soon as Client is ready
-ActiveClientManager.isReady().then(() => {
-    Onyx.connect({
-        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-        callback: processOfflineQueue,
-    });
-});
-
-// Subscribe to the user's session so we can include their email in every request and include it in the server logs
-let email;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => email = val ? val.email : null,
 });
 
 /**
@@ -115,7 +131,7 @@ function setIsReady(val) {
  * @param {Object} request
  * @param {String} request.type
  * @param {String} request.command
- * @param {Object} request.data
+ * @param {Object} [request.data]
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
@@ -212,52 +228,45 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        const requestData = queuedRequest.data;
-        const requestEmail = lodashGet(requestData, 'email', '');
-
-        // If we haven't passed an email in the request data, set it to the current user's email
-        if (email && _.isEmpty(requestEmail)) {
-            requestData.email = email;
-        }
-
-        const finalParameters = _.isFunction(enhanceParameters)
-            ? enhanceParameters(queuedRequest.command, requestData)
-            : requestData;
-
-        onRequest(queuedRequest, finalParameters);
-        HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
+        processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
             .catch((error) => {
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
                 if (shouldRetry) {
-                    networkRequestQueue.push(queuedRequest);
-                    return;
+                    const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
+                    getLogger().info('A retrieable request failed', false, {
+                        retryCount,
+                        command: queuedRequest.command,
+                        error: error.message,
+                    });
+
+                    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                        networkRequestQueue.push(queuedRequest);
+                        return;
+                    }
+
+                    getLogger().alert('Request was retried too many times with no success. No more retries left');
                 }
 
                 onError(queuedRequest, error);
             });
     });
 
-    // We should clear the NETWORK_REQUEST_QUEUE when we have loaded the persisted requests & they are processed.
-    // As multiple client will be sharing the same Queue and NETWORK_REQUEST_QUEUE is synchronized among clients,
-    // we only ask Leader client to clear the queue
-    if (ActiveClientManager.isClientTheLeader() && didLoadPersistedRequests) {
-        NetworkRequestQueue.clearPersistedRequests();
-    }
-
-    // User could have bad connectivity and he can go offline multiple times
-    // thus we allow NETWORK_REQUEST_QUEUE to be processed multiple times but only after we have processed
-    // old requests in the NETWORK_REQUEST_QUEUE
-    didLoadPersistedRequests = false;
-
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
     // requests we want to retry or an empty array
     networkRequestQueue = requestsToProcessOnNextRun;
 }
 
-// Process our write queue very often
-setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
+function startDefaultQueue() {
+    setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+}
+
+// Post any pending request after we launch the app
+ActiveClientManager.isReady().then(() => {
+    flushPersistedRequestsQueue();
+    startDefaultQueue();
+});
 
 /**
  * @param {Object} request
@@ -339,7 +348,6 @@ function clearRequestQueue() {
 export {
     post,
     pauseRequestQueue,
-    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
@@ -348,4 +356,5 @@ export {
     registerRequestHandler,
     setIsReady,
     registerRequestSkippedHandler,
+    registerLogHandler,
 };
