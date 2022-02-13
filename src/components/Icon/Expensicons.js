@@ -105,6 +105,7 @@ export {
     Hashtag,
     Info,
     Invoice,
+    Key,
     Keyboard,
     Link,
     LinkCopy,
