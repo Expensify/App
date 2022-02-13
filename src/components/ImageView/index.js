@@ -166,25 +166,26 @@ class ImageView extends PureComponent {
                 </View>
             );
         }
-
         return (
             <View
                 ref={el => this.scrollableRef = el}
                 onLayout={(e) => {
                     const {width, height} = e.nativeEvent.layout;
-                    const imageWidth = this.state.imgWidth;
-                    const imageHeight = this.state.imgHeight;
-                    // eslint-disable-next-line react/no-access-state-in-setstate
-                    let isZoomed = this.state.isZoomed;
-                    if (this.state.containerHeight === 0) {
-                        isZoomed = imageWidth < width && imageHeight < height;
-                    }
+                    let imageWidth = this.state.imgWidth;
+                    let imageHeight = this.state.imgHeight;
+                    const aspectRatio = (imageHeight / imageWidth);
+
+                    // reduce the imageWidth to windowWidth
+                    imageWidth = Math.round(width);
+                    imageHeight = Math.round(imageWidth * aspectRatio);
+
                     const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
                     this.setState({
+                        imgWidth: imageWidth,
+                        imgHeight: imageHeight,
                         containerHeight: height,
                         containerWidth: width,
                         zoomScale: scale,
-                        isZoomed,
                     });
                 }}
                 style={[
@@ -243,7 +244,7 @@ class ImageView extends PureComponent {
                             styles.h100,
                             styles.w100,
                         ]}
-                        resizeMode={this.state.isZoomed ? 'contain' : 'center'}
+                        resizeMode="contain"
                     />
                 </Pressable>
             </View>
