@@ -121,9 +121,9 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return _.without(emailArray, currentUserEmail);
+    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
