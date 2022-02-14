@@ -13,27 +13,33 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
+    errorText: PropTypes.string,
 
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
+
+    /** A ref to forward to the Pressable */
+    forwardedRef: PropTypes.oneOfType([PropTypes.object]),
+
 };
 
 const defaultProps = {
-    hasError: false,
+    errorText: '',
     disabled: false,
+    forwardedRef: undefined,
 };
 
 const Checkbox = props => (
     <Pressable
         disabled={props.disabled}
         onPress={() => props.onPress(!props.isChecked)}
+        ref={props.forwardedRef}
     >
         <View
             style={[
                 styles.checkboxContainer,
                 props.isChecked && styles.checkedContainer,
-                props.hasError && styles.borderColorDanger,
+                props.errorText && styles.borderColorDanger,
                 props.disabled && styles.cursorDisabled,
             ]}
         >

@@ -312,7 +312,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
-                            hasError={this.getErrors().hasAcceptedTerms}
+                            errorText={this.getErrors().hasAcceptedTerms ? this.props.translate('addDebitCardPage.error.acceptedTerms') : ''}
                         />
                     </ReimbursementAccountForm>
                 )}

@@ -306,7 +306,6 @@ class DebitCardPage extends Component {
                                 )}
                                 style={[styles.mt4, styles.mb4]}
                                 errorText={this.getErrorText('acceptedTerms')}
-                                hasError={Boolean(this.state.errors.acceptedTerms)}
                             />
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (
