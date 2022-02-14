@@ -68,12 +68,16 @@ class ImageView extends PureComponent {
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
-        // Fit the image to container size when container is loaded.
-        if (containerWidth > 0 || imageWidth > 0) {
-            const aspectRatio = Math.min((containerHeight / imageWidth), (containerWidth / imageWidth));
-            width *= aspectRatio;
-            height *= aspectRatio;
+        // return if image  or image container not loaded yet
+        if (containerHeight <= 0 || imageHeight <= 0) {
+            return;
         }
+
+        // Fit the image to container size
+        const aspectRatio = Math.min((containerHeight / imageHeight), (containerWidth / imageWidth));
+        width *= aspectRatio;
+        height *= aspectRatio;
+
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
