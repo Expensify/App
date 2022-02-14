@@ -158,6 +158,13 @@ function getChatReportName(fullReport, chatType) {
         .join(', ');
 }
 
+/**
+ * Modify simplifiedReport of Report Data fetched from server
+ * Returns updated simplifiedReport, based on newer local report data
+ *
+ * @param {Object} simplifiedReport, simplifiedReport of Report Data
+ * @return {Object}
+ */
 function updateSimplifiedReportWithNewerLocalData(simplifiedReport) {
     const currentReport = lodashGet(allReports, simplifiedReport.reportID, 0);
     if (!currentReport) {
@@ -166,14 +173,15 @@ function updateSimplifiedReportWithNewerLocalData(simplifiedReport) {
 
     const currentMaxSequenceNumber = currentReport.maxSequenceNumber;
     const lastReadSequenceNumber = lastReadSequenceNumbers[simplifiedReport.reportID];
-    const unreadActionCount = currentMaxSequenceNumbermax - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(simplifiedReport.reportID, lastReadSequenceNumber);
+    const unreadActionCount = currentMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(simplifiedReport.reportID, lastReadSequenceNumber);
 
     const newSimplifiedReport = _.clone(simplifiedReport);
-    newSimplifiedReport.maxSequenceNumber = currentMaxSequenceNumbermax;
+    newSimplifiedReport.maxSequenceNumber = currentMaxSequenceNumber;
     newSimplifiedReport.unreadActionCount = unreadActionCount;
     newSimplifiedReport.lastMessageTimestamp = currentReport.lastMessageTimestamp;
     newSimplifiedReport.lastMessageText = currentReport.lastMessageText;
     newSimplifiedReport.lastActorEmail = currentReport.lastActorEmail;
+
     return newSimplifiedReport;
 }
 
@@ -220,7 +228,7 @@ function getSimplifiedReportObject(report) {
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
 
     const reportMaxSequenceNumber = lodashGet(report, 'reportActionCount', 0);
-    
+
     const simplifiedReport = {
         reportID: report.reportID,
         reportName,
