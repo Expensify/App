@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 const _ = require('underscore');
 
 const desktopDependencies = require('../../desktop/package.json').dependencies;
@@ -41,14 +40,11 @@ module.exports = (env) => {
             ..._.keys(desktopDependencies),
             'fsevents',
         ],
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production',
-                DEBUG_PROD: false,
-                START_MINIMIZED: false,
-            }),
-        ],
         node: {
+            /**
+             * Disables webpack processing of __dirname and __filename, so it works like in node
+             * https://github.com/webpack/webpack/issues/2010
+             */
             __dirname: false,
             __filename: false,
         },
