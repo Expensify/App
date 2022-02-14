@@ -150,17 +150,18 @@ const mainWindow = (() => {
             /*
              * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
              * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+             * The same issue happens when using the web proxy to communicate with the staging or production API on dev.
              *
              * To fix this, we'll:
              *
-             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment.
+             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
              *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
              */
+            const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
             if (!ELECTRON_ENVIRONMENT.isDev()) {
                 const newDotURL = ELECTRON_ENVIRONMENT.isProd() ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
 
                 // Modify the origin and referer for requests sent to our API
-                const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
                 browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
                     // eslint-disable-next-line no-param-reassign
                     details.requestHeaders.origin = newDotURL;
@@ -175,6 +176,20 @@ const mainWindow = (() => {
                     details.responseHeaders['access-control-allow-origin'] = ['app://-'];
                     callback({responseHeaders: details.responseHeaders});
                 });
+            }
+
+            if (ELECTRON_ENVIRONMENT.isDev()) {
+                const dotenv = require('dotenv');
+                const path = require('path');
+                const devEnvConfig = dotenv.config({path: path.resolve(__dirname, '../.env')}).parsed;
+
+                if (devEnvConfig.USE_WEB_PROXY !== 'false') {
+                    browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                        // eslint-disable-next-line no-param-reassign
+                        details.responseHeaders['access-control-allow-origin'] = ['http://localhost:8080'];
+                        callback({responseHeaders: details.responseHeaders});
+                    });
+                }
             }
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
