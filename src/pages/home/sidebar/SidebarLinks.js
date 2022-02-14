@@ -235,7 +235,7 @@ class SidebarLinks extends React.Component {
                         <AvatarWithIndicator
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
+                                      yncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
@@ -295,6 +295,7 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,
