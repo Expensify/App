@@ -4,6 +4,9 @@ import TextInput from '../components/TextInput';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
+import CheckboxWithLabel from '../components/CheckboxWithLabel';
+import Text from '../components/Text';
+
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -13,7 +16,7 @@ import styles from '../styles/styles';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput},
+    subcomponents: {TextInput, CheckboxWithLabel},
 };
 
 const Template = (args) => {
@@ -39,6 +42,18 @@ const Template = (args) => {
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
+            <CheckboxWithLabel
+                inputID="checkbox"
+                isChecked={args.draftValues.checkbox}
+                style={[styles.mb4, styles.mt5]}
+                onPress={() => {}}
+                isFormInput
+                shouldSaveDraft
+                LabelComponent={() => (
+                    <Text>I accept the Expensify Terms of Service</Text>
+                )}
+                errorText={args.validate(args.draftValues).checkbox}
+            />
         </Form>
     );
 };
@@ -61,6 +76,9 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.checkbox) {
+            errors.checkbox = 'You must accept the Terms of Service to continue';
+        }
         return errors;
     },
     onSubmit: (values) => {
@@ -76,13 +94,14 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        checkbox: true,
     },
 };
 
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
-InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
+InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: '', checkbox: false}};
 
 export default story;
 export {
