@@ -199,12 +199,6 @@ class AdditionalDetailsStep extends React.Component {
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalMiddleName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalMiddleName', val)}
-                                    value={this.state.legalMiddleName}
-                                />
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
                                     value={this.state.legalLastName}
