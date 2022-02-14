@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import AddressSearch from '../components/AddressSearch';
 
 /**
@@ -15,8 +15,17 @@ export default {
     },
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <AddressSearch {...args} />;
+const Template = (args) => {
+    const [value, setValue] = useState('');
+    return (
+        <AddressSearch
+            value={value}
+            onChange={({street}) => setValue(street)}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+        />
+    );
+};
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
