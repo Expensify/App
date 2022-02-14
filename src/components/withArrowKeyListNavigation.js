@@ -38,6 +38,10 @@ function validateConfig(config = {}) {
     }
 }
 
+const withArrowKeyListTraversalPropTypes = {
+    focusedIndex: PropTypes.number.isRequired,
+};
+
 /**
  * @param {Object} [config]
  * @param {Number} [config.initialFocusedIndex]
@@ -126,8 +130,12 @@ const withArrowKeyListTraversal = (config = defaultConfig) => {
 
                 render() {
                     return (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <WrappedComponent {...this.props} ref={this.props.forwardedRef} />
+                        <WrappedComponent
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...this.props}
+                            ref={this.props.forwardedRef}
+                            focusedIndex={this.state.focusedIndex}
+                        />
                     );
                 }
             }
@@ -145,3 +153,6 @@ const withArrowKeyListTraversal = (config = defaultConfig) => {
 };
 
 export default withArrowKeyListTraversal;
+export {
+    withArrowKeyListTraversalPropTypes,
+};
