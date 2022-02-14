@@ -44,10 +44,16 @@ class Avatar extends PureComponent {
             this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
             ...this.props.imageStyles,
         ];
+
+        const roomAvatarStyle = [
+            this.props.size === 'small' ? styles.roomAvatarSmall : styles.roomAvatarNormal,
+            ...this.props.imageStyles,
+        ];
+
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isChatRoom
-                    ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
+                    ? <RoomAvatar avatarStyle={roomAvatarStyle} isArchived={this.props.isArchivedRoom} />
                     : <Image source={{uri: this.props.source}} style={imageStyle} />}
             </View>
         );

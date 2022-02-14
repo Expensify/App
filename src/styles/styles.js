@@ -1531,9 +1531,23 @@ const styles = {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         borderRadius: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
     },
 
     avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
+        borderRadius: variables.avatarSizeSmall,
+        backgroundColor: themeColors.icon,
+    },
+
+    roomAvatarNormal: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        borderRadius: variables.componentSizeNormal,
+    },
+
+    roomAvatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
         borderRadius: variables.avatarSizeSmall,
