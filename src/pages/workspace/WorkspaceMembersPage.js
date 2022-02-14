@@ -28,8 +28,11 @@ import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import FixedFooter from '../../components/FixedFooter';
-import OfflineText from '../../components/OfflineText';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -38,6 +41,12 @@ const propTypes = {
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
+
+    /** Information about the network */
+    network: PropTypes.shape({
+        /** Is the network currently offline or not */
+        isOffline: PropTypes.bool,
+    }),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -53,7 +62,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = {...fullPolicyDefaultProps, network: {isOffline: false}};
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -225,8 +234,8 @@ class WorkspaceMembersPage extends React.Component {
                                 icons: [item.avatar],
                                 keyForList: item.login,
                             }}
-                            textStyles={item.pending && [styles.offlineColor]}
-                            alternateTextStyles={item.pending && [styles.offlineColor]}
+                            textStyles={item.pending && [styles.offlineText]}
+                            alternateTextStyles={item.pending && [styles.offlineText]}
                         />
                     </View>
                     {this.props.session.email === item.login && (
@@ -331,10 +340,21 @@ class WorkspaceMembersPage extends React.Component {
                 <FixedFooter
                     style={[styles.pt3, styles.pb3]}
                 >
-                    <OfflineText
-                        outerContainerStyles={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}
-                        message={this.props.translate('workspace.people.offlineMessage')}
-                    />
+                    this.props.network.isOffline &&
+                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
+                        <View style={[styles.flexRow, styles.w100]}>
+                            <View>
+                                <Icon
+                                    src={Expensicons.Offline}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                />
+                            </View>
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.ml2]}>
+                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                            </Text>
+                        </View>
+                    </View>
                 </FixedFooter>
             </ScreenWrapper>
         );
@@ -348,6 +368,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withFullPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

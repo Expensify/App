@@ -973,7 +973,7 @@ const styles = {
         backgroundColor: themeColors.offline,
     },
 
-    offlineColor: {
+    offlineText: {
         color: themeColors.offline,
     },
 

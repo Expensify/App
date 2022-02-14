@@ -423,6 +423,7 @@ class ReportActionCompose extends React.Component {
         }));
     }
 
+
     /**
      * Hide the ReportActionContextMenu modal popover.
      */

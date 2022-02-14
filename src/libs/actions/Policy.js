@@ -375,20 +375,6 @@ function invite(logins, welcomeNote, policyID) {
     // Optimistically add the user to the policy
     Onyx.merge(key, {pendingInvitations, alertMessage});
 
-    const revertPendingInvitationsList = () => {
-        const policyDataWithoutPending = _.clone(allPolicies[key]);
-        policyDataWithoutPending.pendingInvitations = _.without(
-            policyDataWithoutPending.pendingInvitations, ...newEmployeeList,
-        );
-
-        Onyx.set(key, policyDataWithoutPending);
-    };
-
-    const showGrowlError = (additionalMessage = '') => {
-        const errorMessage = `${Localize.translateLocal('workspace.invite.genericFailureMessage')} ${additionalMessage}`;
-        Growl.error(errorMessage, 5000);
-    };
-
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Merge({
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
@@ -408,22 +394,25 @@ function invite(logins, welcomeNote, policyID) {
                 return;
             }
 
-            // If the operationg failed undo the optimistic addition
-            revertPendingInvitationsList();
-            if (data.jsonCode === 402) {
-                showGrowlError(` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`);
-                return;
-            }
+            const errorMessage = data.jsonCode === 402
+                ? `${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`
+                : '';
 
-            // Show the user feedback that the addition failed
-            showGrowlError();
+            throw new Error(errorMessage);
         })
-        .catch(() => {
+        .catch((err) => {
             // If the operationg failed undo the optimistic addition
-            revertPendingInvitationsList();
+            const policyDataWithoutPending = _.clone(allPolicies[key]);
+            policyDataWithoutPending.pendingInvitations = _.without(
+                policyDataWithoutPending.pendingInvitations, ...newEmployeeList,
+            );
+
+            Onyx.set(key, policyDataWithoutPending);
+
+            const errorMessage = `${Localize.translateLocal('workspace.invite.genericFailureMessage')} ${err.message}`;
 
             // Show the user feedback that the addition failed
-            showGrowlError();
+            Growl.error(errorMessage, 5000);
         });
 }
 
