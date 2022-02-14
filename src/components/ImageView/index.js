@@ -59,7 +59,7 @@ class ImageView extends PureComponent {
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
-     * @param {number} imageWidth
+     * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
