@@ -1,5 +1,3 @@
-// This is a polyfill for InternetExplorer to support the modern KeyboardEvent.key and KeyboardEvent.code instead of KeyboardEvent.keyCode
-import 'shim-keyboard-event-key';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import getOperatingSystem from '../getOperatingSystem';
