@@ -70,7 +70,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
-            legalMiddleName: 'additionalDetailsStep.legalMiddleNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
             addressStreet: 'common.personalAddress',
             addressCity: 'common.city',
@@ -83,7 +82,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.state = {
             legalFirstName: lodashGet(props.walletAdditionalDetailsDraft, 'legalFirstName', ''),
-            legalMiddleName: lodashGet(props.walletAdditionalDetailsDraft, 'legalMiddleName', ''),
             legalLastName: lodashGet(props.walletAdditionalDetailsDraft, 'legalLastName', ''),
             addressStreet: lodashGet(props.walletAdditionalDetailsDraft, 'addressStreet', ''),
             addressCity: lodashGet(props.walletAdditionalDetailsDraft, 'addressCity', ''),
