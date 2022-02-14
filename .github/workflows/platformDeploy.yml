@@ -143,7 +143,7 @@ jobs:
 
       - name: Build production desktop app
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
+        run: npm run desktop-build -- --publish always
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -154,7 +154,7 @@ jobs:
 
       - name: Build staging desktop app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging -- --publish always -c.afterSign=desktop/notarize.js
+        run: npm run desktop-build-staging -- --publish always
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
