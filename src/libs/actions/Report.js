@@ -158,20 +158,23 @@ function getChatReportName(fullReport, chatType) {
         .join(', ');
 }
 
-function modifySimplifiedReportOnPusherComeFirst(simplifiedReport) {
-    const nextMaxSequenceNumber = lodashGet(simplifiedReport, 'maxSequenceNumber', 0);
-    const currentMaxSeqNumber = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
-    console.log(maxSequenceNumber, ' <= then now => ', currentMaxSeqNumber);
-    const isPusherComentEventComeFirst = currentMaxSeqNumber > nextMaxSequenceNumber; 
-    if (!isPusherEventComeFirst) {
+function updateSimplifiedReportWithNewerLocalData(simplifiedReport) {
+    const currentReport = lodashGet(allReports, simplifiedReport.reportID, 0);
+    if (!currentReport) {
         return simplifiedReport;
     }
-    const currentReport = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
-    const modifiedSimplifiedReport = simplifiedReport;
-    modifiedSimplifiedReport.maxSequenceNumber = currentMaxSeqNumber;
-    modifiedSimplifiedReport.lastMessageText = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
 
-    unreadActionCount: getUnreadActionCount(report),
+    const currentMaxSequenceNumber = currentReport.maxSequenceNumber;
+    const lastReadSequenceNumber = lastReadSequenceNumbers[simplifiedReport.reportID];
+    const unreadActionCount = currentMaxSequenceNumbermax - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(simplifiedReport.reportID, lastReadSequenceNumber);
+
+    const newSimplifiedReport = _.clone(simplifiedReport);
+    newSimplifiedReport.maxSequenceNumber = currentMaxSequenceNumbermax;
+    newSimplifiedReport.unreadActionCount = unreadActionCount;
+    newSimplifiedReport.lastMessageTimestamp = currentReport.lastMessageTimestamp;
+    newSimplifiedReport.lastMessageText = currentReport.lastMessageText;
+    newSimplifiedReport.lastActorEmail = currentReport.lastActorEmail;
+    return newSimplifiedReport;
 }
 
 /**
@@ -216,14 +219,16 @@ function getSimplifiedReportObject(report) {
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
 
-    return {
+    const reportMaxSequenceNumber = lodashGet(report, 'reportActionCount', 0);
+    
+    const simplifiedReport = {
         reportID: report.reportID,
         reportName,
         chatType,
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
+        maxSequenceNumber: reportMaxSequenceNumber,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -241,6 +246,14 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
     };
+
+    const currentMaxSeqNumber = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
+
+    // Current local data is newer than report data from fetchReport. For example if Pusher new comment event is comming while API request of fetchReport isn't completed.
+    if (currentMaxSeqNumber > reportMaxSequenceNumber) {
+        return updateSimplifiedReportWithNewerLocalData(simplifiedReport);
+    }
+    return simplifiedReport;
 }
 
 /**
