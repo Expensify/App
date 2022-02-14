@@ -25,7 +25,12 @@ echo
 echo 'Lint Github Actions via actionlint (https://github.com/rhysd/actionlint)'
 
 # If we are running this on a non-CI machine (e.g. locally), install shellcheck
-if [[ -z "${CI}" ]]; then
+if [[ -z "${CI}" && -z "$(command -v shellcheck)" ]]; then
+  if [[ "$OSTYPE" != 'darwin'* || -z "$(command -v brew)" ]]; then
+    echo 'This script requires shellcheck to be installed. Please install it and try again'
+    exit 1
+  fi
+
   brew install shellcheck
 fi
 
