@@ -59,14 +59,16 @@ class ImageView extends PureComponent {
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
-     * @param {Boolean} imageWidth image width
-     * @param {Boolean} imageHeight image height
+     * @param {number} imageWidth
+     * @param {number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
         let width = imageWidth;
         let height = imageHeight;
         const containerWidth = this.state.containerWidth;
         const aspectRatio = (imageHeight / imageWidth);
+
+        // Fit the image to container width when container is loaded.
         if (containerWidth > 0) {
             width = Math.round(containerWidth);
             height = Math.round(containerWidth * aspectRatio);
