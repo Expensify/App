@@ -246,7 +246,7 @@ function processNetworkRequestQueue() {
                         return;
                     }
 
-                    getLogger().alert('Request was retried too many times with no success. No more retries left');
+                    getLogger().info('Request was retried too many times with no success. No more retries left');
                 }
 
                 onError(queuedRequest, error);
