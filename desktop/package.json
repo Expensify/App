@@ -1,7 +1,7 @@
 {
   "name": "new.expensify.desktop",
   "description": "Desktop package native dependencies",
-  "main": "./dist/main.js",
+  "main": "dist/main.js",
   "scripts": {},
   "dependencies": {
     "electron-context-menu": "^2.3.0",

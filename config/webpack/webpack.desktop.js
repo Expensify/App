@@ -2,23 +2,22 @@ const path = require('path');
 const webpack = require('webpack');
 const _ = require('underscore');
 
-const dependencies = require('../../desktop/package/package.json').dependencies;
+const desktopDependencies = require('../../desktop/package.json').dependencies;
 const getCommonConfig = require('./webpack.common');
 
 /**
  * Desktop creates 2 configurations in parallel
  * 1. electron-main - the core that serves the app content
  * 2. web - the app content that would be rendered in electron
- * Everything is placed in desktop/package and ready for packaging
+ * Everything is placed in desktop/dist and ready for packaging
  * @param {Object} env
  * @returns {webpack.Configuration[]}
  */
 module.exports = (env) => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
-    const outputPath = path.resolve(__dirname, '../../desktop/package/dist');
+    const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
-    rendererConfig.name = 'web';
-    rendererConfig.target = 'electron-renderer';
+    rendererConfig.name = 'renderer';
     rendererConfig.output.path = path.join(outputPath, 'www');
 
     const mainProcessConfig = {
@@ -39,7 +38,7 @@ module.exports = (env) => {
             modules: ['src', 'node_modules'],
         },
         externals: [
-            ..._.keys(dependencies),
+            ..._.keys(desktopDependencies),
             'fsevents',
         ],
         plugins: [

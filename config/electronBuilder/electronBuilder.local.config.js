@@ -31,11 +31,11 @@ module.exports = {
         internetEnabled: true,
     },
     files: [
-        '!**/*/.well-known',
-        '!**/*/favicon*',
+        'dist',
+        '!dist/www/{.well-known,favicon*}',
     ],
     directories: {
-        app: 'desktop/package',
+        app: 'desktop',
         output: 'desktop-build',
     },
 };
