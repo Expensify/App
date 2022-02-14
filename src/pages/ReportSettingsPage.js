@@ -104,7 +104,7 @@ class ReportSettingsPage extends Component {
     }
 
     validateAndRenameReport() {
-        if (!this.validate()) {
+        if (!this.validate() || this.props.report.reportName === this.state.newRoomName) {
             return;
         }
         Report.renameReport(this.props.report.reportID, this.state.newRoomName);
@@ -120,7 +120,7 @@ class ReportSettingsPage extends Component {
 
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
             errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
