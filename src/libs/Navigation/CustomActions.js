@@ -20,6 +20,9 @@ function getActiveState() {
  */
 function navigateBackToRootDrawer() {
     const activeState = getActiveState();
+
+    //Dispatch "popToTop" action takes you back to the first screen in the stack at the same time 
+    //it will prevent bubbling of action and limit it to activeState by specifing target.
     navigationRef.current.dispatch({
         ...StackActions.popToTop(),
         target: activeState.key,
