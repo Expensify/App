@@ -58,9 +58,6 @@ const propTypes = {
     /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
 
-    /** Whether to allow arrow key actions on the list */
-    disableArrowKeysActions: PropTypes.bool,
-
     /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
@@ -90,7 +87,6 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    disableArrowKeysActions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
@@ -249,25 +245,20 @@ class OptionsSelector extends Component {
                         selectTextOnFocus
                     />
                 </View>
-                {this.props.shouldShowOptions
-                    ? (
-                        <OptionsList
-                            ref={el => this.list = el}
-                            optionHoveredStyle={styles.hoveredComponentBG}
-                            onSelectRow={this.selectRow}
-                            sections={this.props.sections}
-                            focusedIndex={this.state.focusedIndex}
-                            selectedOptions={this.props.selectedOptions}
-                            canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                            hideSectionHeaders={this.props.hideSectionHeaders}
-                            headerMessage={this.props.headerMessage}
-                            disableFocusOptions={this.props.disableArrowKeysActions}
-                            hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                            forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                            showTitleTooltip={this.props.showTitleTooltip}
-                        />
-                    )
-                    : <FullScreenLoadingIndicator />}
+                <OptionsList
+                    ref={el => this.list = el}
+                    optionHoveredStyle={styles.hoveredComponentBG}
+                    onSelectRow={this.selectRow}
+                    sections={this.props.sections}
+                    focusedIndex={this.state.focusedIndex}
+                    selectedOptions={this.props.selectedOptions}
+                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                    hideSectionHeaders={this.props.hideSectionHeaders}
+                    headerMessage={this.props.headerMessage}
+                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                    showTitleTooltip={this.props.showTitleTooltip}
+                />
             </View>
         );
     }
