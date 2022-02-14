@@ -10,7 +10,7 @@ import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
+import ArrowKeyFocusManager from './ArrowKeyFocusManager';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
@@ -88,12 +88,10 @@ class OptionsSelector extends Component {
     constructor(props) {
         super(props);
 
+        this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
         this.viewableItems = [];
-
-        this.state = {
-            focusedIndex: 0,
-        };
     }
 
     componentDidMount() {
@@ -102,79 +100,17 @@ class OptionsSelector extends Component {
         } else {
             this.textInput.focus();
         }
-
-        this.setupKeyHandlers();
-    }
-
-    componentWillUnmount() {
-        this.unsubscribeKeyHandlers();
-    }
-
-    setupKeyHandlers() {
-        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
-        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-
-        // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribeEnterKeyHandler = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
-            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-            this.selectRow(allOptions[this.state.focusedIndex]);
-        }, enterConfig.descriptionKey, enterConfig.modifiers, true);
-
-        this.unsubscribeArrowUpKeyHandler = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
-            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-            this.setState((prevState) => {
-                let newFocusedIndex = prevState.focusedIndex - 1;
-
-                // Wrap around to the bottom of the list
-                if (newFocusedIndex < 0) {
-                    newFocusedIndex = allOptions.length - 1;
-                }
-
-                const {index, sectionIndex} = allOptions[newFocusedIndex];
-                this.scrollToFocusedIndex(sectionIndex, index);
-                return {focusedIndex: newFocusedIndex};
-            });
-        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
-
-        this.unsubscribeArrowDownKeyHandler = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
-            const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-            this.setState((prevState) => {
-                let newFocusedIndex = prevState.focusedIndex + 1;
-
-                // Wrap around to the top of the list
-                if (newFocusedIndex > allOptions.length - 1) {
-                    newFocusedIndex = 0;
-                }
-
-                const {index, sectionIndex} = allOptions[newFocusedIndex];
-                this.scrollToFocusedIndex(sectionIndex, index);
-                return {focusedIndex: newFocusedIndex};
-            });
-        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
-    }
-
-    unsubscribeKeyHandlers() {
-        if (this.unsubscribeEnterKeyHandler) {
-            this.unsubscribeEnterKeyHandler();
-        }
-
-        if (this.unsubscribeArrowUpKeyHandler) {
-            this.unsubscribeArrowUpKeyHandler();
-        }
-
-        if (this.unsubscribeArrowDownKeyHandler) {
-            this.unsubscribeArrowDownKeyHandler();
-        }
     }
 
     /**
      * Scrolls to the focused index within the SectionList
      *
-     * @param {Number} sectionIndex
-     * @param {Number} itemIndex
+     * @param {Number} index
      */
-    scrollToFocusedIndex(sectionIndex, itemIndex) {
+    scrollToIndex(index) {
+        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
+
+        const {index: itemIndex, sectionIndex} = allOptions[index];
         if (!this.list) {
             return;
         }
@@ -204,33 +140,51 @@ class OptionsSelector extends Component {
         this.props.onSelectRow(option);
     }
 
+    /**
+     * @param {Number} focusedIndex
+     */
+    selectFocusedIndex(focusedIndex) {
+        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
+        this.selectRow(allOptions[focusedIndex]);
+        this.scrollToIndex(0);
+    }
+
     render() {
+        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
         return (
-            <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pv3]}>
-                    <TextInput
-                        ref={el => this.textInput = el}
-                        value={this.props.value}
-                        onChangeText={this.props.onChangeText}
-                        placeholder={this.props.placeholderText
-                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                    />
-                </View>
-                <OptionsList
-                    ref={el => this.list = el}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    onSelectRow={this.selectRow}
-                    sections={this.props.sections}
-                    focusedIndex={this.state.focusedIndex}
-                    selectedOptions={this.props.selectedOptions}
-                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                    hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
-                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                    showTitleTooltip={this.props.showTitleTooltip}
-                />
-            </View>
+            <ArrowKeyFocusManager
+                listLength={allOptions.length}
+                onFocusedIndexChanged={this.scrollToIndex}
+                onEnterKeyPressed={this.selectFocusedIndex}
+            >
+                {({focusedIndex}) => (
+                    <View style={[styles.flex1]}>
+                        <View style={[styles.ph5, styles.pv3]}>
+                            <TextInput
+                                ref={el => this.textInput = el}
+                                value={this.props.value}
+                                onChangeText={this.props.onChangeText}
+                                placeholder={this.props.placeholderText
+                                    || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            />
+                        </View>
+                        <OptionsList
+                            ref={el => this.list = el}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            onSelectRow={this.selectRow}
+                            sections={this.props.sections}
+                            focusedIndex={focusedIndex}
+                            selectedOptions={this.props.selectedOptions}
+                            canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                            hideSectionHeaders={this.props.hideSectionHeaders}
+                            headerMessage={this.props.headerMessage}
+                            hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                            forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                            showTitleTooltip={this.props.showTitleTooltip}
+                        />
+                    </View>
+                )}
+            </ArrowKeyFocusManager>
         );
     }
 }

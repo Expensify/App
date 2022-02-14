@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import {Component} from 'react';
 import PropTypes from 'prop-types';
 import * as PropTypeUtils from '../libs/PropTypeUtils';
 import CONST from '../CONST';
@@ -10,12 +10,14 @@ const propTypes = {
     initialFocusedIndex: PropTypeUtils.wholeNumberPropType,
     listLength: PropTypeUtils.wholeNumberPropType,
     onFocusedIndexChanged: PropTypes.func,
+    onEnterKeyPressed: PropTypes.func,
 };
 
 const defaultProps = {
     initialFocusedIndex: 0,
     listLength: 0,
     onFocusedIndexChanged: () => {},
+    onEnterKeyPressed: () => {},
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -27,10 +29,15 @@ class ArrowKeyFocusManager extends Component {
     }
 
     componentDidMount() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
-        this.unsubscribeArrowUpKeyHandler = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
+            this.props.onEnterKeyPressed(this.state.focusedIndex);
+        }, enterConfig.descriptionKey, enterConfig.modifiers, true);
+
+        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
             if (this.props.listLength <= 1) {
                 return;
             }
@@ -50,7 +57,7 @@ class ArrowKeyFocusManager extends Component {
             );
         }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
 
-        this.unsubscribeArrowDownKeyHandler = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+        this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
             if (this.props.listLength <= 1) {
                 return;
             }
@@ -72,12 +79,16 @@ class ArrowKeyFocusManager extends Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeArrowUpKeyHandler) {
-            this.unsubscribeArrowUpKeyHandler();
+        if (this.unsubscribeEnterKey) {
+            this.unsubscribeEnterKey();
         }
 
-        if (this.unsubscribeArrowDownKeyHandler) {
-            this.unsubscribeArrowDownKeyHandler();
+        if (this.unsubscribeArrowUpKey) {
+            this.unsubscribeArrowUpKey();
+        }
+
+        if (this.unsubscribeArrowDownKey) {
+            this.unsubscribeArrowDownKey();
         }
     }
 
