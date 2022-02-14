@@ -35,7 +35,7 @@ class ImageWithSizeCalculation extends PureComponent {
 
         this.state = {
             loading: true,
-        }
+        };
     }
 
     componentDidMount() {
