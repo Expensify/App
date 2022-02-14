@@ -281,7 +281,6 @@ class WorkspaceInvitePage extends React.Component {
                                         });
                                     }}
                                     headerMessage={headerMessage}
-                                    disableArrowKeysActions
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
