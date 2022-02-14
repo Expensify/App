@@ -65,13 +65,14 @@ class ImageView extends PureComponent {
     setImageRegion(imageWidth, imageHeight) {
         let width = imageWidth;
         let height = imageHeight;
+        const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
-        const aspectRatio = (imageHeight / imageWidth);
 
-        // Fit the image to container width when container is loaded.
-        if (containerWidth > 0) {
-            width = Math.round(containerWidth);
-            height = Math.round(containerWidth * aspectRatio);
+        // Fit the image to container size when container is loaded.
+        if (containerWidth > 0 || imageWidth > 0) {
+            const aspectRatio = Math.min((containerHeight / imageWidth), (containerWidth / imageWidth));
+            width *= aspectRatio;
+            height *= aspectRatio;
         }
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
@@ -188,6 +189,8 @@ class ImageView extends PureComponent {
                         containerHeight: height,
                         containerWidth: width,
                         zoomScale: scale,
+                    }, () => {
+                        this.setImageRegion(imageWidth, imageHeight);
                     });
                 }}
                 style={[
