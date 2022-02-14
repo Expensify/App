@@ -18,7 +18,7 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
-import TextInputAutoWidthWithoutKeyboard from '../../../components/TextInputAutoWidthWithoutKeyboard';
+import TextInput from '../../../components/TextInput';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
@@ -225,9 +225,12 @@ class IOUAmountPage extends React.Component {
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
-                    <TextInputAutoWidthWithoutKeyboard
-                        inputStyle={styles.iouAmountTextInput}
-                        textStyle={styles.iouAmountText}
+                    <TextInput
+                        disableKeyboard
+                        autoGrow
+                        hideFocusedState
+                        inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                        textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         onChangeText={this.updateAmount}
                         ref={el => this.textInput = el}
                         value={formattedAmount}
