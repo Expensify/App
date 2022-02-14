@@ -969,16 +969,12 @@ const styles = {
         backgroundColor: themeColors.online,
     },
 
-    offlineTextMessageStyle: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-        marginLeft: 8,
-    },
-
     statusIndicatorOffline: {
         backgroundColor: themeColors.offline,
+    },
+
+    offlineColor: {
+        color: themeColors.offline,
     },
 
     floatingActionButton: {
@@ -1839,19 +1835,6 @@ const styles = {
         width: '100%',
         alignItems: 'center',
         padding: 20,
-    },
-
-    workspaceMemberPageWrapper: {
-        paddingHorizontal: 20,
-        paddingTop: 20,
-    },
-
-    memberPageOfflineTextContainerStyle: {
-        flexDirection: 'row',
-        justifyContentCenter: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-        width: '100%',
     },
 
     selectCircle: {

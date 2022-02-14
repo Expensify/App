@@ -83,7 +83,7 @@ class WorkspaceInvitePage extends React.Component {
             userToInvite,
             welcomeNote: this.getWelcomeNote(),
         };
-        this.submitActive = true;
+        this.invitationRequestSent = true;
     }
 
     componentDidMount() {
@@ -211,10 +211,10 @@ class WorkspaceInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
-        if (!this.validate() || !this.submitActive) {
+        if (!this.validate() || !this.invitationRequestSent) {
             return;
         }
-        this.submitActive = false;
+        this.invitationRequestSent = false;
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
 

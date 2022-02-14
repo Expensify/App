@@ -10,8 +10,6 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Network from '../Network';
-import NetworkConnection from '../NetworkConnection';
 import NetworkRequestQueueUtils from './NetworkRequestQueueUtils';
 import * as Report from './Report';
 
@@ -24,18 +22,6 @@ Onyx.connect({
         }
 
         allPolicies[key] = {...allPolicies[key], ...val};
-    },
-});
-
-let lastAccessedWorkspacePolicyID;
-Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        lastAccessedWorkspacePolicyID = val;
     },
 });
 
@@ -251,37 +237,27 @@ function createAndGetPolicyList() {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const getFullPolicy = () => {
-        API.GetFullPolicy(policyID)
-            .then((data) => {
-                if (data.jsonCode !== 200) {
-                    return;
-                }
+    API.GetFullPolicy(policyID)
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                return;
+            }
 
-                const policy = lodashGet(data, 'policyList[0]', {});
-                if (!policy.id) {
-                    return;
-                }
+            const policy = lodashGet(data, 'policyList[0]', {});
+            if (!policy.id) {
+                return;
+            }
 
-                const currentPolicy = _.clone(allPolicies[key]);
-                const simplifiedPolicyObject = getSimplifiedPolicyObject(policy, true);
+            const currentPolicy = _.clone(allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+            const simplifiedPolicyObject = getSimplifiedPolicyObject(policy, true);
 
-                const updatedPolicy = {
-                    ...currentPolicy,
-                    ...simplifiedPolicyObject,
-                    pendingInvitations: [],
-                };
-                Onyx.set(key, updatedPolicy);
-            });
-    };
-
-    if (_.isEmpty(lodashGet(allPolicies[key], 'pendingInvitations', []))) {
-        getFullPolicy();
-    } else {
-        // If there is pendingInvitations, wait until invite user API call finish
-        setTimeout(() => getFullPolicy(), 3000);
-    }
+            const updatedPolicy = {
+                ...currentPolicy,
+                ...simplifiedPolicyObject,
+                pendingInvitations: [],
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedPolicy);
+        });
 }
 
 /**
@@ -305,11 +281,6 @@ function isAdminOfFreePolicy(policies) {
  * @returns {Array} [newPendingInvitations, remainingMembers]
  */
 function removePendingInvitations(policy, members) {
-    // No pendingInvitations if network is online
-    if (!Network.isNetworkOffline()) {
-        return [policy.pendingInvitations, members];
-    }
-
     // pendingInvitations that API calls are still running and queued in persisted Onyx NetworkRequestQueue
     const ongoingPendingInvitations = _.intersection(policy.pendingInvitations, members);
     if (_.isEmpty(ongoingPendingInvitations)) {
@@ -345,8 +316,13 @@ function removeMembers(members, policyID) {
 
     const policy = _.clone(allPolicies[key]);
 
-    // Remaining members that need API call to remove it
-    const [newPendingInvitations, remainingMembers] = removePendingInvitations(policy, members);
+    // Remove email of members from persisted api request of inivteMembers
+    // If there is no pendingInvitations then remainingMembers is equal to members.
+    // remainingMembers needs API call to remove it.
+    const [newPendingInvitations, remainingMembers] = !_.isEmpty(policy.pendingInvitations)
+        ? removePendingInvitations(policy, members)
+        : [policy.pendingInvitations, members];
+
     policy.pendingInvitations = newPendingInvitations;
     policy.employeeList = _.without(policy.employeeList, ...remainingMembers);
 
@@ -365,13 +341,6 @@ function removeMembers(members, policyID) {
     })
         .then((data) => {
             if (data.jsonCode === 200) {
-                return;
-            }
-
-            // User email not present. Member is not synched, we shall sync the members list
-            if (data.jsonCode === 402) {
-                loadFullPolicy(policyID);
-                Growl.show(Localize.translateLocal('workspace.people.error.memberIsNotInSync'), CONST.GROWL.ERROR, 3000);
                 return;
             }
 
@@ -601,17 +570,6 @@ function setCustomUnitRate(policyID, customUnitID, values) {
 function updateLastAccessedWorkspace(policyID) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
-
-/**
- * loadFullPolicy of lastAccessedWorkspacePolicyID
- */
-const fetchLastAccessedWorkspace = _.throttle(
-    () => lastAccessedWorkspacePolicyID && loadFullPolicy(lastAccessedWorkspacePolicyID), 10000, {leading: false, trailing: true},
-);
-
-// User could be viewing workspace setting page or member page on network reconnects
-// We call fetchLastAccessedWorkspace to update workspace data
-NetworkConnection.onReconnect(fetchLastAccessedWorkspace);
 
 export {
     getPolicyList,

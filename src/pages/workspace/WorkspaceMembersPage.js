@@ -29,7 +29,6 @@ import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import FixedFooter from '../../components/FixedFooter';
 import OfflineText from '../../components/OfflineText';
-import themeColors from '../../styles/themes/default';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 
@@ -226,8 +225,8 @@ class WorkspaceMembersPage extends React.Component {
                                 icons: [item.avatar],
                                 keyForList: item.login,
                             }}
-                            textStyles={item.pending && [{color: themeColors.offline}]}
-                            alternateTextStyles={item.pending && [{color: themeColors.offline}]}
+                            textStyles={item.pending && [styles.offlineColor]}
+                            alternateTextStyles={item.pending && [styles.offlineColor]}
                         />
                     </View>
                     {this.props.session.email === item.login && (
@@ -290,7 +289,7 @@ class WorkspaceMembersPage extends React.Component {
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
                 />
-                <View style={[styles.flex1, styles.workspaceMemberPageWrapper, styles.flex1]}>
+                <View style={[styles.ph5, styles.pt5, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
                             medium
@@ -333,7 +332,7 @@ class WorkspaceMembersPage extends React.Component {
                     style={[styles.pt3, styles.pb3]}
                 >
                     <OfflineText
-                        outerContainerStyles={styles.memberPageOfflineTextContainerStyle}
+                        outerContainerStyles={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}
                         message={this.props.translate('workspace.people.offlineMessage')}
                     />
                 </FixedFooter>

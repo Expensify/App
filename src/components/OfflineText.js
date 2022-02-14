@@ -60,7 +60,7 @@ class OfflineText extends React.PureComponent {
                         height={variables.iconSizeExtraSmall}
                     />
                 </View>
-                <Text style={[styles.offlineTextMessageStyle, ...this.props.messageStyles]}>
+                <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.ml2, ...this.props.messageStyles]}>
                     {this.props.message || this.props.translate('reportActionCompose.youAppearToBeOffline')}
                 </Text>
             </>

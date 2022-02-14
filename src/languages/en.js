@@ -744,7 +744,6 @@ export default {
             selectAll: 'Select all',
             offlineMessage: 'You appear to be offline.  Pending invitations will send when you are onlines',
             error: {
-                memberIsNotInSync: 'Member list is not in sync. Synchronizing the member list.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
             },
         },
