@@ -59,10 +59,18 @@ class ImageView extends PureComponent {
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
-     * @param {Boolean} width image width
-     * @param {Boolean} height image height
+     * @param {Boolean} imageWidth image width
+     * @param {Boolean} imageHeight image height
      */
-    setImageRegion(width, height) {
+    setImageRegion(imageWidth, imageHeight) {
+        let width = imageWidth;
+        let height = imageHeight;
+        const containerWidth = this.state.containerWidth;
+        const aspectRatio = (imageHeight / imageWidth);
+        if (containerWidth > 0) {
+            width = Math.round(containerWidth);
+            height = Math.round(containerWidth * aspectRatio);
+        }
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
@@ -171,18 +179,10 @@ class ImageView extends PureComponent {
                 ref={el => this.scrollableRef = el}
                 onLayout={(e) => {
                     const {width, height} = e.nativeEvent.layout;
-                    let imageWidth = this.state.imgWidth;
-                    let imageHeight = this.state.imgHeight;
-                    const aspectRatio = (imageHeight / imageWidth);
-
-                    // reduce the imageWidth to windowWidth
-                    imageWidth = Math.round(width);
-                    imageHeight = Math.round(imageWidth * aspectRatio);
-
+                    const imageWidth = this.state.imgWidth;
+                    const imageHeight = this.state.imgHeight;
                     const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
                     this.setState({
-                        imgWidth: imageWidth,
-                        imgHeight: imageHeight,
                         containerHeight: height,
                         containerWidth: width,
                         zoomScale: scale,
