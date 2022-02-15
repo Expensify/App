@@ -9,7 +9,7 @@ function validateInputIDProps(props) {
         return;
     }
     if (!props.inputID) {
-        return new Error('InputID is required if isFormInput is true');
+        return new Error('inputID is required if isFormInput is true');
     }
     if (typeof props.inputID !== 'string') {
         return new Error(`Invalid prop type ${typeof props.inputID} supplied to inputID. Expecting string.`);
