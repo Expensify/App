@@ -91,6 +91,8 @@ class OptionsSelector extends Component {
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
+
+        this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
         this.viewableItems = [];
     }
 
@@ -102,18 +104,24 @@ class OptionsSelector extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        if (!_.isEqual(this.props.sections, prevProps.sections)) {
+            this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
+        }
+    }
+
     /**
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
      */
     scrollToIndex(index) {
-        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-
-        const {index: itemIndex, sectionIndex} = allOptions[index];
-        if (!this.list) {
+        const option = this.allOptions[index];
+        if (!this.list || !option) {
             return;
         }
+
+        const {index: itemIndex, sectionIndex} = option
 
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
@@ -144,16 +152,14 @@ class OptionsSelector extends Component {
      * @param {Number} focusedIndex
      */
     selectFocusedIndex(focusedIndex) {
-        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
-        this.selectRow(allOptions[focusedIndex]);
+        this.selectRow(this.allOptions[focusedIndex]);
         this.scrollToIndex(0);
     }
 
     render() {
-        const allOptions = OptionsListUtils.flattenSections(this.props.sections);
         return (
             <ArrowKeyFocusManager
-                listLength={allOptions.length}
+                listLength={this.allOptions.length}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={this.selectFocusedIndex}
             >
