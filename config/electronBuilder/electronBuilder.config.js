@@ -1,20 +1,19 @@
-const ENVIRONMENT = require('../../src/CONST/ENVIRONMENT');
+const lodash = require('lodash');
 const {version} = require('../../package.json');
 
 const isStaging = process.env.ELECTRON_ENV === 'staging';
+const isPublishing = lodash.get(process.argv, lodash.indexOf(process.argv, '--publish'), 'never') !== 'never';
 
 /**
- * The basic app configurations for the production and staging Electron builds,
- * without the pieces that require code signing, notarizing, and publishing.
- *
- * This has been separated from main electronBuilder.ghactions.config.js file to make it easier to run local production or staging builds.
+ * The configuration for the production and staging Electron builds.
+ * It can be used to create local builds of the same, by omitting the `--publish` flag
  */
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'New Expensify',
     extraMetadata: {
         version,
-        electronEnvironment: isStaging ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
+        electronEnvironment: process.env.ELECTRON_ENV || 'development',
     },
     mac: {
         category: 'public.app-category.finance',
@@ -30,6 +29,12 @@ module.exports = {
     dmg: {
         internetEnabled: true,
     },
+    publish: [{
+        provider: 's3',
+        bucket: isStaging ? 'staging-expensify-cash' : 'expensify-cash',
+        channel: 'latest',
+    }],
+    afterSign: isPublishing ? './desktop/notarize.js' : undefined,
     files: [
         'dist',
         '!dist/www/{.well-known,favicon*}',
