@@ -58,7 +58,7 @@ const defaultProps = {
     shouldSaveDraft: false,
     onBlur: () => {},
     errorText: '',
-    value: '',
+    value: undefined,
     containerStyles: [],
 };
 
