@@ -21,8 +21,9 @@ function getActiveState() {
 function navigateBackToRootDrawer() {
     const activeState = getActiveState();
 
-    //Dispatch "popToTop" action takes you back to the first screen in the stack at the same time 
-    //it will prevent bubbling of action and limit it to activeState by specifing target.
+    // To navigate to the main drawer Route, pop to the first route on the Root Stack Navigator as the main drawer is always the first route that is activated.
+    // It will pop all fullscreen and RHN modals that are over the main drawer. 
+    // It won't work when the main drawer is not the first route of the Root Stack Navigator which is not the case ATM.
     navigationRef.current.dispatch({
         ...StackActions.popToTop(),
         target: activeState.key,
@@ -54,14 +55,6 @@ function getParamsFromState(state) {
  */
 function getScreenNameFromState(state) {
     return getRouteFromState(state).name || '';
-}
-
-/**
- * @returns {Object}
- */
-function getActiveState() {
-    // We use our RootState as the dispatch's state is relative to the active navigator and might not contain our active screen.
-    return navigationRef.current.getRootState();
 }
 
 /**
