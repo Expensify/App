@@ -272,6 +272,8 @@ class NewChatPage extends Component {
                                                 onPress={this.createGroup}
                                                 style={[styles.w100]}
                                                 text={this.props.translate('newChatPage.createGroup')}
+                                                pressOnEnter
+                                                enterKeyEventListenerPriority={1}
                                             />
                                         </FixedFooter>
                                     )}

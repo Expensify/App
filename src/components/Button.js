@@ -68,7 +68,7 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
-    /** The priority to assign the enter key event listener. 0 is the highest priority. */
+    /** The priority to assign the enter key event listener */
     enterKeyEventListenerPriority: PropTypes.number,
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
@@ -160,7 +160,7 @@ class Button extends Component {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority);
     }
 
     componentWillUnmount() {
