@@ -26,12 +26,7 @@ function bindHandlerToKeydownEvent(event) {
         return;
     }
 
-    const eventCallbacks = events[correctedKey];
-
-    // Loop over all the callbacks in reverse
-    // Note that copying the eventCallbacks array is required so that the order of insertion is preserved the next time this function is executed
-    const reversedEventCallbacks = [...eventCallbacks].reverse();
-    _.every(reversedEventCallbacks, (callback) => {
+    _.every(events[correctedKey], (callback) => {
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
@@ -140,14 +135,15 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @param {String|Array} modifiers Can either be shift or control
  * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
  * @param {Boolean|Function} shouldBubble Should the event bubble?
+ * @param {Number} priority The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
     const correctedKey = key.toLowerCase();
     if (events[correctedKey] === undefined) {
         events[correctedKey] = [];
     }
-    events[correctedKey].push({
+    events[correctedKey].splice(priority, 0, {
         callback,
         modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
         captureOnInputs,

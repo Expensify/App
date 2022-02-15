@@ -154,6 +154,10 @@ class OptionsSelector extends Component {
      * @param {Number} focusedIndex
      */
     selectFocusedIndex(focusedIndex) {
+        if (!this.allOptions[focusedIndex]) {
+            return;
+        }
+
         this.selectRow(this.allOptions[focusedIndex]);
         this.scrollToIndex(0);
     }
@@ -161,9 +165,10 @@ class OptionsSelector extends Component {
     render() {
         return (
             <ArrowKeyFocusManager
-                listLength={this.allOptions.length}
+                listLength={this.props.canSelectMultipleOptions ? this.allOptions.length + 1 : this.allOptions.length}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={this.selectFocusedIndex}
+                shouldEnterKeyEventBubble={focusedIndex => !this.allOptions[focusedIndex]}
             >
                 {({focusedIndex}) => (
                     <View style={[styles.flex1]}>
