@@ -159,6 +159,11 @@ class OptionsSelector extends Component {
         }
 
         this.selectRow(this.allOptions[focusedIndex]);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
         this.scrollToIndex(0);
     }
 
