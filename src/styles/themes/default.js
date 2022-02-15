@@ -46,4 +46,5 @@ export default {
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,
     heroCard: colors.blue,
+    uploadPreviewActivityIndicator: colors.gray1,
 };

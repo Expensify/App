@@ -19,6 +19,14 @@ Onyx.connect({
     },
 });
 
+let bankAccountList = null;
+Onyx.connect({
+    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    callback: (val) => {
+        bankAccountList = val;
+    },
+});
+
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -31,6 +39,10 @@ function getReimbursementAccountInSetup() {
     return reimbursementAccountInSetup;
 }
 
+function getBankAccountList() {
+    return bankAccountList;
+}
+
 function getCredentials() {
     return credentials;
 }
@@ -41,6 +53,7 @@ function getReimbursementAccountWorkspaceID() {
 
 export {
     getReimbursementAccountInSetup,
+    getBankAccountList,
     getCredentials,
     getReimbursementAccountWorkspaceID,
 };

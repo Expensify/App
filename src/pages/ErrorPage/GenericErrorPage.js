@@ -78,6 +78,6 @@ const GenericErrorPage = props => (
 );
 
 GenericErrorPage.propTypes = propTypes;
-GenericErrorPage.displayName = 'GenericErrorPage';
+GenericErrorPage.displayName = 'ErrorPage';
 
 export default withLocalize(GenericErrorPage);
