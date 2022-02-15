@@ -103,6 +103,16 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Whether the provided report is a Policy Expense chat.
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+ function isPolicyExpenseChat(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/**
  * Whether the provided report is a chat room
  * @param {Object} report
  * @param {String} report.chatType
@@ -257,4 +267,5 @@ export {
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
+    isPolicyExpenseChat,
 };
