@@ -95,11 +95,11 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {fName, lName} = this.getFirstAndLastName(props.myPersonalDetails);
+        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
-            firstName: fName,
+            firstName,
             hasFirstNameError: false,
-            lastName: lName,
+            lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
@@ -200,6 +200,8 @@ class RequestCallPage extends Component {
      * so we return empty strings instead.
      * @param {String} login
      * @param {String} displayName
+     * @param {String} firstName
+     * @param {String} lastName
      *
      * @returns {Object}
      */
@@ -209,28 +211,23 @@ class RequestCallPage extends Component {
         firstName,
         lastName,
     }) {
-        let fName;
-        let lName;
-
-        if (firstName && lastName) {
-            fName = firstName;
-            lName = lastName;
-        } else if (Str.removeSMSDomain(login) === displayName) {
-            fName = '';
-            lName = '';
-        } else {
-            const firstSpaceIndex = displayName.indexOf(' ');
-            const lastSpaceIndex = displayName.lastIndexOf(' ');
-
-            if (firstSpaceIndex === -1) {
-                fName = displayName;
-                lName = '';
-            } else {
-                fName = displayName.substring(0, firstSpaceIndex);
-                lName = displayName.substring(lastSpaceIndex);
-            }
+        if (firstName || lastName) {
+            return {firstName: firstName || '', lastName: lastName || ''};
         }
-        return {fName, lName};
+        if (Str.removeSMSDomain(login) === displayName) {
+            return {firstName: '', lastName: ''};
+        }
+
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
     getWaitTimeMessageKey(minutes) {
