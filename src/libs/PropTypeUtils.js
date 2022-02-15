@@ -1,5 +1,12 @@
 import * as NumberUtils from './NumberUtils';
 
+function integerPropType(props, propName, componentName) {
+    const propValue = props[propName];
+    if (!Number.isInteger(propValue)) {
+        return new Error(`Invalid prop ${propName} supplied to ${componentName}. Must be an integer, but got ${propValue} instead`);
+    }
+}
+
 function wholeNumberPropType(props, propName, componentName) {
     const propValue = props[propName];
     if (!NumberUtils.isWholeNumber(propValue)) {
@@ -8,6 +15,6 @@ function wholeNumberPropType(props, propName, componentName) {
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
+    integerPropType,
     wholeNumberPropType,
 };
