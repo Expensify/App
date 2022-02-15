@@ -312,7 +312,7 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
     },
     HTTP_STATUS_CODE: {

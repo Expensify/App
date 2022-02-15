@@ -82,12 +82,15 @@ function hideDeleteModal() {
  * Opens the Confirm delete action modal
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {Boolean} [shouldSetModalVisibility]
+ * @param {Function} [onConfirm]
+ * @param {Function} [onCancel]
  */
-function showDeleteModal(reportID, reportAction) {
+function showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction);
+    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
 }
 
 /**

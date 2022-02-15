@@ -105,7 +105,7 @@ jobs:
         run: |
           git checkout staging
           git pull origin staging
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+          echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
           echo "New version is ${{ env.NEW_VERSION }}"
 
         # Create a local git tag so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
