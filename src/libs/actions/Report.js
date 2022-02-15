@@ -224,6 +224,7 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
+        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
     };
 }
 
