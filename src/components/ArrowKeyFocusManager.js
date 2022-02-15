@@ -6,18 +6,34 @@ import CONST from '../CONST';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
-    children: PropTypes.node.isRequired,
-    initialFocusedIndex: PropTypeUtils.wholeNumberPropType,
+    /** Children to render. */
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
+
+    /** The initial focused index. */
+    initialFocusedIndex: PropTypeUtils.integerPropType,
+
+    /** The number of items in the list that this component is managing focus for. */
     listLength: PropTypeUtils.wholeNumberPropType,
+
+    /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func,
+
+    /** A callback executed when the enter key is pressed. */
     onEnterKeyPressed: PropTypes.func,
+
+    /** Should the enter key event bubble? */
+    shouldEnterKeyEventBubble: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
 };
 
 const defaultProps = {
     initialFocusedIndex: 0,
     listLength: 0,
     onFocusedIndexChanged: () => {},
-    onEnterKeyPressed: () => {},
+    onEnterKeyPressed: undefined,
+    shouldEnterKeyEventBubble: false,
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -26,6 +42,7 @@ class ArrowKeyFocusManager extends Component {
         this.state = {
             focusedIndex: props.initialFocusedIndex,
         };
+        this.shouldEnterKeyEventBubble = this.shouldEnterKeyEventBubble.bind(this);
     }
 
     componentDidMount() {
@@ -33,9 +50,11 @@ class ArrowKeyFocusManager extends Component {
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
-        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
-            this.props.onEnterKeyPressed(this.state.focusedIndex);
-        }, enterConfig.descriptionKey, enterConfig.modifiers, true);
+        if (this.props.onEnterKeyPressed) {
+            this.unsubscribeEnterKey = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
+                this.props.onEnterKeyPressed(this.state.focusedIndex);
+            }, enterConfig.descriptionKey, enterConfig.modifiers, true, this.shouldEnterKeyEventBubble);
+        }
 
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
             if (this.props.listLength <= 1) {
@@ -90,6 +109,21 @@ class ArrowKeyFocusManager extends Component {
         if (this.unsubscribeArrowDownKey) {
             this.unsubscribeArrowDownKey();
         }
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    shouldEnterKeyEventBubble() {
+        if (_.isFunction(this.props.shouldEnterKeyEventBubble)) {
+            const shouldBubble = this.props.shouldEnterKeyEventBubble(this.state.focusedIndex);
+            if (!_.isBoolean(shouldBubble)) {
+                throw new Error('shouldEnterKeyEventBubble prop did not return a boolean');
+            }
+            return shouldBubble;
+        }
+
+        return this.props.shouldEnterKeyEventBubble;
     }
 
     render() {

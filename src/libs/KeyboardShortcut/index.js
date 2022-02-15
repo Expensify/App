@@ -75,7 +75,9 @@ function bindHandlerToKeydownEvent(event) {
     const eventCallbacks = events[correctedKey];
 
     // Loop over all the callbacks in reverse
-    _.every(eventCallbacks.reverse(), (callback) => {
+    // Note that copying the eventCallbacks array is required so that the order of insertion is preserved the next time this function is executed
+    const reversedEventCallbacks = [...eventCallbacks].reverse();
+    _.every(reversedEventCallbacks, (callback) => {
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
@@ -186,19 +188,22 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String} descriptionKey Translation key for shortcut description
- * @param {String|Array<String>} [modifiers] Can either be shift or control
- * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
- * @param {Boolean|Function} [shouldBubble] Should the event bubble?
- * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
- * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
+ * @param {String|Array} modifiers Can either be shift or control
+ * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
+ * @param {Boolean|Function} shouldBubble Should the event bubble?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false) {
     const correctedKey = key.toLowerCase();
     if (events[correctedKey] === undefined) {
         events[correctedKey] = [];
     }
-    events[correctedKey].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+    events[correctedKey].push({
+        callback,
+        modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
+        captureOnInputs,
+        shouldBubble,
+    });
 
     if (descriptionKey) {
         documentedShortcuts[displayName] = {
