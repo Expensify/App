@@ -95,7 +95,7 @@ class NewChatPage extends Component {
             sections.push({
                 title: undefined,
                 data: this.state.selectedOptions,
-                shouldShow: true,
+                shouldShow: !_.isEmpty(this.state.selectedOptions),
                 indexOffset: 0,
             });
 
@@ -112,15 +112,15 @@ class NewChatPage extends Component {
 
         sections.push({
             title: this.props.translate('common.recents'),
-            data: recentReportsWithoutSelected,
-            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
+            data: _.difference(this.state.recentReports, this.state.selectedOptions),
+            shouldShow: !_.isEmpty(this.state.recentReports),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: personalDetailsWithoutSelected,
-            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
+            data: _.difference(this.state.personalDetails, this.state.selectedOptions),
+            shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
