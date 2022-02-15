@@ -64,7 +64,9 @@ class BaseTextInput extends Component {
         }
 
         this.value = this.props.value;
-        this.input.setNativeProps({text: this.value});
+        if (!this.props.isValueControlled) {
+            this.input.setNativeProps({text: this.value});
+        }
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (this.props.value === '') {
@@ -220,6 +222,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
+                                        value={this.props.isValueControlled ? this.value : undefined}
                                         defaultValue={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}
