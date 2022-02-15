@@ -63,7 +63,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             ],
         }),
         new IgnorePlugin(/^\.\/locale$/, /moment$/),
-        new CustomVersionFilePlugin(),
+        ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(
                 dotenv.config({path: envFile}).parsed,
