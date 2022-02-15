@@ -1,8 +1,7 @@
-const lodash = require('lodash');
 const {version} = require('../../package.json');
 
 const isStaging = process.env.ELECTRON_ENV === 'staging';
-const isPublishing = lodash.get(process.argv, lodash.indexOf(process.argv, '--publish'), 'never') !== 'never';
+const isPublishing = process.argv.includes('--publish');
 
 /**
  * The configuration for the production and staging Electron builds.
