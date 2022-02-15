@@ -122,7 +122,7 @@ jobs:
       - name: Pull main to get the new version
         run: |
           git pull origin main
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+          echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
           echo "New version is ${{ env.NEW_VERSION }}"
 
       - name: Update staging branch from main
@@ -212,7 +212,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}
-        run: echo "PR_COUNT=$(gh pr list --author ${{ steps.getMergedPullRequest.outputs.author }} --state any | grep -c '')" >> $GITHUB_ENV
+        run: echo "PR_COUNT=$(gh pr list --author ${{ steps.getMergedPullRequest.outputs.author }} --state any | grep -c '')" >> "$GITHUB_ENV"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
