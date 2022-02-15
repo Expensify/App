@@ -21,6 +21,7 @@ import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
+import ArrowKeyFocusManager from './ArrowKeyFocusManager';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -137,12 +138,10 @@ class IOUConfirmationList extends Component {
         this.state = {
             participants: formattedParticipants,
         };
-        this.state.focusedIndex = OptionsListUtils.flattenSections(this.getSections()).length;
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
-        this.scrollToFocusedIndex = this.scrollToFocusedIndex.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.scrollToIndex = this.scrollToIndex.bind(this);
     }
 
     componentDidMount() {
@@ -337,13 +336,19 @@ class IOUConfirmationList extends Component {
     /**
      * Scrolls to the focused index within the SectionList
      *
-     * @param {Number} sectionIndex
-     * @param {Number} itemIndex
+     * @param {Number} index
      */
-    scrollToFocusedIndex(sectionIndex, itemIndex) {
+    scrollToIndex(index) {
         if (!this.list) {
             return;
         }
+
+        const allOptions = OptionsListUtils.flattenSections(this.getSections());
+        if (index === allOptions.length) {
+            return;
+        }
+
+        const {index: itemIndex, sectionIndex} = allOptions[index];
 
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
@@ -358,75 +363,14 @@ class IOUConfirmationList extends Component {
         this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
     }
 
-
     /**
-     * Delegate key presses to specific callbacks
-     *
-     * @param {SyntheticEvent} e
+     * @param {String} paymentMethod
      */
-    handleKeyPress(e) {
-        const allOptions = OptionsListUtils.flattenSections(this.getSections());
-        switch (e.nativeEvent.key) {
-            case 'Enter': {
-                if (this.state.focusedIndex === allOptions.length) {
-                    return;
-                }
-
-                e.preventDefault();
-
-                if (this.props.hasMultipleParticipants) {
-                    this.toggleOption(allOptions[this.state.focusedIndex]);
-                }
-
-                break;
-            }
-            case 'ArrowDown': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex + 1;
-
-                    // Wrap around to the top of the list
-                    if (newFocusedIndex > allOptions.length - 1) {
-                        newFocusedIndex = 0;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-                e.preventDefault();
-                break;
-            }
-
-            case 'ArrowUp': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex - 1;
-
-                    // Wrap around to the bottom of the list
-                    if (newFocusedIndex < 0) {
-                        newFocusedIndex = allOptions.length - 1;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-                e.preventDefault();
-                break;
-            }
-
-            default:
-        }
-    }
-
-    /**
-     * @param {String} value
-     */
-    confirm(value) {
+    confirm(paymentMethod) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onSendMoney(value);
+            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+            this.props.onSendMoney(paymentMethod);
         } else {
-            Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
         }
     }
@@ -439,67 +383,79 @@ class IOUConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
+        const allOptions = OptionsListUtils.flattenSections(this.getSections());
         return (
-            <>
-                <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
-                    <OptionsList
-                        ref={e => this.list = e}
-                        sections={this.getSections()}
-                        focusedIndex={this.state.focusedIndex}
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        selectedOptions={this.getSelectedOptions()}
-                        onSelectRow={toggleOption}
-                        disableRowInteractivity={!this.props.isGroupSplit}
-                        optionHoveredStyle={hoverStyle}
-                    />
-                </ScrollView>
-                <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <TextInput
-                        ref={el => this.textInput = el}
-                        label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                        value={this.props.comment}
-                        onKeyPress={this.handleKeyPress}
-                        onChangeText={this.props.onUpdateComment}
-                        placeholder={this.props.translate('common.optional')}
-                        placeholderTextColor={themeColors.placeholderText}
-                    />
-                </View>
-                <FixedFooter>
-                    {this.props.network.isOffline && (
-                        <Text style={[styles.formError, styles.pb2]}>
-                            {this.props.translate('session.offlineMessage')}
-                        </Text>
-                    )}
-                    {shouldShowSettlementButton ? (
-                        <SettlementButton
-                            isDisabled={shouldDisableButton}
-                            isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                            onPress={this.confirm}
-                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                            recipientPhoneNumber={recipient.phoneNumber}
-                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
-                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.iou.selectedCurrencyCode}
-                        />
-                    ) : (
-                        <ButtonWithMenu
-                            isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
-                            onPress={(_event, value) => {
-                                const allOptions = OptionsListUtils.flattenSections(this.getSections());
-                                if (this.state.focusedIndex !== allOptions.length) {
-                                    return;
-                                }
-                                this.confirm(value);
-                            }}
-                            options={this.splitOrRequestOptions}
-                        />
-                    )}
-                </FixedFooter>
-            </>
+            <ArrowKeyFocusManager
+                initialFocusedIndex={allOptions.length}
+                listLength={allOptions.length + 1}
+                onFocusedIndexChanged={this.scrollToIndex}
+                onEnterKeyPressed={(focusedIndex) => {
+                    if (focusedIndex === allOptions.length) {
+                        return;
+                    }
+
+                    if (this.props.hasMultipleParticipants) {
+                        this.toggleOption(allOptions[focusedIndex]);
+                    }
+                }}
+                shouldEnterKeyEventBubble={focusedIndex => focusedIndex === allOptions.length}
+            >
+                {({focusedIndex}) => (
+                    <>
+                        <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
+                            <OptionsList
+                                ref={e => this.list = e}
+                                sections={this.getSections()}
+                                focusedIndex={focusedIndex}
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                                canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                                selectedOptions={this.getSelectedOptions()}
+                                onSelectRow={toggleOption}
+                                disableRowInteractivity={!this.props.isGroupSplit}
+                                optionHoveredStyle={hoverStyle}
+                            />
+                        </ScrollView>
+                        <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
+                            <TextInput
+                                ref={el => this.textInput = el}
+                                label={this.props.translate('iOUConfirmationList.whatsItFor')}
+                                value={this.props.comment}
+                                onChangeText={this.props.onUpdateComment}
+                                placeholder={this.props.translate('common.optional')}
+                                placeholderTextColor={themeColors.placeholderText}
+                            />
+                        </View>
+                        <FixedFooter>
+                            {this.props.network.isOffline && (
+                                <Text style={[styles.formError, styles.pb2]}>
+                                    {this.props.translate('session.offlineMessage')}
+                                </Text>
+                            )}
+                            {shouldShowSettlementButton ? (
+                                <SettlementButton
+                                    isDisabled={shouldDisableButton}
+                                    isLoading={this.props.iou.loading && !this.props.network.isOffline}
+                                    onPress={this.confirm}
+                                    shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                                    recipientPhoneNumber={recipient.phoneNumber}
+                                    enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                                    currency={this.props.iou.selectedCurrencyCode}
+                                />
+                            ) : (
+                                <ButtonWithMenu
+                                    isDisabled={shouldDisableButton}
+                                    isLoading={isLoading}
+                                    onPress={(_event, value) => this.confirm(value)}
+                                    options={this.splitOrRequestOptions}
+                                />
+                            )}
+                        </FixedFooter>
+                    </>
+                )}
+            </ArrowKeyFocusManager>
         );
     }
 }
