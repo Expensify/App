@@ -108,7 +108,7 @@ function isUserCreatedPolicyRoom(report) {
  * @param {String} report.chatType
  * @returns {Boolean}
  */
- function isPolicyExpenseChat(report) {
+function isPolicyExpenseChat(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
