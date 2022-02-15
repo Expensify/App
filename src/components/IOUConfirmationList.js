@@ -27,10 +27,10 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to to parent modal to send money */
+    /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    // Callback to update comment from IOUModal
+    /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
     /** Comment value from IOUModal */
@@ -45,7 +45,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    // Selected participants from IOUModal with login
+    /** Selected participants from IOUModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -136,8 +136,13 @@ class IOUConfirmationList extends Component {
         }];
 
         this.state = {
+            sections: this.getSections(formattedParticipants),
+            currentActor: formattedParticipants[0],
             participants: formattedParticipants,
+            selectedParticipants: formattedParticipants,
         };
+
+        this.allOptions = OptionsListUtils.flattenSections(this.state.sections);
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
@@ -148,22 +153,6 @@ class IOUConfirmationList extends Component {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-    }
-
-    /**
-     * Get selected participants
-     * @returns {Array}
-     */
-    getSelectedParticipants() {
-        return _.filter(this.state.participants, participant => participant.selected);
-    }
-
-    /**
-     * Get unselected participants
-     * @returns {Array}
-     */
-    getUnselectedParticipants() {
-        return _.filter(this.state.participants, participant => !participant.selected);
     }
 
     /**
@@ -183,6 +172,7 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the participants without amount
+     *
      * @param {Array} participants
      * @returns {Array}
      */
@@ -192,14 +182,16 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the sections needed for the OptionsSelector
+     *
+     * @param {Array} participants
      * @returns {Array}
      */
-    getSections() {
+    getSections(participants) {
         const sections = [];
         if (this.props.hasMultipleParticipants) {
-            const selectedParticipants = this.getSelectedParticipants();
-            const unselectedParticipants = this.getUnselectedParticipants();
-
+            const {true: selected, false: unselected} = _.groupBy(participants, 'selected');
+            const selectedParticipants = selected || [];
+            const unselectedParticipants = unselected || [];
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
 
@@ -254,13 +246,12 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return null;
         }
-        const selectedParticipants = this.getSelectedParticipants();
-        const splits = _.map(selectedParticipants, participant => ({
+        const splits = _.map(this.state.selectedParticipants, participant => ({
             email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants),
+            amount: this.calculateAmount(this.state.selectedParticipants),
         }));
 
         splits.push({
@@ -268,7 +259,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants, true),
+            amount: this.calculateAmount(this.state.selectedParticipants, true),
         });
         return splits;
     }
@@ -281,9 +272,8 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return [];
         }
-        const selectedParticipants = this.getSelectedParticipants();
         return [
-            ...selectedParticipants,
+            ...this.state.selectedParticipants,
             OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
         ];
     }
@@ -317,20 +307,30 @@ class IOUConfirmationList extends Component {
     * @param {Object} option
     */
     toggleOption(option) {
-        // Return early if selected option is currently logged in user.
+        // Return early if selected option is currently logged-in user.
         if (option.login === this.props.session.email) {
             return;
         }
 
-        this.setState((prevState) => {
-            const newParticipants = _.map(prevState.participants, (participant) => {
-                if (participant.login === option.login) {
-                    return {...option, selected: !option.selected};
-                }
-                return participant;
-            });
-            return {participants: newParticipants};
-        });
+        this.setState(
+            (prevState) => {
+                const newParticipants = _.map(prevState.participants, (participant) => {
+                    if (participant.login === option.login) {
+                        return {...option, selected: !option.selected};
+                    }
+                    return participant;
+                });
+                const newSelectedParticipants = _.where(newParticipants, {selected: true});
+                const newSections = this.getSections(newParticipants);
+
+                return {
+                    sections: newSections,
+                    participants: newParticipants,
+                    selectedParticipants: newSelectedParticipants,
+                };
+            },
+            () => { this.allOptions = OptionsListUtils.flattenSections(this.state.sections); },
+        );
     }
 
     /**
@@ -339,16 +339,12 @@ class IOUConfirmationList extends Component {
      * @param {Number} index
      */
     scrollToIndex(index) {
-        if (!this.list) {
+        const option = this.allOptions[index];
+        if (!this.list || !option) {
             return;
         }
 
-        const allOptions = OptionsListUtils.flattenSections(this.getSections());
-        if (index === allOptions.length) {
-            return;
-        }
-
-        const {index: itemIndex, sectionIndex} = allOptions[index];
+        const {index: itemIndex, sectionIndex} = option;
 
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
@@ -378,34 +374,31 @@ class IOUConfirmationList extends Component {
     render() {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
-        const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
+        const shouldDisableButton = this.state.selectedParticipants.length === 0 || this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
-        const recipient = this.state.participants[0];
-        const allOptions = OptionsListUtils.flattenSections(this.getSections());
         return (
             <ArrowKeyFocusManager
-                initialFocusedIndex={allOptions.length}
-                listLength={allOptions.length + 1}
+                initialFocusedIndex={this.allOptions.length}
+                listLength={this.allOptions.length + 1}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={(focusedIndex) => {
-                    if (focusedIndex === allOptions.length) {
+                    if (focusedIndex === this.allOptions.length) {
                         return;
                     }
 
                     if (this.props.hasMultipleParticipants) {
-                        this.toggleOption(allOptions[focusedIndex]);
+                        this.toggleOption(this.allOptions[focusedIndex]);
                     }
                 }}
-                shouldEnterKeyEventBubble={focusedIndex => focusedIndex === allOptions.length}
+                shouldEnterKeyEventBubble={focusedIndex => focusedIndex === this.allOptions.length}
             >
                 {({focusedIndex}) => (
                     <>
                         <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
                             <OptionsList
                                 ref={e => this.list = e}
-                                sections={this.getSections()}
+                                sections={this.state.sections}
                                 focusedIndex={focusedIndex}
                                 hideAdditionalOptionStates
                                 forceTextUnreadStyle
@@ -437,8 +430,8 @@ class IOUConfirmationList extends Component {
                                     isDisabled={shouldDisableButton}
                                     isLoading={this.props.iou.loading && !this.props.network.isOffline}
                                     onPress={this.confirm}
-                                    shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                                    recipientPhoneNumber={recipient.phoneNumber}
+                                    shouldShowPaypal={Boolean(this.state.currentActor.payPalMeAddress)}
+                                    recipientPhoneNumber={this.state.currentActor.phoneNumber}
                                     enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
