@@ -53,7 +53,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    // ...defaultFieldPropTypes,
     isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
