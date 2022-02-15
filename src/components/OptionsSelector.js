@@ -105,9 +105,11 @@ class OptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!_.isEqual(this.props.sections, prevProps.sections)) {
-            this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
+        if (_.isEqual(this.props.sections, prevProps.sections)) {
+            return;
         }
+
+        this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
     }
 
     /**
@@ -121,7 +123,7 @@ class OptionsSelector extends Component {
             return;
         }
 
-        const {index: itemIndex, sectionIndex} = option
+        const {index: itemIndex, sectionIndex} = option;
 
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
