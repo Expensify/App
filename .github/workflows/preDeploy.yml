@@ -183,7 +183,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      isExpensifyEmployee: ${{ steps.checkActor.outputs.isTeamMember }}
+      isExpensifyEmployee: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
 
     steps:
       - name: Check whether the actor is member of expensify-expensify team
