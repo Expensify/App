@@ -12,7 +12,6 @@ module.exports = {
     productName: 'New Expensify',
     extraMetadata: {
         version,
-        electronEnvironment: process.env.ELECTRON_ENV || 'development',
     },
     mac: {
         category: 'public.app-category.finance',

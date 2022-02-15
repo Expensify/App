@@ -9,7 +9,7 @@ portfinder.getPortPromise({
 }).then((port) => {
     const processes = [
         {
-            command: `export ELECTRON_ENV=development && webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env.platform desktop`,
+            command: `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env.platform desktop`,
             name: 'Renderer',
             prefixColor: 'red.dim',
 

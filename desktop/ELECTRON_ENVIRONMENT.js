@@ -4,7 +4,7 @@ const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
  * @returns {'development'|'staging'|'production'}
  */
 function getEnvironment() {
-    return process.env.ELECTRON_ENV;
+    return process.env.NODE_ENV || ENVIRONMENT.DEV;
 }
 
 function isDev() {
