@@ -4,7 +4,7 @@
  * @param {Object} props - props passed to the input component
  * @returns {Object} returns an Error object if isFormInput is supplied but inputID is falsey or not a string
  */
-function getInputIDPropTypes(props) {
+function validateInputIDProps(props) {
     if (!props.isFormInput) {
         return;
     }
@@ -18,5 +18,5 @@ function getInputIDPropTypes(props) {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    getInputIDPropTypes,
+    validateInputIDProps,
 };
