@@ -121,9 +121,9 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return _.without(emailArray, currentUserEmail);
+    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -1096,6 +1096,7 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -1161,6 +1162,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
+            attachmentInfo,
             loading: true,
             shouldShow: true,
         },
@@ -1171,11 +1173,7 @@ function addAction(reportID, text, file) {
         file,
         reportComment: commentText,
         clientID: optimisticReportActionID,
-
-        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
-        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
-        // the same way report actions can.
-        persist: !isAttachment,
+        persist: true,
     })
         .then((response) => {
             if (response.jsonCode === 408) {

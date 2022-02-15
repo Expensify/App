@@ -40,13 +40,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
+For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
+
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
-* Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
+* Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -385,10 +388,10 @@ The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workf
 The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
 
 ### lockDeploys
-The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it prepares the staging branch for a production release by creating a new `PATCH` version (i.e: `1.0.57-5` -> `1.0.58.0`).
+The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
 
 ### finishReleaseCycle
-The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging, and creates a new `StagingDeployCash` deploy checklist.
+The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:

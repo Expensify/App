@@ -4,6 +4,7 @@ import * as API from '../API';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
+import * as User from './User';
 
 /**
  * @param {Object} params
@@ -30,6 +31,11 @@ function requestInboxCall({
                 Growl.success(Localize.translateLocal('requestCallPage.growlMessageOnSave'));
                 Navigation.goBack();
                 return;
+            }
+
+            if (result.jsonCode === 666) {
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
             }
 
             // Phone number validation is handled by the API

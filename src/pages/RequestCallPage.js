@@ -8,6 +8,7 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
+import colors from '../styles/colors';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -15,6 +16,7 @@ import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
+import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
@@ -27,6 +29,8 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import PhoneTextInput from '../components/PhoneTextInput';
+import * as Expensicons from '../components/Icon/Expensicons';
+import * as User from '../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,6 +75,12 @@ const propTypes = {
 
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
+
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -79,6 +89,7 @@ const defaultProps = {
     },
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
+    blockedFromConcierge: {},
 };
 
 class RequestCallPage extends Component {
@@ -273,6 +284,8 @@ class RequestCallPage extends Component {
     }
 
     render() {
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -329,12 +342,19 @@ class RequestCallPage extends Component {
                         </Section>
                     </ScrollView>
                     <FixedFooter>
+                        {isBlockedFromConcierge && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                                <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
+                                <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
+                            </View>
+                        )}
                         <Button
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
                             isLoading={this.props.requestCallForm.loading}
+                            isDisabled={isBlockedFromConcierge}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -368,6 +388,9 @@ export default compose(
         },
         lastAccessedWorkspacePolicyID: {
             key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(RequestCallPage);

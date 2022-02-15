@@ -120,6 +120,11 @@ const webViewStyles = {
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
+
+        p: {
+            marginTop: 0,
+            marginBottom: 0,
+        },
     },
 
     baseFontStyle: {
@@ -140,6 +145,19 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+
+    rateCol: {
+        margin: 0,
+        padding: 0,
+        flexBasis: '48%',
+    },
+
+    unitCol: {
+        margin: 0,
+        padding: 0,
+        marginLeft: '4%',
+        flexBasis: '48%',
+    },
 
     webViewStyles,
 
@@ -675,6 +693,8 @@ const styles = {
     },
 
     textInputAndIconContainer: {
+        flex: 1,
+        height: '100%',
         zIndex: -1,
         flexDirection: 'row',
     },
@@ -1207,13 +1227,6 @@ const styles = {
         paddingVertical: 16,
     },
 
-    chatContentEmpty: {
-        paddingTop: 16,
-        paddingBottom: 16,
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
     // Chat Item
     chatItem: {
         display: 'flex',
@@ -1603,6 +1616,10 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderNone: {
+        borderWidth: 0,
+    },
+
     borderRight: {
         borderRightWidth: 1,
         borderColor: themeColors.border,
@@ -1786,7 +1803,7 @@ const styles = {
         height: 80,
     },
 
-    emptyStateAvatar: {
+    roomHeaderAvatar: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
         borderRadius: 100,
@@ -1959,6 +1976,7 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
+        lineHeight: undefined,
     }, 0),
 
     iouPreviewBox: {
@@ -2205,7 +2223,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 100,
+        minHeight: 115,
     },
 
     peopleRow: {
@@ -2427,6 +2445,10 @@ const styles = {
 
     transferBalanceBalance: {
         fontSize: 48,
+    },
+
+    closeAccountMessageInput: {
+        minHeight: 140,
     },
 };
 

@@ -70,6 +70,7 @@ class RoomNameInput extends Component {
         this.originalRoomName = props.initialValue;
 
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
+        this.checkExistingRoomName = this.checkExistingRoomName.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -80,6 +81,11 @@ class RoomNameInput extends Component {
         if (prevState.error !== this.state.error) {
             this.props.onChangeError(this.state.error);
         }
+
+        // If the selected policyID has changed we need to check if the room name already exists on this new policy.
+        if (prevProps.policyID !== this.props.policyID) {
+            this.checkExistingRoomName(this.state.roomName);
+        }
     }
 
     /**
@@ -88,40 +94,63 @@ class RoomNameInput extends Component {
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
      * Also checks to see if this room name already exists, and displays an error message if so.
-     * @param {String} roomName
+     * @param {Event} event
      *
      */
-    checkAndModifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substring(1)
+    checkAndModifyRoomName(event) {
+        const nativeEvent = event.nativeEvent;
+        const roomName = nativeEvent.text;
+        const target = nativeEvent.target;
+        const selection = target.selectionStart;
+
+        const modifiedRoomNameWithoutHash = roomName
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
             .substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
         const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
 
+        this.checkExistingRoomName(finalRoomName);
+
+        this.setState({
+            roomName: finalRoomName,
+        }, () => {
+            if (!selection) {
+                return;
+            }
+            target.selectionEnd = selection;
+        });
+    }
+
+    /**
+     * Checks to see if this room name already exists, and displays an error message if so.
+     * @param {String} roomName
+     *
+     */
+    checkExistingRoomName(roomName) {
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report && report.policyID === this.props.policyID && report.reportName === finalRoomName,
+            report => report && report.policyID === this.props.policyID && report.reportName === roomName,
         );
 
         let error = '';
 
         // We error if the room name already exists. We don't care if it matches the original name provided in this
         // component because then we are not changing the room's name.
-        if (isExistingRoomName && finalRoomName !== this.originalRoomName) {
+        if (isExistingRoomName && roomName !== this.originalRoomName) {
             error = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, finalRoomName)) {
+        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, roomName)) {
             error = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
         this.setState({
-            roomName: finalRoomName,
             error,
         });
     }
+
 
     render() {
         return (
@@ -131,7 +160,7 @@ class RoomNameInput extends Component {
                 prefixCharacter="#"
                 placeholder={this.props.translate('newRoomPage.social')}
                 containerStyles={[styles.mb5]}
-                onChangeText={roomName => this.checkAndModifyRoomName(roomName)}
+                onChange={this.checkAndModifyRoomName}
                 value={this.state.roomName.substring(1)}
                 errorText={this.state.error}
                 autoCapitalize="none"
