@@ -6,6 +6,7 @@ import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
+import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Picker label */
@@ -14,22 +15,40 @@ const propTypes = {
     /** Should the picker appear disabled? */
     isDisabled: PropTypes.bool,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
+    /** Input value */
+    value: PropTypes.string,
 
     /** Error text to display */
     errorText: PropTypes.string,
 
     /** Customize the Picker container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.getInputIDPropTypes(props),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
     label: '',
     isDisabled: false,
-    hasError: false,
     errorText: '',
     containerStyles: [],
+    isFormInput: false,
+    inputID: undefined,
+    shouldSaveDraft: false,
+    value: undefined,
+
 };
 
 class Picker extends PureComponent {
@@ -48,6 +67,7 @@ class Picker extends PureComponent {
                     style={[
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
+                        ...this.props.containerStyles,
                     ]}
                 >
                     {this.props.label && (
@@ -58,7 +78,7 @@ class Picker extends PureComponent {
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
                         focused={this.state.isOpen}
-                        hasError={this.props.hasError}
+                        errorText={this.props.errorText}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />
@@ -76,4 +96,5 @@ class Picker extends PureComponent {
 Picker.propTypes = propTypes;
 Picker.defaultProps = defaultProps;
 
-export default Picker;
+// eslint-disable-next-line react/jsx-props-no-spreading
+export default React.forwardRef((props, ref) => <Picker {...props} innerRef={ref} key={props.inputID} />);
