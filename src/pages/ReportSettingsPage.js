@@ -165,9 +165,6 @@ class ReportSettingsPage extends Component {
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('common.notifications')}
                             </Text>
-                            <Text>
-                                {this.props.translate('notificationPreferences.description')}
-                            </Text>
                         </View>
                         <View style={[styles.mb5, styles.mt2]}>
                             <Picker

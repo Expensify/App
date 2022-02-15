@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import * as Url from './libs/Url';
+import ENVIRONMENT from './ENVIRONMENT';
+import * as Url from '../libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
@@ -109,6 +110,7 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -235,6 +237,7 @@ const CONST = {
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
+            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -282,6 +285,7 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -298,7 +302,7 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
     },
     HTTP_STATUS_CODE: {
@@ -385,12 +389,6 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
-    },
-
-    ENVIRONMENT: {
-        DEV: 'DEV',
-        STAGING: 'STG',
-        PRODUCTION: 'PROD',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -611,5 +609,7 @@ const CONST = {
         ];
     },
 };
+
+CONST.ENVIRONMENT = ENVIRONMENT;
 
 export default CONST;

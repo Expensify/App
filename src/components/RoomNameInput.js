@@ -60,8 +60,6 @@ class RoomNameInput extends Component {
         this.state = {
             roomName: props.initialValue,
         };
-
-        this.originalRoomName = props.initialValue;
     }
 
     /**
@@ -73,7 +71,7 @@ class RoomNameInput extends Component {
      * @returns {String}
      */
     modifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName.substr(1)
+        const modifiedRoomNameWithoutHash = roomName
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
