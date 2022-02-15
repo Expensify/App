@@ -27,7 +27,7 @@ function isOpen() {
     return isVirtualKeyboardOpen;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
+export default {
     isOpen,
+    shouldAssumeIsOpen: isOpen,
 };

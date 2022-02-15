@@ -180,6 +180,16 @@ function isConciergeChatReport(report) {
 }
 
 /**
+ * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function chatIncludesConcierge(report) {
+    return report.participants
+            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+}
+
+/**
  * Returns true if there is any automated expensify account in emails
  * @param {Array} emails
  * @returns {Boolean}
@@ -246,4 +256,5 @@ export {
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
+    chatIncludesConcierge,
 };
