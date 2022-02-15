@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
+import Picker from '../components/Picker';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -13,7 +14,7 @@ import styles from '../styles/styles';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput},
+    subcomponents: {TextInput, Picker},
 };
 
 const Template = (args) => {
@@ -39,6 +40,49 @@ const Template = (args) => {
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
+            <View>
+                <Picker
+                    label="Fruit"
+                    inputID="pickFruit"
+                    containerStyles={[styles.mt4]}
+                    shouldSaveDraft
+                    items={[
+                        {
+                            label: 'Select a Fruit',
+                            value: '',
+                        },
+                        {
+                            label: 'Orange',
+                            value: 'orange',
+                        },
+                        {
+                            label: 'Apple',
+                            value: 'apple',
+                        },
+                    ]}
+                    isFormInput
+                />
+            </View>
+            <Picker
+                label="Another Fruit"
+                inputID="pickAnotherFruit"
+                containerStyles={[styles.mt4]}
+                items={[
+                    {
+                        label: 'Select a Fruit',
+                        value: '',
+                    },
+                    {
+                        label: 'Orange',
+                        value: 'orange',
+                    },
+                    {
+                        label: 'Apple',
+                        value: 'apple',
+                    },
+                ]}
+                isFormInput
+            />
         </Form>
     );
 };
@@ -61,6 +105,12 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.pickFruit) {
+            errors.pickFruit = 'Please select a fruit';
+        }
+        if (!values.pickAnotherFruit) {
+            errors.pickAnotherFruit = 'Please select a fruit';
+        }
         return errors;
     },
     onSubmit: (values) => {
@@ -76,13 +126,20 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        pickFruit: 'orange',
+        pickAnotherFruit: 'apple',
     },
 };
 
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
-InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
+InputError.args = {
+    ...defaultArgs,
+    draftValues: {
+        routingNumber: '', accountNumber: '', pickFruit: '', pickAnotherFruit: '',
+    },
+};
 
 export default story;
 export {
