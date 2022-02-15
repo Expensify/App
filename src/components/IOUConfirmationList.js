@@ -147,6 +147,7 @@ class IOUConfirmationList extends Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
+        this.maybeToggleIndex = this.maybeToggleIndex.bind(this);
     }
 
     componentDidMount() {
@@ -371,6 +372,21 @@ class IOUConfirmationList extends Component {
         }
     }
 
+    /**
+     * @param {Number} index
+     */
+    maybeToggleIndex(index) {
+        if (!this.allOptions[index]) {
+            return;
+        }
+
+        if (!this.props.hasMultipleParticipants) {
+            return;
+        }
+
+        this.toggleOption(this.allOptions[index]);
+    }
+
     render() {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
@@ -382,16 +398,8 @@ class IOUConfirmationList extends Component {
                 initialFocusedIndex={this.allOptions.length}
                 listLength={this.allOptions.length + 1}
                 onFocusedIndexChanged={this.scrollToIndex}
-                onEnterKeyPressed={(focusedIndex) => {
-                    if (focusedIndex === this.allOptions.length) {
-                        return;
-                    }
-
-                    if (this.props.hasMultipleParticipants) {
-                        this.toggleOption(this.allOptions[focusedIndex]);
-                    }
-                }}
-                shouldEnterKeyEventBubble={focusedIndex => focusedIndex === this.allOptions.length}
+                onEnterKeyPressed={this.maybeToggleIndex}
+                shouldEnterKeyEventBubble={focusedIndex => !this.allOptions[focusedIndex]}
             >
                 {({focusedIndex}) => (
                     <>
