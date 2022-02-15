@@ -26,6 +26,7 @@ import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
 import PhoneTextInput from '../../components/PhoneTextInput';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -137,7 +138,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.ssn = true;
         }
 
-        if (!ValidationUtils.isValidVBAPhone(this.state.phoneNumber)) {
+        if (!ValidationUtils.isValidUSPhone(this.state.phoneNumber, true)) {
             errors.phoneNumber = true;
         }
 
@@ -158,8 +159,9 @@ class AdditionalDetailsStep extends React.Component {
             return;
         }
 
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.phoneNumber);
         BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: this.state,
+            personalDetails: {...this.state, phoneNumber},
         });
     }
 
@@ -238,7 +240,6 @@ class AdditionalDetailsStep extends React.Component {
                                     </Text>
                                 </View>
                                 <PhoneTextInput
-                                    VBAPhone
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}

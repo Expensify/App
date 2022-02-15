@@ -26,6 +26,7 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import AddressForm from './AddressForm';
 import PhoneTextInput from '../../components/PhoneTextInput';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -155,7 +156,7 @@ class CompanyStep extends React.Component {
             errors.incorporationDateFuture = true;
         }
 
-        if (!ValidationUtils.isValidVBAPhone(this.state.companyPhone)) {
+        if (!ValidationUtils.isValidUSPhone(this.state.companyPhone, true)) {
             errors.companyPhone = true;
         }
 
@@ -176,8 +177,9 @@ class CompanyStep extends React.Component {
             return;
         }
 
+        const companyPhone = LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.companyPhone);
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate});
+        BankAccounts.setupWithdrawalAccount({...this.state, companyPhone, incorporationDate});
     }
 
     render() {
@@ -238,7 +240,6 @@ class CompanyStep extends React.Component {
                         }}
                     />
                     <PhoneTextInput
-                        VBAPhone
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}

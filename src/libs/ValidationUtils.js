@@ -254,20 +254,13 @@ function validateIdentity(identity) {
 
 /**
  * @param {String} phoneNumber
+ * @param {Boolean} isCountryCodeOptional
  * @returns {Boolean}
  */
-function isValidUSPhone(phoneNumber) {
+function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
     // Remove alphanumeric characters and validate that this is in fact a phone number
-    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
-}
-
-/**
- * @param {String} phoneNumber
- * @returns {Boolean}
- */
-function isValidVBAPhone(phoneNumber) {
-    // Remove alphanumeric characters and validate that this is in fact a phone number
-    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.PHONE_WITHOUT_COUNTRY_CODE.test(phoneNumber);
+    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && isCountryCodeOptional
+        ? CONST.REGEX.PHONE_WITH_OPTIONAL_US_COUNTRY_CODE.test(phoneNumber) : CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
 /**
@@ -344,7 +337,6 @@ export {
     isRequiredFulfilled,
     isValidPhoneWithSpecialChars,
     isValidUSPhone,
-    isValidVBAPhone,
     isValidURL,
     validateIdentity,
     isValidPassword,

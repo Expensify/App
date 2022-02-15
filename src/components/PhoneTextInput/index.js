@@ -8,20 +8,14 @@ class PhoneTextInput extends React.Component {
         super(props);
 
         this.state = {
-            val: props.value || props.defaultValue || '',
+            value: props.value || props.defaultValue || '',
         };
         this.setValue = this.setValue.bind(this);
     }
 
-    setValue(val) {
-        this.setState({val});
-        let phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(val);
-
-        if (this.props.VBAPhone) {
-            if (/^\+1/.test(phoneNumber)) {
-                phoneNumber = phoneNumber.replace(/^\+?1|\|1|\D/, '');
-            }
-        }
+    setValue(value) {
+        this.setState({value});
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(value);
         this.props.onChangeText(phoneNumber);
     }
 
@@ -31,7 +25,7 @@ class PhoneTextInput extends React.Component {
                 ref={this.props.forwardedRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                value={this.state.val}
+                value={this.state.value}
                 onChangeText={this.setValue}
             />
         );

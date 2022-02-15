@@ -9,6 +9,19 @@ function getPhoneNumberWithoutSpecialChars(phone) {
     return phone.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 }
 
+/**
+ * Remove +1 from the phone number
+ * @param {String} phone
+ * @return {String}
+ */
+function getPhoneNumberWithoutUSCountryCode(phone) {
+    if (/^\+1/.test(phone)) {
+        return phone.replace(/^\+?1|\|1|\D/, '');
+    }
+    return phone;
+}
+
 export default {
     getPhoneNumberWithoutSpecialChars,
+    getPhoneNumberWithoutUSCountryCode,
 };
