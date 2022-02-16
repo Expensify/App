@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const portfinder = require('portfinder');
 const concurrently = require('concurrently');
+require('dotenv').config();
 
 const basePort = 8080;
 
@@ -12,7 +13,6 @@ portfinder.getPortPromise({
             command: `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env.platform desktop`,
             name: 'Renderer',
             prefixColor: 'red.dim',
-
         },
         {
             command: `wait-port localhost:${port} && export PORT=${port} && electron desktop/main.js`,
