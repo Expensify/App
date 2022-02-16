@@ -30,6 +30,12 @@ const propTypes = {
     but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
 
+    /** Static dimensions if the popover height, width is known beforehand */
+    popoverDimensions: PropTypes.shape({
+        height: PropTypes.number,
+        width: PropTypes.number,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -40,6 +46,10 @@ const defaultProps = {
     anchorOrigin: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
+    popoverDimensions: {
+        height: 0,
+        width: 0,
     },
 };
 
@@ -53,13 +63,13 @@ class PopoverWithMeasuredContent extends Component {
     constructor(props) {
         super(props);
 
+        this.popoverWidth = this.props.popoverDimensions.width;
+        this.popoverHeight = this.props.popoverDimensions.height;
+
         this.state = {
-            isContentMeasured: false,
+            isContentMeasured: !!(this.popoverWidth > 0 && this.popoverHeight > 0),
             isVisible: false,
         };
-
-        this.popoverWidth = 0;
-        this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
     }
@@ -76,7 +86,13 @@ class PopoverWithMeasuredContent extends Component {
     static getDerivedStateFromProps(props, state) {
         // When Popover is shown recalculate
         if (!state.isVisible && props.isVisible) {
-            return {isContentMeasured: false, isVisible: true};
+            let hasStaticDimensions = false;
+            if (props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0) {
+                hasStaticDimensions = true;
+                this.popoverWidth = props.popoverDimensions.width;
+                this.popoverHeight = props.popoverDimensions.height;
+            }
+            return {isContentMeasured: hasStaticDimensions, isVisible: true};
         }
         if (!props.isVisible) {
             return {isVisible: false};
