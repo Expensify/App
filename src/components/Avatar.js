@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import RoomAvatar from './RoomAvatar';
 import stylePropTypes from '../styles/stylePropTypes';
 
@@ -42,18 +43,14 @@ class Avatar extends PureComponent {
 
         const imageStyle = [
             this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-            ...this.props.imageStyles,
-        ];
-
-        const roomAvatarStyle = [
-            this.props.size === 'small' ? styles.roomAvatarSmall : styles.roomAvatarNormal,
+            !this.props.isChatRoom && {backgroundColor: themeColors.icon}, // Adding background to roomAvatar makes roomAvatar rectangular
             ...this.props.imageStyles,
         ];
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isChatRoom
-                    ? <RoomAvatar avatarStyle={roomAvatarStyle} isArchived={this.props.isArchivedRoom} />
+                    ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
                     : <Image source={{uri: this.props.source}} style={imageStyle} />}
             </View>
         );
