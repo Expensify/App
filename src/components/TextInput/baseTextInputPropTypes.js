@@ -67,6 +67,7 @@ const propTypes = {
 
 const defaultProps = {
     isFormInput: false,
+    isValueControlled: false,
     label: '',
     name: '',
     errorText: '',
