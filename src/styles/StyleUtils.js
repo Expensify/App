@@ -337,8 +337,12 @@ function getLoginPagePromoStyle() {
             backgroundColor: colors.blue,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
+        {
+            backgroundColor: '',
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
+        },
     ];
-    return promos[_.random(0, 3)];
+    return promos[_.random(0, 4)];
 }
 
 /**
