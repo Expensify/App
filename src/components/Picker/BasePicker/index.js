@@ -11,7 +11,7 @@ class BasePicker extends React.Component {
         super(props);
 
         this.state = {
-            selectValue: this.props.value || this.props.defaultValue || '',
+            selectValue: this.props.value || this.props.defaultValue,
         };
     }
 
