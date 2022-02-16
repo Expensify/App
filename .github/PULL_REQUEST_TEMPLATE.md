@@ -31,9 +31,9 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### Contributor Plus (C+) PR Review Checklist ([full steps here](../PR_REVIEW_GUIDELINES.md))
+### PR Review Checklist
 <!--
-This is a checklist for C+ reviewers. If the PR is internal, these do not need to be checked off, but are still a nice reminder for what to look for when reviewing PRs.
+This is a checklist for Expensify employees and C+ reviewers. If you are not an Expensify employee or on the C+ team, please leave this section blank. It will be used by the PR reviewer.
 -->
 - [ ] Are screenshots or videos included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)?
 - [ ] Did you test this PR on **all platforms**?
@@ -44,6 +44,7 @@ This is a checklist for C+ reviewers. If the PR is internal, these do not need t
 - [ ] Are new regression steps mentioned below? (if applicable, tag Expensify/QA team leads to add these to the regression test suite)
 - [ ] Were code patterns checked? (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
 - [ ] Does code reuse look appropriate? (see [Considerations around code reuse](../PR_REVIEW_GUIDELINES.md#considerations-around-code-reuse))
+- [ ] Did you verify that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)?
 
 ### QA Steps
 <!---
