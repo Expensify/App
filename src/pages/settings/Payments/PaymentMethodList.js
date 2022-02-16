@@ -105,8 +105,12 @@ class PaymentMethodList extends Component {
             return null;
         }
 
-        const paymentMethods = this.getFilteredPaymentMethods();
-        if (paymentMethods.length <= 1) {
+        const defaultablePaymentMethodCount = _.reduce(this.getFilteredPaymentMethods(), (count, method) => (
+            (method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD)
+                ? count + 1
+                : count
+        ), 0);
+        if (defaultablePaymentMethodCount <= 1) {
             return null;
         }
 
