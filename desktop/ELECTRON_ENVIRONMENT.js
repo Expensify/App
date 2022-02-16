@@ -1,4 +1,4 @@
-// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electron.config.js)
+// This variable is injected into package.json by electron-builder via the extraMetadata field (specified in electronBuilder.ghactions.config.js)
 // It will be `PROD` on production, `STG` on staging, and `undefined` on dev (because dev doesn't use electron-builder)
 const {electronEnvironment} = require('../package.json');
 const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
@@ -7,8 +7,8 @@ const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
  * @returns {String} – One of ['PROD', 'STG', 'DEV']
  */
 function getEnvironment() {
-    // If we are on dev, then the NODE_ENV environment variable will be present (set by the executing shell in start.js)
-    if (process.env.NODE_ENV === 'development') {
+    // If we are on dev, then the ELECTRON_ENVIRONMENT environment variable will be present (set in package.json desktop script `npm run desktop`)
+    if (process.env.ELECTRON_ENV === ENVIRONMENT.DEV) {
         return ENVIRONMENT.DEV;
     }
 
