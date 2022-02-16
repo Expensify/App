@@ -90,7 +90,7 @@ class CloseAccountPage extends Component {
                             autoCapitalize="none"
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
-                            label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
+                            label={this.props.translate('closeAccountPage.enterPrimaryLogin')}
                             containerStyles={[styles.mt5]}
                         />
                     </ScrollView>
