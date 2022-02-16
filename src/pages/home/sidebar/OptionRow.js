@@ -96,7 +96,6 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-
     const additionalTextStyles = props.textStyles;
     const displayNameStyle = props.mode === 'compact'
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, ...additionalTextStyles]
@@ -105,7 +104,6 @@ const OptionRow = (props) => {
     const alternateTextStyle = props.mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, ...additionalAlternateTextStyles]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, ...additionalAlternateTextStyles];
-
     const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
@@ -288,11 +286,7 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
-    if (!_.isEqual(prevProps.textStyles, nextProps.textStyles)) {
-        return false;
-    }
-
-    if (!_.isEqual(prevProps.alternateTextStyles, nextProps.alternateTextStyles)) {
+    if (!_.isEqual(prevProps.textStyles, nextProps.textStyles) || !_.isEqual(prevProps.alternateTextStyles, nextProps.alternateTextStyles)) {
         return false;
     }
 

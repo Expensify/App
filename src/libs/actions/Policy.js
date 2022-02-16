@@ -250,7 +250,6 @@ function loadFullPolicy(policyID) {
 
             const currentPolicy = _.clone(allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
             const simplifiedPolicyObject = getSimplifiedPolicyObject(policy, true);
-
             const updatedPolicy = {
                 ...currentPolicy,
                 ...simplifiedPolicyObject,
@@ -390,22 +389,16 @@ function invite(logins, welcomeNote, policyID) {
                 nextPolicy.employeeList = _.uniq([...nextPolicy.employeeList, ...nextEmployeeList]);
                 nextPolicy.pendingInvitations = _.difference(nextPolicy.pendingInvitations, nextEmployeeList);
                 Onyx.set(key, nextPolicy);
-
                 return;
             }
 
-            const errorMessage = data.jsonCode === 402
-                ? `${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`
-                : '';
-
+            const errorMessage = data.jsonCode === 402 ? `${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}` : '';
             throw new Error(errorMessage);
         })
         .catch((err) => {
             // If the operationg failed undo the optimistic addition
             const policyDataWithoutPending = _.clone(allPolicies[key]);
-            policyDataWithoutPending.pendingInvitations = _.without(
-                policyDataWithoutPending.pendingInvitations, ...newEmployeeList,
-            );
+            policyDataWithoutPending.pendingInvitations = _.without(policyDataWithoutPending.pendingInvitations, ...newEmployeeList);
 
             Onyx.set(key, policyDataWithoutPending);
 

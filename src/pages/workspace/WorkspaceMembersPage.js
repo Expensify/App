@@ -257,26 +257,17 @@ class WorkspaceMembersPage extends React.Component {
             Log.info('Not showing workspace people page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
+
+        const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const pendingInvitationList = lodashGet(this.props, 'policy.pendingInvitations', []);
-        const removableMembers = _.without(
-            policyEmployeeList.concat(pendingInvitationList),
-            this.props.session.email,
-            this.props.policy.owner,
-        );
-
-        const employeeListData = _.map(policyEmployeeList,
-            email => this.props.personalDetails[email]);
-
-        const pendingInvitationsData = _.map(pendingInvitationList,
-            email => ({...this.props.personalDetails[email], pending: true}));
-
+        const removableMembers = _.without(policyEmployeeList.concat(pendingInvitationList), this.props.session.email, this.props.policy.owner);
+        const employeeListData = _.map(policyEmployeeList, email => this.props.personalDetails[email]);
+        const pendingInvitationsData = _.map(pendingInvitationList, email => ({...this.props.personalDetails[email], pending: true}));
         const data = _.sortBy(
             employeeListData.concat(pendingInvitationsData),
             person => person && person.displayName.toLowerCase(),
         );
-
-        const policyID = lodashGet(this.props.route, 'params.policyID');
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
@@ -340,21 +331,22 @@ class WorkspaceMembersPage extends React.Component {
                 <FixedFooter
                     style={[styles.pt3, styles.pb3]}
                 >
-                    this.props.network.isOffline &&
-                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
-                        <View style={[styles.flexRow, styles.w100]}>
-                            <View>
-                                <Icon
-                                    src={Expensicons.Offline}
-                                    width={variables.iconSizeExtraSmall}
-                                    height={variables.iconSizeExtraSmall}
-                                />
+                    {this.props.network.isOffline && (
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
+                            <View style={[styles.flexRow, styles.w100]}>
+                                <View>
+                                    <Icon
+                                        src={Expensicons.Offline}
+                                        width={variables.iconSizeExtraSmall}
+                                        height={variables.iconSizeExtraSmall}
+                                    />
+                                </View>
+                                <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.ml2]}>
+                                    {this.props.translate('workspace.people.offlineMessage')}
+                                </Text>
                             </View>
-                            <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.ml2]}>
-                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </Text>
                         </View>
-                    </View>
+                    )}
                 </FixedFooter>
             </ScreenWrapper>
         );

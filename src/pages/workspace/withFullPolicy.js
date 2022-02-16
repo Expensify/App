@@ -61,8 +61,8 @@ const fullPolicyPropTypes = {
         /** A list of emails for the employees on the policy */
         employeeList: PropTypes.arrayOf(PropTypes.string),
 
-        /** A list of emails for the pendingInvitations to the policy */
-        // All invited emails will be inserted to pendingInvitations first, after success will be moved to employeeList
+        /** A list of emails for the pendingInvitations to the policy
+         All invited emails will be inserted to pendingInvitations first, after success will be moved to employeeList */
         pendingInvitations: PropTypes.arrayOf(PropTypes.string),
     }),
 };

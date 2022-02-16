@@ -15,17 +15,18 @@ Onyx.connect({
 });
 
 /**
- * Modify persisted request of Policy_Employees_Merge API
- * After user invite a user to a workspace in offline mode and then
- * want to remove it, this function will modify Request_Policy_Employees_Merge
- * request and exclude the removed emails from API request
+ * Modifies the persisted request of Policy_Employees_Merge API
+ * If removing a user after inviting them in offline mode, this function will modify the Request_Policy_Employees_Merge
+ * request to exclude the removed email(s)
  *
  * @param {String} policyID
- * @param {Array<String>} logins
+ * @param {Array<String>} logins emails to be exluded
  */
 function modifyPersistedRequest_Policy_Employees_Merge(policyID, logins) {
     const commandName = 'Policy_Employees_Merge';
     let isModified = false;
+
+    // Iterate through all persistedRequests of NETWORK_REQUEST_QUEUE
     const updatedPersistedRequest = _.compact(_.map(
         persistedRequests,
         (req) => {
@@ -33,26 +34,36 @@ function modifyPersistedRequest_Policy_Employees_Merge(policyID, logins) {
                 return req;
             }
 
+            // Invited employees of Policy_Employees_Merge persisted request
             const reqEmployees = _.pluck(JSON.parse(req.data.employees), 'email');
+
+            // Employees to be excluded
             const removedLogins = _.intersection(reqEmployees, logins);
             if (_.isEmpty(removedLogins)) {
                 return req;
             }
 
+            // Flag to tell wheter NETWORK_REQUEST_QUEUE has been modifed
             isModified = true;
-            const newlogins = _.without(reqEmployees, ...removedLogins);
-            if (_.isEmpty(newlogins)) {
+
+            // Remaining invited employees after exlusion
+            const filteredLogins = _.without(reqEmployees, ...removedLogins);
+            if (_.isEmpty(filteredLogins)) {
+                // Remaining invited employees is empty, remove the request
                 return null;
             }
+
+            // Modified request object without logins
             const removedLoginsRequest = _.clone(req);
             removedLoginsRequest.data.employees = JSON.stringify(
-                _.map(newlogins, login => ({email: OptionsListUtils.addSMSDomainIfPhoneNumber(login)})),
+                _.map(filteredLogins, login => ({email: OptionsListUtils.addSMSDomainIfPhoneNumber(login)})),
             );
 
             return removedLoginsRequest;
         },
     ));
 
+    // NETWORK_REQUEST_QUEUE has been modifed, need to save it to Onyx
     if (isModified) {
         Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, updatedPersistedRequest);
     }
