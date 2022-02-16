@@ -14,6 +14,9 @@ const propTypes = {
     /** Default value - used for non controlled inputs */
     defaultValue: PropTypes.string,
 
+    /** False when Value set by setNativeProps */
+    isValueControlled: PropTypes.bool,
+
     /** Input value placeholder */
     placeholder: PropTypes.string,
 
