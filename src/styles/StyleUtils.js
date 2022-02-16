@@ -340,6 +340,7 @@ function getLoginPagePromoStyle() {
         {
             backgroundColor: '',
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
+            redirectUri: CONST.TERMS_URL,
         },
     ];
     return promos[_.random(0, 4)];
