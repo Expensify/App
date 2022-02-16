@@ -97,11 +97,26 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
+     * @param {Boolean} isDefault
+     * @returns {*}
+     */
+    getDefaultBadgeText(isDefault = false) {
+        if (!isDefault) {
+            return null;
+        }
+
+        const paymentMethods = this.getFilteredPaymentMethods();
+        if (paymentMethods.length <= 1) {
+            return null;
+        }
+
+        return this.props.translate('paymentMethodList.defaultPaymentMethod');
+    }
+
+    /**
      * @returns {Array}
      */
-    createPaymentMethodList() {
+    getFilteredPaymentMethods() {
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
@@ -115,6 +130,17 @@ class PaymentMethodList extends Component {
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
+
+        return combinedPaymentMethods;
+    }
+
+    /**
+     * Take all of the different payment methods and create a list that can be easily digested by renderItem
+     *
+     * @returns {Array}
+     */
+    createPaymentMethodList() {
+        const combinedPaymentMethods = this.getFilteredPaymentMethods();
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {
@@ -172,7 +198,7 @@ class PaymentMethodList extends Component {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
+                    badgeText={this.getDefaultBadgeText(item.isDefault)}
                     wrapperStyle={item.wrapperStyle}
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
