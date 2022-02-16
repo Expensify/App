@@ -1226,6 +1226,15 @@ function TransferWalletBalance(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Runs command that fixes user's account and runs migrations retruning whether anything was changed
+ * @returns {Promise}
+ */
+function UserFixAccount() {
+    const commandName = 'UserFixAccount';
+    return Network.post(commandName);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
