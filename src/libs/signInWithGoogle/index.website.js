@@ -1,4 +1,3 @@
-import Config from 'react-native-config';
 import lodashGet from 'lodash/get';
 
 function loadScript(d, s, id, jsSrc, cb, onError) {
@@ -31,7 +30,7 @@ loadScript(
     'google-login',
     'https://apis.google.com/js/api.js',
     () => getGoogleApi().load('auth2', () => getGoogleApi().auth2.init({ // Load Google Auth
-        clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
+        clientId: '1016036866283-rotn0elqu18bbju128nkf8ahcpaq8nb9.apps.googleusercontent.com',
     })),
 );
 
