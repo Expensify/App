@@ -22,7 +22,7 @@ function navigateBackToRootDrawer() {
     const activeState = getActiveState();
 
     // To navigate to the main drawer Route, pop to the first route on the Root Stack Navigator as the main drawer is always the first route that is activated.
-    // It will pop all fullscreen and RHN modals that are over the main drawer. 
+    // It will pop all fullscreen and RHN modals that are over the main drawer.
     // It won't work when the main drawer is not the first route of the Root Stack Navigator which is not the case ATM.
     navigationRef.current.dispatch({
         ...StackActions.popToTop(),
