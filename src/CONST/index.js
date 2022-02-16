@@ -186,6 +186,7 @@ const CONST = {
     },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
+    USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     DEEPLINK_BASE_URL: 'new-expensify://',
