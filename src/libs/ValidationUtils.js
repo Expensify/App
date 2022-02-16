@@ -258,12 +258,12 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
-    const isUSPhone = isCountryCodeOptional
+    const isUsPhone = isCountryCodeOptional
         ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(phoneNumber) : CONST.REGEX.US_PHONE.test(phoneNumber);
 
     // Remove alphanumeric characters and validate that this is in fact a phone number
     return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
-    && isUSPhone;
+    && isUsPhone;
 }
 
 /**
