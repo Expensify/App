@@ -173,7 +173,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(this.state.phoneNumber)) {
+        if (_.isEmpty(this.state.phoneNumber) || !Str.isValidPhone(this.state.phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';

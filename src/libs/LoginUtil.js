@@ -15,10 +15,7 @@ function getPhoneNumberWithoutSpecialChars(phone) {
  * @return {String}
  */
 function getPhoneNumberWithoutUSCountryCode(phone) {
-    if (/^\+1/.test(phone)) {
-        return phone.replace(/^\+?1|\|1|\D/, '');
-    }
-    return phone;
+    return phone.replace(/^\+1/, '');
 }
 
 export default {

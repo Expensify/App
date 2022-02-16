@@ -177,9 +177,12 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        const companyPhone = LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.companyPhone);
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, companyPhone, incorporationDate});
+        BankAccounts.setupWithdrawalAccount({
+            ...this.state,
+            companyPhone: LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.companyPhone),
+            incorporationDate,
+        });
     }
 
     render() {

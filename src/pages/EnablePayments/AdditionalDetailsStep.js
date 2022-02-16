@@ -159,9 +159,11 @@ class AdditionalDetailsStep extends React.Component {
             return;
         }
 
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.phoneNumber);
         BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: {...this.state, phoneNumber},
+            personalDetails: {
+                ...this.state,
+                phoneNumber: LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.phoneNumber),
+            },
         });
     }
 

@@ -15,8 +15,7 @@ class PhoneTextInput extends React.Component {
 
     setValue(value) {
         this.setState({value});
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(value);
-        this.props.onChangeText(phoneNumber);
+        this.props.onChangeText(LoginUtil.getPhoneNumberWithoutSpecialChars(value));
     }
 
     render() {
