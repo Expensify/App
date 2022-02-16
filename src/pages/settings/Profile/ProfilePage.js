@@ -167,7 +167,7 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has updated their avatar
-        if (this.props.myPersonalDetails.avatar !== this.state.avatar.uri) {
+        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             // If user removed their avatar, update it accoridngly with the default image
             if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
                 PersonalDetails.deleteAvatar(this.state.avatar.uri);
@@ -215,7 +215,7 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && (this.props.myPersonalDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || this.props.myPersonalDetails.avatarUploading)
+            && (!this.state.isAvatarChanged || this.props.myPersonalDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
