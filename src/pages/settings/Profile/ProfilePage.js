@@ -81,17 +81,15 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
-            avatarImage: null,
-            avatarPreviewURL: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)),
-            isAvatarUpdated: false,
+            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
+            isAvatarChanged: false,
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
-        this.setAvatar = this.setAvatar.bind(this);
-        this.removeAvatar = this.removeAvatar.bind(this);
+        this.updateAvatar = this.updateAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -100,10 +98,6 @@ class ProfilePage extends Component {
         // Recalculate logins if loginList has changed
         if (this.props.user.loginList !== prevProps.user.loginList) {
             stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
-        }
-
-        if (this.props.myPersonalDetails.avatar !== this.state.avatarPreviewURL && this.props.myPersonalDetails.avatar !== prevProps.myPersonalDetails.avatar) {
-            stateToUpdate = {...stateToUpdate, isAvatarUpdated: true};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -157,22 +151,11 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Set avatar image
-     * @param {Object} img
+     * Updates the user's avatar image.
+     * @param {Object} avatar
      */
-    setAvatar(img) {
-        this.setState({avatarImage: img, avatarPreviewURL: img.uri, isAvatarUpdated: false});
-    }
-
-    /**
-     * Remove the avatar image
-     */
-    removeAvatar() {
-        this.setState({
-            avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login),
-            avatarImage: null,
-            isAvatarUpdated: false,
-        });
+    updateAvatar(avatar) {
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
     }
 
     /**
@@ -183,14 +166,17 @@ class ProfilePage extends Component {
             return;
         }
 
-        if (this.state.avatarImage) {
-            PersonalDetails.setAvatar(this.state.avatarImage);
-        }
+        // Check if the user has updated their avatar
+        if (this.props.myPersonalDetails.avatar !== this.state.avatar.uri) {
+            // If user removed their avatar, update it accoridngly with the default image
+            if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
+                PersonalDetails.deleteAvatar(this.state.avatar.uri);
+            } else {
+                PersonalDetails.setAvatar(this.state.avatar);
+            }
 
-        // Checks if the user already has an avatar and removePhoto is triggered
-        // Avatar having `/images/avatars/avatar` in URL means a profile picture exists for the user
-        if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar') && !this.state.avatarImage) {
-            PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login);
+            // Reset the changed state
+            this.setState({isAvatarChanged: false});
         }
 
         PersonalDetails.setPersonalDetails({
@@ -223,20 +209,13 @@ class ProfilePage extends Component {
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
 
-        // Determines if the pronouns/selected pronouns have changed
-        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns.trim();
-
-        // Determine if the avatar is changed or finished uploading
-        const disableSaveWhenAvatarIsProcessed = this.props.myPersonalDetails.avatar === this.state.avatarPreviewURL
-            || this.state.isAvatarUpdated
-            || this.props.myPersonalDetails.avatarUploading;
-
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
             && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && arePronounsUnchanged && disableSaveWhenAvatarIsProcessed;
+            && (this.props.myPersonalDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || this.props.myPersonalDetails.avatarUploading)
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -253,9 +232,9 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
-                            avatarURL={this.state.avatarPreviewURL}
-                            onImageSelected={this.setAvatar}
-                            onImageRemoved={this.removeAvatar}
+                            avatarURL={this.state.avatar.uri}
+                            onImageSelected={this.updateAvatar}
+                            onImageRemoved={this.updateAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
