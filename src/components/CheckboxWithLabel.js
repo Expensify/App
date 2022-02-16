@@ -15,6 +15,9 @@ const propTypes = {
     /** Called when the checkbox or label is pressed */
     onPress: PropTypes.func.isRequired,
 
+    /** Called when the checkbox or label is pressed */
+    onChange: PropTypes.func,
+
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -44,6 +47,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    onChange: () => {},
     isFormInput: false,
     inputID: undefined,
     style: [],
@@ -66,7 +70,10 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
             <View style={wrapperStyles}>
                 <Checkbox
                     isChecked={props.isChecked}
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={() => {
+                        props.onPress(!props.isChecked);
+                        props.onChange(!props.isChecked);
+                    }}
                     label={props.label}
                     errorText={props.errorText}
                     forwardedRef={ref}
@@ -75,7 +82,10 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     shouldSaveDraft={props.shouldSaveDraft}
                 />
                 <TouchableOpacity
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={() => {
+                        props.onPress(!props.isChecked);
+                        props.onChange(!props.isChecked);
+                    }}
                     style={[
                         styles.ml3,
                         styles.pr2,

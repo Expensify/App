@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Form from '../components/Form';
@@ -20,6 +20,8 @@ const story = {
 };
 
 const Template = (args) => {
+    const [isChecked, setIsChecked] = useState(args.draftValues.checkbox);
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
@@ -44,15 +46,15 @@ const Template = (args) => {
             />
             <CheckboxWithLabel
                 inputID="checkbox"
-                isChecked={args.draftValues.checkbox}
+                isChecked={isChecked}
+                defaultValue={isChecked}
                 style={[styles.mb4, styles.mt5]}
-                onPress={() => {}}
+                onPress={() => { setIsChecked(prev => !prev); }}
                 isFormInput
                 shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
                 )}
-                errorText={args.validate(args.draftValues).checkbox}
             />
         </Form>
     );
@@ -94,7 +96,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
-        checkbox: true,
+        checkbox: false,
     },
 };
 
