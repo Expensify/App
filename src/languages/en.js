@@ -304,6 +304,7 @@ export default {
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
         enterPrimaryLogin: 'Enter your primary login',
+        primaryLogin: 'Primary login:',
         okayGotIt: 'Okay, Got it',
     },
     passwordPage: {

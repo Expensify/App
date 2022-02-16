@@ -86,6 +86,13 @@ class CloseAccountPage extends Component {
                             {' '}
                             {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.primaryLogin')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
+                        </Text>
                         <TextInput
                             autoCapitalize="none"
                             value={this.state.phoneOrEmail}
