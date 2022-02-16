@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
@@ -95,10 +96,11 @@ document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true})
 /**
  * Unsubscribes to a keyboard event.
  * @param {String} key The key to stop watching
+ * @param {String} callbackID The specific ID given to the callback at the time it was added
  * @private
  */
-function unsubscribe(key) {
-    events[key].pop();
+function unsubscribe(key, callbackID) {
+    events[key] = _.filter(events[key], callback => callback.id !== callbackID);
 }
 
 /**
@@ -143,7 +145,9 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     if (events[correctedKey] === undefined) {
         events[correctedKey] = [];
     }
+    const callbackID = Str.guid();
     events[correctedKey].splice(priority, 0, {
+        id: callbackID,
         callback,
         modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
         captureOnInputs,
@@ -153,7 +157,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     if (descriptionKey) {
         addKeyToMap(key, modifiers, descriptionKey);
     }
-    return () => unsubscribe(correctedKey);
+    return () => unsubscribe(correctedKey, callbackID);
 }
 
 /**
