@@ -47,13 +47,9 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 
 ## Code patterns to check for improvement
 
-1. Are there any changes that could've been applied to one component that were applied to every usage of the component instead?
-    - Example: https://github.com/Expensify/App/pull/3129#pullrequestreview-668271068
-2. Platform-specific solutions should not be applied to more platforms than necessary
+1. Platform-specific solutions should not be applied to more platforms than necessary
     - E.g. solutions for Android or iOS should go in specific `index.android.js` or `index.ios.js` files, not in an `index.native.js` file.
-3. Look for usages of react fragment wrappings and confirm they are necessary.
-    - Also look for any unnecessary `View`s and think if they should be replaced with React fragments.
-4. Were any new styles added? Are we following the guidelines in [`STYLING.md`](./STYLING.md)?
+2. Were any new styles added? Are we following the guidelines in [`STYLING.md`](./STYLING.md)?
 
 ## Code patterns to avoid
 
