@@ -16,7 +16,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Input value */
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** Error text to display */
     errorText: PropTypes.string,
@@ -79,6 +79,7 @@ class Picker extends PureComponent {
                         disabled={this.props.isDisabled}
                         focused={this.state.isOpen}
                         errorText={this.props.errorText}
+                        value={this.props.value}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />
