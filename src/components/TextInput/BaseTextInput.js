@@ -2,6 +2,8 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
+    // eslint-disable-next-line no-restricted-imports
+    TextInput as RNTextInput,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import TextInputLabel from './TextInputLabel';
@@ -12,7 +14,6 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
-import TextInputWithName from '../TextInputWithName';
 import * as StyleUtils from '../../styles/StyleUtils';
 
 class BaseTextInput extends Component {
@@ -215,7 +216,7 @@ class BaseTextInput extends Component {
                                     </>
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
-                                    <TextInputWithName
+                                    <RNTextInput
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                             this.input = ref;
@@ -240,7 +241,6 @@ class BaseTextInput extends Component {
                                         onChangeText={this.setValue}
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
-                                        name={this.props.name}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
                                     />
                                     {this.props.secureTextEntry && (
