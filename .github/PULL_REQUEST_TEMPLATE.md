@@ -59,9 +59,6 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-
-### Regression Tests to add
-
 ### Tested On
 
 - [ ] Web
