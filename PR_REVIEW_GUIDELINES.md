@@ -1,9 +1,6 @@
-# PR review checklist
+# PR review guidelines
 
-This document lists specific checks that should be done when reviewing a PR. This means these items should be checked by:
-1. Every contributor submitting a Pull Request
-2. Every C+ (Contributor Plus) team member reviewing a PR
-3. Every Expensify employee submitting / reviewing a PR
+This document lists specific guidelines for all PR reviews and aims to clarify items in the PR template checklist.
 
 # Check PR template
 
@@ -24,14 +21,7 @@ This document lists specific checks that should be done when reviewing a PR. Thi
       > 4. Verify that the bank account view opens without errors
       >
     - Take note of the distinction between testing _locally_ and _on staging_. Note: The staging site references the production version of the API.
-3. Make sure the testing steps also cover possible regressions.
-    1. Cases where we definitely need new regression tests:
-        1. Building a new page
-        2. Building a new feature
-        3. Building a new component?
-    2. Cases where we might need new regression tests:
-        1. Bug was easy to find
-4. Make sure that the test includes both **success** and **fail** scenarios.
+3. Make sure that the test includes both **success** and **fail** scenarios.
     - Ex: if the issue was to prevent the user from saving a field when it is empty, besides testing that we should also test that they can save the field _if it is not empty_.
 
 # Testing the changes
@@ -41,9 +31,6 @@ This document lists specific checks that should be done when reviewing a PR. Thi
     2. If the errors do not exist in `main`, report it to the PR author - they need to be fixed before the PR can be merged.
 2. Test the changes on **all platforms**. Follow this guide (needs link) to set up each platform.
     - If you’re unable to boot a platform for any reason, ask for help in the #expensify-open-source Slack channel. Your issue might already have been addressed there, so be sure to search first.
-3. Should we add regression testing for code introduced in this PR?
-    - If the PR introduces **new** pages, features, etc. then we **should** have new regression tests written. Please note this in your PR so that the QA team can make sure it gets added.
-    - If the PR fixes a bug, the QA team will check to make sure the existing regression testing steps already cover the workflow fixed by the bug.
 
 # Reviewing the code
 
@@ -60,24 +47,22 @@ This document lists specific checks that should be done when reviewing a PR. Thi
 
 ## Code patterns to check for improvement
 
-1. Is there appropriate error handling?
-2. Are there any changes that could've been applied to one component that were applied to every usage of the component instead?
+1. Are there any changes that could've been applied to one component that were applied to every usage of the component instead?
     - Example: https://github.com/Expensify/App/pull/3129#pullrequestreview-668271068
-3. Platform-specific solutions should not be applied to more platforms than necessary
+2. Platform-specific solutions should not be applied to more platforms than necessary
     - E.g. solutions for Android or iOS should go in specific `index.android.js` or `index.ios.js` files, not in an `index.native.js` file.
-4. Look for usages of react fragment wrappings and confirm they are necessary.
+3. Look for usages of react fragment wrappings and confirm they are necessary.
     - Also look for any unnecessary `View`s and think if they should be replaced with React fragments.
-5. Were any new styles added? Are we following the guidelines in [`STYLING.md`](./STYLING.md)?
+4. Were any new styles added? Are we following the guidelines in [`STYLING.md`](./STYLING.md)?
 
 ## Code patterns to avoid
 
-1. Make sure any `setTimeout`s are absolutely necessary, not just a workaround for a situation that isn’t fully understood.
+1. Make sure any `setTimeout`s are absolutely necessary, not just a workaround for a situation that isn’t fully understood (e.g. a race condition).
 2. Ensure Onyx is used appropriately. ([docs](https://github.com/expensify/react-native-onyx#merging-data))
-3. Don't mention the `isSmallScreenWidth` prop type explicitly in any component, use `...windowDimensionsPropTypes` instead.
 
 ## Considerations around code reuse
 
-While trying to keep our code DRY (don't repeat yourself), you may find you're walking a thin line between refactoring & reusing a component vs. creating a brand new component. Here are some guidelines we use - they're not hard and fast rules, so please feel free to post in #expensify-open-source to gather peer opinions in order to make the best decisions.
+While trying to keep our code DRY (don't repeat yourself), you may find yourself trying to decide between refactoring & reusing a component vs. creating a brand new component. Here are some guidelines we use in order to make the best decisions:
 
 1. Specialization
     - When one component is a special case of another, we should opt for the technique of composition. Here are the [React docs](https://reactjs.org/docs/composition-vs-inheritance.html#specialization) on Specialization. The idea is that it’s better to establish a pattern of creating increasingly specific components, instead of adding dozens of use cases to a single component.
