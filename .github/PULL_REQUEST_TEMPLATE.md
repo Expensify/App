@@ -35,16 +35,14 @@ For example:
 <!--
 This is a checklist for Expensify employees and C+ reviewers. If you are not an Expensify employee or on the C+ team, please leave this section blank. It will be used by the PR reviewer.
 -->
-- [ ] Are screenshots or videos included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)?
-- [ ] Did you test this PR on **all platforms**?
-- [ ] Is the correct issue linked in the `### Fixed Issues` section?
-- [ ] Are testing steps clear and do they cover the changes + possible regressions?
-- [ ] Do testing steps cover success & fail scenarios (if applicable)?
-- [ ] Are there any console errors related to changes in this PR?
-- [ ] Are new regression steps mentioned below? (if applicable, tag Expensify/QA team leads to add these to the regression test suite)
-- [ ] Were code patterns checked? (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-- [ ] Does code reuse look appropriate? (see [Considerations around code reuse](../PR_REVIEW_GUIDELINES.md#considerations-around-code-reuse))
-- [ ] Did you verify that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)?
+- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I made sure tests pass on **all platforms**
+- [ ] I made sure the correct issue is linked in the `### Fixed Issues` section above
+- [ ] I made sure testing steps are clear and they cover the changes made in this PR
+- [ ] I made sure testing steps cover success & fail scenarios (if applicable)
+- [ ] I verified there are no console errors related to changes in this PR
+- [ ] I made sure code patterns are acceptable (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)
 
 ### QA Steps
 <!---
