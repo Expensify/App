@@ -20,10 +20,8 @@ function createServer(callback) {
     if (server) {
         // if a server is already running, we close it so that we free the port
         // and restart the process
-        return server.close().then(() => {
-            server = http.createServer(callback);
-            return server;
-        });
+        // TODO: handle and close the server connections
+        server.close();
     }
     server = http.createServer(callback);
     return server;
@@ -39,13 +37,7 @@ function getAuthenticatedClient() {
         // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
         // which should be downloaded from the Google Developers Console.
         const oAuth2Client = new OAuth2Client({
-            // clientId: lodashGet(Config, 'GOOGLE_CLIENT_ID', ''),
-            // TODO: clientSecret is from a testing project, the real ones will be hidden in some way
-            clientId: '1016036866283-cop3sd9or3nlb4innbkn3im8t4oo4u7d.apps.googleusercontent.com',
-            clientSecret: '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',
-
-            // redirectUri: 'http://127.0.0.1:42813/callback',
-            // redirectUri: 'http://localhost:3000/callback',
+            clientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
             redirectUri: `${options.loopbackRedirectHost}:${options.loopbackRedirectPort}${options.callbackPath}`,
 
         });
