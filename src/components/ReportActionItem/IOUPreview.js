@@ -113,7 +113,7 @@ const IOUPreview = (props) => {
     const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
-            props.iouReport.total / 100,
+            Math.abs(props.iouReport.total) / 100,
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     return (
