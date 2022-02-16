@@ -49,7 +49,12 @@ const defaultProps = {
     hasError: false,
     focused: false,
     placeholder: {},
-    value: null,
+
+    // 'undefined' and 'null' are treated differently by React Inputs. If you pass 'null' to input's value you tell
+    // React to take care of the input state even if it is a 'falsey' value beacuse it is a 'defined' value, the input
+    // will expect to be changed eventually by a 'setState' of some component but that prevents to the core input to change for itself,
+    // meanwhile passing 'undefined' to value will allow input to change itself on a 'onChange', leaving React state out of it
+    value: undefined,
     icon: size => (
         <>
             {size === 'small'
