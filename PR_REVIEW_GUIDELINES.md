@@ -45,7 +45,7 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 3. Platform-specific files should follow the proper naming convention (see [Platform-Specific File Extensions](https://github.com/expensify/app#platform-specific-file-extensions))
     - Example: `MyComponent/index.android.js`
 
-## Code patterns to check for improvement
+## Code patterns to improve
 
 1. Platform-specific solutions should not be applied to more platforms than necessary
     - E.g. solutions for Android or iOS should go in specific `index.android.js` or `index.ios.js` files, not in an `index.native.js` file.
@@ -58,7 +58,9 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 
 ## Considerations around code reuse
 
-While trying to keep our code DRY (don't repeat yourself), you may find yourself trying to decide between refactoring & reusing a component vs. creating a brand new component. Here are some guidelines we use in order to make the best decisions:
+While trying to keep our code DRY (don't repeat yourself), you may find yourself trying to decide between refactoring & reusing a component vs. creating a brand new component. When in doubt about whether something should be reused or refactored, ask for help.
+
+Here are some guidelines we use in order to make the best decisions:
 
 1. Specialization
     - When one component is a special case of another, we should opt for the technique of composition. Here are the [React docs](https://reactjs.org/docs/composition-vs-inheritance.html#specialization) on Specialization. The idea is that it’s better to establish a pattern of creating increasingly specific components, instead of adding dozens of use cases to a single component.

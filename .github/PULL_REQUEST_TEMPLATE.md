@@ -31,28 +31,10 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### PR Review Checklist (OPTION 1 - checklist for author & C+ - table style)
+### PR Review Checklist
 <!--
-This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and mark all with ✅ or else Expensify has the right not to merge your PR!
+This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
-| Task | PR Author Checklist | C+ Checklist |
-|---|:---:|:---:|
-| I made sure `main` was pulled before submitting the PR | ❌ / ✅ | ❌ / ✅ |
-| I made sure the correct issue is linked in the `### Fixed Issues` section above | ❌ / ✅ | ❌ / ✅ |
-| I made sure testing steps are clear and they cover the changes made in this PR | ❌ / ✅ | ❌ / ✅ |
-| &nbsp; &nbsp; - I made sure the environment tests should be run in is clearly indicated (Staging vs Production) | ❌ / ✅ | ❌ / ✅ |
-| I made sure testing steps cover success & fail scenarios | ❌ / ✅ | ❌ / ✅ |
-| I ran the tests & they passed on **all platforms** | ❌ / ✅ | ❌ / ✅ |
-| I made sure screenshots or videos were included for [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms) | ❌ / ✅ | ❌ / ✅ |
-| I verified there are no console errors related to changes in this PR | ❌ / ✅ | ❌ / ✅ |
-| I made sure proper code patterns were followed (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code)) |  ❌ / ✅ | ❌ / ✅ |
-| &nbsp; &nbsp; - I made sure comments were added when appropriate | ❌ / ✅ | ❌ / ✅ |
-| &nbsp; &nbsp; - I made sure any copy / text shown in the product was added in all `src/languages/*` files (if applicable) | ❌ / ✅ | ❌ / ✅ |
-| &nbsp; &nbsp; - I made sure proper naming convention was followed for platform-specific files (if applicable) | ❌ / ✅ | ❌ / ✅ |
-| &nbsp; &nbsp; - I made sure [style guidelines](../STYLING.md) were followed | ❌ / ✅ | ❌ / ✅ |
-| I verified that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md) | ❌ / ✅ | ❌ / ✅ |
-
-### PR Review Checklist (OPTION 2 - 2 lists, 1 for author 1 for C+)
 #### Contributor (PR Author) Checklist
 - [ ] I made sure to pull `main` before submitting my PR for review
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
@@ -63,7 +45,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I followed proper code patterns (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I added comments when appropriate
+    - [ ] I added comments when the code was not self explanatory
     - [ ] I put all copy / text shown in the product in all `src/languages/*` files (if applicable)
     - [ ] I followed proper naming convention for platform-specific files (if applicable)
     - [ ] I followed style guidelines (in [`Styling.md`](../STYLING.md)) for all style edits I made
@@ -79,7 +61,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I verified comments were added when appropriate
+    - [ ] I verified comments were added when the code was not self explanatory
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files (if applicable)
     - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
     - [ ] I verified [style guidelines](../STYLING.md) were followed
