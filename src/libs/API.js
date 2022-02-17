@@ -453,7 +453,9 @@ function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
-    return Network.post(commandName, parameters);
+
+    // Note: Aborting request would happen while logging out, we want to skip abort the actual logout request
+    return Network.post(commandName, {...parameters, canAbort: false});
 }
 
 /**

@@ -10,7 +10,6 @@ Onyx.connect({
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
 });
 
-const NON_ABORTABLE_COMMANDS = ['Log', 'DeleteLogin'];
 let abortController = new AbortController();
 
 /**
@@ -49,9 +48,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
-    const canAbort = !_.contains(NON_ABORTABLE_COMMANDS, command);
-
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, canAbort);
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canAbort);
 }
 
 /**

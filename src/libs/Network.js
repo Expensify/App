@@ -296,10 +296,12 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldUseSecure,
         };
 
-        // All requests should be retried by default
-        if (_.isUndefined(request.data.shouldRetry)) {
-            request.data.shouldRetry = true;
-        }
+        // By default request are retry-able and abort-able
+        request.data = {
+            ...data,
+            shouldRetry: lodashGet(data, 'shouldRetry', true),
+            canAbort: lodashGet(data, 'canAbort', true),
+        };
 
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);
