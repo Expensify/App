@@ -70,6 +70,9 @@ const timezones = _.map(moment.tz.names(), timezone => ({
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
+
+        this.defaultAvatar = OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+
         this.state = {
             firstName: props.myPersonalDetails.firstName,
             hasFirstNameError: false,
