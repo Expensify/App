@@ -129,6 +129,8 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
+Network.registerLogHandler(() => Log);
+
 Network.registerRequestHandler((queuedRequest, finalParameters) => {
     if (queuedRequest.command === 'Log') {
         return;

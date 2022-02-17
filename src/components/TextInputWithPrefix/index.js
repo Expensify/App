@@ -17,14 +17,11 @@ const propTypes = {
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
 
-    /** Callback to execute the text input is modified */
-    onChangeText: PropTypes.func,
 };
 
 const defaultProps = {
     errorText: '',
     disabled: false,
-    onChangeText: () => {},
 };
 
 const TextInputWithPrefix = props => (
@@ -42,9 +39,8 @@ const TextInputWithPrefix = props => (
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,
                 ]}
-                onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
+                {..._.omit(props, ['prefixCharacter', 'errorText'])}
             />
         </View>
         {!_.isEmpty(props.errorText) && (
