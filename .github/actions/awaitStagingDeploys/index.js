@@ -9,8 +9,11 @@ module.exports =
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
+const ActionUtils = __nccwpck_require__(970);
 const GitHubUtils = __nccwpck_require__(7999);
 const {promiseDoWhile} = __nccwpck_require__(4502);
+
+const tag = ActionUtils.getJSONInput('TAG', {required: false});
 
 function run() {
     let currentStagingDeploys = [];
@@ -24,20 +27,24 @@ function run() {
                     repo: GitHubUtils.APP_REPO,
                     workflow_id: 'platformDeploy.yml',
                     event: 'push',
+                    branch: tag,
                 }),
 
-                // These have the potential to become active deploys, so we need to wait for them to finish as well
+                // These have the potential to become active deploys, so we need to wait for them to finish as well (unless we're looking for a specific tag)
                 // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
-                GitHubUtils.octokit.actions.listWorkflowRuns({
+                !tag && GitHubUtils.octokit.actions.listWorkflowRuns({
                     owner: GitHubUtils.GITHUB_OWNER,
                     repo: GitHubUtils.APP_REPO,
                     workflow_id: 'preDeploy.yml',
                 }),
             ])
-                .then(responses => [
-                    ...responses[0].data.workflow_runs,
-                    ...responses[1].data.workflow_runs,
-                ])
+                .then((responses) => {
+                    const workflowRuns = responses[0].data.workflow_runs;
+                    if (!tag) {
+                        workflowRuns.push(...responses[1].data.workflow_runs);
+                    }
+                    return workflowRuns;
+                })
                 .then(workflowRuns => currentStagingDeploys = _.filter(workflowRuns, workflowRun => workflowRun.status !== 'completed'))
                 .then(() => console.log(
                     _.isEmpty(currentStagingDeploys)
@@ -56,6 +63,35 @@ if (require.main === require.cache[eval('__filename')]) {
 }
 
 module.exports = run;
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
 
 
 /***/ }),
