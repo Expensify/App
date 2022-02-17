@@ -169,9 +169,9 @@ class ProfilePage extends Component {
             return;
         }
 
-        // Check if the user has updated their avatar
+        // Check if the user has modified their avatar
         if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-            // If user removed their avatar, update it accoridngly with the default image
+            // If the user removed their profile photo, replace it accoridngly with the default avatar
             if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
                 PersonalDetails.deleteAvatar(this.state.avatar.uri);
             } else {
