@@ -19,7 +19,6 @@ const propTypes = {
      * setNativeProps to update text and selection concurrently.
      * Warning:This prop should be used for iOS devices only because it
      * will cause missing cut/copy menu on android devices.
-     * Issue: https://github.com/Expensify/App/issues/6876
     */
     isValueControlled: PropTypes.bool,
 
