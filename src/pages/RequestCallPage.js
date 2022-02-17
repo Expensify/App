@@ -200,30 +200,34 @@ class RequestCallPage extends Component {
      * so we return empty strings instead.
      * @param {String} login
      * @param {String} displayName
+     * @param {String} firstName
+     * @param {String} lastName
      *
      * @returns {Object}
      */
-    getFirstAndLastName({login, displayName}) {
-        let firstName;
-        let lastName;
-
+    getFirstAndLastName({
+        login,
+        displayName,
+        firstName,
+        lastName,
+    }) {
+        if (firstName || lastName) {
+            return {firstName: firstName || '', lastName: lastName || ''};
+        }
         if (Str.removeSMSDomain(login) === displayName) {
-            firstName = '';
-            lastName = '';
-        } else {
-            const firstSpaceIndex = displayName.indexOf(' ');
-            const lastSpaceIndex = displayName.lastIndexOf(' ');
-
-            if (firstSpaceIndex === -1) {
-                firstName = displayName;
-                lastName = '';
-            } else {
-                firstName = displayName.substring(0, firstSpaceIndex);
-                lastName = displayName.substring(lastSpaceIndex);
-            }
+            return {firstName: '', lastName: ''};
         }
 
-        return {firstName, lastName};
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -285,7 +289,7 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isBlockedFromConcierge = !_.isEmpty(this.props.blockedFromConcierge) && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
 
         return (
             <ScreenWrapper>

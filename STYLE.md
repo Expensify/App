@@ -94,6 +94,8 @@ There are a few things that we have customized for our tastes which will take pr
     ```
 
 ## Naming Conventions
+
+### Event Handlers
   - When you have an event handler, do not prefix it with "on" or "handle". The method should be named for what it does, not what it handles. This promotes code reuse by minimizing assumptions that a method must be called in a certain fashion (eg. only as an event handler).
   - One exception for allowing the prefix of "on" is when it is used for callback `props` of a React component. Using it in this way helps to distinguish callbacks from public component methods.
 
@@ -109,48 +111,66 @@ There are a few things that we have customized for our tastes which will take pr
     };
     ```
 
+### Boolean variables and props
+
+- Boolean props or variables must be prefixed with `should` or `is` to make it clear that they are `Boolean`. Use `should` when we are enabling or disabling some features and `is` in most other cases.
+
+```javascript
+// Bad
+<SomeComponent showIcon />
+
+// Good
+<SomeComponent shouldShowIcon />
+
+// Bad
+const valid = this.props.something && this.props.somethingElse;
+
+// Good
+const isValid = this.props.something && this.props.somethingElse;
+```
+
 ## Functions
 
 Any function declared in a library module should use the `function myFunction` keyword rather than `const myFunction`.
 
-    ```javascript
-    // Bad
-    const myFunction = () => {...};
+```javascript
+// Bad
+const myFunction = () => {...};
 
-    export {
-        myFunction,
-    }
+export {
+    myFunction,
+}
 
-    // Good
-    function myFunction() {
-        ...
-    }
+// Good
+function myFunction() {
+    ...
+}
 
-    export {
-        myFunction,
-    }
-    ```
+export {
+    myFunction,
+}
+```
 
 Using arrow functions is the preferred way to write an anonymous function such as a callback method.
 
-    ```javascript
-    // Bad
-    _.map(someArray, function (item) {...});
+```javascript
+// Bad
+_.map(someArray, function (item) {...});
 
-    // Good
-    _.map(someArray, (item) => {...});
-    ```
+// Good
+_.map(someArray, (item) => {...});
+```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
 
-    ```javascript
-    // Bad
-    const callback = _.noop;
-    const callback = () => { };
+```javascript
+// Bad
+const callback = _.noop;
+const callback = () => { };
 
-    // Good
-    const callback = () => {};
-    ```
+// Good
+const callback = () => {};
+```
 
 ## `var`, `const` and `let`
 
@@ -159,67 +179,67 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
 - Try to write your code in a way where the variable reassignment isn't necessary
 - Use `let` only if there are no other options
 
-    ```javascript
-    // Bad
-    let array = [];
+```javascript
+// Bad
+let array = [];
 
-    if (someCondition) {
-        array = ['addValue1'];
-    }
+if (someCondition) {
+    array = ['addValue1'];
+}
 
-    // Good
-    const array = [];
+// Good
+const array = [];
 
-    if (someCondition) {
-        array.push('addValue1');
-    }
-    ```
+if (someCondition) {
+    array.push('addValue1');
+}
+```
 
 ## Object / Array Methods
 
 We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
 
-    ```javascript
-    // Bad
-    myArray.forEach(item => doSomething(item));
-    // Good
-    _.each(myArray, item => doSomething(item));
+```javascript
+// Bad
+myArray.forEach(item => doSomething(item));
+// Good
+_.each(myArray, item => doSomething(item));
 
-    // Bad
-    const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
-    // Good
-    const myArray = _.map(someObject, (value, key) => doSomething(value));
+// Bad
+const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+// Good
+const myArray = _.map(someObject, (value, key) => doSomething(value));
 
-    // Bad
-    myCollection.includes('item');
-    // Good
-    _.contains(myCollection, 'item');
+// Bad
+myCollection.includes('item');
+// Good
+_.contains(myCollection, 'item');
 
-    // Bad
-    const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
-    // Good
-    const modifiedArray = _.chain(someArray)
-        .filter(filterFunc)
-        .map(mapFunc)
-        .value();
-    ```
+// Bad
+const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+// Good
+const modifiedArray = _.chain(someArray)
+    .filter(filterFunc)
+    .map(mapFunc)
+    .value();
+```
 
 ## Accessing Object Properties and Default Values
 
 Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
 
-   ```javascript
-   // Bad
-   const value = somePossiblyNullThing ?? 'default';
-   // Good
-   const value = somePossiblyNullThing || 'default';
-   // Bad
-   const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
-   // Bad
-   const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
-   // Good
-   const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
-   ```
+```javascript
+// Bad
+const value = somePossiblyNullThing ?? 'default';
+// Good
+const value = somePossiblyNullThing || 'default';
+// Bad
+const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
+// Bad
+const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
+// Good
+const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+```
 
 ## JSDocs
 

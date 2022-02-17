@@ -417,7 +417,7 @@ test('persisted request should not be cleared unit a backend response', () => {
         });
 });
 
-test(`persisted request should be retried up to ${CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES} times`, () => {
+test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETRIES} times`, () => {
     // We're setting up xhr handler that always returns an error response
     const xhr = jest.spyOn(HttpUtils, 'xhr')
         .mockResolvedValue({jsonCode: 401});
@@ -435,7 +435,7 @@ test(`persisted request should be retried up to ${CONST.NETWORK.MAX_PERSISTED_RE
         .then(waitForPromisesToResolve)
         .then(() => {
             // The request should be retried a number of times
-            expect(xhr).toHaveBeenCalledTimes(CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES);
+            expect(xhr).toHaveBeenCalledTimes(CONST.NETWORK.MAX_REQUEST_RETRIES);
             _.each(xhr.mock.calls, (args) => {
                 expect(args).toEqual(
                     expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1', persist: true})]),

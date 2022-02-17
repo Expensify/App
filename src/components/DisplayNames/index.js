@@ -37,19 +37,19 @@ class DisplayNames extends PureComponent {
     }
 
     /**
-     * We may need to shit the Tooltip horizontally as the some of the inline text wraps well with ellipsis
-     * .But their container node overflows the parent view which causes the tooltip to be misplaced.
+     * We may need to shift the Tooltip horizontally as some of the inline text wraps well with ellipsis,
+     * but their container node overflows the parent view which causes the tooltip to be misplaced.
      *
      * So we shift it by calculating it as follows:
      * 1. We get the container layout and take the Child inline text node.
      * 2. Now we get the tooltip original position.
      * 3. If inline node's right edge is overflowing the container's right edge, we set the tooltip to the center
      * of the distance between the left edge of the inline node and right edge of the container.
-     * @param {Number} index Used to get the Ref to the node at the current index.
+     * @param {Number} index Used to get the Ref to the node at the current index
      * @returns {Number} Distance to shift the tooltip horizontally
      */
     getTooltipShiftX(index) {
-        // Only shift when containerLayout or Refs to text node is available .
+        // Only shift the tooltip in case the containerLayout or Refs to the text node are available
         if (!this.containerLayout || !this.childRefs[index]) {
             return;
         }
@@ -62,7 +62,7 @@ class DisplayNames extends PureComponent {
         const textNodeRight = textNodeWidth + textNodeLeft;
         const newToolX = textNodeLeft + ((containerRight - textNodeLeft) / 2);
 
-        // When text right end is beyond the Container Right end
+        // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }
 
