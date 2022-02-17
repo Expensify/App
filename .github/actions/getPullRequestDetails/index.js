@@ -110,7 +110,6 @@ if (pullRequestNumber) {
 /***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
 
 /**
