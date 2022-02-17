@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 
-
 const WalletStatementModal = (props) => {
     const authToken = lodashGet(props, 'session.authToken', null);
     return (
