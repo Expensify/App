@@ -36,7 +36,7 @@ const WalletStatementPage = (props) => {
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statements`;
 
-    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statements.php?period=${yearMonth}`;
+    const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statement.php?period=${yearMonth}`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
