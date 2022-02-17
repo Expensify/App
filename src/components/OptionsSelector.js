@@ -68,7 +68,7 @@ const propTypes = {
     shouldFocusOnSelectRow: PropTypes.bool,
 
     /** Whether to autofocus the search input on mount */
-    autofocus: PropTypes.bool,
+    autoFocus: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -86,7 +86,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
-    autofocus: true,
+    autoFocus: true,
 };
 
 class OptionsSelector extends Component {
@@ -103,7 +103,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        if (!this.props.autofocus) {
+        if (!this.props.autoFocus) {
             return;
         }
 
