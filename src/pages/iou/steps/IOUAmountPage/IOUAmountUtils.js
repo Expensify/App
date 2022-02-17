@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import CONST from '../CONST';
+import CONST from '../../../../CONST';
 
 /**
  * @param {String} amount

@@ -13,19 +13,19 @@ import {
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import BigNumberPad from './BigNumberPad';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import Button from './Button';
-import Text from './Text';
-import CONST from '../CONST';
-import TextInput from './TextInput';
-import * as IOUAmountUtils from '../libs/IOUAmountUtils';
-import canUseTouchScreen from '../libs/canUseTouchscreen';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import styles from '../../../../styles/styles';
+import BigNumberPad from '../../../../components/BigNumberPad';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import Button from '../../../../components/Button';
+import Text from '../../../../components/Text';
+import CONST from '../../../../CONST';
+import TextInput from '../../../../components/TextInput';
+import * as IOUAmountUtils from './IOUAmountUtils';
+import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** Holds data related to IOU view state, rather than the underlying IOU data. */

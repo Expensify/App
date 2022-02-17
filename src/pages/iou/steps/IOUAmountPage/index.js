@@ -1,7 +1,7 @@
 import React from 'react';
 import {propTypes, defaultProps} from './IOUAmountPagePropTypes';
-import IOUAmountInput from '../../../../components/IOUAmountInput';
-import * as IOUAmountUtils from '../../../../libs/IOUAmountUtils';
+import IOUAmountInput from './IOUAmountInput';
+import * as IOUAmountUtils from './IOUAmountUtils';
 
 class IOUAmountPage extends React.Component {
     constructor(props) {

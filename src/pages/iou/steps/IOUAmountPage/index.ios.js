@@ -6,8 +6,8 @@
 
 import React from 'react';
 import {propTypes, defaultProps} from './IOUAmountPagePropTypes';
-import IOUAmountInput from '../../../../components/IOUAmountInput';
-import * as IOUAmountUtils from '../../../../libs/IOUAmountUtils';
+import IOUAmountInput from './IOUAmountInput';
+import * as IOUAmountUtils from './IOUAmountUtils';
 
 class IOUAmountPage extends React.Component {
     constructor(props) {
@@ -41,7 +41,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmountNumberPad(key) {
         return this.setState((prevState) => {
-            const {amount, selection} = this.props.calculateAmountAndSelection(key, prevState.selection, prevState.amount);
+            const {amount, selection} = IOUAmountUtils.calculateAmountAndSelection(key, prevState.selection, prevState.amount);
             return {amount, selection};
         });
     }
