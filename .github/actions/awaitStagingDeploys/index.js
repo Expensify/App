@@ -13,9 +13,8 @@ const ActionUtils = __nccwpck_require__(970);
 const GitHubUtils = __nccwpck_require__(7999);
 const {promiseDoWhile} = __nccwpck_require__(4502);
 
-const tag = ActionUtils.getJSONInput('TAG', {required: false});
-
 function run() {
+    const tag = ActionUtils.getStringInput('TAG', {required: false});
     let currentStagingDeploys = [];
     return promiseDoWhile(
         () => !_.isEmpty(currentStagingDeploys),
@@ -70,6 +69,7 @@ module.exports = run;
 /***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
 
 /**
@@ -89,8 +89,25 @@ function getJSONInput(name, options, defaultValue = undefined) {
     return defaultValue;
 }
 
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+
 module.exports = {
     getJSONInput,
+    getStringInput,
 };
 
 

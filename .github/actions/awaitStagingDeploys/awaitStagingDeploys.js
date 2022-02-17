@@ -3,9 +3,8 @@ const ActionUtils = require('../../libs/ActionUtils');
 const GitHubUtils = require('../../libs/GithubUtils');
 const {promiseDoWhile} = require('../../libs/promiseWhile');
 
-const tag = ActionUtils.getJSONInput('TAG', {required: false});
-
 function run() {
+    const tag = ActionUtils.getStringInput('TAG', {required: false});
     let currentStagingDeploys = [];
     return promiseDoWhile(
         () => !_.isEmpty(currentStagingDeploys),
