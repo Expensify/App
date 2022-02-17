@@ -15,9 +15,10 @@ const propTypes = {
     defaultValue: PropTypes.string,
 
     /**
-     * iOS has incorrect selection(caret) position when using
-     * setNativeProps to update text and selection concurrently.
-     * Warning:This prop should be used for iOS devices only because it
+     * This prop should be used in iOS to make value prop controlled.
+     * iOS has incorrect selection(caret) position when value or
+     * selection is directly manipulated.
+     * Warning:This prop should be used for iOS devices only and it
      * will cause missing cut/copy menu on android devices.
     */
     isValueControlled: PropTypes.bool,
