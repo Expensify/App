@@ -342,9 +342,10 @@ function registerParameterEnhancer(callback) {
 
 /**
  * Clear the queue and cancels all pending requests
+ * Non-abort requests like Log would not be cleared
  */
 function clearRequestQueue() {
-    networkRequestQueue = [];
+    networkRequestQueue = _.filter(networkRequestQueue, r => !r.data.canAbort);
     HttpUtils.abortPendingRequests();
 }
 
