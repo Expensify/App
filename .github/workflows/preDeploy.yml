@@ -164,9 +164,10 @@ jobs:
         if: ${{ env.DO_CHERRY_PICK }}
         run: |
           PR_URL=${{ https://github.com/Expensify/App/pull/${{ nneeds.chooseDeployActions.outputs.mergedPullRequest }}
+          printf -v COMMENT ':clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version `%s` :rocket:' "$PR_URL" ${{ env.NEW_VERSION }}
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request]($PR_URL) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version `${{ env.NEW_VERSION }}` :rocket:"
+          --body "$COMMENT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -182,7 +183,7 @@ jobs:
         run: |
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":rocket: All set?…You bet! https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :rocket:"
+          --body ":tada: All set?…You bet! https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :tada:"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
