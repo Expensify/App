@@ -12,22 +12,66 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import BigNumberPad from './BigNumberPad';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import withLocalize from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Button from './Button';
 import Text from './Text';
 import CONST from '../CONST';
 import TextInput from './TextInput';
-import {propTypes, defaultProps} from '../pages/iou/steps/IOUAmountPage/IOUAmount/IOUAmountPropTypes';
-
+import * as IOUAmountUtils from '../libs/IOUAmountUtils';
 import canUseTouchScreen from '../libs/canUseTouchscreen';
 
+const propTypes = {
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    iou: PropTypes.shape({
+
+        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
+        loading: PropTypes.bool,
+
+        /** Selected Currency Code of the current IOU */
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
+    /** The currency list constant object from Onyx */
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        /** Symbol for the currency */
+        symbol: PropTypes.string,
+
+        /** Name of the currency */
+        name: PropTypes.string,
+
+        /** ISO4217 Code for the currency */
+        ISO4217: PropTypes.string,
+    })).isRequired,
+
+    amount: PropTypes.string.isRequired,
+
+    /** Whether or not this IOU has multiple participants */
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    /** The ID of the report this screen should display */
+    reportID: PropTypes.string.isRequired,
+
+    ...withLocalizePropTypes,
+
+};
+const defaultProps = {
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
+};
 class IOUAmountInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.focusTextInput = this.focusTextInput.bind(this);
+    }
+
     componentDidMount() {
         this.focusTextInput();
     }
@@ -57,7 +101,7 @@ class IOUAmountInput extends React.Component {
     }
 
     render() {
-        const formattedAmount = this.props.replaceAllDigits(this.props.amount, this.props.toLocaleDigit);
+        const formattedAmount = IOUAmountUtils.replaceAllDigits(this.props.amount, this.props.toLocaleDigit);
         return (
             <>
                 <View style={[

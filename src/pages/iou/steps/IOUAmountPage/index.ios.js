@@ -5,15 +5,11 @@
  */
 
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import withLocalize from '../../../../../components/withLocalize';
-import compose from '../../../../../libs/compose';
-import {propTypes, defaultProps} from './IOUAmountPropTypes';
-import IOUAmountInput from '../../../../../components/IOUAmountInput';
-import * as IOUAmountUtils from '../../../../../libs/IOUAmountUtils';
+import {propTypes, defaultProps} from './IOUAmount/IOUAmountPropTypes';
+import IOUAmountInput from '../../../../components/IOUAmountInput';
+import * as IOUAmountUtils from '../../../../libs/IOUAmountUtils';
 
-class IOUAmount extends React.Component {
+class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
@@ -27,7 +23,6 @@ class IOUAmount extends React.Component {
             },
         };
     }
-
 
     /**
      * Callback function to update UI-triggered selection changes in local selection.
@@ -75,18 +70,15 @@ class IOUAmount extends React.Component {
                 updateAmountNumberPad={this.updateAmountNumberPad}
                 onSelectionChange={this.onSelectionChange}
                 selection={this.state.selection}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                isValueControlled
             />
         );
     }
 }
 
-IOUAmount.propTypes = propTypes;
-IOUAmount.defaultProps = defaultProps;
+IOUAmountPage.propTypes = propTypes;
+IOUAmountPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-        iou: {key: ONYXKEYS.IOU},
-    }),
-)(IOUAmount);
+export default IOUAmountPage;

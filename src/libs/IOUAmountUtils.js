@@ -105,7 +105,7 @@ function calculateAmountAndSelection(key, selection, amount) {
     return {amount: newAmount, selection: {start: start + 1, end: start + 1}};
 }
 
-export default {
+export {
     stripCommaFromAmount,
     calculateAmountAndSelection,
     calculateAmountLength,
