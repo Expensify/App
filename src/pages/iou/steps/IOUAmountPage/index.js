@@ -1,5 +1,5 @@
 import React from 'react';
-import {propTypes, defaultProps} from './IOUAmount/IOUAmountPropTypes';
+import {propTypes, defaultProps} from './IOUAmountPagePropTypes';
 import IOUAmountInput from '../../../../components/IOUAmountInput';
 import * as IOUAmountUtils from '../../../../libs/IOUAmountUtils';
 
