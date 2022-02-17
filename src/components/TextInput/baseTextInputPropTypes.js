@@ -14,7 +14,13 @@ const propTypes = {
     /** Default value - used for non controlled inputs */
     defaultValue: PropTypes.string,
 
-    /** False when Value set by setNativeProps */
+    /**
+     * iOS has incorrect selection(caret) position when using
+     * setNativeProps to update text and selection concurrently.
+     * Warning:This prop should be used for iOS devices only because it
+     * will cause missing cut/copy menu on android devices.
+     * Issue: https://github.com/Expensify/App/issues/6876
+    */
     isValueControlled: PropTypes.bool,
 
     /** Input value placeholder */

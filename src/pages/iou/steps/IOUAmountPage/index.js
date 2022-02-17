@@ -126,7 +126,7 @@ class IOUAmountPage extends Component {
         // Component may not initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
-        // Focus text input
+            // Focus text input
             if (!this.textInput) {
                 return;
             }
