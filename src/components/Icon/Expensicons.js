@@ -31,6 +31,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
+import Key from '../../../assets/images/key.svg';
 import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
@@ -104,6 +105,7 @@ export {
     Hashtag,
     Info,
     Invoice,
+    Key,
     Keyboard,
     Link,
     LinkCopy,
