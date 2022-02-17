@@ -163,9 +163,10 @@ jobs:
       - name: Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked
         if: ${{ env.DO_CHERRY_PICK }}
         run: |
+          PR_URL=${{ https://github.com/Expensify/App/pull/${{ nneeds.chooseDeployActions.outputs.mergedPullRequest }}
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":clap: Heads up @Expensify/applauseleads :clap:\nA new pull request has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version `${{ env.NEW_VERSION }}` :rocket:"
+          --body ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request]($PR_URL) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version `${{ env.NEW_VERSION }}` :rocket:"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
