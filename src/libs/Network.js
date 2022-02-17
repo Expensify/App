@@ -233,7 +233,7 @@ function processNetworkRequestQueue() {
             .catch((error) => {
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-                if (shouldRetry) {
+                if (shouldRetry && error.name !== 'AbortError') {
                     const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
                     getLogger().info('A retrieable request failed', false, {
                         retryCount,
