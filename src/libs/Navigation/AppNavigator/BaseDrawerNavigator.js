@@ -32,8 +32,12 @@ const propTypes = {
     /** Window Dimensions props */
     ...windowDimensionsPropTypes,
 };
-const Drawer = createDrawerNavigator();
 
+const defaultProps = {
+    isMainScreen: false,
+};
+
+const Drawer = createDrawerNavigator();
 class BaseDrawerNavigator extends React.Component {
     constructor(props) {
         super(props);
@@ -84,5 +88,6 @@ class BaseDrawerNavigator extends React.Component {
 }
 
 BaseDrawerNavigator.propTypes = propTypes;
-BaseDrawerNavigator.displayName = 'BaseDrawerNavigator';
+BaseDrawerNavigator.defaultProps = defaultProps;
+
 export default withWindowDimensions(BaseDrawerNavigator);
