@@ -88,9 +88,18 @@ class RoomNameInput extends Component {
                 prefixCharacter="#"
                 placeholder={this.props.translate('newRoomPage.social')}
                 containerStyles={[styles.mb5]}
-                onChangeText={(roomName) => {
+                onChange={(event) => {
+                    const nativeEvent = event.nativeEvent;
+                    const roomName = nativeEvent.text;
+                    const target = nativeEvent.target;
+                    const selection = target.selectionStart;
                     const modifiedRoomName = this.modifyRoomName(roomName);
-                    this.setState({roomName: modifiedRoomName});
+                    this.setState({roomName: modifiedRoomName}, () => {
+                        if (!selection) {
+                            return;
+                        }
+                        target.selectionEnd = selection;
+                    });
                     this.props.onChangeText(modifiedRoomName);
                 }}
                 value={this.state.roomName.substring(1)}
