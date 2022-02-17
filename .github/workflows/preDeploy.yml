@@ -181,7 +181,7 @@ jobs:
         run: |
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":rocket: https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :rocket:"
+          --body ":rocket: All set?…You bet! https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :rocket:"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
