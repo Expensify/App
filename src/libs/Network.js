@@ -341,10 +341,11 @@ function registerParameterEnhancer(callback) {
 }
 
 /**
- * Clear the queue so all pending requests will be cancelled
+ * Clear the queue and cancels all pending requests
  */
 function clearRequestQueue() {
     networkRequestQueue = [];
+    HttpUtils.abortPendingRequests();
 }
 
 export {

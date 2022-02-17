@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import HttpUtils from '../HttpUtils';
+import * as Network from '../Network';
 
 let currentActiveClients;
 Onyx.connect({
@@ -20,7 +20,6 @@ Onyx.connect({
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
-    HttpUtils.abortPendingRequests();
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
@@ -46,6 +45,7 @@ function clearStorageAndRedirect(errorMessage) {
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
+    Network.clearRequestQueue();
     clearStorageAndRedirect(errorMessage);
 }
 

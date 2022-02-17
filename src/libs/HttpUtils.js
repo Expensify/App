@@ -24,9 +24,10 @@ let abortController = new AbortController();
  */
 function processHTTPRequest(url, method = 'get', body = null, canAbort = true) {
     return fetch(url, {
+        // We hook requests to the same signal, so we can abort them all (controller ignores completed requests)
+        signal: canAbort ? abortController.signal : undefined,
         method,
         body,
-        signal: canAbort ? abortController.signal : undefined,
     })
         .then(response => response.json());
 }
