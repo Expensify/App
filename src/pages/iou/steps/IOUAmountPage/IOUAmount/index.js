@@ -5,6 +5,7 @@ import withLocalize from '../../../../../components/withLocalize';
 import compose from '../../../../../libs/compose';
 import {propTypes, defaultProps} from './IOUAmountPropTypes';
 import IOUAmountInput from '../../../../../components/IOUAmountInput';
+import IOUAmountUtils from '../../../../../libs/IOUAmountUtils';
 
 class IOUAmount extends React.Component {
     constructor(props) {
@@ -51,7 +52,7 @@ class IOUAmount extends React.Component {
      */
     updateAmountNumberPad(key) {
         return this.setState((prevState) => {
-            const {amount, selection} = this.props.calculateAmountAndSelection(key, this.selection, prevState.amount);
+            const {amount, selection} = IOUAmountUtils.calculateAmountAndSelection(key, this.selection, prevState.amount);
             this.selection = selection;
 
             // Update UI to reflect selection changes.
@@ -68,9 +69,9 @@ class IOUAmount extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = this.props.replaceAllDigits(text, this.props.fromLocaleDigit);
-            return this.props.validateAmount(amount)
-                ? {amount: this.props.stripCommaFromAmount(amount)}
+            const amount = IOUAmountUtils.replaceAllDigits(text, this.props.fromLocaleDigit);
+            return IOUAmountUtils.validateAmount(amount)
+                ? {amount: IOUAmountUtils.stripCommaFromAmount(amount)}
                 : prevState;
         });
     }

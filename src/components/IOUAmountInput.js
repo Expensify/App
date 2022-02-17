@@ -23,8 +23,8 @@ import Button from './Button';
 import Text from './Text';
 import CONST from '../CONST';
 import TextInput from './TextInput';
+import {propTypes, defaultProps} from '../pages/iou/steps/IOUAmountPage/IOUAmount/IOUAmountPropTypes';
 
-// import {propTypes, defaultProps} from './IOUAmountPropTypes';
 import canUseTouchScreen from '../libs/canUseTouchscreen';
 
 class IOUAmountInput extends React.Component {
