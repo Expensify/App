@@ -86,13 +86,7 @@ class PopoverWithMeasuredContent extends Component {
     static getDerivedStateFromProps(props, state) {
         // When Popover is shown recalculate
         if (!state.isVisible && props.isVisible) {
-            let hasStaticDimensions = false;
-            if (props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0) {
-                hasStaticDimensions = true;
-                this.popoverWidth = props.popoverDimensions.width;
-                this.popoverHeight = props.popoverDimensions.height;
-            }
-            return {isContentMeasured: hasStaticDimensions, isVisible: true};
+            return {isContentMeasured: false, isVisible: true};
         }
         if (!props.isVisible) {
             return {isVisible: false};

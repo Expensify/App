@@ -125,6 +125,7 @@ class EmojiPicker extends React.Component {
                 }}
                 popoverDimensions={{
                     width: CONST.EMOJI_PICKER_SIZE,
+                    height: CONST.EMOJI_PICKER_SIZE
                 }}
                 anchorOrigin={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
