@@ -70,6 +70,9 @@ const timezones = _.map(moment.tz.names(), timezone => ({
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
+
+        this.defaultAvatar = OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+
         this.state = {
             firstName: props.myPersonalDetails.firstName,
             hasFirstNameError: false,
@@ -82,7 +85,7 @@ class ProfilePage extends Component {
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
             avatarImage: null,
-            avatarPreviewURL: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)),
+            avatarPreviewURL: lodashGet(this.props.myPersonalDetails, 'avatar', this.defaultAvatar),
             isAvatarUpdated: false,
         };
 
@@ -169,7 +172,7 @@ class ProfilePage extends Component {
      */
     removeAvatar() {
         this.setState({
-            avatarPreviewURL: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login),
+            avatarPreviewURL: this.defaultAvatar,
             avatarImage: null,
             isAvatarUpdated: false,
         });
@@ -189,7 +192,7 @@ class ProfilePage extends Component {
 
         // Checks if the user already has an avatar and removePhoto is triggered
         // Avatar having `/images/avatars/avatar` in URL means a profile picture exists for the user
-        if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar') && !this.state.avatarImage) {
+        if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar') && this.state.avatarPreviewURL === this.defaultAvatar) {
             PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login);
         }
 
