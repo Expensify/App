@@ -310,7 +310,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
  */
 function getEmojiPickerStyle(isSmallScreenWidth) {
     return {
-        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE.WIDTH,
     };
 }
 
