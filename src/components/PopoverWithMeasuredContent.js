@@ -2,12 +2,14 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
+
 
 const propTypes = {
     // All popover props except:
@@ -30,7 +32,8 @@ const propTypes = {
     but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
 
-    /** Static dimensions if the popover height, width is known beforehand */
+    /** Static dimensions if the popover height, width is known beforehand.
+     * When passed, it will skip measuring popover on render */
     popoverDimensions: PropTypes.shape({
         height: PropTypes.number,
         width: PropTypes.number,
@@ -63,11 +66,11 @@ class PopoverWithMeasuredContent extends Component {
     constructor(props) {
         super(props);
 
-        this.popoverWidth = this.props.popoverDimensions.width;
-        this.popoverHeight = this.props.popoverDimensions.height;
+        this.popoverWidth = lodashGet(this.props, 'popoverDimensions.width', 0);
+        this.popoverHeight = lodashGet(this.props, 'popoverDimensions.height', 0);
 
         this.state = {
-            isContentMeasured: !!(this.popoverWidth > 0 && this.popoverHeight > 0),
+            isContentMeasured: this.popoverWidth > 0 && this.popoverHeight > 0,
             isVisible: false,
         };
 
