@@ -1,12 +1,12 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import lodashGet from 'lodash/get';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 
-const WalletStatementModal = props => {
+const WalletStatementModal = (props) => {
     const authToken = lodashGet(props, 'session.authToken', null);
     return (
         <iframe
@@ -17,8 +17,8 @@ const WalletStatementModal = props => {
             seamless="seamless"
             frameBorder="0"
         />
-    )
-}
+    );
+};
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
