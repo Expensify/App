@@ -10,7 +10,6 @@ import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
 
-
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
@@ -32,8 +31,8 @@ const propTypes = {
     but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
 
-    /** Static dimensions if the popover height, width is known beforehand.
-     * When passed, it will skip measuring popover on render */
+    /** Static dimensions for the popover.
+     * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position. */
     popoverDimensions: PropTypes.shape({
         height: PropTypes.number,
         width: PropTypes.number,
