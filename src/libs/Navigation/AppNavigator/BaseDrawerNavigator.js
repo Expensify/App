@@ -34,45 +34,54 @@ const propTypes = {
 };
 const Drawer = createDrawerNavigator();
 
-const BaseDrawerNavigator = (props) => {
-    const content = (
-        <Drawer.Navigator
-            backBehavior="none"
-            key={`BaseDrawerNavigator${props.isSmallScreenWidth}`}
-            defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
-            sceneContainerStyle={styles.navigationSceneContainer}
-            drawerContent={props.drawerContent}
-            screenOptions={{
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-                drawerType: StyleUtils.getNavigationDrawerType(props.isSmallScreenWidth),
-                drawerStyle: StyleUtils.getNavigationDrawerStyle(
-                    props.isSmallScreenWidth,
-                ),
-                swipeEdgeWidth: 500,
-            }}
-        >
-            {_.map(props.screens, screen => (
-                <Drawer.Screen
-                    key={screen.name}
-                    name={screen.name}
-                    component={screen.component}
-                    initialParams={screen.initialParams}
-                />
-            ))}
-        </Drawer.Navigator>
-    );
-
-    if (!props.isMainScreen && !props.isSmallScreenWidth) {
-        return (
-            <View style={styles.navigationSceneFullScreenWrapper}>
-                {content}
-            </View>
-        );
+class BaseDrawerNavigator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            // Only get the default status on the mount. Changing this dynamically breaks the navigation.
+            defaultStatus: Navigation.getDefaultDrawerState(props.isSmallScreenWidth),
+        };
     }
 
-    return content;
-};
+    render() {
+        const content = (
+            <Drawer.Navigator
+                backBehavior="none"
+                key={`BaseDrawerNavigator${this.props.isSmallScreenWidth}`}
+                defaultStatus={this.state.defaultStatus}
+                sceneContainerStyle={styles.navigationSceneContainer}
+                drawerContent={this.props.drawerContent}
+                screenOptions={{
+                    cardStyle: styles.navigationScreenCardStyle,
+                    headerShown: false,
+                    drawerType: StyleUtils.getNavigationDrawerType(this.props.isSmallScreenWidth),
+                    drawerStyle: StyleUtils.getNavigationDrawerStyle(
+                        this.props.isSmallScreenWidth,
+                    ),
+                    swipeEdgeWidth: 500,
+                }}
+            >
+                {_.map(this.props.screens, screen => (
+                    <Drawer.Screen
+                        key={screen.name}
+                        name={screen.name}
+                        component={screen.component}
+                        initialParams={screen.initialParams}
+                    />
+                ))}
+            </Drawer.Navigator>
+        );
+
+        if (!this.props.isMainScreen && !this.props.isSmallScreenWidth) {
+            return (
+                <View style={styles.navigationSceneFullScreenWrapper}>
+                    {content}
+                </View>
+            );
+        }
+        return content;
+    }
+}
 
 BaseDrawerNavigator.propTypes = propTypes;
 BaseDrawerNavigator.displayName = 'BaseDrawerNavigator';
