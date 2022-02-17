@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Input label */
@@ -19,10 +20,10 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
-
     /** Customize the TextInput container */
+    textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the main container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** input style */
@@ -33,15 +34,49 @@ const propTypes = {
 
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
+
+    /** Disable the virtual keyboard  */
+    disableKeyboard: PropTypes.bool,
+
+    /** Autogrow input container size based on the entered text  */
+    autoGrow: PropTypes.bool,
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState: PropTypes.bool,
+
+    /** Forward the inner ref */
+    innerRef: PropTypes.func,
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.validateInputIDProps(props),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** Maximum characters allowed */
+    maxLength: PropTypes.number,
+
+    /** Hint text to display below the TextInput */
+    hint: PropTypes.string,
 };
 
 const defaultProps = {
+    isFormInput: false,
     label: '',
     name: '',
     errorText: '',
     placeholder: '',
     hasError: false,
     containerStyles: [],
+    textInputContainerStyles: [],
     inputStyle: [],
     autoFocus: false,
 
@@ -52,6 +87,13 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
+    disableKeyboard: false,
+    autoGrow: false,
+    hideFocusedState: false,
+    innerRef: () => {},
+    shouldSaveDraft: false,
+    maxLength: null,
+    hint: '',
 };
 
 export {propTypes, defaultProps};

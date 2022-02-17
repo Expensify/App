@@ -100,14 +100,11 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={[styles.flex1, styles.m5]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
                         <View>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('common.notifications')}
-                            </Text>
-                            <Text>
-                                {this.props.translate('notificationPreferences.description')}
                             </Text>
                         </View>
                         <View style={[styles.mb5, styles.mt2]}>

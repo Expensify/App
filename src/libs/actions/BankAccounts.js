@@ -107,7 +107,7 @@ function deleteBankAccount(bankAccountID) {
         bankAccountID,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
+            ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
             Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
         } else {
             Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
