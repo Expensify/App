@@ -5,34 +5,19 @@
  */
 
 import React from 'react';
-import {
-    View,
-    TouchableOpacity,
-} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../../../ONYXKEYS';
-import styles from '../../../../../styles/styles';
-import BigNumberPad from '../../../../../components/BigNumberPad';
-import Navigation from '../../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../../ROUTES';
 import withLocalize from '../../../../../components/withLocalize';
 import compose from '../../../../../libs/compose';
-import Button from '../../../../../components/Button';
-import Text from '../../../../../components/Text';
-import CONST from '../../../../../CONST';
-import TextInput from '../../../../../components/TextInput';
 import {propTypes, defaultProps} from './IOUAmountPropTypes';
-import canUseTouchScreen from '../../../../../libs/canUseTouchscreen';
+import IOUAmountInput from '../../../../../components/IOUAmountInput';
 
 class IOUAmount extends React.Component {
     constructor(props) {
         super(props);
-
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.focusTextInput = this.props.focusTextInput.bind(this);
         this.state = {
             amount: props.selectedAmount,
             selection: {
@@ -42,17 +27,6 @@ class IOUAmount extends React.Component {
         };
     }
 
-    componentDidMount() {
-        this.focusTextInput();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.iou.selectedCurrencyCode === prevProps.iou.selectedCurrencyCode) {
-            return;
-        }
-
-        this.focusTextInput();
-    }
 
     /**
      * Callback function to update UI-triggered selection changes in local selection.
@@ -93,59 +67,14 @@ class IOUAmount extends React.Component {
 
 
     render() {
-        const formattedAmount = this.props.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
-            <>
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.w100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                ]}
-                >
-                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
-                    >
-                        <Text style={styles.iouAmountText}>
-                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
-                        </Text>
-                    </TouchableOpacity>
-                    <TextInput
-                        disableKeyboard
-                        autoGrow
-                        hideFocusedState
-                        isValueControlled
-                        inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                        textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                        onChangeText={this.updateAmount}
-                        ref={el => this.textInput = el}
-                        value={formattedAmount}
-                        placeholder={this.props.numberFormat(0)}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        selection={this.state.selection}
-                        onSelectionChange={this.onSelectionChange}
-                    />
-                </View>
-                <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {canUseTouchScreen()
-                        ? (
-                            <BigNumberPad
-                                numberPressed={this.updateAmountNumberPad}
-                            />
-                        ) : <View />}
-
-                    <Button
-                        success
-                        style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
-                        pressOnEnter
-                        isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.translate('common.next')}
-                    />
-                </View>
-            </>
+            <IOUAmountInput
+                amount={this.state.amount}
+                updateAmount={this.updateAmount}
+                updateAmountNumberPad={this.updateAmountNumberPad}
+                onSelectionChange={this.onSelectionChange}
+                selection={this.state.selection}
+            />
         );
     }
 }

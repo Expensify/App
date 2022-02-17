@@ -2,7 +2,6 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import _ from 'underscore';
-import {InteractionManager} from 'react-native';
 import CONST from '../../../../CONST';
 import IOUAmount from './IOUAmount';
 
@@ -119,26 +118,10 @@ class IOUAmountPage extends Component {
         return {amount: newAmount, selection: {start: start + 1, end: start + 1}};
     }
 
-    /**
-     * Focus text input
-     */
-    focusTextInput() {
-        // Component may not initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!this.textInput) {
-                return;
-            }
-
-            this.textInput.focus();
-        });
-    }
 
     render() {
         return (
             <IOUAmount
-                focusTextInput={this.focusTextInput}
                 calculateAmountAndSelection={this.calculateAmountAndSelection}
                 replaceAllDigits={this.replaceAllDigits}
                 stripCommaFromAmount={this.stripCommaFromAmount}
