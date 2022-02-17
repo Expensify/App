@@ -714,7 +714,7 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Emitir tarjetas corporativas',
+            card: 'Emitir tarjetas',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
