@@ -129,7 +129,7 @@ const OptionRow = (props) => {
         },
     );
 
-    const avatarTooltip = _.pluck(displayNamesWithTooltips, 'tooltip');
+    const avatarTooltip = props.showTitleTooltip ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <Hoverable>
