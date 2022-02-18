@@ -60,6 +60,8 @@ class RoomNameInput extends Component {
         this.state = {
             roomName: props.initialValue,
         };
+
+        this.setModifiedRoomName = this.setModifiedRoomName.bind(this);
     }
 
     /**
@@ -80,6 +82,25 @@ class RoomNameInput extends Component {
         return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
     }
 
+    /**
+     * 
+     * @param {Event} event 
+     */
+    setModifiedRoomName(event) {
+        const nativeEvent = event.nativeEvent;
+        const roomName = nativeEvent.text;
+        const target = nativeEvent.target;
+        const selection = target.selectionStart;
+        const modifiedRoomName = this.modifyRoomName(roomName);
+        this.setState({roomName: modifiedRoomName}, () => {
+            if (!selection) {
+                return;
+            }
+            target.selectionEnd = selection;
+        });
+        this.props.onChangeText(modifiedRoomName);
+    }
+
     render() {
         return (
             <TextInputWithPrefix
@@ -88,20 +109,7 @@ class RoomNameInput extends Component {
                 prefixCharacter="#"
                 placeholder={this.props.translate('newRoomPage.social')}
                 containerStyles={[styles.mb5]}
-                onChange={(event) => {
-                    const nativeEvent = event.nativeEvent;
-                    const roomName = nativeEvent.text;
-                    const target = nativeEvent.target;
-                    const selection = target.selectionStart;
-                    const modifiedRoomName = this.modifyRoomName(roomName);
-                    this.setState({roomName: modifiedRoomName}, () => {
-                        if (!selection) {
-                            return;
-                        }
-                        target.selectionEnd = selection;
-                    });
-                    this.props.onChangeText(modifiedRoomName);
-                }}
+                onChange={this.setModifiedRoomName}
                 value={this.state.roomName.substring(1)}
                 errorText={this.props.errorText}
                 autoCapitalize="none"
