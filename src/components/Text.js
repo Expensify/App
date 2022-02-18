@@ -32,7 +32,7 @@ const defaultProps = {
     color: themeColors.text,
     fontSize: variables.fontSizeNormal,
     family: 'GTA',
-    textAlign: null,
+    textAlign: 'left',
     children: null,
     style: {},
 };

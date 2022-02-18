@@ -30,6 +30,10 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
+    /** The alignment of the text */
+    // eslint-disable-next-line react/forbid-prop-types
+    textAlign: PropTypes.any,
+
     /** Selection Object */
     selection: PropTypes.shape({
         start: PropTypes.number,
@@ -44,6 +48,7 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
+    textAlign: 'left',
     selection: {
         start: 0,
         end: 0,

@@ -17,11 +17,15 @@ const propTypes = {
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
 
+    /** The alignment of the text */
+    // eslint-disable-next-line react/forbid-prop-types
+    textAlign: PropTypes.any,
 };
 
 const defaultProps = {
     errorText: '',
     disabled: false,
+    textAlign: 'left',
 };
 
 const TextInputWithPrefix = props => (

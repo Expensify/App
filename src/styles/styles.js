@@ -656,6 +656,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        textAlign: 'left',
     },
 
     textInputLabelBackground: {
