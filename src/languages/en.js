@@ -712,7 +712,7 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Issue corporate cards',
+            card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete Workspace',

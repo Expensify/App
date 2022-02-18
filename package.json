@@ -108,6 +108,7 @@
     "react-native-screens": "^3.10.1",
     "react-native-svg": "^12.1.0",
     "react-native-web": "git+https://github.com/Expensify/react-native-web.git#3cd81b5af5916dca1dbdfef6b4e9ad261772afe6",
+    "react-native-webview": "^11.17.2",
     "react-pdf": "^5.2.0",
     "react-plaid-link": "^3.2.0",
     "react-web-config": "^1.0.0",
