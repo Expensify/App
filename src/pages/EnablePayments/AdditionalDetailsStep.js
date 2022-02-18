@@ -100,6 +100,9 @@ class AdditionalDetailsStep extends React.Component {
         });
     }
 
+    /**
+     * @returns {Object}
+     */
     getErrors() {
         return this.formHelper.getErrors(this.props);
     }
@@ -116,8 +119,11 @@ class AdditionalDetailsStep extends React.Component {
         return `${this.props.translate(this.fieldNameTranslationKeys[fieldName])} ${this.props.translate('common.isRequiredField')}.`;
     }
 
+    /**
+     * @param {String} path
+     */
     clearError(path) {
-        return this.formHelper.clearError(this.props, path);
+        this.formHelper.clearError(this.props, path);
     }
 
     /**
