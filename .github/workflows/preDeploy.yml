@@ -164,7 +164,7 @@ jobs:
         if: ${{ env.DO_CHERRY_PICK }}
         run: |
           PR_URL="https://github.com/Expensify/App/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}"
-          printf -v COMMENT ':clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version `%s` :rocket:' "$PR_URL" ${{ env.NEW_VERSION }}
+          printf -v COMMENT ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version \`%s\` :rocket:" "$PR_URL" ${{ env.NEW_VERSION }}
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
           --body "$COMMENT"
