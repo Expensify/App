@@ -15,6 +15,7 @@ import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import SignInOptions from '../../components/SignInOptions';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -99,6 +100,11 @@ class SignInPage extends Component {
             }
         }
 
+        const onEmailOrPhoneNumberPress = () => {
+            Session.clearAccountMessages();
+            this.setState({showSignInOptions: false});
+        };
+
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -107,7 +113,7 @@ class SignInPage extends Component {
                 >
                     { (this.state.showSignInOptions && !shouldShowResendValidationLinkForm) ? (
                         <SignInOptions
-                            onEmailOrPhoneNumberPress={() => this.setState({showSignInOptions: false})}
+                            onEmailOrPhoneNumberPress={onEmailOrPhoneNumberPress}
                         />
                     ) : (
                         <>
