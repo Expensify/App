@@ -37,7 +37,7 @@ class IOUAmountPage extends React.Component {
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
      * @param {String} key
-     * @returns {String}
+     * @returns {Object}
      */
     updateAmountNumberPad(key) {
         return this.setState((prevState) => {
@@ -60,7 +60,6 @@ class IOUAmountPage extends React.Component {
                 : prevState;
         });
     }
-
 
     render() {
         return (

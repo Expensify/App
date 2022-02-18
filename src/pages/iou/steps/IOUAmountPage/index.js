@@ -60,7 +60,6 @@ class IOUAmountPage extends React.Component {
         });
     }
 
-
     render() {
         return (
             <IOUAmountInput

@@ -39,7 +39,6 @@ function stripCommaFromAmount(amount) {
     return amount.replace(/,/g, '');
 }
 
-
 /**
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
@@ -64,11 +63,11 @@ function replaceAllDigits(text, convertFn) {
 /**
  * Returns new value of Selection and Amount
  *
- * @param {String} amount - Current amount in prevState
  * @param {String} key -Key pressed
+ * @param {Object} selection - selected range of amount
+ * @param {String} amount - Current amount in prevState
  * @returns {Object}
  */
-
 function calculateAmountAndSelection(key, selection, amount) {
     const {start, end} = selection;
 

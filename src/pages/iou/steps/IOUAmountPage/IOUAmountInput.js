@@ -1,9 +1,3 @@
-/**
- * iOS has incorrect selection(caret) position when using setNativeProps
- * to update text and selection concurrently.
- * Issue: https://github.com/facebook/react-native/issues/33077
- */
-
 import React from 'react';
 import {
     View,
@@ -59,7 +53,6 @@ const propTypes = {
     reportID: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
-
 };
 const defaultProps = {
     iou: {
@@ -84,9 +77,6 @@ class IOUAmountInput extends React.Component {
         this.focusTextInput();
     }
 
-    /**
-     * Focus text input
-     */
     focusTextInput() {
         // Component may not initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
