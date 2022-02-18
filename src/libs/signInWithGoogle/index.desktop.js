@@ -43,7 +43,6 @@ function getAuthenticatedClient() {
         const oAuth2Client = new OAuth2Client({
             clientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
             redirectUri: `${options.loopbackRedirectHost}:${options.loopbackRedirectPort}${options.callbackPath}`,
-
         });
 
         // Generate the url that will be used for the consent dialog.
@@ -53,6 +52,10 @@ function getAuthenticatedClient() {
 
         // Open an http server to accept the oauth callback. In this simple example, the
         // only request to our webserver is to /oauth2callback?code=<code>
+        const timeoutSignIn = setTimeout(() => {
+            reject();
+            destroyServer();
+        }, 15000);
         try {
             creteServer((req, res) => {
                 if (req.url && url.parse(req.url).pathname === options.callbackPath) {
@@ -68,6 +71,7 @@ function getAuthenticatedClient() {
                         oAuth2Client.setCredentials(r.tokens);
                         console.info('Tokens acquired.');
                         resolve(oAuth2Client);
+                        clearTimeout(timeoutSignIn);
                         res.end('Authentication successful! Please return to New Expensify.');
                         destroyServer();
                     }).catch(reject);
