@@ -1,46 +1,34 @@
 import React from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import htmlRendererPropTypes from '../htmlRendererPropTypes';
-
-
-const propTypes = {
-    ...htmlRendererPropTypes,
-};
+import BasePreRenderer from './BasePreRenderer';
 
 class PreRenderer extends React.Component {
     constructor(props) {
         super(props);
-        this.scrollRef = React.createRef();
+        this.scrollRef = null;
         this.onScroll = this.onScroll.bind(this);
     }
 
     componentDidMount() {
-        this.scrollRef.current.addEventListener('wheel', this.onScroll);
+        if (!this.scrollRef) {
+            return;
+        }
+        this.scrollRef.getScrollableNode().addEventListener('wheel', this.onScroll);
     }
 
     componentWillUnmount() {
-        this.scrollRef.current.removeEventListener('wheel', this.onScroll);
+        this.scrollRef.getScrollableNode().removeEventListener('wheel', this.onScroll);
     }
 
     onScroll(e) {
-        this.scrollRef.current.scrollLeft += e.deltaX;
+        this.scrollRef.getScrollableNode().scrollLeft += e.deltaX;
     }
 
     render() {
-        const TDefaultRenderer = this.props.TDefaultRenderer;
         return (
-            <ScrollView ref={this.scrollRef} horizontal style={this.props.style}>
-                <TDefaultRenderer
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    style={{flexGrow: 1, flexShrink: 1, padding: 10}}
-                />
-            </ScrollView>
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            <BasePreRenderer ref={el => this.scrollRef = el} {...this.props} />
         );
     }
 }
-
-PreRenderer.propTypes = propTypes;
-PreRenderer.displayName = 'PreRenderer';
 
 export default PreRenderer;
