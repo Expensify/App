@@ -36,6 +36,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    preferredSkinTone: undefined,
+};
+
 class EmojiPickerMenu extends Component {
     constructor(props) {
         super(props);
@@ -60,8 +64,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
      * @param {String} emoji
      * @param {Object} emojiObject
      */
@@ -80,8 +82,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Update user preferred skin tone
-     *
      * @param {Number} skinTone
      */
     updatePreferredSkinTone(skinTone) {
@@ -152,9 +152,7 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = {
-    preferredSkinTone: undefined,
-};
+EmojiPickerMenu.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,

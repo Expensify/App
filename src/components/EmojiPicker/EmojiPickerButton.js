@@ -45,7 +45,7 @@ const EmojiPickerButton = (props) => {
     );
 };
 
-EmojiPickerButton.displayName = 'EmojiPickerButton';
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
+EmojiPickerButton.displayName = 'EmojiPickerButton';
 export default withLocalize(EmojiPickerButton);

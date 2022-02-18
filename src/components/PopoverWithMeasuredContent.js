@@ -32,7 +32,8 @@ const propTypes = {
     measureContent: PropTypes.func.isRequired,
 
     /** Static dimensions for the popover.
-     * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position. */
+     * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position.
+     */
     popoverDimensions: PropTypes.shape({
         height: PropTypes.number,
         width: PropTypes.number,
