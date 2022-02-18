@@ -31,8 +31,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** The alignment of the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textAlign: PropTypes.any,
+    textAlign: PropTypes.string,
 
     /** Selection Object */
     selection: PropTypes.shape({

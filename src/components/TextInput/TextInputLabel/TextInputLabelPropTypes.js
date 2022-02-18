@@ -14,9 +14,6 @@ const propTypes = {
     /** For attribute for label */
     for: PropTypes.string,
 
-    /** The alignment of the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textAlign: PropTypes.any,
 };
 
 const defaultProps = {

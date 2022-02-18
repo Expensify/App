@@ -18,8 +18,7 @@ const propTypes = {
     disabled: PropTypes.bool,
 
     /** The alignment of the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textAlign: PropTypes.any,
+    textAlign: PropTypes.string,
 };
 
 const defaultProps = {
