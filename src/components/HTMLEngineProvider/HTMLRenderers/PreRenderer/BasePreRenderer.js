@@ -30,8 +30,6 @@ const BasePreRenderer = (props) => {
 BasePreRenderer.propTypes = propTypes;
 BasePreRenderer.displayName = 'PreRenderer';
 
-// export default BasePreRenderer;
-
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <BasePreRenderer {...props} innerRef={ref} />
