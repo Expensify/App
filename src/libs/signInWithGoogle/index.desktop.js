@@ -50,7 +50,7 @@ function getAuthenticatedClient() {
         // Wait 60 secs until the user authenticate with their Google account in the consent dialog,
         // otherwise the loading spinner will never stop
         const timeoutSignIn = setTimeout(() => {
-            reject();
+            reject(new Error('User consent dialog timeout'));
             destroyServer();
         }, 60000);
 
