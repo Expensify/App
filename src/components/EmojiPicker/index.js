@@ -82,7 +82,6 @@ class EmojiPicker extends React.Component {
         }));
     }
 
-
     /**
      * Used to calculate the EmojiPicker Dimensions
      *
