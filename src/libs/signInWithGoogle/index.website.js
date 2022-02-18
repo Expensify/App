@@ -30,7 +30,7 @@ loadScript(
     'google-login',
     'https://apis.google.com/js/api.js',
     () => getGoogleApi().load('auth2', () => getGoogleApi().auth2.init({ // Load Google Auth
-        clientId: '1016036866283-rotn0elqu18bbju128nkf8ahcpaq8nb9.apps.googleusercontent.com',
+        clientId: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
     })),
 );
 
