@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import NetInfo from './NetInfo';
+import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
