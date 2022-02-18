@@ -26,7 +26,7 @@ const propTypes = {
     /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** Selected participants from IOUMOdal with login */
+    /** Selected participants from IOUModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -128,7 +128,7 @@ class IOUParticipantsSplit extends Component {
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
             }));
         }
 
