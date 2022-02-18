@@ -30,10 +30,10 @@ function creteServer(callback) {
 }
 
 /**
-* Create a new OAuth2Client, and go through the OAuth2 content
-* workflow.  Return the full client to the callback.
-* @returns {Promise<OAuth2Client>}
-*/
+ * Create a new OAuth2Client, and go through the OAuth2 content workflow.
+ *
+ * @returns {Promise<OAuth2Client>}
+ */
 function getAuthenticatedClient() {
     return new Promise((resolve, reject) => {
         // Create an oAuth client to authorize the API call.
@@ -47,7 +47,8 @@ function getAuthenticatedClient() {
             scope: 'email',
         });
 
-        // Wait 60 secs until the user authenticate with their Google account, otherwise the loading spinner will never stop
+        // Wait 60 secs until the user authenticate with their Google account in the consent dialog,
+        // otherwise the loading spinner will never stop
         const timeoutSignIn = setTimeout(() => {
             reject();
             destroyServer();
