@@ -416,8 +416,9 @@ export default {
         },
         googleButton: 'Google',
         emailOrPhoneNumber: 'Phone Number or Email',
-        error: {
-            googleSignIn: 'Something went wrong with Google Sign in. Please try again.',
+        google: {
+            authSuccessful: 'Authentication successful! Please return to New Expensify',
+            errorSignIn: 'Something went wrong with Google Sign in. Please try again.',
         },
     },
     termsOfUse: {

@@ -263,7 +263,7 @@ function signInGoogle() {
         .catch(() => {
             // Set the same error message when signInWithGoogle or API.SignInGoogle fails
             Onyx.merge(ONYXKEYS.ACCOUNT, {
-                error: 'signInPage.error.googleSignIn',
+                error: 'signInPage.google.errorSignIn',
                 loading: false,
                 isGoogleSigningIn: false,
             });

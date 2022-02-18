@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import * as Localize from '../Localize';
 
 const {OAuth2Client} = require('google-auth-library');
 const http = require('http');
@@ -66,7 +67,7 @@ function getAuthenticatedClient() {
                         oAuth2Client.setCredentials(r.tokens);
                         resolve(oAuth2Client);
                         clearTimeout(timeoutSignIn);
-                        res.end('Authentication successful! Please return to New Expensify.');
+                        res.end(Localize.translateLocal('signInPage.google.authSuccessful'));
                         destroyServer();
                     }).catch(reject);
                 } else {
