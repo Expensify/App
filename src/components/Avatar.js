@@ -44,7 +44,7 @@ class Avatar extends PureComponent {
         const imageStyle = [
             this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
 
-            // Adding background makes RoomAvatar rectangular so adding background only if not chatRoom
+            // Background color isn't added for room avatar because it changes it's shape to a square
             !this.props.isChatRoom && {backgroundColor: themeColors.icon},
             ...this.props.imageStyles,
         ];
