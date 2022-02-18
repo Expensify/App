@@ -1,6 +1,3 @@
-// import Config from 'react-native-config';
-// import lodashGet from 'lodash/get';
-
 import _ from 'underscore';
 
 const {OAuth2Client} = require('google-auth-library');
@@ -34,12 +31,11 @@ function creteServer(callback) {
 /**
 * Create a new OAuth2Client, and go through the OAuth2 content
 * workflow.  Return the full client to the callback.
-* @returns {Promise<any>}
+* @returns {Promise<OAuth2Client>}
 */
 function getAuthenticatedClient() {
     return new Promise((resolve, reject) => {
-        // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
-        // which should be downloaded from the Google Developers Console.
+        // Create an oAuth client to authorize the API call.
         const oAuth2Client = new OAuth2Client({
             clientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
             redirectUri: `${options.loopbackRedirectHost}:${options.loopbackRedirectPort}${options.callbackPath}`,
@@ -50,26 +46,24 @@ function getAuthenticatedClient() {
             scope: 'email',
         });
 
-        // Open an http server to accept the oauth callback. In this simple example, the
-        // only request to our webserver is to /oauth2callback?code=<code>
+        // Wait 60 secs until the user authenticate with their Google account, otherwise the loading spinner will never stop
         const timeoutSignIn = setTimeout(() => {
             reject();
             destroyServer();
-        }, 15000);
+        }, 60000);
+
+        // Open an http server to accept the oauth callback
         try {
             creteServer((req, res) => {
                 if (req.url && url.parse(req.url).pathname === options.callbackPath) {
-                    // acquire the code from the querystring, and close the web server.
-                    const qs = new url.URL(req.url, options.loopbackRedirectHost)
-                        .searchParams;
+                    // acquire the code from the querystring
+                    const qs = new url.URL(req.url, options.loopbackRedirectHost).searchParams;
                     const code = qs.get('code');
-                    console.log(`Code is ${code}`);
 
                     // Now that we have the code, use that to acquire tokens.
                     oAuth2Client.getToken(code).then((r) => {
-                        // Make sure to set the credentials on the OAuth2 client.
+                        // Make sure to set the credentials on the OAuth2 client and close the web server.
                         oAuth2Client.setCredentials(r.tokens);
-                        console.info('Tokens acquired.');
                         resolve(oAuth2Client);
                         clearTimeout(timeoutSignIn);
                         res.end('Authentication successful! Please return to New Expensify.');
@@ -80,13 +74,7 @@ function getAuthenticatedClient() {
                 }
             }).listen(options.loopbackRedirectPort, () => {
                 // open the browser to the authorize url to start the workflow
-                open(authorizeUrl, {wait: true}).then((cp) => {
-                    debugger;
-                    cp.unref();
-                }).then((e) => {
-                    debugger;
-                    console.log(e);
-                });
+                open(authorizeUrl, {wait: true}).then(cp => cp.unref());
             }).on('error', e => reject(e)).on('connection', (conn) => {
                 const key = `${conn.remoteAddress}:${conn.remotePort}`;
                 connections[key] = conn;
@@ -97,9 +85,6 @@ function getAuthenticatedClient() {
         } catch (e) {
             reject(e);
         }
-
-
-        // destroyer(server);
     });
 }
 
@@ -109,31 +94,10 @@ function getAuthenticatedClient() {
  * @returns {Promise<{ token: string, email: string }>}
  */
 export default function signInWithGoogle() {
-    return getAuthenticatedClient().then((oAuth2Client) => {
-        console.log(oAuth2Client);
-
-        // Make a simple request to the People API using our pre-authenticated client. The `request()` method
-        // takes an GaxiosOptions object.  Visit https://github.com/JustinBeckwith/gaxios.
-        return oAuth2Client.request({
-            url: 'https://www.googleapis.com/oauth2/v2/userinfo',
-        }).then((res) => {
-            console.log(res.data);
-            return {
-                email: res.data.email,
-                token: oAuth2Client.credentials.id_token,
-            };
-
-            // // After acquiring an access_token, you may want to check on the audience, expiration,
-            // // or original scopes requested.  You can do that with the `getTokenInfo` method.
-            // return oAuth2Client.getTokenInfo(
-            //     oAuth2Client.credentials.access_token,
-            // ).then((tokenInfo) => {
-            //     console.log(tokenInfo);
-
-            // });
-        }).catch((err) => {
-            debugger;
-            console.log(err);
-        });
-    });
+    return getAuthenticatedClient().then(oAuth2Client => oAuth2Client.request({
+        url: 'https://www.googleapis.com/oauth2/v2/userinfo',
+    }).then(res => ({
+        email: res.data.email,
+        token: oAuth2Client.credentials.id_token,
+    })));
 }
