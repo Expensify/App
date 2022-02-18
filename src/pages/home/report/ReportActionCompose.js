@@ -4,7 +4,6 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
-    Platform,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -45,6 +44,7 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPicker from '../../../components/EmojiPicker';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import TextInputUtils from '../../../libs/TextInputUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -133,7 +133,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.setTextAndSelectionOfTextInput = this.setTextAndSelectionOfTextInput.bind(this);
+        this.setCommentEmpty = this.setCommentEmpty.bind(this);
         this.reFocusAfterEmojiPickerHide = this.reFocusAfterEmojiPickerHide.bind(this);
         this.blurTextInputBeforeEmojiPickerShown = this.blurTextInputBeforeEmojiPickerShown.bind(this);
 
@@ -149,7 +149,6 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        this.setTextAndSelectionOfTextInput(this.comment, {start: this.comment.length, end: this.comment.length});
         ReportActionComposeFocusManager.onComposerFocus(() => {
             if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
                 return;
@@ -157,6 +156,9 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+
+        TextInputUtils.setTextAndSelection(this.textInput, this.comment, {start: this.comment.length, end: this.comment.length});
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -246,24 +248,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Set text input value and selection, then call updateComment with newText parameter
+     * Set state of isCommentEmpty with check
      *
-     * @param {String} newText
-     * @param {Object} selection: {start: number, end: number}
+     * @param {Boolean} isEmpty
      */
-    setTextAndSelectionOfTextInput(newText, selection) {
-        if (Platform.OS === 'web') {
-            // react-native-web
-            // because setNativeProps in react-native-web is slow and doesn't have good support
-            this.textInput.value = newText;
-            this.textInput.setSelectionRange(selection.start, selection.end);
-        } else {
-            this.textInput.setNativeProps({text: newText, selection});
-
-            // Relasing selection handling to system
-            setTimeout(() => this.textInput.setNativeProps({selection: {start: undefined, end: undefined}}), 0);
+    setCommentEmpty(isEmpty) {
+        if (this.state.isCommentEmpty === isEmpty) {
+            return;
         }
-        this.updateComment(newText);
+        this.setState({isCommentEmpty: isEmpty});
     }
 
     /**
@@ -283,7 +276,8 @@ class ReportActionCompose extends React.Component {
             end: start + emoji.length,
         };
 
-        this.setTextAndSelectionOfTextInput(newComment, nextSelection);
+        TextInputUtils.setTextAndSelection(this.textInput, newComment, nextSelection);
+        this.updateComment(newComment);
     }
 
     /**
@@ -352,17 +346,13 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(newComment) {
         if (this.comment.length === 0 && newComment.length !== 0) {
-            if (this.state.isCommentEmpty) {
-                this.setState({isCommentEmpty: false});
-            }
+            this.setCommentEmpty(false);
             Report.setReportWithDraft(this.props.reportID.toString(), true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
-            if (!this.state.isCommentEmpty) {
-                this.setState({isCommentEmpty: true});
-            }
+            this.setCommentEmpty(true);
             Report.setReportWithDraft(this.props.reportID.toString(), false);
         }
 
