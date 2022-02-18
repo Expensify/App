@@ -17,6 +17,7 @@ const includeModules = [
     'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
+    'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
     'react-native-onyx',
