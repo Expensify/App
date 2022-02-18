@@ -65,6 +65,25 @@ class RoomNameInput extends Component {
     }
 
     /**
+     * Sets the modified room name in the state and calls the onChangeText callback
+     * @param {Event} event
+     */
+    setModifiedRoomName(event) {
+        const nativeEvent = event.nativeEvent;
+        const roomName = nativeEvent.text;
+        const target = nativeEvent.target;
+        const selection = target.selectionStart;
+        const modifiedRoomName = this.modifyRoomName(roomName);
+        this.setState({roomName: modifiedRoomName}, () => {
+            if (!selection) {
+                return;
+            }
+            target.selectionEnd = selection;
+        });
+        this.props.onChangeText(modifiedRoomName);
+    }
+
+    /**
      * Modifies the room name to follow our conventions:
      * - Max length 80 characters
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
@@ -80,25 +99,6 @@ class RoomNameInput extends Component {
             .toLowerCase();
 
         return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
-    }
-
-    /**
-     * 
-     * @param {Event} event 
-     */
-    setModifiedRoomName(event) {
-        const nativeEvent = event.nativeEvent;
-        const roomName = nativeEvent.text;
-        const target = nativeEvent.target;
-        const selection = target.selectionStart;
-        const modifiedRoomName = this.modifyRoomName(roomName);
-        this.setState({roomName: modifiedRoomName}, () => {
-            if (!selection) {
-                return;
-            }
-            target.selectionEnd = selection;
-        });
-        this.props.onChangeText(modifiedRoomName);
     }
 
     render() {
