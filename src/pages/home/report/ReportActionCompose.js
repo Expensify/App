@@ -134,7 +134,7 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            selection: {
+            defaultSelection: {
                 start: props.comment.length,
                 end: props.comment.length,
             },
@@ -142,6 +142,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        this.setState({defaultSelection: undefined});
+
         ReportActionComposeFocusManager.onComposerFocus(() => {
             if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
                 return;
@@ -175,7 +177,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        this.currentSelection = e.nativeEvent.selection;
     }
 
     /**
@@ -239,18 +241,16 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
+        const newComment = this.comment.slice(0, this.currentSelection.start)
+            + emoji + this.comment.slice(this.currentSelection.end, this.comment.length);
+
         this.updateComment(newComment);
+
+        const caret = this.currentSelection.start + emoji.length;
+
+        if (this.textInput.setSelectionRange) {
+            this.textInput.setSelectionRange(caret, caret);
+        }
     }
 
     /**
@@ -547,7 +547,7 @@ class ReportActionCompose extends React.Component {
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                     isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                    selection={this.state.selection}
+                                    selection={this.state.defaultSelection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
                             </>
