@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import {
     View, KeyboardAvoidingView,
 } from 'react-native';
+import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -25,6 +26,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
+import FailedKYC from './FailedKYC';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -39,6 +41,22 @@ const propTypes = {
 
         /** Any additional error message to show */
         additionalErrorMessage: PropTypes.string,
+
+        /** Questions returned by Idology */
+        questions: PropTypes.arrayOf(PropTypes.shape({
+            prompt: PropTypes.string,
+            type: PropTypes.string,
+            answer: PropTypes.arrayOf(PropTypes.string),
+        })),
+
+        /** ExpectID ID number related to those questions */
+        idNumber: PropTypes.string,
+
+        /** If we should show the FailedKYC view after the user submitted the form with a non fixable error */
+        shouldShowFailedKYC: PropTypes.bool,
+
+        /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
+        shouldAskForFullSSN: PropTypes.bool,
     }),
 };
 
@@ -47,6 +65,10 @@ const defaultProps = {
         errorFields: {},
         loading: false,
         additionalErrorMessage: '',
+        questions: [],
+        idNumber: '',
+        shouldShowFailedKYC: false,
+        shouldAskForFullSSN: false,
     },
 };
 
@@ -179,6 +201,39 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     render() {
+        if (this.props.walletAdditionalDetails.shouldShowFailedKYC) {
+            return (
+                <ScreenWrapper>
+                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
+                        <HeaderWithCloseButton
+                            title={this.props.translate('additionalDetailsStep.headerTitle')}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                        />
+                        <FailedKYC />
+                    </KeyboardAvoidingView>
+                </ScreenWrapper>
+            );
+        }
+
+        if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
+            return (
+                <ScreenWrapper>
+                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
+                        <HeaderWithCloseButton
+                            title={this.props.translate('additionalDetailsStep.headerTitle')}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                        />
+                        <IdologyQuestions
+                            questions={this.props.walletAdditionalDetails.questions}
+                            idNumber={this.props.walletAdditionalDetails.idNumber}
+                        />
+                    </KeyboardAvoidingView>
+                </ScreenWrapper>
+            );
+        }
+
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
@@ -237,6 +292,36 @@ class AdditionalDetailsStep extends React.Component {
                                     <Text style={[styles.mutedTextLabel, styles.mt1]}>
                                         {this.props.translate('common.noPO')}
                                     </Text>
+
+                                    {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
+                                    {/** We'll autofill them when the user selects a full address from the google autocomplete */}
+                                    {this.state.addressStreet && (
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressCity)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressCity', val)}
+                                            value={this.state.addressCity}
+                                            errorText={this.getErrorText('addressCity')}
+                                        />
+                                    )}
+                                    {this.state.addressStreet && (
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressState)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressState', val)}
+                                            value={this.state.addressState}
+                                            errorText={this.getErrorText('addressState')}
+                                        />
+                                    )}
+                                    {this.state.addressStreet && (
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
+                                            value={this.state.addressZip}
+                                            errorText={this.getErrorText('addressZip')}
+                                        />
+                                    )}
                                 </View>
                                 <TextInput
                                     containerStyles={[styles.mt4]}
