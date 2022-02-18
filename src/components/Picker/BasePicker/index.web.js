@@ -12,7 +12,7 @@ class BasePicker extends React.Component {
         super(props);
 
         this.state = {
-            selectValue: this.props.value || this.props.defaultValue || '',
+            selectValue: this.props.value || this.props.defaultValue,
         };
     }
 
@@ -26,10 +26,7 @@ class BasePicker extends React.Component {
             return;
         }
 
-        // ! Picker from https://github.com/react-native-picker/picker is being used inside RNPickerSelect. Picker 'ref' prop does not work on Web
-        // ! therefore it can not get '<select>' ref that Picker renders, so a pull request https://github.com/react-native-picker/picker/pull/376
-        // ! has been made with a potential fix to this issue , if Picker returns a 'ref' the implementation to this file would not be neccesary.
-        // An alternative is getting a View container ref. View ref will return a <div>,
+        // 'ref' is not exposed in Picker to focus on it. An alternative is getting a View container ref. View ref will return a <div>,
         // apply 'focus()' on it will not scroll to it. Applying 'scrollIntoView(false)' will scroll to element. https://developer.mozilla.org/es/docs/Web/API/Element/scrollIntoView
         const originalFocus = viewRef.focus;
         viewRef.focus = function () {
