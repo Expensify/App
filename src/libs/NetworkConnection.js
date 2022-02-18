@@ -57,8 +57,8 @@ function listenForReconnect() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
-        Log.info(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
-        setOfflineStatus(!state.isConnected);
+        Log.info(`[NetworkConnection] NetInfo isInternetReachable: ${state.isInternetReachable}`);
+        setOfflineStatus(!state.isInternetReachable);
     });
 }
 
