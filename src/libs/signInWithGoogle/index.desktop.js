@@ -1,6 +1,8 @@
 // import Config from 'react-native-config';
 // import lodashGet from 'lodash/get';
 
+import _ from 'underscore';
+
 const {OAuth2Client} = require('google-auth-library');
 const http = require('http');
 const url = require('url');
@@ -11,18 +13,20 @@ const options = {
     loopbackRedirectPort: '3000',
     loopbackRedirectHost: 'http://localhost',
 };
+
+const connections = {};
 let server = null;
 
-// Download your OAuth2 configuration from the Google
-// const keys = require('./oauth2.keys.json');
-
-function createServer(callback) {
+function destroyServer() {
     if (server) {
-        // if a server is already running, we close it so that we free the port
-        // and restart the process
-        // TODO: handle and close the server connections
         server.close();
+        server = null;
     }
+    _.forEach(connections, c => c.destroy());
+}
+
+function creteServer(callback) {
+    destroyServer();
     server = http.createServer(callback);
     return server;
 }
@@ -49,15 +53,14 @@ function getAuthenticatedClient() {
 
         // Open an http server to accept the oauth callback. In this simple example, the
         // only request to our webserver is to /oauth2callback?code=<code>
-        createServer((req, res) => {
-            try {
+        try {
+            creteServer((req, res) => {
                 if (req.url && url.parse(req.url).pathname === options.callbackPath) {
                     // acquire the code from the querystring, and close the web server.
                     const qs = new url.URL(req.url, options.loopbackRedirectHost)
                         .searchParams;
                     const code = qs.get('code');
                     console.log(`Code is ${code}`);
-                    res.end('Authentication successful! Please return to New Expensify.');
 
                     // Now that we have the code, use that to acquire tokens.
                     oAuth2Client.getToken(code).then((r) => {
@@ -65,18 +68,32 @@ function getAuthenticatedClient() {
                         oAuth2Client.setCredentials(r.tokens);
                         console.info('Tokens acquired.');
                         resolve(oAuth2Client);
-                        server.close();
+                        res.end('Authentication successful! Please return to New Expensify.');
+                        destroyServer();
                     }).catch(reject);
                 } else {
                     res.end();
                 }
-            } catch (e) {
-                reject(e);
-            }
-        }).listen(options.loopbackRedirectPort, () => {
-            // open the browser to the authorize url to start the workflow
-            open(authorizeUrl, {wait: false}).then(cp => cp.unref());
-        }).on('error', e => reject(e));
+            }).listen(options.loopbackRedirectPort, () => {
+                // open the browser to the authorize url to start the workflow
+                open(authorizeUrl, {wait: true}).then((cp) => {
+                    debugger;
+                    cp.unref();
+                }).then((e) => {
+                    debugger;
+                    console.log(e);
+                });
+            }).on('error', e => reject(e)).on('connection', (conn) => {
+                const key = `${conn.remoteAddress}:${conn.remotePort}`;
+                connections[key] = conn;
+                conn.on('close', () => {
+                    delete connections[key];
+                });
+            });
+        } catch (e) {
+            reject(e);
+        }
+
 
         // destroyer(server);
     });
