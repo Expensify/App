@@ -4,6 +4,7 @@ import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
 import * as Network from './actions/Network';
+import CONFIG from '../CONFIG';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -49,6 +50,14 @@ function setOfflineStatus(isCurrentlyOffline) {
  */
 function listenForReconnect() {
     Log.info('[NetworkConnection] listenForReconnect called');
+
+    NetInfo.configure({
+        // By default, for web (including Electron) NetInfo uses `/` for `reachabilityUrl`
+        // When App is served locally or from Electron this would respond with OK even with no internet
+        // Using API url ensures reachability is tested over internet
+        reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
+        reachabilityTest: response => Promise.resolve(response.status === 200),
+    });
 
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
