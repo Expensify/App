@@ -226,9 +226,8 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
-            return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.heading;
+            return themeColors.iconHovered;
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
