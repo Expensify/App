@@ -16,56 +16,63 @@ function getKeyboardShortcuts() {
 }
 
 /**
+ * Gets modifiers from a keyboard event.
+ *
+ * @param {Event} event
+ * @returns {Array}
+ */
+function getKeyEventModifiers(event) {
+    const modifiers = [];
+    if (event.shiftKey) {
+        modifiers.push('PUSH');
+    }
+    if (event.ctrlKey) {
+        modifiers.push('CONTROL');
+    }
+    if (event.altKey) {
+        modifiers.push('ALT');
+    }
+    if (event.metaKey) {
+        modifiers.push('META');
+    }
+    return modifiers;
+}
+
+/**
+ * Generates the normalized display name for keyboard shortcuts.
+ *
+ * @param {String} key
+ * @param {String|Array<String>} modifiers
+ * @returns {String}
+ */
+function getDisplayName(key, modifiers) {
+    let displayName = [key.toUpperCase()];
+    if (_.isString(modifiers)) {
+        displayName.unshift(modifiers);
+    } else if (_.isArray(modifiers)) {
+        displayName = [..._.sortBy(modifiers), ...displayName];
+    }
+
+    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+
+    return displayName.join(' + ');
+}
+
+
+/**
  * Checks if an event for that key is configured and if so, runs it.
  * @param {Event} event
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
-    const correctedKey = event.key.toLowerCase();
+    const eventModifiers = getKeyEventModifiers(event);
+    const displayName = getDisplayName(event.key.toUpperCase(), eventModifiers);
 
-    if (eventHandlers[correctedKey] === undefined) {
+    if (eventHandlers[displayName] === undefined) {
         return;
     }
 
-    _.every(eventHandlers[correctedKey], (callback) => {
-        const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-            if (modifier === 'shift' && !event.shiftKey) {
-                return false;
-            }
-            if (modifier === 'control' && !event.ctrlKey) {
-                return false;
-            }
-            if (modifier === 'alt' && !event.altKey) {
-                return false;
-            }
-            if (modifier === 'meta' && !event.metaKey) {
-                return false;
-            }
-            return true;
-        });
-
-        const extraModifiers = _.difference(['shift', 'control', 'alt', 'meta'], callback.modifiers);
-
-        // returns true if extra modifiers are pressed
-        const pressedExtraModifiers = _.some(extraModifiers, (extraModifier) => {
-            if (extraModifier === 'shift' && event.shiftKey) {
-                return true;
-            }
-            if (extraModifier === 'control' && event.ctrlKey) {
-                return true;
-            }
-            if (extraModifier === 'alt' && event.altKey) {
-                return true;
-            }
-            if (extraModifier === 'meta' && event.metaKey) {
-                return true;
-            }
-            return false;
-        });
-        if (!pressedModifiers || pressedExtraModifiers) {
-            return true;
-        }
-
+    _.every(eventHandlers[displayName], (callback) => {
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -96,12 +103,12 @@ document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true})
 /**
  * Unsubscribes a keyboard event handler.
  *
- * @param {String} key The key to stop watching
+ * @param {String} displayName The display name for the key combo to stop watching
  * @param {String} callbackID The specific ID given to the callback at the time it was added
  * @private
  */
-function unsubscribe(key, callbackID) {
-    eventHandlers[key] = _.filter(eventHandlers[key], callback => callback.id !== callbackID);
+function unsubscribe(displayName, callbackID) {
+    eventHandlers[displayName] = _.filter(eventHandlers[displayName], callback => callback.id !== callbackID);
 }
 
 /**
@@ -112,16 +119,7 @@ function unsubscribe(key, callbackID) {
  * @param {String} descriptionKey Translation key for shortcut description
  */
 function addKeyToMap(key, modifiers, descriptionKey) {
-    let displayName = [key];
-    if (_.isString(modifiers)) {
-        displayName.unshift(modifiers);
-    } else if (_.isArray(modifiers)) {
-        displayName = [...modifiers, ...displayName];
-    }
-
-    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
-
-    displayName = displayName.join(' + ');
+    const displayName = getDisplayName(key, modifiers);
     keyboardShortcutMap[displayName] = {
         shortcutKey: key,
         descriptionKey,
@@ -142,15 +140,15 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
-    const correctedKey = key.toLowerCase();
-    if (eventHandlers[correctedKey] === undefined) {
-        eventHandlers[correctedKey] = [];
+    const displayName = getDisplayName(key, modifiers);
+    if (!_.has(eventHandlers, displayName)) {
+        eventHandlers[displayName] = [];
     }
+
     const callbackID = Str.guid();
-    eventHandlers[correctedKey].splice(priority, 0, {
+    eventHandlers[displayName].splice(priority, 0, {
         id: callbackID,
         callback,
-        modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
         captureOnInputs,
         shouldBubble,
     });
@@ -158,7 +156,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     if (descriptionKey) {
         addKeyToMap(key, modifiers, descriptionKey);
     }
-    return () => unsubscribe(correctedKey, callbackID);
+    return () => unsubscribe(displayName, callbackID);
 }
 
 /**
