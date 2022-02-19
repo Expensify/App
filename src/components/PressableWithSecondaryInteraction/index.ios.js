@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
+import HapticFeedback from '../../libs/HapticFeedback';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -21,9 +21,7 @@ const PressableWithSecondaryInteraction = (props) => {
             onPressIn={props.onPressIn}
             onLongPress={(e) => {
                 e.preventDefault();
-                ReactNativeHapticFeedback.trigger('selection', {
-                    enableVibrateFallback: true,
-                });
+                HapticFeedback.trigger();
                 props.onSecondaryInteraction(e);
             }}
             onPressOut={props.onPressOut}

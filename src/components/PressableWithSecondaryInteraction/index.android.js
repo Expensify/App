@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import {Pressable, Platform} from 'react-native';
+import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
+import HapticFeedback from '../../libs/HapticFeedback';
 
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
@@ -13,17 +13,8 @@ import Text from '../Text';
  */
 function handleLongPress(event, props) {
     event.preventDefault();
+    HapticFeedback.trigger();
     props.onSecondaryInteraction(event);
-
-    // The constant effectHeavyClick is added in API level 29.
-    // Docs: https://developer.android.com/reference/android/os/VibrationEffect#EFFECT_HEAVY_CLICK
-    // We use keyboardTap added in API level 8 as a fallback.
-    // Docs: https://developer.android.com/reference/android/view/HapticFeedbackConstants#KEYBOARD_TAP
-    if (Platform.Version >= 29) {
-        ReactNativeHapticFeedback.trigger('effectHeavyClick');
-        return;
-    }
-    ReactNativeHapticFeedback.trigger('keyboardTap');
 }
 
 /**
