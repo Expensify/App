@@ -9,8 +9,7 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(ScrollView)}),
-        null,
-    ]).isRequired,
+    ]),
     ...htmlRendererPropTypes,
 };
 
@@ -30,6 +29,9 @@ const BasePreRenderer = (props) => {
 
 BasePreRenderer.propTypes = propTypes;
 BasePreRenderer.displayName = 'BasePreRenderer';
+BasePreRenderer.defaultProps = {
+    innerRef: null,
+};
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
