@@ -31,4 +31,6 @@ class PreRenderer extends React.Component {
     }
 }
 
+PreRenderer.displayName = 'PreRenderer';
+
 export default PreRenderer;

@@ -21,14 +21,14 @@ const BasePreRenderer = (props) => {
             <TDefaultRenderer
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                style={styles.preRenderer}
+                style={[styles.flexGrow1, styles.flexShrink1]}
             />
         </ScrollView>
     );
 };
 
 BasePreRenderer.propTypes = propTypes;
-BasePreRenderer.displayName = 'PreRenderer';
+BasePreRenderer.displayName = 'BasePreRenderer';
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
