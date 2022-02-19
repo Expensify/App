@@ -122,6 +122,7 @@ class SidebarScreen extends Component {
     }
 
     render() {
+        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
             <ScreenWrapper
                 includePaddingBottom={false}
@@ -160,7 +161,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) && this.props.allPolicies.length > 0 ? [
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length > 0 ? [
                                     {
                                         icon: Expensicons.Hashtag,
                                         text: this.props.translate('sidebarScreen.newRoom'),
