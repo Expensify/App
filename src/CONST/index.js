@@ -216,9 +216,10 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                ARCHIVE_REASON: 'ARCHIVE_REASON',
                 CREATED: 'CREATED',
+                IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
         },
