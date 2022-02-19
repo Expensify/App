@@ -230,18 +230,12 @@ class IOUParticipantsSplit extends Component {
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         shouldDelayFocus
+                        shouldShowConfirmButton
+                        confirmButtonText={this.props.translate('common.next')}
+                        maxParticipantsReached={maxParticipantsReached}
+                        onConfirmSelection={this.finalizeParticipants}
                     />
                 </View>
-                {lodashGet(this.props, 'participants', []).length > 0 && (
-                    <FixedFooter>
-                        <Button
-                            success
-                            style={[styles.w100]}
-                            onPress={this.finalizeParticipants}
-                            text={this.props.translate('common.next')}
-                        />
-                    </FixedFooter>
-                )}
             </>
         );
     }
