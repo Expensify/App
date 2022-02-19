@@ -9,7 +9,7 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(ScrollView)}),
-    ]).isRequired,
+    ]),
     ...htmlRendererPropTypes,
 };
 
