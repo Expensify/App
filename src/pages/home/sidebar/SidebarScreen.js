@@ -160,7 +160,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) ? [
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && this.props.allPolicies.length > 0 ? [
                                     {
                                         icon: Expensicons.Hashtag,
                                         text: this.props.translate('sidebarScreen.newRoom'),
