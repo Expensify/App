@@ -102,10 +102,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
-        your: 'your',
-        conciergeHelp: 'Please reach out to Concierge for help.',
-        youAppearToBeOffline: 'You appear to be offline',
-        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -219,7 +216,6 @@ export default {
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
