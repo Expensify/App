@@ -218,7 +218,7 @@ class IOUCurrencySelection extends Component {
                             success
                             isDisabled={!this.props.iou.selectedCurrencyCode}
                             style={[styles.w100]}
-                            text={this.props.translate('iou.confirm')}
+                            text={this.props.translate('common.confirm')}
                             onPress={this.confirmCurrencySelection}
                         />
                     </FixedFooter>

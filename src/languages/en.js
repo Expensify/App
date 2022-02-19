@@ -97,6 +97,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -195,7 +196,6 @@ export default {
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
@@ -213,7 +213,6 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
-        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
