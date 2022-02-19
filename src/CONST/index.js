@@ -306,6 +306,7 @@ const CONST = {
         },
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
+        MAX_PENDING_TIME: 7 * 1000,
     },
     HTTP_STATUS_CODE: {
         SUCCESS: 200,
