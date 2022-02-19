@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -17,9 +16,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import Button from '../components/Button';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import FixedFooter from '../components/FixedFooter';
 import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
@@ -261,19 +258,11 @@ class NewChatPage extends Component {
                                         headerMessage={headerMessage}
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
+                                        shouldShowConfirmButton={this.props.isGroupChat}
+                                        confirmButtonText={this.props.translate('newChatPage.createGroup')}
+                                        maxParticipantsReached={maxParticipantsReached}
+                                        onConfirmSelection={this.createGroup}
                                     />
-                                    {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
-                                        <FixedFooter>
-                                            <Button
-                                                success
-                                                onPress={this.createGroup}
-                                                style={[styles.w100]}
-                                                text={this.props.translate('newChatPage.createGroup')}
-                                                pressOnEnter
-                                                enterKeyEventListenerPriority={1}
-                                            />
-                                        </FixedFooter>
-                                    )}
                                 </>
                             )}
                         </View>
