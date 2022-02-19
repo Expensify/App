@@ -4,7 +4,7 @@ import Str from 'expensify-common/lib/str';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
-const events = {};
+const eventHandlers = {};
 const keyboardShortcutMap = {};
 
 /**
@@ -23,11 +23,11 @@ function getKeyboardShortcuts() {
 function bindHandlerToKeydownEvent(event) {
     const correctedKey = event.key.toLowerCase();
 
-    if (events[correctedKey] === undefined) {
+    if (eventHandlers[correctedKey] === undefined) {
         return;
     }
 
-    _.every(events[correctedKey], (callback) => {
+    _.every(eventHandlers[correctedKey], (callback) => {
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
@@ -94,13 +94,14 @@ document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: tru
 document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
 
 /**
- * Unsubscribes to a keyboard event.
+ * Unsubscribes a keyboard event handler.
+ *
  * @param {String} key The key to stop watching
  * @param {String} callbackID The specific ID given to the callback at the time it was added
  * @private
  */
 function unsubscribe(key, callbackID) {
-    events[key] = _.filter(events[key], callback => callback.id !== callbackID);
+    eventHandlers[key] = _.filter(eventHandlers[key], callback => callback.id !== callbackID);
 }
 
 /**
@@ -142,11 +143,11 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
     const correctedKey = key.toLowerCase();
-    if (events[correctedKey] === undefined) {
-        events[correctedKey] = [];
+    if (eventHandlers[correctedKey] === undefined) {
+        eventHandlers[correctedKey] = [];
     }
     const callbackID = Str.guid();
-    events[correctedKey].splice(priority, 0, {
+    eventHandlers[correctedKey].splice(priority, 0, {
         id: callbackID,
         callback,
         modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
