@@ -217,11 +217,14 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 ADDCOMMENT: 'ADDCOMMENT',
-                ARCHIVE_REASON: 'ARCHIVE_REASON',
+                ARCHIVED: 'ARCHIVED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
+        },
+        ARCHIVE_REASON: {
+            MANUALLY_DELETED: 'manuallyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
