@@ -317,31 +317,29 @@ class RequestCallPage extends Component {
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
                             />
-                            <View style={[styles.mt4, styles.flexRow]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        label={this.props.translate('common.phoneNumber')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneNumber}
-                                        placeholder="2109400803"
-                                        errorText={this.state.phoneNumberError}
-                                        onBlur={this.validatePhoneInput}
-                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        label={this.props.translate('requestCallPage.extension')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneExtension}
-                                        placeholder="100"
-                                        errorText={this.state.phoneExtensionError}
-                                        onBlur={this.validatePhoneExtensionInput}
-                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                    />
-                                </View>
+                            <View style={[styles.flex1]}>
+                                <TextInput
+                                    label={this.props.translate('common.phoneNumber')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    value={this.state.phoneNumber}
+                                    placeholder="2109400803"
+                                    errorText={this.state.phoneNumberError}
+                                    onBlur={this.validatePhoneInput}
+                                    onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                />
+                            </View>
+                            <View style={[styles.mt4, styles.flex1]}>
+                                <TextInput
+                                    label={this.props.translate('requestCallPage.extension')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    value={this.state.phoneExtension}
+                                    placeholder="100"
+                                    errorText={this.state.phoneExtensionError}
+                                    onBlur={this.validatePhoneExtensionInput}
+                                    onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                />
                             </View>
                             <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
