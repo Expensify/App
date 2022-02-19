@@ -98,7 +98,7 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited or is already deleted
-        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
+        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action) || event.target.className.includes('WebkitOverflowScrolling')) {
             return;
         }
         ReportActionContextMenu.showContextMenu(

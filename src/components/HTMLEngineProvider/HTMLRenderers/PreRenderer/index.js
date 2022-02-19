@@ -21,6 +21,7 @@ class PreRenderer extends React.Component {
 
     onScroll(e) {
         this.scrollRef.getScrollableNode().scrollLeft += e.deltaX;
+        e.preventDefault();
     }
 
     render() {
@@ -30,7 +31,5 @@ class PreRenderer extends React.Component {
         );
     }
 }
-
-PreRenderer.displayName = 'PreRenderer';
 
 export default PreRenderer;
