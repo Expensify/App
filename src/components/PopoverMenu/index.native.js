@@ -28,6 +28,7 @@ class PopoverMenu extends Component {
             <BasePopoverMenu
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
+                allowKeyboardNavigation={false}
                 onMenuHide={this.onMenuHide}
                 onItemSelected={item => this.selectItem(item)}
             />
