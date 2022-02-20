@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Dimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
@@ -52,10 +52,25 @@ class BasePaymentsPage extends React.Component {
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
+        this.addPaymentMethodButtonRef = null;
+        this.dimensionsSubscription = null;
     }
 
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
+        if (this.props.shouldListenForResize) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', () => {
+                const btnPosition = this.addPaymentMethodButtonRef.getBoundingClientRect();
+                this.setPositionAddPaymentMenu(btnPosition);
+            });
+        }
+    }
+
+    componentWillUnmount() {
+        this.addPaymentMethodButtonRef = null;
+        if (this.props.shouldListenForResize && this.dimensionsSubscription) {
+            this.dimensionsSubscription.remove();
+        }
     }
 
     getSelectedPaymentMethodID() {
@@ -92,13 +107,8 @@ class BasePaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        let position = getClickedElementLocation(nativeEvent);
-        if (this.props.shouldListenForResize) {
-            window.addEventListener('resize', () => {
-                position = getClickedElementLocation(nativeEvent);
-                this.setPositionAddPaymentMenu(position);
-            });
-        }
+        const position = getClickedElementLocation(nativeEvent);
+
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -238,8 +248,9 @@ class BasePaymentsPage extends React.Component {
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         popoverPlacement="bottom"
                                     >
-                                        {triggerKYCFlow => (
+                                        {(triggerKYCFlow, transferBalanceButtonRef) => (
                                             <MenuItem
+                                                ref={transferBalanceButtonRef}
                                                 title={this.props.translate('common.transferBalance')}
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
@@ -256,6 +267,7 @@ class BasePaymentsPage extends React.Component {
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
                         </Text>
                         <PaymentMethodList
+                            addPaymentMethodButtonRef={el => this.addPaymentMethodButtonRef = el}
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}

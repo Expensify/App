@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator} from 'react-native';
+import {ActivityIndicator, Dimensions} from 'react-native';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -20,6 +20,8 @@ class KYCWall extends React.Component {
         super(props);
 
         this.continue = this.continue.bind(this);
+        this.transferBalanceButtonRef = null;
+        this.dimensionsSubscription = null;
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -31,11 +33,18 @@ class KYCWall extends React.Component {
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
+        if (this.props.shouldListenForResize && this.transferBalanceButtonRef) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', () => {
+                const clickedElementLocation = this.transferBalanceButtonRef.getBoundingClientRect();
+                const btnPosition = this.getAnchorPosition(clickedElementLocation);
+                this.setPositionAddPaymentMenu(btnPosition);
+            });
+        }
     }
 
     componentWillUnmount() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
+        if (this.props.shouldListenForResize && this.dimensionsSubscription) {
+            this.dimensionsSubscription.remove();
         }
         PaymentMethods.kycWallRef.current = null;
     }
@@ -81,15 +90,8 @@ class KYCWall extends React.Component {
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            let clickedElementLocation = getClickedElementLocation(event.nativeEvent);
-            let position = this.getAnchorPosition(clickedElementLocation);
-            if (this.props.shouldListenForResize) {
-                window.addEventListener('resize', () => {
-                    clickedElementLocation = getClickedElementLocation(event.nativeEvent);
-                    position = this.getAnchorPosition(clickedElementLocation);
-                    this.setPositionAddPaymentMenu(position);
-                });
-            }
+            const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
+            const position = this.getAnchorPosition(clickedElementLocation);
             this.setState({
                 shouldShowAddPaymentMenu: true,
             });
@@ -131,7 +133,7 @@ class KYCWall extends React.Component {
                 />
                 {this.props.isLoadingPaymentMethods
                     ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue)}
+                    : this.props.children(this.continue, el => this.transferBalanceButtonRef = el)}
             </>
         );
     }

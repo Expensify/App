@@ -159,6 +159,7 @@ class PaymentMethodList extends Component {
         }
 
         combinedPaymentMethods.push({
+            ref: this.props.addPaymentMethodButtonRef,
             type: MENU_ITEM,
             title: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Expensicons.Plus,
@@ -194,6 +195,7 @@ class PaymentMethodList extends Component {
         if (item.type === MENU_ITEM) {
             return (
                 <MenuItem
+                    ref={item.ref}
                     onPress={item.onPress}
                     title={item.title}
                     description={item.description}
