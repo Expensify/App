@@ -26,6 +26,75 @@ const defaultProps = {
 };
 
 class BasePopoverMenu extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            activeMenuIndex: -1,
+        };
+    }
+
+    componentDidMount() {
+        if (!this.props.allowKeyboardNavigation) {
+            return;
+        }
+        this.setupEventHandlers();
+    }
+
+    componentWillUnmount() {
+        if (!this.props.allowKeyboardNavigation) {
+            return;
+        }
+        this.cleanupEventHandlers();
+    }
+
+    setupEventHandlers() {
+        if (!document) {
+            return;
+        }
+
+        this.keyDownHandler = (keyBoardEvent) => {
+            if (keyBoardEvent.key.startsWith('Arrow')) {
+                this.highlightActiveMenu(keyBoardEvent.key);
+                return;
+            }
+
+            if (keyBoardEvent.key === 'Enter' && this.state.activeMenuIndex !== -1) {
+                this.props.onItemSelected(this.props.menuItems[this.state.activeMenuIndex]);
+            }
+        };
+    }
+
+    highlightActiveMenu(arrowKey) {
+        let activeMenuIndex = this.state.activeMenuIndex;
+        if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowUp') {
+            return;
+        }
+
+        if (arrowKey === 'ArrowDown') {
+            if (activeMenuIndex === -1 || activeMenuIndex === this.props.menuItems.length - 1) {
+                activeMenuIndex = 0;
+            } else {
+                activeMenuIndex += 1;
+            }
+        }
+
+        if (arrowKey === 'ArrowUp') {
+            if (activeMenuIndex === -1 || activeMenuIndex === 0) {
+                activeMenuIndex = this.props.menuItems.length - 1;
+            } else {
+                activeMenuIndex -= 1;
+            }
+        }
+        this.setState(() => ({activeMenuIndex}));
+    }
+
+    cleanupEventHandlers() {
+        if (!document) {
+            return;
+        }
+        document.removeEventListener('keydown', this.keyDownHandler, true);
+    }
+
     render() {
         return (
             <Popover
