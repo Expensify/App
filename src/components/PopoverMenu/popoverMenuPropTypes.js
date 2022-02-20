@@ -49,6 +49,9 @@ const propTypes = {
 
     /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
+
+    /** Enable keyboard navigation for menu items */
+    allowKeyboardNavigation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -56,6 +59,7 @@ const defaultProps = {
     animationOut: 'fadeOut',
     headerText: undefined,
     disableAnimation: true,
+    allowKeyboardNavigation: false,
 };
 
 export {propTypes, defaultProps};
