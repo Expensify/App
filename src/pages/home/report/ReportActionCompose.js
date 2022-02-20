@@ -577,7 +577,49 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getIOUOptions(reportParticipants),
+                                                allowKeyboardNavigation
+                                                animationIn="fadeInUp"
+                                                animationOut="fadeOutDown"
+                                                menuItems={[
+                                                    ...(!hasExcludedIOUEmails
+                                                        && Permissions.canUseIOU(this.props.betas) ? [
+                                                            hasMultipleParticipants
+                                                                ? {
+                                                                    icon: Expensicons.Receipt,
+                                                                    text: this.props.translate('iou.splitBill'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouSplitRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                }
+                                                                : {
+                                                                    icon: Expensicons.MoneyCircle,
+                                                                    text: this.props.translate('iou.requestMoney'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouRequestRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                },
+                                                        ] : []),
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                        {
+                                                            icon: Expensicons.Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => {
+                                                                Navigation.navigate(
+                                                                    ROUTES.getIOUSendRoute(
+                                                                        this.props.reportID,
+                                                                    ),
+                                                                );
+                                                            },
+                                                        },
+                                                    ] : []),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),

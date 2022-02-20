@@ -127,6 +127,7 @@ class BasePopoverMenu extends PureComponent {
                             description={item.description}
                             onPress={() => this.props.onItemSelected(item)}
                             focused={index === this.state.activeMenuIndex}
+                            wrapperStyle={index === this.state.activeMenuIndex ? styles.borderColorFocus : {}}
                         />
                     ))}
                 </View>
