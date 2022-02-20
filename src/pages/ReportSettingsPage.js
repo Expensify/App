@@ -105,11 +105,11 @@ class ReportSettingsPage extends Component {
     }
 
     validateAndRenameReport() {
-        if (this.props.report.reportName === this.state.newRoomName) {
-            Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
+        if (!this.validate()) {
             return;
         }
-        if (!this.validate()) {
+        if (this.props.report.reportName === this.state.newRoomName) {
+            Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
             return;
         }
         Report.renameReport(this.props.report.reportID, this.state.newRoomName);
