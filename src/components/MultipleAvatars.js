@@ -101,7 +101,6 @@ const MultipleAvatars = (props) => {
                 </View>
             </View>
         </View>
-
     );
 };
 

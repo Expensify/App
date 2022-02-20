@@ -129,7 +129,7 @@ const OptionRow = (props) => {
         },
     );
 
-    const avatarTooltip = props.showTitleTooltip ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+    const avatarTooltips = props.showTitleTooltip ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <Hoverable>
@@ -177,7 +177,7 @@ const OptionRow = (props) => {
                                         ]}
                                         isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
-                                        avatarTooltips={avatarTooltip}
+                                        avatarTooltips={avatarTooltips}
                                     />
                                 )
                             }
