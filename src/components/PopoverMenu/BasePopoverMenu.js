@@ -48,7 +48,7 @@ class BasePopoverMenu extends PureComponent {
                             </Text>
                         </View>
                     )}
-                    {_.map(this.props.menuItems, item => (
+                    {_.map(this.props.menuItems, (item, index) => (
                         <MenuItem
                             key={item.text}
                             icon={item.icon}
@@ -57,6 +57,7 @@ class BasePopoverMenu extends PureComponent {
                             title={item.text}
                             description={item.description}
                             onPress={() => this.props.onItemSelected(item)}
+                            focused={index === this.state.activeMenuIndex}
                         />
                     ))}
                 </View>
