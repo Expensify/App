@@ -404,7 +404,6 @@ function invite(logins, welcomeNote, policyID) {
 
             const errorMessage = `${Localize.translateLocal('workspace.invite.genericFailureMessage')} ${err.message}`;
 
-            // Show the user feedback that the addition failed
             Growl.error(errorMessage, 5000);
         });
 }

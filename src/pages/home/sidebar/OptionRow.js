@@ -64,11 +64,8 @@ const propTypes = {
     /** Whether to disable the interactivity of this row */
     disableRowInteractivity: PropTypes.bool,
 
-    /** Addtional styles to be passed to displayNameStyle */
-    textStyles: stylePropTypes,
-
-    /** Addtional styles to be passed to alternateTextStyle  */
-    alternateTextStyles: stylePropTypes,
+    /** Wheter visual style of this row is disabled */
+    showDisableState: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -86,8 +83,7 @@ const defaultProps = {
     isDisabled: false,
     optionIsFocused: false,
     disableRowInteractivity: false,
-    textStyles: [],
-    alternateTextStyles: [],
+    showDisableState: false,
 };
 
 const OptionRow = (props) => {
@@ -96,14 +92,13 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const additionalTextStyles = props.textStyles;
+    const showDisableStateStyle = props.showDisableStateStyle ? styles.offlineText : {}; 
     const displayNameStyle = props.mode === 'compact'
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, ...additionalTextStyles]
-        : [styles.optionDisplayName, ...textUnreadStyle, ...additionalTextStyles];
-    const additionalAlternateTextStyles = props.alternateTextStyles || [];
+        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, showDisableStateStyle]
+        : [styles.optionDisplayName, ...textUnreadStyle, showDisableStateStyle];
     const alternateTextStyle = props.mode === 'compact'
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, ...additionalAlternateTextStyles]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, ...additionalAlternateTextStyles];
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, showDisableStateStyle]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, showDisableStateStyle];
     const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
@@ -286,7 +281,7 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
-    if (!_.isEqual(prevProps.textStyles, nextProps.textStyles) || !_.isEqual(prevProps.alternateTextStyles, nextProps.alternateTextStyles)) {
+    if (prevProps.showDisableStateStyle !== nextProps.showDisableState) {
         return false;
     }
 

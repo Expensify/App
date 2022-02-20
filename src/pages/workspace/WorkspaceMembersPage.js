@@ -62,7 +62,10 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {...fullPolicyDefaultProps, network: {isOffline: false}};
+const defaultProps = {
+    ...fullPolicyDefaultProps, 
+    network: {isOffline: false}
+};
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -234,8 +237,7 @@ class WorkspaceMembersPage extends React.Component {
                                 icons: [item.avatar],
                                 keyForList: item.login,
                             }}
-                            textStyles={item.pending && [styles.offlineText]}
-                            alternateTextStyles={item.pending && [styles.offlineText]}
+                            showDisableState={item.pending}
                         />
                     </View>
                     {this.props.session.email === item.login && (
