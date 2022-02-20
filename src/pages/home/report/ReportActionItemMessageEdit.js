@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -14,6 +14,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 
 const propTypes = {
     /** All the data of the action */
@@ -121,6 +123,18 @@ class ReportActionItemMessageEdit extends React.Component {
         this.debouncedSaveDraft.cancel();
 
         const trimmedNewDraft = this.state.draft.trim();
+
+        // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
+        if (!trimmedNewDraft) {
+            ReportActionContextMenu.showDeleteModal(
+                this.props.reportID,
+                this.props.action,
+                false,
+                this.deleteDraft,
+                () => InteractionManager.runAfterInteractions(() => this.textInput.focus()),
+            );
+            return;
+        }
         Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
@@ -157,7 +171,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                            toggleReportActionComposeView(false);
+                            toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}

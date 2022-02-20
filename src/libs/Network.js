@@ -27,6 +27,7 @@ const [onRequest, registerRequestHandler] = createCallback();
 const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
+const [getLogger, registerLogHandler] = createCallback();
 
 /**
  * @param {Object} request
@@ -56,14 +57,15 @@ function processPersistedRequestsQueue() {
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .then((response) => {
             if (response.jsonCode !== CONST.HTTP_STATUS_CODE.SUCCESS) {
-                throw new Error('Persisted request failed');
+                throw new Error(`Persisted request failed due to jsonCode: ${response.jsonCode}`);
             }
 
             NetworkRequestQueue.removeRetryableRequest(request);
         })
-        .catch(() => {
+        .catch((error) => {
             const retryCount = NetworkRequestQueue.incrementRetries(request);
-            if (retryCount >= CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
+            getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
                 // Request failed too many times removing from persisted storage
                 NetworkRequestQueue.removeRetryableRequest(request);
             }
@@ -232,8 +234,19 @@ function processNetworkRequestQueue() {
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
                 if (shouldRetry) {
-                    networkRequestQueue.push(queuedRequest);
-                    return;
+                    const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
+                    getLogger().info('A retrieable request failed', false, {
+                        retryCount,
+                        command: queuedRequest.command,
+                        error: error.message,
+                    });
+
+                    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                        networkRequestQueue.push(queuedRequest);
+                        return;
+                    }
+
+                    getLogger().info('Request was retried too many times with no success. No more retries left');
                 }
 
                 onError(queuedRequest, error);
@@ -343,4 +356,5 @@ export {
     registerRequestHandler,
     setIsReady,
     registerRequestSkippedHandler,
+    registerLogHandler,
 };
