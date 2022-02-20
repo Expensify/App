@@ -101,7 +101,7 @@ class BaseOptionsList extends Component {
             <OptionRow
                 option={item}
                 mode={this.props.optionMode}
-                showTitleTooltip={this.props.showTitleTooltip}
+                showTitleTooltip={_.isBoolean(item.showTitleTooltip) ? item.showTitleTooltip : this.props.showTitleTooltip}
                 backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
