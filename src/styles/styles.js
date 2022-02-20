@@ -1065,6 +1065,12 @@ const styles = {
         width: '100%',
     },
 
+    focusedPopoverMenuItem: {
+        borderWidth: 1,
+        borderRadius: 0,
+        borderColor: themeColors.borderFocus,
+    },
+
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
         height: variables.componentSizeNormal,

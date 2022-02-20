@@ -51,7 +51,6 @@ class BasePopoverMenu extends PureComponent {
         if (!document) {
             return;
         }
-
         this.keyDownHandler = (keyBoardEvent) => {
             if (keyBoardEvent.key.startsWith('Arrow')) {
                 this.highlightActiveMenu(keyBoardEvent.key);
@@ -62,6 +61,7 @@ class BasePopoverMenu extends PureComponent {
                 this.props.onItemSelected(this.props.menuItems[this.state.activeMenuIndex]);
             }
         };
+        document.addEventListener('keydown', this.keyDownHandler, true);
     }
 
     highlightActiveMenu(arrowKey) {
@@ -127,7 +127,7 @@ class BasePopoverMenu extends PureComponent {
                             description={item.description}
                             onPress={() => this.props.onItemSelected(item)}
                             focused={index === this.state.activeMenuIndex}
-                            wrapperStyle={index === this.state.activeMenuIndex ? styles.borderColorFocus : {}}
+                            wrapperStyle={index === this.state.activeMenuIndex ? styles.focusedPopoverMenuItem : {}}
                         />
                     ))}
                 </View>
