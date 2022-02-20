@@ -1105,6 +1105,8 @@ const styles = {
     focusedPopoverMenuItem: {
         borderWidth: 1,
         borderRadius: 0,
+        borderRightWidth: 0,
+        borderLeftWidth: 0,
         borderColor: themeColors.borderFocus,
     },
 
