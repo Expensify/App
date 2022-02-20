@@ -31,6 +31,7 @@ class BasePopoverMenu extends PureComponent {
         this.state = {
             activeMenuIndex: -1,
         };
+        this.onModalHide = this.onModalHide.bind(this);
     }
 
     componentDidMount() {
@@ -45,6 +46,11 @@ class BasePopoverMenu extends PureComponent {
             return;
         }
         this.cleanupEventHandlers();
+    }
+
+    onModalHide() {
+        this.setState({activeMenuIndex: -1});
+        this.props.onMenuHide();
     }
 
     setupEventHandlers() {
@@ -101,7 +107,7 @@ class BasePopoverMenu extends PureComponent {
                 anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.props.onMenuHide}
+                onModalHide={this.onModalHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 disableAnimation={this.props.disableAnimation}
