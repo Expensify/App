@@ -115,7 +115,8 @@ class WorkspaceNewRoomPage extends React.Component {
                         <View style={styles.mb5}>
                             <Text style={[styles.formLabel]}>{this.props.translate('newRoomPage.roomName')}</Text>
                             <RoomNameInput
-                                onChangeText={(roomName) => { this.setState({roomName}); }}
+                                onChangeText={roomName => this.setState({roomName})}
+                                onChangeError={error => this.setState({error})}
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
                             />

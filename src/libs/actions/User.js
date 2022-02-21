@@ -16,9 +16,9 @@ import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
+import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -103,6 +103,7 @@ function getUserDetails() {
             CONST.NVP.PAYPAL_ME_ADDRESS,
             CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
             CONST.NVP.FREQUENTLY_USED_EMOJIS,
+            CONST.NVP.BLOCKED_FROM_CONCIERGE,
         ].join(','),
     })
         .then((response) => {
@@ -229,17 +230,22 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
- * Checks if the expiresAt date of a user's ban is before right now
+ * Checks the blockedFromConcierge object to see if it has an expiresAt key,
+ * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {String} expiresAt
- * @returns {boolean}
+ * @param {Object} blockedFromConcierge
+ * @returns {Boolean}
  */
-function isBlockedFromConcierge(expiresAt) {
-    if (!expiresAt) {
+function isBlockedFromConcierge(blockedFromConcierge) {
+    if (_.isEmpty(blockedFromConcierge)) {
         return false;
     }
 
-    return moment().isBefore(moment(expiresAt), 'day');
+    if (!blockedFromConcierge.expiresAt) {
+        return false;
+    }
+
+    return moment().isBefore(moment(blockedFromConcierge.expiresAt), 'day');
 }
 
 /**

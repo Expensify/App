@@ -18,7 +18,7 @@ const SecuritySettingsPage = (props) => {
     const menuItems = [
         {
             translationKey: 'passwordPage.changePassword',
-            icon: Expensicons.Lock,
+            icon: Expensicons.Key,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
             },

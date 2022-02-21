@@ -11,8 +11,6 @@ const PlaidLink = (props) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
         if (event.eventName === CONST.PLAID.EVENT.ERROR) {
             props.onError(event.metadata);
-        } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {
-            props.onExit();
         }
     });
     useEffect(() => {
@@ -22,6 +20,10 @@ const PlaidLink = (props) => {
             },
             onSuccess: ({publicToken, metadata}) => {
                 props.onSuccess({publicToken, metadata});
+            },
+            onExit: (exitError, metadata) => {
+                Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
+                props.onExit();
             },
         });
     }, []);

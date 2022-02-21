@@ -73,10 +73,11 @@ class CloseAccountPage extends Component {
                         <TextInput
                             multiline
                             numberOfLines={6}
+                            textAlignVertical="top"
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
-                            containerStyles={[styles.mt5]}
+                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
                             <Text style={[styles.textStrong]}>
@@ -96,7 +97,6 @@ class CloseAccountPage extends Component {
                     <FixedFooter>
                         <Button
                             danger
-                            style={[styles.mb5]}
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
@@ -141,6 +141,7 @@ export default compose(
     withOnyx({
         isCloseAccoutModalOpen: {
             key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
+            initWithStoredValues: false,
         },
         session: {
             key: ONYXKEYS.SESSION,

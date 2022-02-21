@@ -17,6 +17,7 @@ const includeModules = [
     'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
+    'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
     'react-native-onyx',
@@ -145,9 +146,5 @@ const webpackConfig = {
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
 };
-
-if (platform === 'desktop') {
-    webpackConfig.target = 'electron-renderer';
-}
 
 module.exports = webpackConfig;

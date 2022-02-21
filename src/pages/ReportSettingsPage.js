@@ -89,7 +89,7 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report) || this.props.isLoadingRenamePolicyRoom;
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
         return (
@@ -100,14 +100,11 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={[styles.flex1, styles.m5]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
                         <View>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('common.notifications')}
-                            </Text>
-                            <Text>
-                                {this.props.translate('notificationPreferences.description')}
                             </Text>
                         </View>
                         <View style={[styles.mb5, styles.mt2]}>
@@ -141,10 +138,8 @@ class ReportSettingsPage extends Component {
                             <Button
                                 success={!shouldDisableRename}
                                 text={this.props.translate('common.save')}
-                                onPress={() => {
-                                    // When renaming is built, this will use that API command
-                                }}
-                                style={[styles.ml2]}
+                                onPress={() => Report.renameReport(this.props.report.reportID, this.state.newRoomName)}
+                                style={[styles.ml2, styles.flex1]}
                                 textStyles={[styles.label]}
                                 innerStyles={[styles.reportSettingsChangeNameButton]}
                                 isDisabled={Boolean(
@@ -152,6 +147,7 @@ class ReportSettingsPage extends Component {
                                     || this.state.newRoomName === this.props.report.reportName
                                     || this.state.error,
                                 )}
+                                isLoading={this.props.isLoadingRenamePolicyRoom}
                             />
                         </View>
                     </View>
@@ -199,6 +195,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        isLoadingRenamePolicyRoom: {
+            key: ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM,
         },
     }),
 )(ReportSettingsPage);

@@ -10,6 +10,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -20,6 +21,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -119,9 +121,9 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return _.without(emailArray, currentUserEmail);
+    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -142,8 +144,8 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
+    // For a basic policy room or a Policy Expense chat, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
         return fullReport.reportName;
     }
 
@@ -222,6 +224,7 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
+        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
     };
 }
 
@@ -584,7 +587,10 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        messageText = lodashGet(reportAction, 'originalMessage.html', '');
+    }
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
@@ -1091,6 +1097,7 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -1156,6 +1163,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
+            attachmentInfo,
             loading: true,
             shouldShow: true,
         },
@@ -1166,11 +1174,7 @@ function addAction(reportID, text, file) {
         file,
         reportComment: commentText,
         clientID: optimisticReportActionID,
-
-        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
-        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
-        // the same way report actions can.
-        persist: !isAttachment,
+        persist: true,
     })
         .then((response) => {
             if (response.jsonCode === 408) {
@@ -1181,6 +1185,18 @@ function addAction(reportID, text, file) {
                 console.error(response.message);
                 return;
             }
+
+            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+                return;
+            }
+
             updateReportWithNewAction(reportID, response.reportAction);
         });
 }
@@ -1276,7 +1292,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
-        accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
     });
@@ -1523,12 +1538,41 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
+
+            // Make sure the report has its icons set
+            const report = allReports[reportID];
+            const icons = OptionsListUtils.getReportIcons(report, {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
+}
+
+/**
+ * Renames a user created Policy Room.
+ * @param {String} reportID
+ * @param {String} reportName
+ */
+function renameReport(reportID, reportName) {
+    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
+    API.RenameReport({reportID, reportName})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Growl.error(response.message);
+                return;
+            }
+            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
+
+            // Update the report name so that the LHN and header display the updated name
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
+        })
+        .catch(() => {
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
 export {
@@ -1560,5 +1604,6 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    renameReport,
     getLastReadSequenceNumber,
 };

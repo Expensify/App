@@ -51,7 +51,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
             iconSize,
             key: `bankAccount-${bankAccount.bankAccountID}`,
             accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
-            accountData: _.extend(bankAccount, {icon}),
+            accountData: _.extend({}, bankAccount, {icon}),
             isDefault,
         });
     });
@@ -65,12 +65,12 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
         combinedPaymentMethods.push({
             title: card.addressName,
             description: formattedCardNumber,
-            methodID: card.cardNumber,
+            methodID: card.fundID,
             icon,
             iconSize,
             key: `card-${card.cardNumber}`,
             accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
-            accountData: _.extend(card, {icon}),
+            accountData: _.extend({}, card, {icon}),
             isDefault,
         });
     });
@@ -94,15 +94,15 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
 }
 
 /**
- * @param {Number} currentBalance
+ * @param {Number} currentBalance, in cents
  * @param {String} methodType
- * @returns {Number}
+ * @returns {Number} the fee, in cents
  */
 function calculateWalletTransferBalanceFee(currentBalance, methodType) {
     const transferMethodTypeFeeStructure = methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT
         ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT
         : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
-    const calculateFee = (currentBalance * transferMethodTypeFeeStructure.RATE) / 100;
+    const calculateFee = Math.ceil(currentBalance * (transferMethodTypeFeeStructure.RATE / 100));
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 

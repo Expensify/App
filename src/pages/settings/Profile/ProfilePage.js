@@ -8,6 +8,7 @@ import moment from 'moment-timezone';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
@@ -69,6 +70,9 @@ const timezones = _.map(moment.tz.names(), timezone => ({
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
+
+        this.defaultAvatar = OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+
         this.state = {
             firstName: props.myPersonalDetails.firstName,
             hasFirstNameError: false,
@@ -80,23 +84,31 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
+            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
+            isAvatarChanged: false,
         };
+
         this.getLogins = this.getLogins.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
+        this.updateAvatar = this.updateAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
+        let stateToUpdate = {};
+
         // Recalculate logins if loginList has changed
-        if (this.props.user.loginList === prevProps.user.loginList) {
+        if (this.props.user.loginList !== prevProps.user.loginList) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
+        }
+
+        if (_.isEmpty(stateToUpdate)) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-            logins: this.getLogins(this.props.user.loginList),
-        });
+        this.setState(stateToUpdate);
     }
 
     /**
@@ -142,11 +154,32 @@ class ProfilePage extends Component {
     }
 
     /**
+     * Updates the user's avatar image.
+     * @param {Object} avatar
+     */
+    updateAvatar(avatar) {
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+    }
+
+    /**
      * Submit form to update personal details
      */
     updatePersonalDetails() {
         if (!this.validateInputs()) {
             return;
+        }
+
+        // Check if the user has modified their avatar
+        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+            // If the user removed their profile photo, replace it accordingly with the default avatar
+            if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
+                PersonalDetails.deleteAvatar(this.state.avatar.uri);
+            } else {
+                PersonalDetails.setAvatar(this.state.avatar);
+            }
+
+            // Reset the changed state
+            this.setState({isAvatarChanged: false});
         }
 
         PersonalDetails.setPersonalDetails({
@@ -161,7 +194,10 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName, this.state.pronouns]);
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+            50,
+            [this.state.firstName.trim(), this.state.lastName.trim(), this.state.pronouns.trim()],
+        );
         this.setState({
             hasFirstNameError,
             hasLastNameError,
@@ -176,15 +212,13 @@ class ProfilePage extends Component {
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
 
-        // Determines if the pronouns/selected pronouns have changed
-        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
-
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
             && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && arePronounsUnchanged;
+            && (this.props.myPersonalDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || this.props.myPersonalDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -200,11 +234,10 @@ class ProfilePage extends Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
-                            avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={PersonalDetails.setAvatar}
-                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
-                            // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            avatarURL={this.state.avatar.uri}
+                            onImageSelected={this.updateAvatar}
+                            onImageRemoved={this.updateAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
