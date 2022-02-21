@@ -52,7 +52,7 @@
     "@react-native-firebase/crashlytics": "^12.3.0",
     "@react-native-firebase/perf": "^12.3.0",
     "@react-native-masked-view/masked-view": "^0.2.4",
-    "@react-native-picker/picker": "^1.9.11",
+    "@react-native-picker/picker": "^2.2.1",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/drawer": "6.1.8",
     "@react-navigation/native": "6.0.8",
