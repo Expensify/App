@@ -190,7 +190,7 @@ function getFromReportParticipants(reports) {
                 }
 
                 const avatars = OptionsListUtils.getReportIcons(report, details);
-                const reportName = ReportUtils.isChatRoom(report)
+                const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
