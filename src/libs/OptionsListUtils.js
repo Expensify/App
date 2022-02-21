@@ -475,11 +475,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             // Finally check to see if this option is a match for the provided search string if we have one
             const {searchText, participantsList, isChatRoom} = reportOption;
 
-            // Disable Tooltip for Chat Rooms
-            if (reportOption.isChatRoom) {
-                reportOption.showTitleTooltip = false;
-            }
-
             const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 continue;
