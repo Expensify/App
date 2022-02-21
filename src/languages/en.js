@@ -357,6 +357,7 @@ export default {
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
         setDefaultFailure: 'Failed to set default payment method.',
+        deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
