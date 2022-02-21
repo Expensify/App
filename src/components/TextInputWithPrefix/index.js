@@ -17,14 +17,11 @@ const propTypes = {
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
 
-    /** The alignment of the text */
-    textAlign: PropTypes.string,
 };
 
 const defaultProps = {
     errorText: '',
     disabled: false,
-    textAlign: 'left',
 };
 
 const TextInputWithPrefix = props => (

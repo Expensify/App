@@ -30,8 +30,6 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
-    /** The alignment of the text */
-    textAlign: PropTypes.string,
 
     /** Selection Object */
     selection: PropTypes.shape({
@@ -47,7 +45,6 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
-    textAlign: 'left',
     selection: {
         start: 0,
         end: 0,

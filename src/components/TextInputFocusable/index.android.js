@@ -30,9 +30,6 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
-    /** The alignment of the text */
-    textAlign: PropTypes.string,
-
 };
 
 const defaultProps = {
@@ -41,7 +38,6 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
-    textAlign: 'left',
 };
 
 class TextInputFocusable extends React.Component {

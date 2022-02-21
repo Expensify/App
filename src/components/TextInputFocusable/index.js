@@ -57,9 +57,6 @@ const propTypes = {
     /** Update selection position on change */
     onSelectionChange: PropTypes.func,
 
-    /** The alignment of the text */
-    textAlign: PropTypes.string,
-
     /** Selection Object */
     selection: PropTypes.shape({
         start: PropTypes.number,
@@ -85,7 +82,6 @@ const defaultProps = {
     autoFocus: false,
     forwardedRef: null,
     onSelectionChange: () => {},
-    textAlign: 'left',
     selection: {
         start: 0,
         end: 0,
