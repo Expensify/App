@@ -775,9 +775,13 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  *
  * @param {Object} report
  * @param {Object} personalDetails
- * @returns {String}
+ * @returns {String[]}
  */
 function getReportIcons(report, personalDetails) {
+    if (ReportUtils.isPolicyExpenseChat(report)) {
+        return [''];
+    }
+
     // Default rooms have a specific avatar so we can return any non-empty array
     if (ReportUtils.isChatRoom(report)) {
         return [''];
