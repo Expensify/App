@@ -17,8 +17,6 @@ const CONFIG = require('../src/CONFIG').default;
 
 const port = process.env.PORT || 8080;
 
-console.debug('CONFIG: ', CONFIG);
-
 /**
  * Electron main process that handles wrapping the web application.
  *
@@ -41,17 +39,6 @@ autoUpdater.logger.transports.file.level = 'info';
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
-
-// setup Hot reload
-if (__DEV__) {
-    try {
-        require('electron-reloader')(module, {
-            watchRenderer: false,
-            ignore: [/^(desktop)/],
-        });
-        // eslint-disable-next-line no-empty
-    } catch {}
-}
 
 // This sets up the command line arguments used to manage the update. When
 // the --expected-update-version flag is set, the app will open pre-hidden
@@ -132,6 +119,7 @@ const mainWindow = (() => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
+        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify');
     }
