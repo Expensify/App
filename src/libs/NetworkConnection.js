@@ -50,6 +50,7 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function subscribeToNetInfo() {
+    // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever whe (re)subscribe
     NetInfo.configure({
         // By default, for web (including Electron) NetInfo uses `/` for `reachabilityUrl`
         // When App is served locally or from Electron this would respond with OK even with no internet
@@ -105,7 +106,6 @@ NetowrkLib.registerConnectionCheckCallback(_.throttle(() => {
         return;
     }
 
-    // Reinitializing NetInfo would recheck state and trigger listeners
     unsubscribeFromNetInfo();
     subscribeToNetInfo();
 }), 10 * 1000, {trailing: false});
