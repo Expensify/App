@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const _ = require('underscore');
 
 const desktopDependencies = require('../../desktop/package.json').dependencies;
@@ -19,6 +20,9 @@ module.exports = (env) => {
     rendererConfig.name = 'renderer';
     rendererConfig.output.path = path.join(outputPath, 'www');
 
+    // Expose react-native-config to desktop-main
+    const definePlugin = _.find(rendererConfig.plugins, plugin => plugin.constructor === webpack.DefinePlugin);
+
     const mainProcessConfig = {
         mode: 'production',
         name: 'desktop-main',
@@ -32,10 +36,8 @@ module.exports = (env) => {
             path: outputPath,
             libraryTarget: 'commonjs2',
         },
-        resolve: {
-            extensions: ['.js', '.jsx', '.json'],
-            modules: ['src', 'node_modules'],
-        },
+        resolve: rendererConfig.resolve,
+        plugins: [definePlugin],
         externals: [
             ..._.keys(desktopDependencies),
             'fsevents',

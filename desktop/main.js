@@ -11,11 +11,13 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
-const ELECTRON_ENVIRONMENT = require('./ELECTRON_ENVIRONMENT');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
+const CONFIG = require('../src/CONFIG').default;
 
 const port = process.env.PORT || 8080;
+
+console.debug('CONFIG: ', CONFIG);
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -41,7 +43,7 @@ autoUpdater.logger.transports.file.level = 'info';
 _.assign(console, log.functions);
 
 // setup Hot reload
-if (ELECTRON_ENVIRONMENT.isDev()) {
+if (__DEV__) {
     try {
         require('electron-reloader')(module, {
             watchRenderer: false,
@@ -124,13 +126,13 @@ const electronUpdater = browserWindow => ({
 });
 
 const mainWindow = (() => {
-    const loadURL = ELECTRON_ENVIRONMENT.isDev()
+    const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
-    if (ELECTRON_ENVIRONMENT.isDev()) {
-        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+    if (__DEV__) {
+        app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify');
     }
 
@@ -158,15 +160,13 @@ const mainWindow = (() => {
              *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
              */
             const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
-            if (!ELECTRON_ENVIRONMENT.isDev()) {
-                const newDotURL = ELECTRON_ENVIRONMENT.isProd() ? 'https://new.expensify.com' : 'https://staging.new.expensify.com';
-
+            if (!__DEV__) {
                 // Modify the origin and referer for requests sent to our API
                 browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
                     // eslint-disable-next-line no-param-reassign
-                    details.requestHeaders.origin = newDotURL;
+                    details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                     // eslint-disable-next-line no-param-reassign
-                    details.requestHeaders.referer = newDotURL;
+                    details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                     callback({requestHeaders: details.requestHeaders});
                 });
 
@@ -178,7 +178,7 @@ const mainWindow = (() => {
                 });
             }
 
-            if (ELECTRON_ENVIRONMENT.isDev()) {
+            if (__DEV__) {
                 if (process.env.USE_WEB_PROXY !== 'false') {
                     browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
                         // eslint-disable-next-line no-param-reassign
@@ -189,7 +189,7 @@ const mainWindow = (() => {
             }
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (ELECTRON_ENVIRONMENT.isDev()) {
+            if (__DEV__) {
                 browserWindow.setTitle('New Expensify');
             }
 
@@ -327,7 +327,7 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (ELECTRON_ENVIRONMENT.isDev()) {
+            if (__DEV__) {
                 return;
             }
 
