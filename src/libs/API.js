@@ -949,7 +949,7 @@ function Policy_Employees_Merge(parameters) {
     requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
 
     // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
-    return Network.post(commandName, {...parameters, returnPersonalDetails: true, persist: true});
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
 /**

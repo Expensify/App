@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
-import stylePropTypes from '../../../styles/stylePropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -92,7 +91,7 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const showDisableStateStyle = props.showDisableStateStyle ? styles.offlineText : {}; 
+    const showDisableStateStyle = props.showDisableState ? styles.offlineText : {};
     const displayNameStyle = props.mode === 'compact'
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2, showDisableStateStyle]
         : [styles.optionDisplayName, ...textUnreadStyle, showDisableStateStyle];
@@ -281,7 +280,7 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
-    if (prevProps.showDisableStateStyle !== nextProps.showDisableState) {
+    if (prevProps.showDisableState !== nextProps.showDisableState) {
         return false;
     }
 

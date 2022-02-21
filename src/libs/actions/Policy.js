@@ -10,7 +10,6 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
-import NetworkRequestQueueUtils from './NetworkRequestQueueUtils';
 import * as Report from './Report';
 
 const allPolicies = {};
@@ -286,11 +285,6 @@ function removePendingInvitations(policy, members) {
         return [policy.pendingInvitations, members];
     }
 
-    // Modify the invitation request API to exclude the removed members
-    NetworkRequestQueueUtils.modifyPersistedRequest_Policy_Employees_Merge(
-        policy.id, ongoingPendingInvitations,
-    );
-
     const newPendingInvitations = _.difference(policy.pendingInvitations, ongoingPendingInvitations);
 
     // Remaining members that needs new API call to remove the members
@@ -369,10 +363,9 @@ function invite(logins, welcomeNote, policyID) {
 
     // Always insert invited logins to pendingInvitations first
     const pendingInvitations = _.uniq([...policy.pendingInvitations, ...newEmployeeList]);
-    const alertMessage = '';
 
     // Optimistically add the user to the policy
-    Onyx.merge(key, {pendingInvitations, alertMessage});
+    Onyx.merge(key, {pendingInvitations, alertMessage: ''});
 
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Merge({
@@ -395,14 +388,16 @@ function invite(logins, welcomeNote, policyID) {
             const errorMessage = data.jsonCode === 402 ? `${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}` : '';
             throw new Error(errorMessage);
         })
-        .catch((err) => {
+        .catch((error) => {
             // If the operationg failed undo the optimistic addition
             const policyDataWithoutPending = _.clone(allPolicies[key]);
             policyDataWithoutPending.pendingInvitations = _.without(policyDataWithoutPending.pendingInvitations, ...newEmployeeList);
 
             Onyx.set(key, policyDataWithoutPending);
 
-            const errorMessage = `${Localize.translateLocal('workspace.invite.genericFailureMessage')} ${err.message}`;
+            const errorMessage = error.message === `${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}` 
+                ? error.message 
+                : `${Localize.translateLocal('workspace.invite.genericFailureMessage')}`;
 
             Growl.error(errorMessage, 5000);
         });

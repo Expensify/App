@@ -63,8 +63,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...fullPolicyDefaultProps, 
-    network: {isOffline: false}
+    ...fullPolicyDefaultProps,
+    network: {isOffline: false},
 };
 
 class WorkspaceMembersPage extends React.Component {
