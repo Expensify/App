@@ -44,7 +44,7 @@ function processRequest(request) {
         : request.data;
 
     // If request is still in processing after this time, we might be offline
-    const timerId = setTimeout(() => recheckConnectivity(), CONST.NETWORK.MAX_PENDING_TIME_MS);
+    const timerId = setTimeout(recheckConnectivity, CONST.NETWORK.MAX_PENDING_TIME_MS);
 
     onRequest(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
@@ -236,9 +236,10 @@ function processNetworkRequestQueue() {
         processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
             .catch((error) => {
+                recheckConnectivity();
+
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-                recheckConnectivity();
                 if (shouldRetry) {
                     const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
                     getLogger().info('A retrieable request failed', false, {
