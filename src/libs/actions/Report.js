@@ -144,8 +144,8 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
+    // For a basic policy room or a Policy Expense chat, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
         return fullReport.reportName;
     }
 
@@ -224,6 +224,7 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
+        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
     };
 }
 
@@ -828,8 +829,13 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.setDidTapNotification();
-        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        if (Navigation.isReady()) {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        } else {
+            // Navigation container is not yet ready, use deep linking to open the correct report instead
+            Navigation.setDidTapNotification();
+            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        }
     });
 }
 
