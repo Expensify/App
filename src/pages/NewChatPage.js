@@ -43,6 +43,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }).isRequired,
 
+    /** Whether to focus the textinput after an option is selected */
+    shouldFocusOnSelectRow: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -50,6 +53,7 @@ const propTypes = {
 
 const defaultProps = {
     isGroupChat: false,
+    shouldFocusOnSelectRow: false,
 };
 
 class NewChatPage extends Component {
@@ -262,6 +266,7 @@ class NewChatPage extends Component {
                                         disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
+                                        shouldFocusOnSelectRow={this.props.shouldFocusOnSelectRow}
                                     />
                                     {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>

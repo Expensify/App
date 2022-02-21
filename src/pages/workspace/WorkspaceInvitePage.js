@@ -285,6 +285,7 @@ class WorkspaceInvitePage extends React.Component {
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
+                                    shouldFocusOnSelectRow
                                 />
                             )}
                         </View>
