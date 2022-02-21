@@ -116,6 +116,7 @@ const IOUPreview = (props) => {
             Math.abs(props.iouReport.total) / 100,
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
+    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
@@ -140,6 +141,7 @@ const IOUPreview = (props) => {
                                     <MultipleAvatars
                                         avatarImageURLs={[managerAvatar, ownerAvatar]}
                                         secondAvatarStyle={[styles.secondAvatarInline]}
+                                        avatarTooltips={avatarTooltip}
                                     />
                                 </View>
                             </View>
