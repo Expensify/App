@@ -30,7 +30,6 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
-
     /** Selection Object */
     selection: PropTypes.shape({
         start: PropTypes.number,
