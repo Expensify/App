@@ -50,4 +50,4 @@ jobs:
           CI: true
 
       - name: Pull Request Tests
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+        run: scripts/getPullRequestsMergedBetweenTest.sh
