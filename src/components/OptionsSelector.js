@@ -195,15 +195,15 @@ class OptionsSelector extends Component {
      * @param {Object} ref
      */
     selectRow(option, ref) {
-        this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
         if (this.props.shouldFocusOnSelectRow) {
-            this.textInput.focus();
-        }
-        if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
-            this.textInput.focus();
+            // Input is permanently focused on native platforms, so we always highlight the text inside of it
+            this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
+            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+                this.textInput.focus();
+            }
+            this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
-        this.relatedTarget = null;
     }
 
     render() {
@@ -214,13 +214,20 @@ class OptionsSelector extends Component {
                         ref={el => this.textInput = el}
                         value={this.props.value}
                         onChangeText={(text) => {
-                            this.textInput.setNativeProps({selection: null});
+                            if (this.props.shouldFocusOnSelectRow) {
+                                this.textInput.setNativeProps({selection: null});
+                            }
                             this.props.onChangeText(text);
                         }}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        onBlur={e => this.relatedTarget = e.relatedTarget}
+                        onBlur={(e) => {
+                            if (!this.props.shouldFocusOnSelectRow) {
+                                return;
+                            }
+                            this.relatedTarget = e.relatedTarget;
+                        }}
                         selectTextOnFocus
                     />
                 </View>
