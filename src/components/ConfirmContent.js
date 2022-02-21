@@ -37,7 +37,7 @@ const propTypes = {
     shouldShowCancelButton: PropTypes.bool,
 
     /** Styles for view */
-    viewStyles: PropTypes.arrayOf(PropTypes.object),
+    contentStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
 
@@ -51,11 +51,11 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
-    viewStyles: [],
+    contentStyles: [],
 };
 
-const ConfirmView = props => (
-    <View style={[styles.m5, ...props.viewStyles]}>
+const ConfirmContent = props => (
+    <View style={[styles.m5, ...props.contentStyles]}>
         <View style={[styles.flexRow, styles.mb4]}>
             <Header title={props.title} />
         </View>
@@ -65,7 +65,7 @@ const ConfirmView = props => (
                 <Text>
                     {props.prompt}
                 </Text>
-            ) : (props.prompt)}
+            ) : props.prompt}
 
         <Button
             success={props.success}
@@ -86,7 +86,7 @@ const ConfirmView = props => (
     </View>
 );
 
-ConfirmView.propTypes = propTypes;
-ConfirmView.defaultProps = defaultProps;
-ConfirmView.displayName = 'ConfirmView';
-export default withLocalize(ConfirmView);
+ConfirmContent.propTypes = propTypes;
+ConfirmContent.defaultProps = defaultProps;
+ConfirmContent.displayName = 'ConfirmContent';
+export default withLocalize(ConfirmContent);

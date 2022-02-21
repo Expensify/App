@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Modal from './Modal';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import ConfirmView from './ConfirmView';
+import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */
@@ -68,7 +68,7 @@ const ConfirmModal = props => (
             ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
             : CONST.MODAL.MODAL_TYPE.CONFIRM}
     >
-        <ConfirmView
+        <ConfirmContent
             title={props.title}
             onConfirm={props.onConfirm}
             onCancel={props.onCancel}

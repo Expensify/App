@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import ConfirmView from './ConfirmView';
+import ConfirmContent from './ConfirmContent';
+
 
 const propTypes = {
     /** Title of the modal */
@@ -39,7 +40,7 @@ const propTypes = {
     }).isRequired,
 
     /** Styles for view */
-    viewStyles: PropTypes.arrayOf(PropTypes.object),
+    contentStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...windowDimensionsPropTypes,
 };
@@ -51,7 +52,7 @@ const defaultProps = {
     onCancel: () => {},
     shouldShowCancelButton: true,
     prompt: '',
-    viewStyles: [],
+    contentStyles: [],
 };
 
 const ConfirmPopover = props => (
@@ -61,8 +62,8 @@ const ConfirmPopover = props => (
         isVisible={props.isVisible}
         anchorPosition={props.anchorPosition}
     >
-        <ConfirmView
-            viewStyles={props.viewStyles}
+        <ConfirmContent
+            contentStyles={props.contentStyles}
             title={props.title}
             prompt={props.prompt}
             confirmText={props.confirmText}
