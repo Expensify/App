@@ -778,24 +778,32 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  * @returns {String[]}
  */
 function getReportIcons(report, personalDetails) {
-    if (ReportUtils.isPolicyExpenseChat(report)) {
-        if (report.isOwnPolicyExpenseChat) {
-            return [lodashGet(policies, [
-                `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-            ])];
-        }
-    }
-
     // Default rooms have a specific avatar so we can return any non-empty array
     if (ReportUtils.isChatRoom(report)) {
         return [''];
     }
+
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
         avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
             || getDefaultAvatar(dmParticipant),
     }))
         .sort((first, second) => first.firstName - second.firstName);
+
+    if (ReportUtils.isPolicyExpenseChat(report)) {
+        const policyExpenseChatAvatarURL = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+        ]);
+
+        // If the user is not an admin for this workspace chat, return avatar of the workspace
+        if (report.isOwnPolicyExpenseChat) {
+            return [policyExpenseChatAvatarURL];
+        }
+
+        // If the user is an admin, return avatar url of the other participant of the report (this is their workspace chat) and the avatar url of the workspace
+        return [_.first(sortedParticipants).avatar, policyExpenseChatAvatarURL];
+    }
+
     return _.map(sortedParticipants, item => item.avatar);
 }
 
