@@ -779,7 +779,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     if (ReportUtils.isPolicyExpenseChat(report)) {
-        return [''];
+        const linkedPolicy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     }
 
     // Default rooms have a specific avatar so we can return any non-empty array
