@@ -106,10 +106,10 @@ NetowrkLib.registerConnectionCheckCallback(_.throttle(() => {
         return;
     }
 
-    Log.info('[NetworkConnection] re-check NetInfo');
+    Log.info('[NetworkConnection] recheck NetInfo');
     unsubscribeFromNetInfo();
     subscribeToNetInfo();
-}), 10 * 1000, {trailing: false});
+}), 10 * 1000);
 
 export default {
     setOfflineStatus,
