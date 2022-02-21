@@ -848,6 +848,15 @@ function User_UploadAvatar(parameters) {
 }
 
 /**
+ * Runs command that fixes user's account and runs migrations retruning whether anything was changed
+ * @returns {Promise}
+ */
+function User_FixAccount() {
+    const commandName = 'User_FixAccount';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {String} parameters.validateCode
@@ -1228,15 +1237,6 @@ function TransferWalletBalance(parameters) {
     return Network.post(commandName, parameters);
 }
 
-/**
- * Runs command that fixes user's account and runs migrations retruning whether anything was changed
- * @returns {Promise}
- */
-function UserFixAccount() {
-    const commandName = 'UserFixAccount';
-    return Network.post(commandName);
-}
-
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1293,6 +1293,7 @@ export {
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
+    User_FixAccount,
     reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
