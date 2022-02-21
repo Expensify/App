@@ -236,9 +236,9 @@ class DebitCardPage extends Component {
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                         onKeyPress={({nativeEvent}) => {
-                                            if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 3) {
+                                            if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 4) {
                                                 this.allowExpirationDateChange = false;
-                                                this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, 2)}));
+                                                this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, 3)}));
                                             } else {
                                                 this.allowExpirationDateChange = true;
                                             }
@@ -247,7 +247,7 @@ class DebitCardPage extends Component {
                                             if (!this.allowExpirationDateChange) {
                                                 return;
                                             }
-                                            this.clearErrorAndSetValue('expirationDate', text.length === 3 ? `${this.insertStringAt(text, 2, '/')}` : text);
+                                            this.clearErrorAndSetValue('expirationDate', text.length === 2 && _.indexOf(text, '/') === -1 ? `${text}/` : text);
                                         }}
                                     />
                                 </View>
