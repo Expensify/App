@@ -60,6 +60,7 @@ function isAuthTokenRequired(command) {
         'ResendValidateCode',
         'ResetPassword',
         'User_ReopenAccount',
+        'User_FixAccount',
         'ValidateEmail',
     ], command);
 }
