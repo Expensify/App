@@ -43,6 +43,12 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
+    /** Callback method fired when the modal is hidden */
+    onModalHide: PropTypes.func,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -56,6 +62,8 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
+    shouldSetModalVisibility: true,
+    onModalHide: () => {},
 };
 
 const ConfirmModal = props => (
@@ -63,6 +71,8 @@ const ConfirmModal = props => (
         onSubmit={props.onConfirm}
         onClose={props.onCancel}
         isVisible={props.isVisible}
+        shouldSetModalVisibility={props.shouldSetModalVisibility}
+        onModalHide={props.onModalHide}
         type={props.isSmallScreenWidth
             ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
             : CONST.MODAL.MODAL_TYPE.CONFIRM}

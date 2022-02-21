@@ -146,6 +146,25 @@ class TransferBalancePage extends React.Component {
      */
     navigateToChooseTransferAccount(filterPaymentMethodType) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
+
+        // If we only have a single option for the given paymentMethodType do not force the user to make a selection
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+            '',
+            this.props.userWallet,
+        );
+
+        const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
+        if (filteredMethods.length === 1) {
+            const account = _.first(filteredMethods);
+            PaymentMethods.saveWalletTransferAccountTypeAndID(
+                filterPaymentMethodType,
+                account.methodID,
+            );
+            return;
+        }
+
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
     }
 

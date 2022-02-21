@@ -200,7 +200,7 @@ function transferWalletBalance(paymentMethod) {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-            Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
+            Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         }).catch(() => {
