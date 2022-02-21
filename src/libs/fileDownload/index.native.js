@@ -2,6 +2,7 @@ import {Alert, Linking, PermissionsAndroid} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import getPlatform from '../getPlatform';
 import getAttachmentName from './getAttachmentName';
+import nativeFileDownload from './nativeFileDownload';
 
 /**
  * Android permission check to store images
@@ -57,23 +58,10 @@ function showAlert(content) {
  */
 function handleDownload(url, fileName) {
     return new Promise((resolve) => {
-        const dirs = RNFetchBlob.fs.dirs;
-
-        // android files will download to Download directory
-        // ios files will download to documents directory
-        const path = getPlatform() === 'android' ? dirs.DownloadDir : dirs.DocumentDir;
         const attachmentName = fileName || getAttachmentName(url);
 
         // fetching the attachment
-        const fetchedAttachment = RNFetchBlob.config({
-            fileCache: true,
-            path: `${path}/${attachmentName}`,
-            addAndroidDownloads: {
-                useDownloadManager: true,
-                notification: true,
-                path: `${path}/Expensify/${attachmentName}`,
-            },
-        }).fetch('GET', url);
+        const fetchedAttachment = nativeFileDownload(url, attachmentName);
 
         // resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
