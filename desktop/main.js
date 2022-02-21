@@ -147,34 +147,31 @@ const mainWindow = (() => {
              *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
              *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
              */
+            const webRequest = browserWindow.webContents.session.webRequest;
             const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+            /* eslint-disable no-param-reassign */
             if (!__DEV__) {
                 // Modify the origin and referer for requests sent to our API
-                browserWindow.webContents.session.webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
-                    // eslint-disable-next-line no-param-reassign
+                webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
                     details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                    // eslint-disable-next-line no-param-reassign
                     details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                     callback({requestHeaders: details.requestHeaders});
                 });
 
                 // Modify access-control-allow-origin header for the response
-                browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    // eslint-disable-next-line no-param-reassign
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
                     details.responseHeaders['access-control-allow-origin'] = ['app://-'];
                     callback({responseHeaders: details.responseHeaders});
                 });
             }
 
             if (__DEV__) {
-                if (process.env.USE_WEB_PROXY !== 'false') {
-                    browserWindow.webContents.session.webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                        // eslint-disable-next-line no-param-reassign
-                        details.responseHeaders['access-control-allow-origin'] = ['http://localhost:8080'];
-                        callback({responseHeaders: details.responseHeaders});
-                    });
-                }
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${port}`];
+                    callback({responseHeaders: details.responseHeaders});
+                });
             }
+            /* eslint-enable */
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
             if (__DEV__) {
