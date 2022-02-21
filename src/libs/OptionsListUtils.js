@@ -779,7 +779,11 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     if (ReportUtils.isPolicyExpenseChat(report)) {
-        const linkedPolicy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        if (report.isOwnPolicyExpenseChat) {
+            return [lodashGet(policies, [
+                `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+            ])];
+        }
     }
 
     // Default rooms have a specific avatar so we can return any non-empty array
