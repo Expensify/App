@@ -2450,7 +2450,6 @@ const styles = {
     closeAccountMessageInput: {
         minHeight: 140,
     },
-
 };
 
 export default styles;

@@ -13,6 +13,10 @@ const propTypes = {
     ...htmlRendererPropTypes,
 };
 
+const defaultProps = {
+    innerRef: null,
+};
+
 const BasePreRenderer = (props) => {
     const TDefaultRenderer = props.TDefaultRenderer;
 
@@ -29,9 +33,8 @@ const BasePreRenderer = (props) => {
 
 BasePreRenderer.propTypes = propTypes;
 BasePreRenderer.displayName = 'BasePreRenderer';
-BasePreRenderer.defaultProps = {
-    innerRef: null,
-};
+BasePreRenderer.defaultProps = defaultProps;
+
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

@@ -97,10 +97,8 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        const className = event.target.className || null;
-
-        // Block menu on the message being Edited or is already deleted or event.target is scrollbar
-        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action) || (className && className.includes('WebkitOverflowScrolling'))) {
+        // Block menu on the message being Edited or is already deleted
+        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
