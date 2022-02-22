@@ -282,6 +282,7 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
+        isPolicyExpenseChat,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }

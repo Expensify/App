@@ -188,7 +188,7 @@ const OptionRow = (props) => {
                                     tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isChatRoom}
+                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
                                 />
                                 {props.option.alternateText ? (
                                     <Text
