@@ -3,7 +3,7 @@
 # Fail immediately if there is an error thrown
 set -e
 
-SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEST_DIR="$SCRIPTS_DIR/../tests"
 DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
