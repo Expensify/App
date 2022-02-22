@@ -48,7 +48,6 @@ Onyx.connect({
  * @param {Function} params.toggleCreateMenu
  */
 function show({routes, toggleCreateMenu}) {
-    console.log(isFirstTimeNewExpensifyUser)
     if (!isFirstTimeNewExpensifyUser) {
         return;
     }
