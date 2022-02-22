@@ -158,7 +158,7 @@ const AddressSearch = (props) => {
                 inputID: props.inputID,
                 shouldSaveDraft: props.shouldSaveDraft,
                 onBlur: props.onBlur,
-                onChange: (text) => {
+                onChangeText: (text) => {
                     if (skippedFirstOnChangeTextRef.current) {
                         props.onChange({street: text});
                     } else {
