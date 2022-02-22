@@ -183,7 +183,7 @@ jobs:
         run: |
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":tada: All set?…You bet! https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :tada:"
+          --body ":tada: All set?…You bet! @Expensify/applauseleads https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :tada:"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
