@@ -18,6 +18,7 @@ import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton
 import * as ReportUtils from '../../../libs/reportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -193,7 +194,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
+        const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 
         return (
