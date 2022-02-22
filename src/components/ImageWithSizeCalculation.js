@@ -34,7 +34,7 @@ class ImageWithSizeCalculation extends PureComponent {
         super(props);
 
         this.state = {
-            loading: true,
+            isLoading: true,
         };
     }
 
@@ -99,14 +99,14 @@ class ImageWithSizeCalculation extends PureComponent {
                     style={[
                         styles.w100,
                         styles.h100,
-                        this.state.loading && styles.dNone,
+                        this.state.isLoading && styles.dNone,
                         this.props.style,
                     ]}
                     source={{uri: this.props.url}}
                     resizeMode="contain"
-                    onLoadEnd={() => this.setState({loading: false})}
+                    onLoadEnd={() => this.setState({isLoading: false})}
                 />
-                {this.state.loading && (
+                {this.state.isLoading && (
                     <ActivityIndicator
                         size="large"
                         style={[styles.flex1]}
