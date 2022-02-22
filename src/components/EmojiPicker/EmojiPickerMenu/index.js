@@ -17,6 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowD
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 
@@ -29,9 +30,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -47,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    updatePreferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -89,7 +86,6 @@ class EmojiPickerMenu extends Component {
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
-        this.onEmojiSelected = this.onEmojiSelected.bind(this);
 
         this.currentScrollOffset = 0;
 
@@ -121,17 +117,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    onEmojiSelected(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
-        this.props.onEmojiSelected(emoji);
-    }
-
-    /**
      * On text input selection change
      *
      * @param {Event} event
@@ -160,7 +145,7 @@ class EmojiPickerMenu extends Component {
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.onEmojiSelected(emoji, item);
+                this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
             }
 
@@ -200,6 +185,15 @@ class EmojiPickerMenu extends Component {
 
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        this.props.onEmojiSelected(emoji);
     }
 
     /**
@@ -384,8 +378,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Update user preferred skin tone
-     *
      * @param {Number} skinTone
      */
     updatePreferredSkinTone(skinTone) {
@@ -393,7 +385,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone(skinTone);
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -426,7 +418,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}

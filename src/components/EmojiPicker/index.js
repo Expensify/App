@@ -2,7 +2,6 @@ import React from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import * as User from '../../libs/actions/User';
 import CONST from '../../CONST';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 
@@ -83,7 +82,6 @@ class EmojiPicker extends React.Component {
         }));
     }
 
-
     /**
      * Used to calculate the EmojiPicker Dimensions
      *
@@ -94,7 +92,6 @@ class EmojiPicker extends React.Component {
             <EmojiPickerMenu
                 onEmojiSelected={this.selectEmoji}
                 ref={el => this.emojiSearchInput = el}
-                updatePreferredSkinTone={User.setPreferredSkinTone}
             />
         );
     }
@@ -125,8 +122,12 @@ class EmojiPicker extends React.Component {
                     vertical: this.state.emojiPopoverAnchorPosition.vertical,
                     horizontal: this.state.emojiPopoverAnchorPosition.horizontal,
                 }}
+                popoverDimensions={{
+                    width: CONST.EMOJI_PICKER_SIZE.WIDTH,
+                    height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
+                }}
                 anchorOrigin={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 measureContent={this.measureContent}
@@ -134,7 +135,6 @@ class EmojiPicker extends React.Component {
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
                     ref={el => this.emojiSearchInput = el}
-                    updatePreferredSkinTone={User.setPreferredSkinTone}
                 />
             </PopoverWithMeasuredContent>
         );

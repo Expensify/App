@@ -7,13 +7,11 @@ const emojiPickerRef = React.createRef();
  *
  * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
  * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
- * @param {Function} [onBeforeShowEmojiPicker=() => {}] - Run a callback before showing EmojiPicker
  * @param {Element} emojiPopoverAnchor - Element on which EmojiPicker is anchored
  */
 function showEmojiPicker(
     onModalHide = () => {},
     onEmojiSelected = () => {},
-    onBeforeShowEmojiPicker = () => {},
     emojiPopoverAnchor,
 ) {
     if (!emojiPickerRef.current) {
@@ -23,7 +21,6 @@ function showEmojiPicker(
     emojiPickerRef.current.showEmojiPicker(
         onModalHide,
         onEmojiSelected,
-        onBeforeShowEmojiPicker,
         emojiPopoverAnchor,
     );
 }

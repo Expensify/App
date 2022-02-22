@@ -94,13 +94,17 @@ class AdditionalDetailsStep extends React.Component {
             ssn: lodashGet(props.walletAdditionalDetailsDraft, 'ssn', ''),
         };
 
-        const formHelper = new FormHelper({
+        this.formHelper = new FormHelper({
             errorPath: 'walletAdditionalDetails.errorFields',
             setErrors: Wallet.setAdditionalDetailsErrors,
         });
+    }
 
-        this.getErrors = () => formHelper.getErrors(props);
-        this.clearError = path => formHelper.clearError(props, path);
+    /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return this.formHelper.getErrors(this.props);
     }
 
     /**
@@ -113,6 +117,13 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         return `${this.props.translate(this.fieldNameTranslationKeys[fieldName])} ${this.props.translate('common.isRequiredField')}.`;
+    }
+
+    /**
+     * @param {String} path
+     */
+    clearError(path) {
+        this.formHelper.clearError(this.props, path);
     }
 
     /**

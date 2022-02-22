@@ -13,6 +13,7 @@ import Text from '../../Text';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -20,9 +21,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -36,6 +34,10 @@ const propTypes = {
 
     /** Props related to translation */
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    preferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -59,16 +61,13 @@ class EmojiPickerMenu extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
-        this.onEmojiSelected = this.onEmojiSelected.bind(this);
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    onEmojiSelected(emoji, emojiObject) {
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.props.onEmojiSelected(emoji);
     }
@@ -83,8 +82,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Update user preferred skin tone
-     *
      * @param {Number} skinTone
      */
     updatePreferredSkinTone(skinTone) {
@@ -92,7 +89,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        this.props.updatePreferredSkinTone(skinTone);
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -124,7 +121,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 emoji={emojiCode}
             />
         );
@@ -146,7 +143,7 @@ class EmojiPickerMenu extends Component {
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
-                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
@@ -155,10 +152,7 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = {
-    preferredSkinTone: undefined,
-    updatePreferredSkinTone: undefined,
-};
+EmojiPickerMenu.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
