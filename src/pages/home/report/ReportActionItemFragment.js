@@ -76,7 +76,7 @@ const ReportActionItemFragment = (props) => {
                         {Str.isImage(props.attachmentInfo.name)
                             ? (
                                 <ImageBackground
-                                    source={{uri: props.attachmentInfo.uri}}
+                                    source={{uri: props.attachmentInfo.localUri}}
                                     resizeMode="cover"
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
                                     style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
