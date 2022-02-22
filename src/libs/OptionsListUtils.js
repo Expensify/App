@@ -399,7 +399,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        const shouldFilterNoParticipants = _.isEmpty(logins) && !ReportUtils.isChatRoom(report) && !ReportUtils.isDefaultRoom(report);
+        const shouldFilterNoParticipants = _.isEmpty(logins) && !ReportUtils.isChatRoom(report) && !ReportUtils.isDefaultRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
         if (!report || !report.reportID || shouldFilterNoParticipants) {
             return;
         }
