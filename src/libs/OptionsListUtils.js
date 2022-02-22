@@ -208,9 +208,10 @@ function hasReportDraftComment(report) {
  * Creates a report list option
  *
  * @param {Array<Object>} personalDetailList
- * @param {Object} [report]
- * @param {Boolean} showChatPreviewLine
- * @param {Boolean} forcePolicyNamePreview
+ * @param {Object} report
+ * @param {Object} options
+ * @param {Boolean} options.showChatPreviewLine
+ * @param {Boolean} options.forcePolicyNamePreview
  * @returns {Object}
  */
 function createOption(personalDetailList, report, {
@@ -435,9 +436,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
+        const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
         allReportOptions.push(createOption(reportPersonalDetails, report, {
             showChatPreviewLine,
-            forcePolicyNamePreview,
+            forcePolicyNamePreview: ReportUtils.isPolicyExpenseChat(report) ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
