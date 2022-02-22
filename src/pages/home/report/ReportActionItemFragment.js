@@ -37,11 +37,8 @@ const propTypes = {
         /** The MIME type of the attachment. */
         type: PropTypes.string,
 
-        /** The source of attachment */
-        uri: PropTypes.string,
-
         /** Attachment's URL represents the specified File object or Blob object  */
-        localUri: PropTypes.string,
+        source: PropTypes.string,
     }),
 
     /** Does this fragment belong to a reportAction that has not yet loaded? */
@@ -62,8 +59,7 @@ const defaultProps = {
         name: '',
         size: 0,
         type: '',
-        uri: '',
-        localUri: '',
+        source: '',
     },
     loading: false,
     isSingleLine: false,
@@ -80,7 +76,7 @@ const ReportActionItemFragment = (props) => {
                         {Str.isImage(props.attachmentInfo.name)
                             ? (
                                 <ImageBackground
-                                    source={{uri: props.attachmentInfo.localUri}}
+                                    source={{uri: props.attachmentInfo.source}}
                                     resizeMode="cover"
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
                                     style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}

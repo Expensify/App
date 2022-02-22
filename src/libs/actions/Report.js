@@ -1143,9 +1143,9 @@ function addAction(reportID, text, file) {
     if (isAttachment) {
         attachmentInfo = file;
         if (file instanceof File) {
-            attachmentInfo.localUri = URL.createObjectURL(file);
+            attachmentInfo.source = URL.createObjectURL(file);
         } else {
-            attachmentInfo.localUri = file.uri;
+            attachmentInfo.source = file.uri;
         }
     }
 
