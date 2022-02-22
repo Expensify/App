@@ -23,6 +23,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /* Beta features list */
@@ -65,6 +66,12 @@ class SidebarScreen extends Component {
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
         setTimeout(() => {
             if (!this.props.isFirstTimeNewExpensifyUser) {
+                return;
+            }
+
+            const report = _.find(this.props.allReports, report => ReportUtils.isPolicyExpenseChat(report));
+            if (report) {
+                Navigation.navigate(ROUTES.getReportRoute(report.reportID));
                 return;
             }
 
@@ -217,6 +224,9 @@ export default compose(
     withOnyx({
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        allReports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
