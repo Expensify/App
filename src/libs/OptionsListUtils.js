@@ -167,7 +167,7 @@ function getParticipantNames(personalDetailList) {
  * @param {Boolean} isChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList, isChatRoom) {
+function getSearchText(report, personalDetailList, isChatRoom) { // TODO: change isChatRoom name
     const searchTerms = [];
 
     if (!isChatRoom) {
@@ -240,7 +240,7 @@ function createOption(personalDetailList, report, {
     let text;
     let alternateText;
     let icons;
-    if (isChatRoom) {
+    if (isChatRoom || isPolicyExpenseChat) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
@@ -275,7 +275,7 @@ function createOption(personalDetailList, report, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList, isChatRoom),
+        searchText: getSearchText(report, personalDetailList, isChatRoom || isPolicyExpenseChat),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
