@@ -39,6 +39,9 @@ const propTypes = {
 
         /** The source of attachment */
         uri: PropTypes.string,
+
+        /** Attachment's URL represents the specified File object or Blob object  */
+        localUri: PropTypes.string,
     }),
 
     /** Does this fragment belong to a reportAction that has not yet loaded? */
@@ -60,6 +63,7 @@ const defaultProps = {
         size: 0,
         type: '',
         uri: '',
+        localUri: '',
     },
     loading: false,
     isSingleLine: false,
