@@ -233,7 +233,6 @@ class AdditionalDetailsStep extends React.Component {
                                             });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
-                                        autoComplete="off"
                                     />
                                     <Text style={[styles.mutedTextLabel, styles.mt1]}>
                                         {this.props.translate('common.noPO')}
