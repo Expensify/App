@@ -69,25 +69,25 @@ class SidebarScreen extends Component {
                 return;
             }
 
+            // We want to show the Workspace chat if the user is a member of one or open the global create menu instead
             const report = _.find(this.props.allReports, report => ReportUtils.isPolicyExpenseChat(report));
             if (report) {
                 Navigation.navigate(ROUTES.getReportRoute(report.reportID));
-                return;
+            } else {
+                // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
+                // create menu right now.
+                const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+                const topRouteName = lodashGet(_.last(routes), 'name', '');
+                const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
+    
+                // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
+                // not need to create a workspace.
+                if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
+                    this.toggleCreateMenu();
+                }
             }
 
-            // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
-            // create menu right now.
-            const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-            const topRouteName = lodashGet(_.last(routes), 'name', '');
-            const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
-
-            // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
-            // not need to create a workspace.
-            if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
-                this.toggleCreateMenu();
-            }
-
-            // Set the NVP back to false so we don't automatically open the menu again
+            // Set the NVP back to false so we don't automatically run welcome actions again
             // Note: this may need to be moved if this NVP is used for anything else later
             NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
         }, 1500);
