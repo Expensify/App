@@ -217,7 +217,8 @@ function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom;
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
