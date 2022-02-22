@@ -40,10 +40,10 @@ import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/current
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
+import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import * as VirtualKeyboard from '../../../libs/virtualKeyboard';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
+import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 
 const propTypes = {
     /** Beta features list */
@@ -229,7 +229,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.roomIsArchived');
         }
 
-        if (ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge)) {
+        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
@@ -334,24 +334,12 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * As of January 2022, the VirtualKeyboard web API is not available in all browsers yet
-     * If it is unavailable, we default to assuming that the virtual keyboard is open on touch-enabled devices.
-     * See https://github.com/Expensify/App/issues/6767 for additional context.
-     *
-     * @returns {Boolean}
-     */
-    shouldAssumeVirtualKeyboardIsOpen() {
-        const isOpen = VirtualKeyboard.isOpen();
-        return _.isNull(isOpen) ? canUseTouchScreen() : isOpen;
-    }
-
-    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e || this.shouldAssumeVirtualKeyboardIsOpen()) {
+        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
             return;
         }
 
@@ -415,7 +403,7 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
-        const isBlockedFromConcierge = ReportUtils.isBlockedFromConciergeChat(this.props.report, this.props.blockedFromConcierge);
+        const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
         const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 

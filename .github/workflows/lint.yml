@@ -1,13 +1,14 @@
 name: Lint JavaScript
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
 jobs:
   lint:
-    if: github.actor != 'OSBotify'
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

@@ -247,7 +247,10 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
+                ...getSimplifiedPolicyObject(policy, true),
+            });
         });
 }
 
@@ -299,8 +302,8 @@ function removeMembers(members, policyID) {
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
-            console.error(data.message);
-            Growl.show(Localize.translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+            const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
+            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
         });
 }
 

@@ -3,7 +3,6 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
-import * as User from './actions/User';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -104,6 +103,16 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Whether the provided report is a Policy Expense chat.
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChat(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/**
  * Whether the provided report is a chat room
  * @param {Object} report
  * @param {String} report.chatType
@@ -181,22 +190,13 @@ function isConciergeChatReport(report) {
 }
 
 /**
- * Returns true if the user is blocked from Concierge
- *
+ * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
  * @param {Object} report
- * @param {Object} blockedFromConcierge
  * @returns {Boolean}
  */
-function isBlockedFromConciergeChat(report, blockedFromConcierge) {
-    const isConciergeChat = report.participants
+function chatIncludesConcierge(report) {
+    return report.participants
             && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
-
-    let isBlockedFromConcierge = false;
-    if (isConciergeChat && !_.isEmpty(blockedFromConcierge)) {
-        isBlockedFromConcierge = User.isBlockedFromConcierge(blockedFromConcierge.expiresAt);
-    }
-
-    return isBlockedFromConcierge;
 }
 
 /**
@@ -265,6 +265,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
-    isBlockedFromConciergeChat,
     formatReportLastMessageText,
+    chatIncludesConcierge,
+    isPolicyExpenseChat,
 };

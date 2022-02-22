@@ -31,7 +31,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
-import MarkerBadge from './MarkerBadge';
+import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -199,11 +199,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
-            return true;
-        }
-
-        return false;
+        return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
     componentDidUpdate(prevProps) {
