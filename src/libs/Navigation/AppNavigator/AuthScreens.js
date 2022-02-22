@@ -357,6 +357,12 @@ class AuthScreens extends React.Component {
                     component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
+                <RootStack.Screen
+                    name="Wallet_Statement"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
             </RootStack.Navigator>
         );
     }
