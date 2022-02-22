@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
 import * as ReportUtils from '../reportUtils';
 import ROUTES from '../../ROUTES';
@@ -8,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
 
+/* Flag for new users used to show welcome actions on first load */
 let isFirstTimeNewExpensifyUser = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
@@ -38,7 +40,7 @@ Onyx.connect({
     },
 });
 
-function show({isDisplayingWorkspaceRoute, toggleCreateMenu}) {
+function show({routes, toggleCreateMenu}) {
     if (!isFirstTimeNewExpensifyUser) {
         return;
     }
@@ -56,6 +58,9 @@ function show({isDisplayingWorkspaceRoute, toggleCreateMenu}) {
     // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
     // create menu right now. It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case
     // since the user does not need to create a workspace.
+    const topRouteName = lodashGet(_.last(routes), 'name', '');
+    const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
+
     if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
         // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
