@@ -783,7 +783,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  *
  * @param {Object} report
  * @param {Object} personalDetails
- * @returns {String[]}
+ * @returns {Array<String>}
  */
 function getReportIcons(report, personalDetails) {
     // Default rooms have a specific avatar so we can return any non-empty array
