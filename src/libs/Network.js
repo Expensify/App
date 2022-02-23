@@ -296,11 +296,12 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldUseSecure,
         };
 
-        // By default request are retry-able and abort-able
+        // By default, request are retry-able and cancellable
+        // (e.g. any requests currently happening when the user logs out are cancelled)
         request.data = {
             ...data,
             shouldRetry: lodashGet(data, 'shouldRetry', true),
-            canAbort: lodashGet(data, 'canAbort', true),
+            canCancel: lodashGet(data, 'canCancel', true),
         };
 
         // Add the request to a queue of actions to perform
@@ -342,11 +343,11 @@ function registerParameterEnhancer(callback) {
 
 /**
  * Clear the queue and cancels all pending requests
- * Non-abort requests like Log would not be cleared
+ * Non-cancellable requests like Log would not be cleared
  */
 function clearRequestQueue() {
-    networkRequestQueue = _.filter(networkRequestQueue, r => !r.data.canAbort);
-    HttpUtils.abortPendingRequests();
+    networkRequestQueue = _.filter(networkRequestQueue, r => !r.data.canCancel);
+    HttpUtils.cancelPendingRequests();
 }
 
 export {

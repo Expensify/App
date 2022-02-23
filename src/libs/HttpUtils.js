@@ -10,7 +10,7 @@ Onyx.connect({
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
 });
 
-let abortController = new AbortController();
+let cancellationController = new AbortController();
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -19,13 +19,13 @@ let abortController = new AbortController();
  * @param {String} url
  * @param {String} [method='get']
  * @param {Object} [body=null]
- * @param {Boolean} [canAbort=true]
+ * @param {Boolean} [canCancel=true]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null, canAbort = true) {
+function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
     return fetch(url, {
-        // We hook requests to the same signal, so we can abort them all (controller ignores completed requests)
-        signal: canAbort ? abortController.signal : undefined,
+        // We hook requests to the same Controller signal, so we can cancel them all at once
+        signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
     })
@@ -49,7 +49,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canAbort);
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
 }
 
 /**
@@ -69,13 +69,13 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
-function abortPendingRequests() {
-    abortController.abort();
-    abortController = new AbortController();
+function cancelPendingRequests() {
+    cancellationController.abort();
+    cancellationController = new AbortController();
 }
 
 export default {
     download,
     xhr,
-    abortPendingRequests,
+    cancelPendingRequests,
 };

@@ -191,7 +191,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
 
 Network.registerErrorHandler((queuedRequest, error) => {
     if (error.name === 'AbortError') {
-        Log.info('[API] request aborted', false, queuedRequest);
+        Log.info('[API] request canceled', false, queuedRequest);
         return;
     }
     if (queuedRequest.command !== 'Log') {
@@ -454,8 +454,8 @@ function DeleteLogin(parameters) {
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
 
-    // Note: Aborting request would happen while logging out, we want to skip abort the actual logout request
-    return Network.post(commandName, {...parameters, canAbort: false});
+    // Non cancellable request: all requests are cancelled during logout - we're skipping the actual logout request
+    return Network.post(commandName, {...parameters, canCancel: false});
 }
 
 /**
