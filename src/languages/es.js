@@ -181,6 +181,13 @@ export default {
         areTyping: 'están escribiendo...',
         multipleUsers: 'Varios usuarios',
     },
+    reportArchiveReasons: {
+        // accountClosed: ({login}) => `This workspace chat is no longer active because ${login} closed their account.`,
+        // accountMerged: ({oldLogin, newLogin}) => `This workspace chat is no longer active because ${oldLogin} has merged with ${newLogin}.`,
+        manuallyArchived: 'Esta sala de chat ha sido eliminada.',
+        // removedFromPolicy: ({policyName, login}) => `This workspace chat is no longer active because ${login} is no longer a member of the ${policyName} workspace.`,
+        // policyDeleted: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+    },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
         newChat: 'Nuevo chat',
