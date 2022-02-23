@@ -531,6 +531,7 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
     TERMS: {
