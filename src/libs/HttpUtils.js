@@ -10,6 +10,7 @@ Onyx.connect({
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
 });
 
+// We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
 /**
@@ -71,6 +72,9 @@ function download(relativePath) {
 
 function cancelPendingRequests() {
     cancellationController.abort();
+
+    // We create a new instance because once `abort()` is called any future requests using the same controller would
+    // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
     cancellationController = new AbortController();
 }
 
