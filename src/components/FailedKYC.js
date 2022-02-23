@@ -3,6 +3,9 @@ import {
     View,
 } from 'react-native';
 import Text from './Text';
+import PropTypes from 'prop-types';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import styles from '../styles/styles';
 
 
 class FailedKYC extends React.Component {
@@ -11,10 +14,12 @@ class FailedKYC extends React.Component {
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5]}>
                     <Text style={styles.mb3}>
-                        We weren't able to successfully verify your identity. Please try again later and reach out to concierge@expensify.com if you have any questions.
+                        {this.props.translate('additionalDetailsStep.failedKYCText')}
                     </Text>
                 </View>
             </View>
         );
     }
 }
+
+export default withLocalize(FailedKYC);

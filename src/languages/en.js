@@ -563,6 +563,7 @@ export default {
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
+        failedKYCText: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to concierge@expensify.com if you have any questions.',
     },
     termsStep: {
         headerTitle: 'Terms and fees',
