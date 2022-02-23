@@ -42,7 +42,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
-        URL_EXPENSIFY_SECURE: secureURLRoot,
+        SECURE_EXPENSIFY_URL: secureURLRoot,
         NEW_EXPENSIFY_URL: newExpensifyURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
