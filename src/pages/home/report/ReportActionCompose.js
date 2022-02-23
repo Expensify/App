@@ -405,12 +405,10 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
 
-        // TODO: loop from back and get latest archived reason (only if room is archived)
         let archivedReason = '';
         if (isArchivedRoom) {
-            // TODO: use TYPE.ARCHIVED instead of TYPE.ARCHIVED_REASON
-            const lastArchivedActionIndex = _.findLastIndex(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.ARCHIVED);
-            archivedReason = lastArchivedActionIndex >= 0 ? this.props.reportActions[lastArchivedActionIndex] : CONST.REPORT.ARCHIVE_REASON.MANUALLY_DELETED;
+            const lastClosedActionIndex = _.findLastIndex(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            archivedReason = lastClosedActionIndex >= 0 ? this.props.reportActions[lastClosedActionIndex].originalMessage.reason : CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED;
         }
 
         return (
