@@ -86,6 +86,7 @@ const HeaderView = (props) => {
         },
     );
     const isChatRoom = ReportUtils.isChatRoom(props.report);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const title = isChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
@@ -140,6 +141,7 @@ const HeaderView = (props) => {
                                 isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                                 avatarTooltips={avatarTooltip}
+                                showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
