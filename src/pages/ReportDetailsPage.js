@@ -145,7 +145,7 @@ class ReportDetailsPage extends Component {
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
-                                        textStyles={[styles.headerText, styles.mb2]}
+                                        textStyles={[styles.headerText, styles.mb2, styles.textAlignCenter]}
                                         shouldUseFullTitle={isChatRoom}
                                     />
                                 </View>
