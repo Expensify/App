@@ -96,8 +96,25 @@ function getJSONInput(name, options, defaultValue = undefined) {
     return defaultValue;
 }
 
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+
 module.exports = {
     getJSONInput,
+    getStringInput,
 };
 
 
@@ -143,7 +160,7 @@ function getValidMergedPRs(commitMessages) {
             return mergedPRs;
         }
 
-        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:master|main|version-|update-staging-from-main|update-production-from-staging))/);
+        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
         if (!_.isNull(match) && match[1]) {
             mergedPRs.push(match[1]);
         }

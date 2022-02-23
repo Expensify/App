@@ -220,7 +220,6 @@ export default {
         },
     },
     notificationPreferences: {
-        description: '¿Cuán seguido quieres que te notifiquemos acerca de nuevos mensajes en esta sala de chat?',
         label: 'Avisar sobre nuevos mensajes',
         immediately: 'Inmediatamente',
         daily: 'Cada día',
@@ -715,12 +714,12 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Emitir tarjetas corporativas',
+            card: 'Emitir tarjetas',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración general',
-            reimburse: 'Reembolsar recibos',
+            reimburse: 'Reembolsar gastos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Reservar viaje',
@@ -764,8 +763,14 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
+            kilometers: 'Kilómetros',
+            miles: 'Millas',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
+            trackDistance: 'Medir distancia',
+            trackDistanceCopy: 'Configura la tarifa y unidad usadas para medir distancias.',
+            trackDistanceRate: 'Tarifa',
+            trackDistanceUnit: 'Unidad',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -856,6 +861,7 @@ export default {
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
         waitTime: {
             calculating: 'Calculando el tiempo de espera...',
             fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',

@@ -220,7 +220,6 @@ export default {
         },
     },
     notificationPreferences: {
-        description: 'How often should we notify you when there are new messages to catch up on in this room?',
         label: 'Notify me about new messages',
         immediately: 'Immediately',
         daily: 'Daily',
@@ -713,12 +712,12 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Issue corporate cards',
+            card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete Workspace',
             settings: 'General settings',
-            reimburse: 'Reimburse receipts',
+            reimburse: 'Reimburse expenses',
             bills: 'Pay bills',
             invoices: 'Send invoices',
             travel: 'Book travel',
@@ -762,8 +761,14 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
+            kilometers: 'Kilometers',
+            miles: 'Miles',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
+            trackDistance: 'Track distance',
+            trackDistanceCopy: 'Set the per mile/km rate and choose a default unit to track.',
+            trackDistanceRate: 'Rate',
+            trackDistanceUnit: 'Unit',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
@@ -854,6 +859,7 @@ export default {
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
+        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
         waitTime: {
             calculating: 'Calculating wait time...',
             fiveHoursPlus: 'The current wait time is longer than 5 hours.',
