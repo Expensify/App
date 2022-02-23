@@ -68,16 +68,19 @@ class ImageView extends PureComponent {
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
-        // return if image  or image container not loaded yet
-        if (containerHeight <= 0 || imageHeight <= 0) {
+
+        // return if image not loaded yet
+        if (imageHeight <= 0) {
             return;
         }
 
-        // Fit the image to container size
-        const aspectRatio = Math.min((containerHeight / imageHeight), (containerWidth / imageWidth));
-        if (aspectRatio > 1) {
-            width *= (aspectRatio * 0.95);
-            height *= (aspectRatio * 0.95);
+        // Fit the image to container size if container is loaded and image small than container.
+        if (containerHeight > 0) {
+            const aspectRatio = Math.min((containerHeight / imageHeight), (containerWidth / imageWidth));
+            if (aspectRatio > 1) {
+                width *= (aspectRatio);
+                height *= (aspectRatio);
+            }
         }
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
@@ -102,16 +105,16 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
-        this.setState(prevState => ({
+        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
+        this.setState({
             imgWidth: width,
-            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            zoomScale: newZoomScale,
             imgHeight: height,
             imageLeft: imgLeft,
             imageTop: imgTop,
             imageRight: imgRight,
             imageBottom: imgBottom,
-        }));
+        });
     }
 
     /**
@@ -210,7 +213,7 @@ class ImageView extends PureComponent {
                         ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
                             this.state.containerHeight, this.state.containerWidth),
                         ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                        ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
+                        ...this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}
                     onPressIn={(e) => {
