@@ -299,6 +299,7 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
+        REQUEST_CANCELLED: 'AbortError',
     },
     NETWORK: {
         METHOD: {
