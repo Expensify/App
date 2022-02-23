@@ -318,7 +318,6 @@ class RequestCallPage extends Component {
                                 style={[styles.mv4]}
                             />
                             <TextInput
-                                autoComplete='tel'
                                 label={this.props.translate('common.phoneNumber')}
                                 name='phone'
                                 autoCorrect={false}
