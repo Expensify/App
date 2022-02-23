@@ -167,7 +167,7 @@ const mainWindow = (() => {
 
             if (__DEV__) {
                 webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${port}`];
+                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${process.env.PORT}`];
                     callback({responseHeaders: details.responseHeaders});
                 });
             }

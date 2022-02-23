@@ -127,7 +127,7 @@ Once the command finishes, revert the version update in `package.json`, remove `
 To avoid bundling unnecessary `node_modules` we use a [2 package structure](https://www.electron.build/tutorials/two-package-structure)
 The root [package.json](../package.json) serves for `devDependencies` and shared (renderer) `dependencies`
 The [desktop/package.json](./package.json) servers for desktop (electron-main) specific dependencies
-Webpack uses root package dependencies and src to bundle `www` - all necessary dependencies are copied to that folder
+Webpack uses root package dependencies and src to bundle the web application loaded by Electron's renderer process in `desktop/dist/www` - all necessary dependencies are copied to that folder
 We use Webpack again to bundle the `main` scripts that init electron and render `www` content.
 
 ## See what is getting packaged in the app
