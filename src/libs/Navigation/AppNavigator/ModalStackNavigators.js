@@ -30,6 +30,7 @@ import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
+import WalletStatementPage from '../../../pages/wallet/WalletStatementPage';
 import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
@@ -313,6 +314,11 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
+const WalletStatementStackNavigator = createModalStackNavigator([{
+    Component: WalletStatementPage,
+    name: 'WalletStatement_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -330,4 +336,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     RequestCallModalStackNavigator,
+    WalletStatementStackNavigator,
 };
