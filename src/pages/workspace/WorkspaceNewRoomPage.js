@@ -102,6 +102,7 @@ class WorkspaceNewRoomPage extends React.Component {
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
             value: visibilityOption,
+            description: this.props.translate(`newRoomPage.${visibilityOption}Description`),
         }));
 
         return (
@@ -130,12 +131,17 @@ class WorkspaceNewRoomPage extends React.Component {
                                 onChange={this.onWorkspaceSelect}
                             />
                         </View>
-                        <Picker
-                            value={this.state.visibility}
-                            label={this.props.translate('newRoomPage.visibility')}
-                            items={visibilityOptions}
-                            onChange={visibility => this.setState({visibility})}
-                        />
+                        <View style={styles.mb2}>
+                            <Picker
+                                value={this.state.visibility}
+                                label={this.props.translate('newRoomPage.visibility')}
+                                items={visibilityOptions}
+                                onChange={visibility => this.setState({visibility})}
+                            />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                        </Text>
                     </ScrollView>
                     <FixedFooter>
                         <Button
