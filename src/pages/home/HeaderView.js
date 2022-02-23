@@ -87,7 +87,7 @@ const HeaderView = (props) => {
     );
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = isChatRoom
+    const title = (isChatRoom || isPolicyExpenseChat)
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -150,7 +150,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.textNoWrap]}
-                                    shouldUseFullTitle={isChatRoom}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
                                 {isChatRoom && (
                                     <Text
