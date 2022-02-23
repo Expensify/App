@@ -284,6 +284,7 @@ function createOption(personalDetailList, report, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isPolicyExpenseChat,
+        showSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
         isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }
