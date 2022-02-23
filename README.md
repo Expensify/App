@@ -71,7 +71,7 @@ Creating an `.env` file is not necessary. We advise external contributors agains
 variables referenced here get updated since your local `.env` file is ignored.
 
 - `NEW_EXPENSIFY_URL` - The root URL used for the website
-- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
+- `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
 - `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)

@@ -38,7 +38,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
+    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (shouldUseSecure && shouldUseSecureStaging) {
         apiRoot = CONST.STAGING_SECURE_URL;

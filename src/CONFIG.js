@@ -11,8 +11,8 @@ const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPEN
 const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const expensifyURLSecure = Url.addTrailingForwardSlash(lodashGet(
-    Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
+const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
+    Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/',
 ));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
@@ -20,8 +20,8 @@ const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : exp
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-    if (!useNgrok && expensifyURL.includes('dev') && !expensifyURLSecure.includes('dev')) {
-        throw new Error('EXPENSIFY_URL_SECURE must end with .dev when EXPENSIFY_URL ends with .dev');
+    if (!useNgrok && expensifyURL.includes('dev') && !secureExpensifyUrl.includes('dev')) {
+        throw new Error('SECURE_EXPENSIFY_URL must end with .dev when EXPENSIFY_URL ends with .dev');
     }
 
     if (useNgrok && !secureNgrokURL) {
@@ -29,7 +29,7 @@ if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
     }
 }
 
-const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : expensifyURLSecure;
+const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : secureExpensifyUrl;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
