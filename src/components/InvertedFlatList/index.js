@@ -28,31 +28,31 @@ class InvertedFlatList extends React.Component {
         this.list = undefined;
     }
 
-    componentDidMount() {
-        if (!_.isFunction(this.props.innerRef)) {
-            // eslint-disable-next-line no-param-reassign
-            this.props.innerRef.current = this.list;
-        } else {
-            this.props.innerRef(this.list);
-        }
+    // componentDidMount() {
+    //     if (!_.isFunction(this.props.innerRef)) {
+    //         // eslint-disable-next-line no-param-reassign
+    //         this.props.innerRef.current = this.list;
+    //     } else {
+    //         this.props.innerRef(this.list);
+    //     }
 
-        if (this.list) {
-            this.list
-                .getScrollableNode()
-                .addEventListener('wheel', this.invertedWheelEvent);
+    //     if (this.list) {
+    //         this.list
+    //             .getScrollableNode()
+    //             .addEventListener('wheel', this.invertedWheelEvent);
 
-            this.list.setNativeProps({
-                style: {
-                    transform: 'translate3d(0,0,0) scaleY(-1)',
-                },
-            });
-        }
-    }
+    //         this.list.setNativeProps({
+    //             style: {
+    //                 transform: 'translate3d(0,0,0) scaleY(-1)',
+    //             },
+    //         });
+    //     }
+    // }
 
-    componentWillUnmount() {
-        this.list.getScrollableNode()
-            .removeEventListener('wheel', this.invertedWheelEvent);
-    }
+    // componentWillUnmount() {
+    //     this.list.getScrollableNode()
+    //         .removeEventListener('wheel', this.invertedWheelEvent);
+    // }
 
     invertedWheelEvent(e) {
         this.list.getScrollableNode().scrollTop -= e.deltaY;

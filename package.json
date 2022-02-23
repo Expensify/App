@@ -111,6 +111,7 @@
     "react-native-webview": "^11.17.2",
     "react-pdf": "^5.2.0",
     "react-plaid-link": "^3.2.0",
+    "react-virtual-azim": "^0.0.1",
     "react-web-config": "^1.0.0",
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
