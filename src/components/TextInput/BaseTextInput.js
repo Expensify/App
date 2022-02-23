@@ -223,6 +223,10 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
+
+                                        // Align Text to left by default to override align to right by default in RTL which is not supported.
+                                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                        textAlign="left"
                                         defaultValue={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}

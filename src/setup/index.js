@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {I18nManager, TextInput} from 'react-native';
+import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -41,8 +40,6 @@ export default function () {
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
     I18nManager.swapLeftAndRightInRTL(false);
-    TextInput.defaultProps = TextInput.defaultProps || {};
-    TextInput.defaultProps.textAlign = 'left';
 
     // Perform any other platform-specific setup
     platformSetup();

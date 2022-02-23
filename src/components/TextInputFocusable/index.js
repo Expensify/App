@@ -358,6 +358,10 @@ class TextInputFocusable extends React.Component {
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
+
+                // Align Text to left by default to override align to right by default in RTL which is not supported.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                textAlign="left"
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}

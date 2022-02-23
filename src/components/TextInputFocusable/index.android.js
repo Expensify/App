@@ -70,6 +70,10 @@ class TextInputFocusable extends React.Component {
                 maxHeight={CONST.COMPOSER_MAX_HEIGHT}
                 rejectResponderTermination={false}
                 editable={!this.props.isDisabled}
+
+                // Align Text to left by default to override align to right by default in RTL which is not supported.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                textAlign="left"
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
             />
