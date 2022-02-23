@@ -454,7 +454,7 @@ function DeleteLogin(parameters) {
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
 
-    // Non cancellable request: all requests are cancelled during logout - we're skipping the actual logout request
+    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
     return Network.post(commandName, {...parameters, canCancel: false});
 }
 
