@@ -1533,9 +1533,9 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -3,
-        bottom: -3,
-        borderWidth: 3,
+        right: -4,
+        bottom: -2,
+        borderWidth: 2,
         borderRadius: 18,
         borderColor: 'transparent',
     },
