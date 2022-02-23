@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -166,10 +167,9 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
 
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let archiveReason = '';
+        let archiveReason;
         if (isArchivedRoom) {
-            const lastClosedActionIndex = _.findLastIndex(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-            archiveReason = lastClosedActionIndex >= 0 ? this.props.reportActions[lastClosedActionIndex].originalMessage.reason : CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED;
+            archiveReason = lodashFindLast(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
 
         return (

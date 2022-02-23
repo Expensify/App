@@ -14,9 +14,13 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** The reason this report was archived. */
-    archiveReason: PropTypes.string.isRequired,
+    archiveReason: PropTypes.string,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    archiveReason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
 };
 
 const ArchivedReportFooter = props => (
@@ -32,7 +36,7 @@ const ArchivedReportFooter = props => (
             ]}
             >
                 {
-                    props.archiveReason === CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED
+                    props.archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT
                         ? <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
 
                         // TODO: pass displayName, policyName, and other parameters to translate()
@@ -50,6 +54,7 @@ const ArchivedReportFooter = props => (
 );
 
 ArchivedReportFooter.propTypes = propTypes;
+ArchivedReportFooter.defaultProps = defaultProps;
 ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
 export default withLocalize(ArchivedReportFooter);

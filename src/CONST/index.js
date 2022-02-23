@@ -224,7 +224,7 @@ const CONST = {
             },
         },
         ARCHIVE_REASON: {
-            MANUALLY_ARCHIVED: 'manuallyArchived',
+            DEFAULT: 'default',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',

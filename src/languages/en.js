@@ -184,7 +184,7 @@ export default {
     reportArchiveReasons: {
         accountClosed: ({login}) => `This workspace chat is no longer active because <strong>${login}</strong> closed their account.`,
         accountMerged: ({oldLogin, newLogin}) => `This workspace chat is no longer active because <strong>${oldLogin}</strong> has merged with <strong>${newLogin}</strong>.`,
-        manuallyArchived: 'This chat room has been archived.',
+        default: 'This chat room has been archived.',
         removedFromPolicy: ({policyName, login}) => `This workspace chat is no longer active because <strong>${login}</strong> is no longer a member of the <strong>${policyName}</strong> workspace.`,
         policyDeleted: ({policyName}) => `This workspace chat is no longer active because <strong>${policyName}</strong> is no longer an active workspace.`,
     },
