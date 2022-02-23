@@ -5,6 +5,7 @@ import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
+import SubscriptAvatar from './SubscriptAvatar';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -25,6 +26,9 @@ const propTypes = {
 
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
+
+    /** Flag to show SubscriptAvatar component */
+    showSubscript: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,6 +38,7 @@ const defaultProps = {
     isChatRoom: false,
     isArchivedRoom: false,
     avatarTooltips: [],
+    showSubscript: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -60,6 +65,15 @@ const MultipleAvatars = (props) => {
                     />
                 </Tooltip>
             </View>
+        );
+    }
+
+    if (props.showSubscript) {
+        return (
+            <SubscriptAvatar
+                avatarImageURLs={props.avatarImageURLs}
+                avatarTooltips={props.avatarTooltips}
+            />
         );
     }
 
