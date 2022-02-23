@@ -33,7 +33,7 @@ const Default = Template.bind({});
 
 const ErrorStory = Template.bind({});
 ErrorStory.args = {
-    errorText: 'The street you looking for is not exist',
+    errorText: 'The street you are looking for does not exist',
 };
 
 export {
