@@ -19,34 +19,34 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ArchivedReportFooter = (props) => (
-        <Hoverable>
-            {isHovered => (
-                <View style={[
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                    styles.p5,
-                    styles.borderRadiusNormal,
-                    isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
-                ]}
-                >
-                    {
-                        props.archiveReason === CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED
-                            ? <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
+const ArchivedReportFooter = props => (
+    <Hoverable>
+        {isHovered => (
+            <View style={[
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.justifyContentBetween,
+                styles.p5,
+                styles.borderRadiusNormal,
+                isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
+            ]}
+            >
+                {
+                    props.archiveReason === CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED
+                        ? <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
 
-                            // TODO: pass displayName, policyName, and other parameters to translate()
-                            : <RenderHTML html={props.translate(`reportArchiveReasons.${props.archiveReason}`)} />
-                    }
-                    <View style={[styles.ml3]}>
-                        <Icon
-                            src={Expensicons.Exclamation}
-                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                        />
-                    </View>
+                        // TODO: pass displayName, policyName, and other parameters to translate()
+                        : <RenderHTML html={props.translate(`reportArchiveReasons.${props.archiveReason}`)} />
+                }
+                <View style={[styles.ml3]}>
+                    <Icon
+                        src={Expensicons.Exclamation}
+                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    />
                 </View>
-            )}
-        </Hoverable>
+            </View>
+        )}
+    </Hoverable>
 );
 
 ArchivedReportFooter.propTypes = propTypes;
