@@ -437,7 +437,7 @@ class ReportActionCompose extends React.Component {
                                                         }}
                                                         style={styles.chatItemAttachButton}
                                                         underlayColor={themeColors.componentBG}
-                                                        disabled={isBlockedFromConcierge || isArchivedRoom}
+                                                        disabled={isBlockedFromConcierge}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
