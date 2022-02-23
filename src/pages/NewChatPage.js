@@ -171,6 +171,11 @@ class NewChatPage extends Component {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
+            let searchValue = '';
+            if (!this.props.isGroupChat && isOptionInList) {
+                searchValue = prevState.searchValue;
+            }
+
             const {
                 recentReports,
                 personalDetails,
@@ -179,7 +184,7 @@ class NewChatPage extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
+                searchValue,
                 newSelectedOptions,
                 this.excludedGroupEmails,
             );
