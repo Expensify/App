@@ -42,7 +42,7 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
-import EmojiPicker from '../../../components/EmojiPicker';
+import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 
 const propTypes = {
@@ -553,11 +553,10 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    <EmojiPicker
-                        isDisabled={isBlockedFromConcierge}
+                    <EmojiPickerButton
+                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                         onModalHide={() => this.focus(true)}
                         onEmojiSelected={this.addEmojiToTextBox}
-                        onBeforeShowEmojiPicker={() => this.textInput.blur()}
                     />
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
