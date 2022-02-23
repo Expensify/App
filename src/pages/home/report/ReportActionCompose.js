@@ -554,7 +554,7 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <EmojiPickerButton
-                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
+                        isDisabled={isBlockedFromConcierge}
                         onModalHide={() => this.focus(true)}
                         onEmojiSelected={this.addEmojiToTextBox}
                     />

@@ -19,8 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ArchivedReportFooter = (props) => {
-    return (
+const ArchivedReportFooter = (props) => (
         <Hoverable>
             {isHovered => (
                 <View style={[
@@ -48,8 +47,7 @@ const ArchivedReportFooter = (props) => {
                 </View>
             )}
         </Hoverable>
-    );
-};
+);
 
 ArchivedReportFooter.propTypes = propTypes;
 ArchivedReportFooter.displayName = 'ArchivedReportFooter';
