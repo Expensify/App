@@ -152,7 +152,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
@@ -181,6 +180,9 @@ export default {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
+    },
+    reportArchiveReasons: {
+        manuallyArchived: 'This chat room has been archived.',
     },
     sidebarScreen: {
         fabAction: 'New chat',

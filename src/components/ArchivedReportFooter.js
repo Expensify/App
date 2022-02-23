@@ -18,14 +18,11 @@ const propTypes = {
 };
 
 const ArchivedReportFooter = (props) => {
-    // const getTranslationKeyForArchiveReason = () => {};
-    // const message = props.translate(getTranslationKeyForArchiveReason(props.archiveReason));
-    const message = props.translate('reportActionCompose.roomIsArchived');
     return (
         <Hoverable containerStyles={[styles.flexRow, styles.p5]}>
             {isHovered => (
                 <View style={isHovered ? styles.activeComponentBG : styles.hoveredComponentBG}>
-                    <Text>{message}</Text>
+                    <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
                     <Icon
                         src={Expensicons.Exclamation}
                         fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
