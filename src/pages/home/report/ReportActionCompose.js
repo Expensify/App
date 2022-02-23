@@ -44,8 +44,6 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPicker from '../../../components/EmojiPicker';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-
 
 const propTypes = {
     /** Beta features list */

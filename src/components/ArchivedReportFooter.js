@@ -1,9 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import CONST from '../CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Hoverable from './Hoverable';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -30,8 +32,13 @@ const ArchivedReportFooter = (props) => {
                     isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
                 ]}
                 >
-                    {/* TODO: pass displayName, policyName, and other parameters to translate() */}
-                    <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
+                    {
+                        props.archiveReason === CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED
+                            ? <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
+
+                            // TODO: pass displayName, policyName, and other parameters to translate()
+                            : <RenderHTML html={props.translate(`reportArchiveReasons.${props.archiveReason}`)} />
+                    }
                     <View style={[styles.ml3]}>
                         <Icon
                             src={Expensicons.Exclamation}

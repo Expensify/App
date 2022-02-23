@@ -194,18 +194,20 @@ class ReportScreen extends React.Component {
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
                         <View style={styles.chatFooter}>
-                            {isArchivedRoom
-                                ? <ArchivedReportFooter archiveReason={archiveReason} />
-                                : (
-                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                        <ReportActionCompose
-                                            onSubmit={this.onSubmitComment}
-                                            reportID={reportID}
-                                            reportActions={this.props.reportActions}
-                                            report={this.props.report}
-                                        />
-                                    </SwipeableView>
-                                )}
+                            {
+                                isArchivedRoom
+                                    ? <ArchivedReportFooter archiveReason={archiveReason} />
+                                    : (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                            />
+                                        </SwipeableView>
+                                    )
+                            }
                         </View>
                     )}
                     <KeyboardSpacer />
