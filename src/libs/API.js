@@ -190,7 +190,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
-    if (error.name === 'AbortError') {
+    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
         Log.info('[API] request canceled', false, queuedRequest);
         return;
     }
