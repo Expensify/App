@@ -451,30 +451,31 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOU(this.props.betas) ? [
-                                                        hasMultipleParticipants
-                                                            ? {
-                                                                icon: Expensicons.Receipt,
-                                                                text: this.props.translate('iou.splitBill'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouSplitRoute(
-                                                                            this.props.reportID,
-                                                                        ),
-                                                                    );
+                                                    ...(!hasExcludedIOUEmails
+                                                        && Permissions.canUseIOU(this.props.betas) ? [
+                                                            hasMultipleParticipants
+                                                                ? {
+                                                                    icon: Expensicons.Receipt,
+                                                                    text: this.props.translate('iou.splitBill'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouSplitRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                } : {
+                                                                    icon: Expensicons.MoneyCircle,
+                                                                    text: this.props.translate('iou.requestMoney'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouRequestRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
                                                                 },
-                                                            } : {
-                                                                icon: Expensicons.MoneyCircle,
-                                                                text: this.props.translate('iou.requestMoney'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouRequestRoute(
-                                                                            this.props.reportID,
-                                                                        ),
-                                                                    );
-                                                                },
-                                                            },
-                                                    ] : []),
+                                                        ] : []),
                                                     ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
                                                         {
                                                             icon: Expensicons.Send,
