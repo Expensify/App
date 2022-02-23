@@ -47,7 +47,9 @@ const FullNameInputRow = (props) => {
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>
                 <TextInput
+                    autoComplete='given-name'
                     label={props.translate('common.firstName')}
+                    name='fname'
                     value={props.firstName}
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
@@ -56,7 +58,9 @@ const FullNameInputRow = (props) => {
             </View>
             <View style={[styles.flex1, styles.ml2]}>
                 <TextInput
+                    autoComplete='family-name'
                     label={props.translate('common.lastName')}
+                    name='lname'
                     value={props.lastName}
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
