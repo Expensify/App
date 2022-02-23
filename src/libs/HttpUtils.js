@@ -18,9 +18,9 @@ let cancellationController = new AbortController();
  * If there is a network error, we'll set the application offline.
  *
  * @param {String} url
- * @param {String} [method='get']
- * @param {Object} [body=null]
- * @param {Boolean} [canCancel=true]
+ * @param {String} [method]
+ * @param {Object} [body]
+ * @param {Boolean} [canCancel]
  * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
