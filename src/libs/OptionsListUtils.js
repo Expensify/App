@@ -787,13 +787,6 @@ function getReportIcons(report, personalDetails) {
         return [''];
     }
 
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
-            || getDefaultAvatar(dmParticipant),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
-
     if (ReportUtils.isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarURL = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
@@ -804,10 +797,17 @@ function getReportIcons(report, personalDetails) {
             return [policyExpenseChatAvatarURL];
         }
 
-        // If the user is an admin, return avatar url of the other participant of the report (this is their workspace chat) and the avatar url of the workspace
-        return [_.first(sortedParticipants).avatar, policyExpenseChatAvatarURL];
+        // If the user is an admin, return avatar url of the other participant of the report
+        // (their workspace chat) and the avatar url of the workspace
+        return [lodashGet(personalDetails, [report.ownerEmail, 'avatarThumbnail']), policyExpenseChatAvatarURL];
     }
 
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName);
     return _.map(sortedParticipants, item => item.avatar);
 }
 

@@ -185,7 +185,7 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report)) {
                     return;
                 }
 
