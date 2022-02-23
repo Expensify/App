@@ -398,9 +398,12 @@ function getOptions(reports, personalDetails, activeReportID, {
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
         const logins = lodashGet(report, ['participants'], []);
+        const isChatRoom = ReportUtils.isChatRoom(report);
+        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        const shouldFilterNoParticipants = _.isEmpty(logins) && !ReportUtils.isChatRoom(report) && !ReportUtils.isDefaultRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
+        const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
         if (!report || !report.reportID || shouldFilterNoParticipants) {
             return;
         }
@@ -411,7 +414,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !ReportUtils.isDefaultRoom(report);
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !isDefaultRoom;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
@@ -422,7 +425,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (ReportUtils.isChatRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (isChatRoom && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -440,7 +443,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
         allReportOptions.push(createOption(reportPersonalDetails, report, {
             showChatPreviewLine,
-            forcePolicyNamePreview: ReportUtils.isPolicyExpenseChat(report) ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
+            forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
