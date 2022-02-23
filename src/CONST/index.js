@@ -110,6 +110,7 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -236,6 +237,7 @@ const CONST = {
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
+            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -300,7 +302,7 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
     },
     HTTP_STATUS_CODE: {
