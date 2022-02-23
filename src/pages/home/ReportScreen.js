@@ -197,7 +197,7 @@ class ReportScreen extends React.Component {
                             {isArchivedRoom
                                 ? <ArchivedReportFooter archiveReason={archiveReason} />
                                 : (
-                                    <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                         <ReportActionCompose
                                             onSubmit={this.onSubmitComment}
                                             reportID={reportID}
