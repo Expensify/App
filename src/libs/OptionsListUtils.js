@@ -435,9 +435,9 @@ function getOptions(reports, personalDetails, activeReportID, {
 
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
-        // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later.
-        if (logins.length <= 1) {
+        // Save the report in the map if this is a single participant (with the exception of PolicyExpenseChat) so we
+        // can associate the reportID with the personal detail option later.
+        if (logins.length <= 1 && !isPolicyExpenseChat) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
