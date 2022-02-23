@@ -210,8 +210,8 @@ function hasReportDraftComment(report) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} report
  * @param {Object} options
- * @param {Boolean} options.showChatPreviewLine
- * @param {Boolean} options.forcePolicyNamePreview
+ * @param {Boolean} [options.showChatPreviewLine]
+ * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
 function createOption(personalDetailList, report, {
@@ -315,7 +315,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 /**
  * Returns the given userDetails is currentUser or not.
  * @param {Object} userDetails
- * @returns {Bool}
+ * @returns {Boolean}
  */
 
 function isCurrentUser(userDetails) {
