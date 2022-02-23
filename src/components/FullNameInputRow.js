@@ -48,7 +48,7 @@ const FullNameInputRow = (props) => {
             <View style={styles.flex1}>
                 <TextInput
                     label={props.translate('common.firstName')}
-                    name='fname'
+                    name="fname"
                     value={props.firstName}
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
@@ -58,7 +58,7 @@ const FullNameInputRow = (props) => {
             <View style={[styles.flex1, styles.ml2]}>
                 <TextInput
                     label={props.translate('common.lastName')}
-                    name='lname'
+                    name="lname"
                     value={props.lastName}
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}

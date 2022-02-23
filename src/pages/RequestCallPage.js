@@ -319,7 +319,7 @@ class RequestCallPage extends Component {
                             />
                             <TextInput
                                 label={this.props.translate('common.phoneNumber')}
-                                name='phone'
+                                name="phone"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
                                 placeholder="2109400803"
