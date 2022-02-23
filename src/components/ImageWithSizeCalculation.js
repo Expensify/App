@@ -1,9 +1,10 @@
 import React, {PureComponent} from 'react';
-import {Image} from 'react-native';
+import {Image, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Url for image to display */
@@ -29,6 +30,14 @@ const defaultProps = {
  * it can be appropriately resized.
  */
 class ImageWithSizeCalculation extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isLoading: true,
+        };
+    }
+
     componentDidMount() {
         this.calculateImageSize();
     }
@@ -85,15 +94,26 @@ class ImageWithSizeCalculation extends PureComponent {
 
     render() {
         return (
-            <Image
-                style={[
-                    styles.w100,
-                    styles.h100,
-                    this.props.style,
-                ]}
-                source={{uri: this.props.url}}
-                resizeMode="contain"
-            />
+            <>
+                <Image
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                        this.state.isLoading && styles.dNone,
+                        this.props.style,
+                    ]}
+                    source={{uri: this.props.url}}
+                    resizeMode="contain"
+                    onLoadEnd={() => this.setState({isLoading: false})}
+                />
+                {this.state.isLoading && (
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
+                )}
+            </>
         );
     }
 }
