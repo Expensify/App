@@ -42,7 +42,7 @@ const TextInputWithPrefix = props => (
                     {height: 40},
                 ]}
 
-                // Align Text to left by default to override align to right by default in RTL which is not supported.
+                // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 textAlign="left"
                 // eslint-disable-next-line react/jsx-props-no-spreading
