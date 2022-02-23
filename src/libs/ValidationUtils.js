@@ -333,17 +333,16 @@ function isReservedRoomName(roomName) {
 }
 
 /**
- * Checks if the room name already exists. We don't care if it matches the original name provided in this
- * component because then we are not changing the room's name
+ * Checks if the room name already exists.
  *
  * @param {String} roomName
- * @param {Object[]} reports
+ * @param {Object} reports
  * @param {String} policyID
  * @returns {Boolean}
  */
 function isExistingRoomName(roomName, reports, policyID) {
     return _.some(
-        _.values(reports),
+        reports,
         report => report && report.policyID === policyID
         && report.reportName === roomName,
     );

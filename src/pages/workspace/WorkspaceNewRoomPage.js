@@ -104,8 +104,7 @@ class WorkspaceNewRoomPage extends React.Component {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
 
-        // We error if the room name already exists. We don't care if it matches the original name provided in this
-        // component because then we are not changing the room's name.
+        // We error if the room name already exists.
         if (ValidationUtils.isExistingRoomName(this.state.roomName, this.props.reports, this.state.policyID)) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }

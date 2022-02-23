@@ -123,8 +123,7 @@ class ReportSettingsPage extends Component {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
 
-        // We error if the room name already exists. We don't care if it matches the original name provided in this
-        // component because then we are not changing the room's name.
+        // We error if the room name already exists. We don't error if the room name matches same as previous.
         if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
             errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
