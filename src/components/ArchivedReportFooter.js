@@ -19,14 +19,25 @@ const propTypes = {
 
 const ArchivedReportFooter = (props) => {
     return (
-        <Hoverable containerStyles={[styles.flexRow, styles.p5]}>
+        <Hoverable>
             {isHovered => (
-                <View style={isHovered ? styles.activeComponentBG : styles.hoveredComponentBG}>
+                <View style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                    styles.p5,
+                    styles.borderRadiusNormal,
+                    isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
+                ]}
+                >
+                    {/* TODO: pass displayName, policyName, and other parameters to translate() */}
                     <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
-                    <Icon
-                        src={Expensicons.Exclamation}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                    />
+                    <View style={[styles.ml3]}>
+                        <Icon
+                            src={Expensicons.Exclamation}
+                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                        />
+                    </View>
                 </View>
             )}
         </Hoverable>

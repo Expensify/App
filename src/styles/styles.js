@@ -320,6 +320,10 @@ const styles = {
         color: colors.red,
     },
 
+    borderRadiusNormal: {
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
