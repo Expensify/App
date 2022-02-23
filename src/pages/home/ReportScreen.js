@@ -19,6 +19,7 @@ import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -163,6 +164,14 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
+
+        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        let archiveReason = '';
+        if (isArchivedRoom) {
+            const lastClosedActionIndex = _.findLastIndex(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            archiveReason = lastClosedActionIndex >= 0 ? this.props.reportActions[lastClosedActionIndex].originalMessage.reason : CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED;
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -183,15 +192,21 @@ class ReportScreen extends React.Component {
                             session={this.props.session}
                         />
                     )}
-                    {this.props.session.shouldShowComposeInput && (
-                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                            <ReportActionCompose
-                                onSubmit={this.onSubmitComment}
-                                reportID={reportID}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                            />
-                        </SwipeableView>
+                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        <View style={styles.chatFooter}>
+                            {isArchivedRoom
+                                ? <ArchivedReportFooter archiveReason={archiveReason} />
+                                : (
+                                    <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                                        <ReportActionCompose
+                                            onSubmit={this.onSubmitComment}
+                                            reportID={reportID}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                        />
+                                    </SwipeableView>
+                                )}
+                        </View>
                     )}
                     <KeyboardSpacer />
                 </View>

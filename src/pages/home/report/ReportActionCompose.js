@@ -403,223 +403,200 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-
-        let archivedReason = '';
-        if (isArchivedRoom) {
-            const lastClosedActionIndex = _.findLastIndex(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-            archivedReason = lastClosedActionIndex >= 0 ? this.props.reportActions[lastClosedActionIndex].originalMessage.reason : CONST.REPORT.ARCHIVE_REASON.MANUALLY_ARCHIVED;
-        }
-
         return (
-            <View style={[
-                styles.chatItemCompose,
-                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
-            ]}
-            >
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
-                {isArchivedRoom
-                    ? <ArchivedReportFooter archivedReason={archivedReason} />
-                    : (
-                        <>
-                            <View style={[
-                                (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
-                                    ? styles.chatItemComposeBoxFocusedColor
-                                    : styles.chatItemComposeBoxColor,
-                                styles.chatItemComposeBox,
-                                styles.flexRow,
-                            ]}
-                            >
-                                <AttachmentModal
-                                    isUploadingAttachment
-                                    onConfirm={(file) => {
-                                        this.submitForm();
-                                        Report.addAction(this.props.reportID, '', file);
-                                        this.setTextInputShouldClear(false);
-                                    }}
-                                >
-                                    {({displayFileInModal}) => (
+                <View style={[
+                    (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
+                        ? styles.chatItemComposeBoxFocusedColor
+                        : styles.chatItemComposeBoxColor,
+                    styles.chatItemComposeBox,
+                    styles.flexRow,
+                ]}
+                >
+                    <AttachmentModal
+                        isUploadingAttachment
+                        onConfirm={(file) => {
+                            this.submitForm();
+                            Report.addAction(this.props.reportID, '', file);
+                            this.setTextInputShouldClear(false);
+                        }}
+                    >
+                        {({displayFileInModal}) => (
+                            <>
+                                <AttachmentPicker>
+                                    {({openPicker}) => (
                                         <>
-                                            <AttachmentPicker>
-                                                {({openPicker}) => (
-                                                    <>
-                                                        <View style={[styles.justifyContentEnd]}>
-                                                            <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                                <TouchableOpacity
-                                                                    onPress={(e) => {
-                                                                        e.preventDefault();
-                                                                        this.setMenuVisibility(true);
-                                                                    }}
-                                                                    style={styles.chatItemAttachButton}
-                                                                    underlayColor={themeColors.componentBG}
-                                                                    disabled={isBlockedFromConcierge || isArchivedRoom}
-                                                                >
-                                                                    <Icon src={Expensicons.Plus} />
-                                                                </TouchableOpacity>
-                                                            </Tooltip>
-                                                        </View>
-                                                        <PopoverMenu
-                                                            isVisible={this.state.isMenuVisible}
-                                                            onClose={() => this.setMenuVisibility(false)}
-                                                            onItemSelected={() => this.setMenuVisibility(false)}
-                                                            anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                            animationIn="fadeInUp"
-                                                            animationOut="fadeOutDown"
-                                                            menuItems={[
-                                                                ...(!hasExcludedIOUEmails
-                                                                && Permissions.canUseIOU(this.props.betas) ? [
-                                                                    hasMultipleParticipants
-                                                                        ? {
-                                                                            icon: Expensicons.Receipt,
-                                                                            text: this.props.translate('iou.splitBill'),
-                                                                            onSelected: () => {
-                                                                                Navigation.navigate(
-                                                                                    ROUTES.getIouSplitRoute(
-                                                                                        this.props.reportID,
-                                                                                    ),
-                                                                                );
-                                                                            },
-                                                                        }
-                                                                        : {
-                                                                            icon: Expensicons.MoneyCircle,
-                                                                            text: this.props.translate('iou.requestMoney'),
-                                                                            onSelected: () => {
-                                                                                Navigation.navigate(
-                                                                                    ROUTES.getIouRequestRoute(
-                                                                                        this.props.reportID,
-                                                                                    ),
-                                                                                );
-                                                                            },
-                                                                        },
-                                                                ] : []),
-                                                                ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
-                                                                    {
-                                                                        icon: Expensicons.Send,
-                                                                        text: this.props.translate('iou.sendMoney'),
-                                                                        onSelected: () => {
-                                                                            Navigation.navigate(
-                                                                                ROUTES.getIOUSendRoute(
-                                                                                    this.props.reportID,
-                                                                                ),
-                                                                            );
-                                                                        },
-                                                                    },
-                                                                ] : []),
-                                                                {
-                                                                    icon: Expensicons.Paperclip,
-                                                                    text: this.props.translate('reportActionCompose.addAttachment'),
-                                                                    onSelected: () => {
-                                                                        openPicker({
-                                                                            onPicked: (file) => {
-                                                                                displayFileInModal({file});
-                                                                            },
-                                                                        });
-                                                                    },
+                                            <View style={[styles.justifyContentEnd]}>
+                                                <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                    <TouchableOpacity
+                                                        onPress={(e) => {
+                                                            e.preventDefault();
+                                                            this.setMenuVisibility(true);
+                                                        }}
+                                                        style={styles.chatItemAttachButton}
+                                                        underlayColor={themeColors.componentBG}
+                                                        disabled={isBlockedFromConcierge || isArchivedRoom}
+                                                    >
+                                                        <Icon src={Expensicons.Plus} />
+                                                    </TouchableOpacity>
+                                                </Tooltip>
+                                            </View>
+                                            <PopoverMenu
+                                                isVisible={this.state.isMenuVisible}
+                                                onClose={() => this.setMenuVisibility(false)}
+                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                animationIn="fadeInUp"
+                                                animationOut="fadeOutDown"
+                                                menuItems={[
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOU(this.props.betas) ? [
+                                                        hasMultipleParticipants
+                                                            ? {
+                                                                icon: Expensicons.Receipt,
+                                                                text: this.props.translate('iou.splitBill'),
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouSplitRoute(
+                                                                            this.props.reportID,
+                                                                        ),
+                                                                    );
                                                                 },
-                                                            ]}
-                                                        />
-                                                    </>
-                                                )}
-                                            </AttachmentPicker>
-                                            <TextInputFocusable
-                                                autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
-                                                multiline
-                                                ref={this.setTextInputRef}
-                                                textAlignVertical="top"
-                                                placeholder={inputPlaceholder}
-                                                placeholderTextColor={themeColors.placeholderText}
-                                                onChangeText={this.updateComment}
-                                                onKeyPress={this.triggerHotkeyActions}
-                                                onDragEnter={(e, isOriginComposer) => {
-                                                    if (!isOriginComposer) {
-                                                        return;
-                                                    }
-
-                                                    this.setState({isDraggingOver: true});
-                                                }}
-                                                onDragOver={(e, isOriginComposer) => {
-                                                    if (!isOriginComposer) {
-                                                        return;
-                                                    }
-
-                                                    this.setState({isDraggingOver: true});
-                                                }}
-                                                onDragLeave={() => this.setState({isDraggingOver: false})}
-                                                onDrop={(e) => {
-                                                    e.preventDefault();
-
-                                                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                                    if (!file) {
-                                                        return;
-                                                    }
-
-                                                    displayFileInModal({file});
-                                                    this.setState({isDraggingOver: false});
-                                                }}
-                                                style={[styles.textInputCompose, styles.flex4]}
-                                                defaultValue={this.props.comment}
-                                                maxLines={16} // This is the same that slack has
-                                                onFocus={() => this.setIsFocused(true)}
-                                                onBlur={() => this.setIsFocused(false)}
-                                                onPasteFile={file => displayFileInModal({file})}
-                                                shouldClear={this.state.textInputShouldClear}
-                                                onClear={() => this.setTextInputShouldClear(false)}
-                                                isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                                selection={this.state.selection}
-                                                onSelectionChange={this.onSelectionChange}
+                                                            } : {
+                                                                icon: Expensicons.MoneyCircle,
+                                                                text: this.props.translate('iou.requestMoney'),
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouRequestRoute(
+                                                                            this.props.reportID,
+                                                                        ),
+                                                                    );
+                                                                },
+                                                            },
+                                                    ] : []),
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                        {
+                                                            icon: Expensicons.Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => {
+                                                                Navigation.navigate(
+                                                                    ROUTES.getIOUSendRoute(
+                                                                        this.props.reportID,
+                                                                    ),
+                                                                );
+                                                            },
+                                                        },
+                                                    ] : []),
+                                                    {
+                                                        icon: Expensicons.Paperclip,
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
+                                                        onSelected: () => {
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
+                                                        },
+                                                    },
+                                                ]}
                                             />
-
                                         </>
                                     )}
-                                </AttachmentModal>
-                                <EmojiPicker
-                                    isDisabled={isBlockedFromConcierge}
-                                    onModalHide={() => this.focus(true)}
-                                    onEmojiSelected={this.addEmojiToTextBox}
-                                    onBeforeShowEmojiPicker={() => this.textInput.blur()}
-                                />
-                                <View style={[styles.justifyContentEnd]}>
-                                    <Tooltip text={this.props.translate('common.send')}>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.chatItemSubmitButton,
-                                                this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
-                                            ]}
-                                            onPress={this.submitForm}
-                                            underlayColor={themeColors.componentBG}
-                                            disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
-                                            hitSlop={{
-                                                top: 3, right: 3, bottom: 3, left: 3,
-                                            }}
-                                        >
-                                            <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
-                                        </TouchableOpacity>
-                                    </Tooltip>
-                                </View>
-                            </View>
-                            {this.props.network.isOffline ? (
-                                <View style={[styles.chatItemComposeSecondaryRow]}>
-                                    <View style={[
-                                        styles.chatItemComposeSecondaryRowOffset,
-                                        styles.flexRow,
-                                        styles.alignItemsCenter]}
-                                    >
-                                        <Icon
-                                            src={Expensicons.Offline}
-                                            width={variables.iconSizeExtraSmall}
-                                            height={variables.iconSizeExtraSmall}
-                                        />
-                                        <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                            {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                                        </Text>
-                                    </View>
-                                </View>
-                            ) : <ReportTypingIndicator reportID={this.props.reportID} />}
-                        </>
-                    )
-                }
+                                </AttachmentPicker>
+                                <TextInputFocusable
+                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                    multiline
+                                    ref={this.setTextInputRef}
+                                    textAlignVertical="top"
+                                    placeholder={inputPlaceholder}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                    onChangeText={this.updateComment}
+                                    onKeyPress={this.triggerHotkeyActions}
+                                    onDragEnter={(e, isOriginComposer) => {
+                                        if (!isOriginComposer) {
+                                            return;
+                                        }
 
+                                        this.setState({isDraggingOver: true});
+                                    }}
+                                    onDragOver={(e, isOriginComposer) => {
+                                        if (!isOriginComposer) {
+                                            return;
+                                        }
+
+                                        this.setState({isDraggingOver: true});
+                                    }}
+                                    onDragLeave={() => this.setState({isDraggingOver: false})}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+
+                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        if (!file) {
+                                            return;
+                                        }
+
+                                        displayFileInModal({file});
+                                        this.setState({isDraggingOver: false});
+                                    }}
+                                    style={[styles.textInputCompose, styles.flex4]}
+                                    defaultValue={this.props.comment}
+                                    maxLines={16} // This is the same that slack has
+                                    onFocus={() => this.setIsFocused(true)}
+                                    onBlur={() => this.setIsFocused(false)}
+                                    onPasteFile={file => displayFileInModal({file})}
+                                    shouldClear={this.state.textInputShouldClear}
+                                    onClear={() => this.setTextInputShouldClear(false)}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                    selection={this.state.selection}
+                                    onSelectionChange={this.onSelectionChange}
+                                />
+                            </>
+                        )}
+                    </AttachmentModal>
+                    <EmojiPicker
+                        isDisabled={isBlockedFromConcierge}
+                        onModalHide={() => this.focus(true)}
+                        onEmojiSelected={this.addEmojiToTextBox}
+                        onBeforeShowEmojiPicker={() => this.textInput.blur()}
+                    />
+                    <View style={[styles.justifyContentEnd]}>
+                        <Tooltip text={this.props.translate('common.send')}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                ]}
+                                onPress={this.submitForm}
+                                underlayColor={themeColors.componentBG}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
+                                hitSlop={{
+                                    top: 3, right: 3, bottom: 3, left: 3,
+                                }}
+                            >
+                                <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+                </View>
+                {this.props.network.isOffline ? (
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <View style={[
+                            styles.chatItemComposeSecondaryRowOffset,
+                            styles.flexRow,
+                            styles.alignItemsCenter]}
+                        >
+                            <Icon
+                                src={Expensicons.Offline}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                            />
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                            </Text>
+                        </View>
+                    </View>
+                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
             </View>
         );
     }

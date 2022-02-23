@@ -1301,15 +1301,6 @@ const styles = {
         lineHeight: 20,
     },
 
-    chatItemCompose: {
-        minHeight: 65,
-        marginBottom: 5,
-        paddingLeft: 20,
-        paddingRight: 20,
-        display: 'flex',
-        backgroundColor: themeColors.appBG,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1327,6 +1318,15 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
+    },
+
+    chatFooter: {
+        minHeight: 65,
+        marginBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     textInputCompose: addOutlineWidth({
