@@ -1,15 +1,23 @@
-const ENVIRONMENT = require('../src/CONST/ENVIRONMENT');
+const ENVIRONMENT = require('../../src/CONST/ENVIRONMENT');
 
+const isStaging = process.env.ELECTRON_ENV === 'staging';
+
+/**
+ * The basic app configurations for the production and staging Electron builds,
+ * without the pieces that require code signing, notarizing, and publishing.
+ *
+ * This has been separated from main electronBuilder.ghactions.config.js file to make it easier to run local production or staging builds.
+ */
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
-        electronEnvironment: process.env.SHOULD_DEPLOY_PRODUCTION ? ENVIRONMENT.PRODUCTION : ENVIRONMENT.STAGING,
+        electronEnvironment: isStaging ? ENVIRONMENT.STAGING : ENVIRONMENT.PRODUCTION,
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? './desktop/icon.png' : './desktop/icon-stg.png',
+        icon: isStaging ? './desktop/icon-stg.png' : './desktop/icon.png',
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
@@ -20,11 +28,6 @@ module.exports = {
         artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
-    publish: [{
-        provider: 's3',
-        bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
-        channel: 'latest',
-    }],
     files: [
         './dist/**/*',
         './desktop/*.js',
