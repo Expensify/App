@@ -1486,6 +1486,13 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleSubscript: {
+        height: 20,
+        width: 20,
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+    },
+
     singleAvatarSmall: {
         height: 18,
         width: 18,
@@ -1519,6 +1526,15 @@ const styles = {
         position: 'absolute',
         right: -13,
         bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarSubscript: {
+        position: 'absolute',
+        right: -3,
+        bottom: -3,
         borderWidth: 3,
         borderRadius: 18,
         borderColor: 'transparent',
