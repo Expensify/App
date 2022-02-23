@@ -182,7 +182,11 @@ export default {
         multipleUsers: 'Multiple users',
     },
     reportArchiveReasons: {
+        accountClosed: ({login}) => `This workspace chat is no longer active because ${login} closed their account.`,
+        accountMerged: ({oldLogin, newLogin}) => `This workspace chat is no longer active because ${oldLogin} has merged with ${newLogin}.`,
         manuallyArchived: 'This chat room has been archived.',
+        removedFromPolicy: ({policyName, login}) => `This workspace chat is no longer active because ${login} is no longer a member of the ${policyName} workspace.`,
+        policyDeleted: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',
