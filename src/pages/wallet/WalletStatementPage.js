@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import CONFIG from '../../CONFIG';
 import WalletStatementModal from '../../components/WalletStatementModal';
+import GenerateStatementPDF from '../../libs/GenerateStatementPDF';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -37,11 +38,14 @@ const WalletStatementPage = (props) => {
     const title = `${monthName} ${year} statement`;
 
     const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statement.php?period=${yearMonth}`;
+    const pdfUrl = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statement.php?period=${yearMonth}&pdfView=true`;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={Str.recapitalize(title)}
+                shouldShowDownloadButton
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onDownloadButtonPress={() => GenerateStatementPDF(pdfUrl)}
             />
             <WalletStatementModal
                 statementPageURL={url}
