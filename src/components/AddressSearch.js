@@ -92,7 +92,7 @@ const AddressSearch = (props) => {
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
         const values = {};
-        if (street && street.length > props.value.trim().length) {
+        if (street && props.value && street.length > props.value.trim().length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
             // like Apt # and this is the best way we have to tell that the new value it's giving us is less
