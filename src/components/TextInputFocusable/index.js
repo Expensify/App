@@ -1,9 +1,10 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {TextInput, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import TextInput from '../baseTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
@@ -358,10 +359,6 @@ class TextInputFocusable extends React.Component {
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
-
-                // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                textAlign="left"
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}

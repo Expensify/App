@@ -2,10 +2,9 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
-    // eslint-disable-next-line no-restricted-imports
-    TextInput as RNTextInput,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
+import RNTextInput from '../baseTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
@@ -223,10 +222,6 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-
-                                        // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
-                                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                        textAlign="left"
                                         defaultValue={this.value}
                                         placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}

@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 // eslint-disable-next-line no-restricted-imports
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
+import TextInput from '../baseTextInput';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
@@ -41,10 +42,6 @@ const TextInputWithPrefix = props => (
                     styles.noOutline,
                     {height: 40},
                 ]}
-
-                // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                textAlign="left"
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {..._.omit(props, ['prefixCharacter', 'errorText'])}
             />
