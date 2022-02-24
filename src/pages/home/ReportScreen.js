@@ -27,6 +27,8 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
+            sequenceNumber: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -181,6 +183,7 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
+                            sequenceNumber={this.props.sequenceNumber}
                         />
                     )}
                     {this.props.session.shouldShowComposeInput && (

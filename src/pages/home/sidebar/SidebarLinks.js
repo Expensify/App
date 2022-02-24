@@ -250,7 +250,7 @@ class SidebarLinks extends React.Component {
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID, 2000));
                         this.props.onLinkClick();
                     }}
                     optionBackgroundColor={themeColors.sidebar}

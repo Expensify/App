@@ -45,6 +45,8 @@ const propTypes = {
     /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
+    sequenceNumber: PropTypes.string,
+
     /* Onyx Props */
 
     /** The report currently being looked at */
@@ -153,7 +155,7 @@ class ReportActionsView extends React.Component {
             Report.updateLastReadActionID(this.props.reportID);
         }
 
-        Report.fetchActions(this.props.reportID);
+        Report.fetchActions(this.props.reportID, Number.parseInt(this.props.sequenceNumber) - CONST.REPORT.ACTIONS.LIMIT, 2);
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
         const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
@@ -298,12 +300,10 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        let minSequenceNumber = _.chain(this.props.reportActions)
+        const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
             .value();
-
-        minSequenceNumber = minSequenceNumber / 2;
 
         console.log(`minSequenceNumber: ${minSequenceNumber}`);
 
@@ -572,8 +572,7 @@ class ReportActionsView extends React.Component {
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
-                    initialNumToRender={this.calculateInitialNumToRender() * 100}
-                    initialScrollIndex={100}
+                    initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
                     /* eslint-disable-next-line no-console */
