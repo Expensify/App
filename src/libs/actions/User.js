@@ -399,6 +399,10 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
+/**
+ * Downloads the statement PDF for the provided period
+ * @param {String} period YYYYMM format
+ */
 function downloadStatementPDF(period) {
     API.GetStatementPDF({period})
         .then((response) => {
