@@ -6,6 +6,7 @@ import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
 import SubscriptAvatar from './SubscriptAvatar';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -73,6 +74,7 @@ const MultipleAvatars = (props) => {
             <SubscriptAvatar
                 avatarImageURLs={props.avatarImageURLs}
                 avatarTooltips={props.avatarTooltips}
+                defaultSubscriptIcon={() => Expensicons.Workspace}
             />
         );
     }
