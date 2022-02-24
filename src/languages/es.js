@@ -97,7 +97,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo de participantes. (${count})`,
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',

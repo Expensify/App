@@ -97,7 +97,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
-        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
+        maxParticipantsReached: ({count}) => `You've selected the maximum number of participants. (${count})`,
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
