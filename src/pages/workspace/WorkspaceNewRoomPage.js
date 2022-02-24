@@ -21,12 +21,18 @@ import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.shape({
+        /** The report name */
         reportName: PropTypes.string,
+
+        /** The report type */
         type: PropTypes.string,
+
+        /** ID of the policy */
         policyID: PropTypes.string,
     }).isRequired,
 
@@ -49,13 +55,13 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.state = {
             roomName: '',
-            error: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            errors: {},
             workspaceOptions: [],
         };
-        this.onWorkspaceSelect = this.onWorkspaceSelect.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+
+        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
     }
 
     componentDidMount() {
@@ -76,19 +82,58 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    /**
-     * Called when a workspace is selected.
-     * @param {String} policyID
-     */
-    onWorkspaceSelect(policyID) {
-        this.setState({policyID});
+    validateAndCreatePolicyRoom() {
+        if (!this.validate()) {
+            return;
+        }
+        Report.createPolicyRoom(
+            this.state.policyID,
+            this.state.roomName,
+            this.state.visibility,
+        );
     }
 
     /**
-     * Called when the "Create Room" button is pressed.
+     * @returns {Boolean}
      */
-    onSubmit() {
-        Report.createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility);
+    validate() {
+        const errors = {};
+
+        // We error if the user doesn't enter a room name or left blank
+        if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
+            errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+        }
+
+        // We error if the room name already exists.
+        if (ValidationUtils.isExistingRoomName(this.state.roomName, this.props.reports, this.state.policyID)) {
+            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        }
+
+        // Certain names are reserved for default rooms and should not be used for policy rooms.
+        if (ValidationUtils.isReservedRoomName(this.state.roomName)) {
+            errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
+        }
+
+        if (!this.state.policyID) {
+            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+        }
+
+        this.setState({errors});
+        return _.isEmpty(errors);
+    }
+
+    /**
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setState(prevState => ({
+            [inputKey]: value,
+            errors: {
+                ...prevState.errors,
+                [inputKey]: '',
+            },
+        }));
     }
 
     render() {
@@ -97,7 +142,6 @@ class WorkspaceNewRoomPage extends React.Component {
             Navigation.dismissModal();
             return null;
         }
-        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
@@ -115,10 +159,10 @@ class WorkspaceNewRoomPage extends React.Component {
                         <View style={styles.mb5}>
                             <Text style={[styles.formLabel]}>{this.props.translate('newRoomPage.roomName')}</Text>
                             <RoomNameInput
-                                onChangeText={roomName => this.setState({roomName})}
-                                onChangeError={error => this.setState({error})}
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}
+                                errorText={this.state.errors.roomName}
+                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             />
                         </View>
                         <View style={styles.mb5}>
@@ -127,7 +171,9 @@ class WorkspaceNewRoomPage extends React.Component {
                                 label={this.props.translate('workspace.common.workspace')}
                                 placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                                 items={this.state.workspaceOptions}
-                                onChange={this.onWorkspaceSelect}
+                                errorText={this.state.errors.policyID}
+                                hasError={Boolean(this.state.errors.policyID)}
+                                onChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
                             />
                         </View>
                         <Picker
@@ -140,9 +186,9 @@ class WorkspaceNewRoomPage extends React.Component {
                     <FixedFooter>
                         <Button
                             isLoading={this.props.isLoadingCreatePolicyRoom}
-                            isDisabled={shouldDisableSubmit}
                             success
-                            onPress={this.onSubmit}
+                            pressOnEnter
+                            onPress={this.validateAndCreatePolicyRoom}
                             style={[styles.w100]}
                             text={this.props.translate('newRoomPage.createRoom')}
                         />
