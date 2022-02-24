@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import themedefault from '../styles/themes/default';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -27,10 +30,19 @@ const SubscriptAvatar = props => (
             ]}
         >
             <Tooltip text={props.avatarTooltips[1]} absolute>
-                <Image
-                    source={{uri: props.avatarImageURLs[1]}}
-                    style={styles.singleSubscript}
-                />
+                { props.avatarImageURLs[1] === ''
+                    ? (
+                        <Icon
+                            src={Expensicons.Workspace}
+                            style={styles.singleSubscript}
+                            fill={themedefault.iconSuccessFill}
+                        />
+                    ) : (
+                        <Image
+                            source={{uri: props.avatarImageURLs[1]}}
+                            style={styles.singleSubscript}
+                        />
+                    )}
             </Tooltip>
         </View>
     </View>
