@@ -15,10 +15,12 @@ import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
+import CONFIG from '../../CONFIG';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
+import fileDownload from '../fileDownload';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -397,23 +399,19 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
-function getStatementLink(period) {
-    Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: true});
+function downloadStatementPDF(period) {
     API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode === 200) {
-                const {filename} = response;
-                Onyx.merge(ONYXKEYS.STATEMENT_LIST, {
-                    loading: false,
-                    periods: {
-                        [response.period]: filename,
-                    },
-                });
+                const returnedPeriod = response.period;
+                const downloadFileName = `Expensify_Statement_${returnedPeriod}.pdf`;
+                const pdfURL = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
+                fileDownload(pdfURL, downloadFileName);
             } else {
-                Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: false, error: CONST.ERROR.UNKNOWN_ERROR});
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
             }
         })
-        .catch(() => Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: false, error: CONST.ERROR.UNKNOWN_ERROR}));
+        .catch(() => Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000));
 }
 
 export {
@@ -435,5 +433,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
-    getStatementLink,
+    downloadStatementPDF,
 };

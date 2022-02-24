@@ -12,10 +12,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import CONFIG from '../../CONFIG';
 import WalletStatementModal from '../../components/WalletStatementModal';
-import Growl from '../../libs/Growl';
 import * as User from '../../libs/actions/User';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import fileDownload from '../../libs/fileDownload';
+
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -29,23 +27,7 @@ const propTypes = {
         }).isRequired,
     }).isRequired,
 
-    /** Stores details about the statement PDF generation */
-    statementPDFData: PropTypes.shape({
-
-        /** Loading state to provide feedback when we are waiting for a request to finish */
-        loading: PropTypes.bool,
-
-        /** Error message to inform the user of any problem that might occur */
-        error: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    statementPDFData: {
-        loading: false,
-    },
 };
 
 const WalletStatementPage = (props) => {
@@ -55,14 +37,8 @@ const WalletStatementPage = (props) => {
     const month = yearMonth.substring(4) || moment().month();
     const monthName = moment(month, 'M').format('MMMM');
     const title = `${monthName} ${year} statement`;
-
     const url = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}statement.php?period=${yearMonth}`;
 
-    const downloadStatementPDF = (period) => {
-        if (lodashGet(props, `statementPDFData.periods.${period}`, false)) {
-            
-        }
-    }
 
     return (
         <ScreenWrapper>
@@ -70,11 +46,8 @@ const WalletStatementPage = (props) => {
                 title={Str.recapitalize(title)}
                 shouldShowDownloadButton
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
-                onDownloadButtonPress={() => User.getStatementLink(yearMonth)}
+                onDownloadButtonPress={() => User.downloadStatementPDF(yearMonth)}
             />
-            {props.statementPDFData.loading && (
-                <FullscreenLoadingIndicator />
-            )}
             <WalletStatementModal
                 statementPageURL={url}
             />
@@ -83,16 +56,12 @@ const WalletStatementPage = (props) => {
 };
 
 WalletStatementPage.propTypes = propTypes;
-WalletStatementPage.defaultProps = defaultProps;
 WalletStatementPage.displayName = 'WalletStatementPage';
 export default compose(
     withLocalize,
     withOnyx({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        statementPDFData: {
-            key: ONYXKEYS.STATEMENT_LIST,
         },
     }),
 )(WalletStatementPage);
