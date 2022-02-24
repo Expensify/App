@@ -13,6 +13,9 @@ const propTypes = {
     report: PropTypes.shape({
         /**  Avatars corresponding to a chat */
         icons: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the user is not an admin of policyExpenseChat chat */
+        isOwnPolicyExpenseChat: PropTypes.bool,
     }),
 };
 const defaultProps = {
@@ -21,7 +24,7 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
-
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     return (
         <View style={[
             styles.chatContent,
@@ -34,6 +37,7 @@ const ReportActionItemCreated = (props) => {
                     avatarImageURLs={props.report.icons}
                     secondAvatarStyle={[styles.secondAvatarHovered]}
                     isChatRoom={isChatRoom}
+                    showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />
             </View>

@@ -13,11 +13,15 @@ const propTypes = {
 
     /** Whether this avatar is for a custom/default room */
     isChatRoom: PropTypes.bool,
+
+    /** Flag to show SubscriptAvatar component */
+    showSubscript: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     isChatRoom: false,
+    showSubscript: false,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -31,6 +35,7 @@ const RoomHeaderAvatars = (props) => {
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
+                showSubscript={props.showSubscript}
             />
         );
     }
