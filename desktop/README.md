@@ -127,12 +127,15 @@ Once the command finishes, revert the version update in `package.json`, remove `
 To avoid bundling unnecessary `node_modules` we use a [2 package structure](https://www.electron.build/tutorials/two-package-structure)
 The root [package.json](../package.json) serves for `devDependencies` and shared (renderer) `dependencies`
 The [desktop/package.json](./package.json) serves for desktop (electron-main) specific dependencies
-Webpack uses root package dependencies and src to bundle the web application loaded by Electron's renderer process in `desktop/dist/www` - all necessary dependencies are copied to that folder
-We use Webpack again to bundle the `main` scripts that init electron and render `www` content.
+We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.js) to bundle our js code
+Half of the config takes care of packaging root package dependencies - everything related to rendering App in the Electron window. Packaged under `dist/www`
+The other half is about bundling the `main.js` script which initializes Electron and renders `www`
 
 ## See what is getting packaged in the app
-You can inspect the app package content in the `desktop-build` folder 
+If you suspect unnecessary items might be getting packaged you can inspect the package content in `desktop-build/`
+The app content (`dist/www`) is archived under `/New\ Expensify.app/Contents/Resources/app.asar` 
 To see the actual `app.asar` content run the following script
 ```shell
 npx asar extract desktop-build/mac/New\ Expensify.app/Contents/Resources/app.asar ./unpacked-asar
 ```
+The expected size of `app.asar` = `desktop/dist/www/` + `desktop/node_modules/`;
