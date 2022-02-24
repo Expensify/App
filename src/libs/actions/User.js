@@ -397,6 +397,25 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
+function getStatementLink(period) {
+    Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: true});
+    API.GetStatementPDF({period})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                const {filename} = response;
+                Onyx.merge(ONYXKEYS.STATEMENT_LIST, {
+                    loading: false,
+                    periods: {
+                        [response.period]: filename,
+                    },
+                });
+            } else {
+                Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: false, error: CONST.ERROR.UNKNOWN_ERROR});
+            }
+        })
+        .catch(() => Onyx.set(ONYXKEYS.STATEMENT_LIST, {loading: false, error: CONST.ERROR.UNKNOWN_ERROR}));
+}
+
 export {
     changePasswordAndNavigate,
     closeAccount,
@@ -416,4 +435,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
+    getStatementLink,
 };
