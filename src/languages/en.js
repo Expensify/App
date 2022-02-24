@@ -303,8 +303,8 @@ export default {
         closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
-        enterPrimaryLogin: 'Enter your primary login',
-        primaryLogin: 'Primary login:',
+        enterDefaultContact: 'Enter your default contact method',
+        defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
