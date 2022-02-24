@@ -6,6 +6,8 @@ import styles from '../styles/styles';
 import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
+import SubscriptAvatar from './SubscriptAvatar';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -29,13 +31,22 @@ const RoomHeaderAvatars = (props) => {
         return null;
     }
 
+    if (props.showSubscript) {
+        return (
+            <SubscriptAvatar
+                avatarImageURLs={props.avatarImageURLs}
+                avatarTooltips={[]}
+                defaultSubscriptIcon={() => Expensicons.Workspace}
+            />
+        );
+    }
+
     if (props.avatarImageURLs.length === 1 || props.isChatRoom) {
         return (
             <Avatar
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
-                showSubscript={props.showSubscript}
             />
         );
     }
