@@ -109,9 +109,6 @@ export default {
     // List of transactionIDs in process of rejection
     TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
 
-    // The user's statements
-    STATEMENT_LIST: 'statementList',
-
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
 
