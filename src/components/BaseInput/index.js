@@ -14,7 +14,7 @@ const defaultProps = {
     forwardedRef: null,
 };
 
-class BaseTextInput extends Component {
+class BaseInput extends Component {
     render() {
         return (
             <RNTextInput
@@ -36,10 +36,10 @@ class BaseTextInput extends Component {
     }
 }
 
-BaseTextInput.propTypes = propTypes;
-BaseTextInput.defaultProps = defaultProps;
+BaseInput.propTypes = propTypes;
+BaseInput.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <BaseTextInput {...props} forwardedRef={ref} />
+    <BaseInput {...props} forwardedRef={ref} />
 ));
