@@ -551,7 +551,7 @@ class ReportActionCompose extends React.Component {
                                     }}
                                     style={[styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
-                                    maxLines={16} // This is the same that slack has
+                                    maxLines={this.props.isSmallScreenWidth ? 6: 16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
