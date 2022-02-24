@@ -10,14 +10,14 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const FailedKYC = (props) => (
-        <View style={[styles.flex1]}>
-            <View style={[styles.ph5]}>
-                <Text style={styles.mb3}>
-                    {props.translate('additionalDetailsStep.failedKYCText')}
-                </Text>
-            </View>
+const FailedKYC = props => (
+    <View style={[styles.flex1]}>
+        <View style={[styles.ph5]}>
+            <Text style={styles.mb3}>
+                {props.translate('additionalDetailsStep.failedKYCText')}
+            </Text>
         </View>
+    </View>
 );
 
 FailedKYC.propTypes = propTypes;
