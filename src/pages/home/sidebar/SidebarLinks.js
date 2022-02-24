@@ -144,12 +144,6 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report has a draft and vice versa.
-        if (nextProps.currentlyViewedReportID) {
-            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
-            return !hasActiveReportDraft;
-        }
-
         return true;
     }
 
