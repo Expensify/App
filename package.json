@@ -83,7 +83,7 @@
     "react": "^17.0.2",
     "react-collapse": "^5.1.0",
     "react-dom": "^17.0.2",
-    "react-native": "0.66.4",
+    "react-native": "git+https://github.com/Expensify/react-native.git#cbca293b0c36d3f010343bccca9fb1adc3a78847",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
     "react-native-document-picker": "^8.0.0",
