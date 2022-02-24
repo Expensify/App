@@ -115,7 +115,10 @@ class OptionsSelector extends Component {
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
 
-        this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
+        this.state = {
+            allOptions: OptionsListUtils.flattenSections(this.props.sections),
+        };
+
         this.viewableItems = [];
     }
 
@@ -142,7 +145,10 @@ class OptionsSelector extends Component {
             return;
         }
 
-        this.allOptions = OptionsListUtils.flattenSections(this.props.sections);
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+            allOptions: OptionsListUtils.flattenSections(this.props.sections),
+        });
     }
 
     componentWillUnmount() {
@@ -158,7 +164,7 @@ class OptionsSelector extends Component {
      * @param {Number} index
      */
     scrollToIndex(index) {
-        const option = this.allOptions[index];
+        const option = this.state.allOptions[index];
         if (!this.list || !option) {
             return;
         }
@@ -194,11 +200,11 @@ class OptionsSelector extends Component {
      * @param {Number} focusedIndex
      */
     selectFocusedIndex(focusedIndex) {
-        if (!this.allOptions[focusedIndex]) {
+        if (!this.state.allOptions[focusedIndex]) {
             return;
         }
 
-        this.selectRow(this.allOptions[focusedIndex]);
+        this.selectRow(this.state.allOptions[focusedIndex]);
 
         if (!this.props.canSelectMultipleOptions) {
             return;
@@ -216,10 +222,10 @@ class OptionsSelector extends Component {
             : this.props.maxParticipantsReachedMessage;
         return (
             <ArrowKeyFocusManager
-                listLength={this.props.canSelectMultipleOptions ? this.allOptions.length + 1 : this.allOptions.length}
+                listLength={this.props.canSelectMultipleOptions ? this.state.allOptions.length + 1 : this.state.allOptions.length}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={this.selectFocusedIndex}
-                shouldEnterKeyEventBubble={focusedIndex => !this.allOptions[focusedIndex]}
+                shouldEnterKeyEventBubble={focusedIndex => !this.state.allOptions[focusedIndex]}
             >
                 {({focusedIndex}) => (
                     <>
