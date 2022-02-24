@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -226,8 +225,7 @@ function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, rep
         && reportRecipient
         && reportRecipientTimezone
         && currentUserTimezone.selected
-        && reportRecipientTimezone.selected
-        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        && reportRecipientTimezone.selected;
 }
 
 /**
