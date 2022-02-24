@@ -7,11 +7,12 @@ import PropTypes from 'prop-types';
 
 
 const propTypes = {
-    ref: PropTypes.func,
+    /** A ref to forward to the text input */
+    forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {
-    ref: undefined,
+    forwardedRef: null,
 };
 
 class BaseTextInput extends Component {
@@ -20,9 +21,7 @@ class BaseTextInput extends Component {
             <RNTextInput
                 // eslint-disable-next-line rulesdir/prefer-early-return
                 ref={(ref) => {
-                    if (typeof this.props.ref === 'function') {
-                        this.props.ref(ref);
-                    }
+                    if (typeof this.props.forwardedRef === 'function') { this.props.forwardedRef(ref); }
                 }}
 
                 // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
@@ -39,4 +38,7 @@ class BaseTextInput extends Component {
 BaseTextInput.propTypes = propTypes;
 BaseTextInput.defaultProps = defaultProps;
 
-export default BaseTextInput;
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <BaseTextInput {...props} forwardRef={ref} />
+));

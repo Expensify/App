@@ -2,7 +2,8 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import TextInput from '../baseTextInput';
+import TextInput from '../BaseTextInput';
+
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
