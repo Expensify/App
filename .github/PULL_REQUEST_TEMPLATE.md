@@ -50,12 +50,12 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] OSX / Desktop
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
-- [ ] I followed proper code patterns (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+- [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I added comments when the code was not self explanatory
     - [ ] I put all copy / text shown in the product in all `src/languages/*` files (if applicable)
     - [ ] I followed proper naming convention for platform-specific files (if applicable)
     - [ ] I followed style guidelines (in [`Styling.md`](../STYLING.md)) for all style edits I made
-- [ ] I followed the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)
+- [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 
 #### PR Reviewer Checklist
 - [ ] I verified the Author pulled `main` before submitting the PR
@@ -72,12 +72,12 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] OSX / Desktop
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
-- [ ] I verified proper code patterns were followed (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+- [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified comments were added when the code was not self explanatory
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files (if applicable)
     - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
     - [ ] I verified [style guidelines](../STYLING.md) were followed
-- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)
+- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 
 ### QA Steps
 <!---
