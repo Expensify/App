@@ -200,30 +200,34 @@ class RequestCallPage extends Component {
      * so we return empty strings instead.
      * @param {String} login
      * @param {String} displayName
+     * @param {String} firstName
+     * @param {String} lastName
      *
      * @returns {Object}
      */
-    getFirstAndLastName({login, displayName}) {
-        let firstName;
-        let lastName;
-
+    getFirstAndLastName({
+        login,
+        displayName,
+        firstName,
+        lastName,
+    }) {
+        if (firstName || lastName) {
+            return {firstName: firstName || '', lastName: lastName || ''};
+        }
         if (Str.removeSMSDomain(login) === displayName) {
-            firstName = '';
-            lastName = '';
-        } else {
-            const firstSpaceIndex = displayName.indexOf(' ');
-            const lastSpaceIndex = displayName.lastIndexOf(' ');
-
-            if (firstSpaceIndex === -1) {
-                firstName = displayName;
-                lastName = '';
-            } else {
-                firstName = displayName.substring(0, firstSpaceIndex);
-                lastName = displayName.substring(lastSpaceIndex);
-            }
+            return {firstName: '', lastName: ''};
         }
 
-        return {firstName, lastName};
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -285,7 +289,7 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isBlockedFromConcierge = !_.isEmpty(this.props.blockedFromConcierge) && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
 
         return (
             <ScreenWrapper>
@@ -313,32 +317,27 @@ class RequestCallPage extends Component {
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
                             />
-                            <View style={[styles.mt4, styles.flexRow]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        label={this.props.translate('common.phoneNumber')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneNumber}
-                                        placeholder="2109400803"
-                                        errorText={this.state.phoneNumberError}
-                                        onBlur={this.validatePhoneInput}
-                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        label={this.props.translate('requestCallPage.extension')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneExtension}
-                                        placeholder="100"
-                                        errorText={this.state.phoneExtensionError}
-                                        onBlur={this.validatePhoneExtensionInput}
-                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                    />
-                                </View>
-                            </View>
+                            <TextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="2109400803"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={this.validatePhoneInput}
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                            <TextInput
+                                label={this.props.translate('requestCallPage.extension')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneExtension}
+                                placeholder="100"
+                                errorText={this.state.phoneExtensionError}
+                                onBlur={this.validatePhoneExtensionInput}
+                                onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                containerStyles={[styles.mt4]}
+                            />
                             <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
                     </ScrollView>

@@ -12,6 +12,7 @@ import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import Timing from './Timing';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -82,32 +83,37 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
+    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
+    const formattedResult = {};
+
+    // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    Object.keys(personalDetailsList).forEach((login) => {
+        const personalDetailsResponse = personalDetailsList[login];
+
         // Form the details into something that has all the data in an easy to use format.
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
-        const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
-        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
-        const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
-        const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
-        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
-        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
-
-        return {
-            ...finalObject,
-            [login]: {
-                login,
-                avatar,
-                displayName,
-                firstName,
-                lastName,
-                pronouns,
-                timezone,
-                payPalMeAddress,
-                phoneNumber,
-            },
+        const pronouns = personalDetailsResponse.pronouns || '';
+        const timezone = personalDetailsResponse.timeZone || CONST.DEFAULT_TIME_ZONE;
+        const firstName = personalDetailsResponse.firstName || '';
+        const lastName = personalDetailsResponse.lastName || '';
+        const payPalMeAddress = personalDetailsResponse.expensify_payPalMeAddress || '';
+        const phoneNumber = personalDetailsResponse.phoneNumber || '';
+        formattedResult[login] = {
+            login,
+            avatar,
+            displayName,
+            firstName,
+            lastName,
+            pronouns,
+            timezone,
+            payPalMeAddress,
+            phoneNumber,
         };
-    }, {});
+    });
+    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
+    return formattedResult;
 }
 
 /**
@@ -320,15 +326,15 @@ function setAvatar(file) {
 }
 
 /**
- * Deletes the user's avatar image
+ * Replaces the user's avatar image with a default avatar
  *
- * @param {String} login
+ * @param {String} defaultAvatarURL
  */
-function deleteAvatar(login) {
+function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 
 // When the app reconnects from being offline, fetch all of the personal details

@@ -24,7 +24,7 @@ jobs:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Decrypt GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
@@ -46,7 +46,7 @@ jobs:
         run: |
           git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
           git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> $GITHUB_ENV
+          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion
