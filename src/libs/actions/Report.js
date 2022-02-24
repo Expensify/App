@@ -1102,6 +1102,7 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -1167,7 +1168,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
-            attachmentInfo: file,
+            attachmentInfo,
             loading: true,
             shouldShow: true,
         },
