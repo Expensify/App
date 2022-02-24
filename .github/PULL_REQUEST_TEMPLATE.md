@@ -56,6 +56,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I followed proper naming convention for platform-specific files (if applicable)
     - [ ] I followed style guidelines (in [`Styling.md`](../STYLING.md)) for all style edits I made
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
+- [ ] I tested other components that can be impacted by my changes
+- [ ] I corroborated the UI performance was not affected (the performance is the same than `main` branch)
 
 #### PR Reviewer Checklist
 - [ ] I verified the Author pulled `main` before submitting the PR
@@ -78,6 +80,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
     - [ ] I verified [style guidelines](../STYLING.md) were followed
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
+- [ ] I verified other components are not impacted by changes in this PR
+- [ ] I verified the UI performance was not affected (the performance is the same than `main` branch)
 
 ### QA Steps
 <!---
