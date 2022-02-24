@@ -101,7 +101,7 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
  * @param {Number} reportID
  * @return {String}
  */
-function getLastMessageText(reportID) {
+function getLastVisibleMessageText(reportID) {
     const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
         !ReportUtils.isDeletedAction(action)
     ));
@@ -115,5 +115,5 @@ export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
-    getLastMessageText,
+    getLastVisibleMessageText,
 };

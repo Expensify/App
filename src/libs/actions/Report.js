@@ -547,25 +547,15 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // Don't do anything for messages that aren't deleted.
-        if (message.html) {
-            return;
+        // If the message is deleted, update the last read message and the unread counter
+        if (!message.html) {
+            setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         }
 
-        // If the message is deleted, we should
-        // 1. update the last read in case the deleted message is being counted in the unreadActionCount
-        // 2. Get the previous lastMessageText and update it in Onyx
-        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportActions.getLastMessageText(reportID),
+            lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
         });
     });
-
-    // If this is the most recent message and it wasn't deleted, update the lastMessageText in the report object as well
-    const lastMessageText = ReportUtils.formatReportLastMessageText(message.text);
-    if (lastMessageText && sequenceNumber === reportMaxSequenceNumbers[reportID]) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastMessageText});
-    }
 }
 
 /**
