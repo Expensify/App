@@ -23,8 +23,8 @@ const BaseInput = props => (
             props.forwardedRef(ref);
         }}
 
-                // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+        // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
+        // eslint-disable-next-line react/jsx-props-no-multi-spaces
         textAlign="left"
 
         // eslint-disable-next-line
