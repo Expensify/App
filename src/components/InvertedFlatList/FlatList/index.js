@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   listFixed: {
     position: 'absolute',
     top: 0,
+    zIndex: 1,
   },
 
   item: {
