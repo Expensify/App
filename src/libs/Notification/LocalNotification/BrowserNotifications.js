@@ -4,6 +4,8 @@ import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 import * as App from '../../actions/App';
+import getBrowser from '../../getBrowser';
+import CONST from '../../../CONST';
 
 const DEFAULT_DELAY = 4000;
 
@@ -80,7 +82,9 @@ function push({
             }
 
             notification.onclick = (event) => {
-                event.preventDefault();
+                if (getBrowser() !== CONST.BROWSER.FIREFOX) {
+                    event.preventDefault();
+                }
                 onClick();
                 window.parent.focus();
                 window.focus();
