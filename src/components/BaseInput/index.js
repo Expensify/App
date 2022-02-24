@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {
     // eslint-disable-next-line no-restricted-imports
     TextInput as RNTextInput,
@@ -17,7 +18,7 @@ const defaultProps = {
 const BaseInput = props => (
     <RNTextInput
         ref={(ref) => {
-            if (typeof props.forwardedRef !== 'function') {
+            if (!_.isFunction(props.forwardedRef)) {
                 return;
             }
             props.forwardedRef(ref);
