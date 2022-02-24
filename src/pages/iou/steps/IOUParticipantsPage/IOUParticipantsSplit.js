@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -11,9 +10,7 @@ import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
-import FixedFooter from '../../../../components/FixedFooter';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {

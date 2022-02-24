@@ -163,9 +163,10 @@ class IOUConfirmationList extends Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
+        if (!this.unsubscribeCTRLEnter) {
+            return;
         }
+        this.unsubscribeCTRLEnter();
     }
 
     /**
