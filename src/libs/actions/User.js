@@ -407,9 +407,9 @@ function downloadStatementPDF(period) {
     API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode === 200) {
-                const returnedPeriod = response.period;
-                const downloadFileName = `Expensify_Statement_${returnedPeriod}.pdf`;
+                const downloadFileName = `Expensify_Statement_${response.period}.pdf`;
                 const pdfURL = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
+
                 fileDownload(pdfURL, downloadFileName);
             } else {
                 Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
