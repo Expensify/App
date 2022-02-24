@@ -22,6 +22,7 @@ import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import ArrowKeyFocusManager from './ArrowKeyFocusManager';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -154,6 +155,22 @@ class IOUConfirmationList extends Component {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        const modifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
+        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            this.confirm,
+            enterConfig.descriptionKey,
+            modifiers,
+            true,
+        );
+    }
+
+    componentWillUnmount() {
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
     }
 
     /**
@@ -365,6 +382,10 @@ class IOUConfirmationList extends Component {
      */
     confirm(paymentMethod) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (!paymentMethod) {
+                return;
+            }
+
             Log.info(`[IOU] Sending money via: ${paymentMethod}`);
             this.props.onSendMoney(paymentMethod);
         } else {
