@@ -41,7 +41,7 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
-    return {reportID: String(reportID)};
+    return {reportID: String(reportID), sequenceNumber: 6000};
 };
 
 const MainDrawerNavigator = (props) => {

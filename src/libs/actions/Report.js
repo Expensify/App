@@ -948,7 +948,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report
-                Navigation.navigate(ROUTES.getReportRoute(data.reportID));
+                Navigation.navigate(ROUTES.getReportRoute(data.reportID, 6000));
             }
 
             // We are returning an array with a report object here since fetchAllReports calls this method or
@@ -962,10 +962,14 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
  *
  * @param {Number} reportID
  * @param {Number} [offset]
+ * @param pages
  * @returns {Promise}
  */
-function fetchActions(reportID, offset, pages) {
+function fetchActions(reportID, offset, pages, flag) {
     const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
+
+    console.log(`**AG [fetchActions] ${reportID} ${offset} ${pages} ${flag}`);
+
 
     if (!_.isNumber(reportActionsOffset)) {
         Log.alert('[Report] Offset provided is not a number', {
@@ -996,9 +1000,9 @@ function fetchActions(reportID, offset, pages) {
  * @param {Number} reportID
  * @param {Number} [offset]
  */
-function fetchActionsWithLoadingState(reportID, offset) {
+function fetchActionsWithLoadingState(reportID, offset, pages) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-    fetchActions(reportID, offset)
+    fetchActions(reportID, offset, pages)
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
 }
 
@@ -1079,8 +1083,11 @@ function fetchAllReports(
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {
+                    if (reportID === 22) {
+                        return;
+                    }
                     const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
-                    fetchActions(reportID, offset);
+                    fetchActions(reportID, offset, 0, "fetchAllReports!!");
                 });
 
                 // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
@@ -1274,6 +1281,10 @@ function deleteReportComment(reportID, reportAction) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
+    if (true) {
+        return;
+    }
+
     // If report data is loading, we can't update the last read sequence number because it is obsolete
     if (isReportDataLoading) {
         return;

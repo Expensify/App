@@ -183,7 +183,7 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
-                            sequenceNumber={this.props.sequenceNumber}
+                            sequenceNumber={this.props.route.params.sequenceNumber}
                         />
                     )}
                     {this.props.session.shouldShowComposeInput && (

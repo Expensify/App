@@ -155,7 +155,7 @@ class ReportActionsView extends React.Component {
             Report.updateLastReadActionID(this.props.reportID);
         }
 
-        Report.fetchActions(this.props.reportID, Number.parseInt(this.props.sequenceNumber) - CONST.REPORT.ACTIONS.LIMIT, 2);
+        Report.fetchActions(this.props.reportID, Number.parseInt(this.props.sequenceNumber, 10) - CONST.REPORT.ACTIONS.LIMIT, 2, 'From Report Actions View');
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
         const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
@@ -218,7 +218,7 @@ class ReportActionsView extends React.Component {
             // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
-                ReportScrollManager.scrollToBottom();
+                // ReportScrollManager.scrollToBottom();
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -294,18 +294,20 @@ class ReportActionsView extends React.Component {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    loadMoreChats() {
+    loadMoreChats(offset, pages = 1) {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.props.isLoadingReportActions) {
             return;
         }
 
+        Report.fetchActionsWithLoadingState(this.props.reportID, offset, pages);
+    }
+
+    loadOlderChats() {
         const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
             .value();
-
-        console.log(`minSequenceNumber: ${minSequenceNumber}`);
 
         if (minSequenceNumber === 0) {
             return;
@@ -313,8 +315,26 @@ class ReportActionsView extends React.Component {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
-        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
+        this.loadMoreChats(Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0));
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the bottom end of what we are currently displaying.
+     */
+    loadNewerChats() {
+        // TODO: Implement a noop pull-to-refresh like Slack that affirms the user that they've reached the end.
+        // TODO: optimize this so we're storing this locally and don't have to loop through the list of reportActions every time.
+        const maxSequenceNumberFromFetchedActions = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .max()
+            .value();
+
+        if (maxSequenceNumberFromFetchedActions === this.props.report.maxSequenceNumber) {
+            return;
+        }
+
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments AHEAD of the highest sequence number we have so far.
+        this.loadMoreChats(Math.min(maxSequenceNumberFromFetchedActions + CONST.REPORT.ACTIONS.LIMIT, this.props.report.maxSequenceNumber));
     }
 
     /**
@@ -401,7 +421,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToBottomAndUpdateLastRead() {
-        ReportScrollManager.scrollToBottom();
+        // ReportScrollManager.scrollToBottom();
         Report.updateLastReadActionID(this.props.reportID);
     }
 
@@ -548,6 +568,8 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
+        console.log(`**AG [reportActionsView] Sequence Number: ${this.props.sequenceNumber}`);
+
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
@@ -573,10 +595,10 @@ class ReportActionsView extends React.Component {
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.loadMoreChats}
+                    onEndReached={this.loadOlderChats}
                     onEndReachedThreshold={0.75}
                     /* eslint-disable-next-line no-console */
-                    onStartReached={() => { console.log('onStartReached - ReportActionsView'); }}
+                    onStartReached={_.throttle(() => { console.log('onStartReached - ReportActionsView'); this.loadNewerChats(); }, 10000)}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={this.props.isLoadingReportActions
                         ? <ActivityIndicator size="small" color={themeColors.spinner} />
