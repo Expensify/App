@@ -231,6 +231,7 @@ class SidebarLinks extends React.Component {
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
                         onPress={this.props.onAvatarClick}
+                        testID="avatar"
                     >
                         <AvatarWithIndicator
                             source={this.props.myPersonalDetails.avatar}

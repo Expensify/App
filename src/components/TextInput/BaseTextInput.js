@@ -218,6 +218,7 @@ class BaseTextInput extends Component {
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
                                     <RNTextInput
+                                        testID={this.props.nativeID}
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                             this.input = ref;
