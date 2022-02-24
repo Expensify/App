@@ -8,6 +8,7 @@ export default {
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
     componentBorderRadiusCard: 12,
+    avatarSizeLarge: 80,
     avatarSizeNormal: 40,
     avatarSizeSmall: 28,
     fontSizeSingleEmoji: 30,

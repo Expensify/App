@@ -1597,6 +1597,12 @@ const styles = {
         width: variables.avatarSizeNormal,
     },
 
+    emptyAvatarLarge: {
+        marginRight: variables.componentSizeNormal - 24,
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarSmall: {
         marginRight: variables.componentSizeNormal - 28,
         height: variables.avatarSizeSmall,
@@ -1815,8 +1821,8 @@ const styles = {
     },
 
     avatarLarge: {
-        width: 80,
-        height: 80,
+        width: variables.avatarSizeLarge,
+        height: variables.avatarSizeLarge,
     },
 
     roomHeaderAvatar: {
