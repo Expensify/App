@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -30,6 +31,14 @@ const propTypes = {
     but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
 
+    /** Static dimensions for the popover.
+     * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position.
+     */
+    popoverDimensions: PropTypes.shape({
+        height: PropTypes.number,
+        width: PropTypes.number,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -40,6 +49,10 @@ const defaultProps = {
     anchorOrigin: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
+    popoverDimensions: {
+        height: 0,
+        width: 0,
     },
 };
 
@@ -53,13 +66,13 @@ class PopoverWithMeasuredContent extends Component {
     constructor(props) {
         super(props);
 
+        this.popoverWidth = lodashGet(this.props, 'popoverDimensions.width', 0);
+        this.popoverHeight = lodashGet(this.props, 'popoverDimensions.height', 0);
+
         this.state = {
-            isContentMeasured: false,
+            isContentMeasured: this.popoverWidth > 0 && this.popoverHeight > 0,
             isVisible: false,
         };
-
-        this.popoverWidth = 0;
-        this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
     }
@@ -76,7 +89,7 @@ class PopoverWithMeasuredContent extends Component {
     static getDerivedStateFromProps(props, state) {
         // When Popover is shown recalculate
         if (!state.isVisible && props.isVisible) {
-            return {isContentMeasured: false, isVisible: true};
+            return {isContentMeasured: lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0, isVisible: true};
         }
         if (!props.isVisible) {
             return {isVisible: false};

@@ -15,6 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
+import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
     /** All the data of the action */
@@ -63,10 +64,12 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(props.action.actorEmail)}>
-                <Avatar
-                    imageStyles={[styles.actionAvatar]}
-                    source={avatarUrl}
-                />
+                <Tooltip text={props.action.actorEmail}>
+                    <Avatar
+                        imageStyles={[styles.actionAvatar]}
+                        source={avatarUrl}
+                    />
+                </Tooltip>
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
