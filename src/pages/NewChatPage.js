@@ -54,7 +54,7 @@ class NewChatPage extends Component {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
-        this.createGroup = this.createGroup.bind(this);
+        this.openChatOrCreateGroup = this.openChatOrCreateGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
         this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
@@ -134,8 +134,15 @@ class NewChatPage extends Component {
     /**
      * Once all our options are selected this method will call the API and  create new chat between all selected users
      * and the currently logged in user
+     *
+     * @param {Object} option
      */
-    createGroup() {
+    openChatOrCreateGroup(option) {
+        if (!this.props.isGroupChat) {
+            this.createNewChat(option);
+            return;
+        }
+
         const userLogins = _.pluck(this.state.selectedOptions, 'login');
         if (userLogins.length < 1) {
             return;
@@ -261,7 +268,7 @@ class NewChatPage extends Component {
                                         shouldShowConfirmButton={this.props.isGroupChat}
                                         confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                         maxParticipantsReached={maxParticipantsReached}
-                                        onConfirmSelection={this.createGroup}
+                                        onConfirmSelection={this.openChatOrCreateGroup}
                                     />
                                 </>
                             )}

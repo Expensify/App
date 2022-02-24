@@ -127,7 +127,13 @@ class OptionsSelector extends Component {
         const modifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            this.props.onConfirmSelection,
+            () => {
+                if (!this.canSelectMultipleOptions && !this.focusedOption) {
+                    return;
+                }
+
+                this.props.onConfirmSelection(this.focusedOption);
+            },
             enterConfig.descriptionKey,
             modifiers,
             true,
@@ -227,54 +233,57 @@ class OptionsSelector extends Component {
                 onEnterKeyPressed={this.selectFocusedIndex}
                 shouldEnterKeyEventBubble={focusedIndex => !this.state.allOptions[focusedIndex]}
             >
-                {({focusedIndex}) => (
-                    <>
-                        <View style={[styles.flex1]}>
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <TextInput
-                                    ref={el => this.textInput = el}
-                                    value={this.props.value}
-                                    onChangeText={this.props.onChangeText}
-                                    placeholder={this.props.placeholderText
-                                        || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                {({focusedIndex}) => {
+                    this.focusedOption = this.state.allOptions[focusedIndex];
+                    return (
+                        <>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <TextInput
+                                        ref={el => this.textInput = el}
+                                        value={this.props.value}
+                                        onChangeText={this.props.onChangeText}
+                                        placeholder={this.props.placeholderText
+                                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    />
+                                </View>
+                                <OptionsList
+                                    ref={el => this.list = el}
+                                    optionHoveredStyle={styles.hoveredComponentBG}
+                                    onSelectRow={this.selectRow}
+                                    sections={this.props.sections}
+                                    focusedIndex={focusedIndex}
+                                    selectedOptions={this.props.selectedOptions}
+                                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                                    hideSectionHeaders={this.props.hideSectionHeaders}
+                                    headerMessage={this.props.headerMessage}
+                                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                                    showTitleTooltip={this.props.showTitleTooltip}
                                 />
                             </View>
-                            <OptionsList
-                                ref={el => this.list = el}
-                                optionHoveredStyle={styles.hoveredComponentBG}
-                                onSelectRow={this.selectRow}
-                                sections={this.props.sections}
-                                focusedIndex={focusedIndex}
-                                selectedOptions={this.props.selectedOptions}
-                                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                                hideSectionHeaders={this.props.hideSectionHeaders}
-                                headerMessage={this.props.headerMessage}
-                                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                                showTitleTooltip={this.props.showTitleTooltip}
-                            />
-                        </View>
-                        {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
-                            <FixedFooter>
-                                {this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage && (
-                                    <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
-                                        {defaultMaxParticipantsReachedMessage}
-                                    </Text>
-                                )}
-                                {defaultConfirmButtonText && (
-                                    <Button
-                                        success
-                                        style={[styles.w100]}
-                                        text={defaultConfirmButtonText}
-                                        onPress={this.props.onConfirmSelection}
-                                        pressOnEnter
-                                        enterKeyEventListenerPriority={1}
-                                    />
-                                )}
-                            </FixedFooter>
-                        )}
-                    </>
-                )}
+                            {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
+                                <FixedFooter>
+                                    {this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage && (
+                                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                                            {defaultMaxParticipantsReachedMessage}
+                                        </Text>
+                                    )}
+                                    {defaultConfirmButtonText && (
+                                        <Button
+                                            success
+                                            style={[styles.w100]}
+                                            text={defaultConfirmButtonText}
+                                            onPress={this.props.onConfirmSelection}
+                                            pressOnEnter
+                                            enterKeyEventListenerPriority={1}
+                                        />
+                                    )}
+                                </FixedFooter>
+                            )}
+                        </>
+                    );
+                }}
             </ArrowKeyFocusManager>
         );
     }
