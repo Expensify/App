@@ -1,10 +1,11 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
 import themedefault from '../styles/themes/default';
+import Avatar from './Avatar';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -15,14 +16,21 @@ const propTypes = {
 
     /** Default icon if the subscript image is not set */
     defaultSubscriptIcon: PropTypes.func.isRequired,
+
+    /** Set the sie of avatars */
+    size: PropTypes.oneOf(['default', 'large']),
+};
+
+const defaultProps = {
+    size: 'default',
 };
 
 const SubscriptAvatar = props => (
-    <View style={styles.emptyAvatar}>
+    <View style={props.size === 'large' ? styles.emptyAvatarLarge : styles.emptyAvatar}>
         <Tooltip text={props.avatarTooltips[0]} absolute>
-            <Image
-                source={{uri: props.avatarImageURLs[0]}}
-                style={styles.avatarNormal}
+            <Avatar
+                source={props.avatarImageURLs[0]}
+                imageStyles={[props.size === 'large' ? styles.avatarLarge : null]}
             />
         </Tooltip>
         <View
@@ -50,5 +58,6 @@ const SubscriptAvatar = props => (
     </View>
 );
 
+SubscriptAvatar.defaultProps = defaultProps;
 SubscriptAvatar.propTypes = propTypes;
 export default memo(SubscriptAvatar);
