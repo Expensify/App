@@ -4,7 +4,6 @@ import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import themedefault from '../styles/themes/default';
 
 const propTypes = {
@@ -13,6 +12,9 @@ const propTypes = {
 
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** Default icon if the subscript image is not set */
+    defaultSubscriptIcon: PropTypes.func.isRequired,
 };
 
 const SubscriptAvatar = props => (
@@ -33,7 +35,7 @@ const SubscriptAvatar = props => (
                 { props.avatarImageURLs[1] === ''
                     ? (
                         <Icon
-                            src={Expensicons.Workspace}
+                            src={props.defaultSubscriptIcon()}
                             style={styles.singleSubscript}
                             fill={themedefault.iconSuccessFill}
                         />
