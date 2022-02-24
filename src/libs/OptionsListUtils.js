@@ -448,6 +448,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
+        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
+            return;
+        }
+
         if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
             return;
         }
