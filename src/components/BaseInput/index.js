@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
     // eslint-disable-next-line no-restricted-imports
     TextInput as RNTextInput,
@@ -11,30 +11,26 @@ const propTypes = {
 };
 
 const defaultProps = {
-    forwardedRef: null,
+    forwardedRef: () => {},
 };
 
-class BaseInput extends Component {
-    render() {
-        return (
-            <RNTextInput
-                ref={(ref) => {
-                    if (typeof this.props.forwardedRef !== 'function') {
-                        return;
-                    }
-                    this.props.forwardedRef(ref);
-                }}
+const BaseInput = props => (
+    <RNTextInput
+        ref={(ref) => {
+            if (typeof props.forwardedRef !== 'function') {
+                return;
+            }
+            props.forwardedRef(ref);
+        }}
 
                 // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                textAlign="left"
+        textAlign="left"
 
-                // eslint-disable-next-line
-                {...this.props}
-            />
-        );
-    }
-}
+        // eslint-disable-next-line
+        {...props}
+    />
+);
 
 BaseInput.propTypes = propTypes;
 BaseInput.defaultProps = defaultProps;
