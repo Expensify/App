@@ -70,7 +70,7 @@ const ReportWelcomeText = (props) => {
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
-        <Text style={[styles.mt3, styles.textAlignCenter]}>
+        <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {!props.shouldIncludeParticipants
                 ? (
                     <>

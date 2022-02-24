@@ -299,7 +299,7 @@ class BasePaymentsPage extends React.Component {
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
                                 />
                             )}
-                            {Permissions.canUseWallet(this.props.betas) && (
+                            {Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
@@ -308,10 +308,9 @@ class BasePaymentsPage extends React.Component {
                                             passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
                                         });
                                     }}
-                                    style={[styles.button, isPayPalMeSelected && styles.buttonDisable, styles.alignSelfCenter, styles.w100]}
-                                    disabled={isPayPalMeSelected}
+                                    style={[styles.button, styles.alignSelfCenter, styles.w100]}
                                 >
-                                    <Text style={[styles.buttonText, isPayPalMeSelected && styles.disabledText]}>
+                                    <Text style={[styles.buttonText]}>
                                         {this.props.translate('paymentsPage.setDefaultConfirmation')}
                                     </Text>
                                 </TouchableOpacity>
@@ -326,7 +325,7 @@ class BasePaymentsPage extends React.Component {
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
-                                    Permissions.canUseWallet(this.props.betas) && styles.mt4,
+                                    Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && styles.mt4,
                                     styles.alignSelfCenter,
                                     styles.w100,
                                 ]}

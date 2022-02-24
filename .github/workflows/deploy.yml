@@ -33,7 +33,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-      
+
       - name: Decrypt Botify GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
@@ -51,7 +51,7 @@ jobs:
 
 
       - name: Tag version
-        run: git tag $(npm run print-version --silent)
+        run: git tag "$(npm run print-version --silent)"
 
       - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
@@ -66,7 +66,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-      
+
       - name: Decrypt Botify GPG key
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
@@ -87,7 +87,7 @@ jobs:
         run: git checkout production
 
       - name: Get current app version
-        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Get Release Pull Request List
         id: getReleasePRList

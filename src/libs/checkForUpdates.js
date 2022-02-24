@@ -1,9 +1,9 @@
 const _ = require('underscore');
 
-const UPDATE_INTERVAL = 1000 * 60 * 60;
+const UPDATE_INTERVAL = 1000 * 60 * 60 * 8;
 
 /**
- * Check for updates every hour and perform and platform-specific update
+ * Check for updates every 8 hours and perform and platform-specific update
  *
  * @param {Object} platformSpecificUpdater
  * @param {Function} platformSpecificUpdater.update
