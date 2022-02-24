@@ -24,7 +24,7 @@ index 2648cc3..35863a8 100644
 @@ -333,11 +345,21 @@ function maxToRenderPerBatchOrDefault(maxToRenderPerBatch: ?number) {
    return maxToRenderPerBatch ?? 10;
  }
- 
+
 +// onStartReachedThresholdOrDefault(this.props.onStartReachedThreshold)
 +function onStartReachedThresholdOrDefault(onStartReachedThreshold: ?number) {
 +  return onStartReachedThreshold ?? 2;
@@ -34,7 +34,7 @@ index 2648cc3..35863a8 100644
  function onEndReachedThresholdOrDefault(onEndReachedThreshold: ?number) {
    return onEndReachedThreshold ?? 2;
  }
- 
+
 +// getScrollingThreshold(visibleLength, onEndReachedThreshold)
 +function getScrollingThreshold(threshold: number, visibleLength: number) {
 +  return (threshold * visibleLength) / 2;
@@ -58,12 +58,12 @@ index 2648cc3..35863a8 100644
 -    this._maybeCallOnEndReached();
 +    this._maybeCallOnEdgeReached();
    };
- 
+
    _onLayoutEmpty = e => {
 @@ -1495,38 +1518,70 @@ class VirtualizedList extends React.PureComponent<Props, State> {
      return !horizontalOrDefault(this.props.horizontal) ? metrics.y : metrics.x;
    }
- 
+
 -  _maybeCallOnEndReached() {
 -    const {
 -      data,
@@ -147,7 +147,7 @@ index 2648cc3..35863a8 100644
 +        : 0;
    }
 +}
- 
+
    _onContentSizeChange = (width: number, height: number) => {
      if (
        width > 0 &&
@@ -163,7 +163,7 @@ index 2648cc3..35863a8 100644
 -    this._maybeCallOnEndReached();
 +    this._maybeCallOnEdgeReached();
    };
- 
+
    /* Translates metrics from a scroll event in a parent VirtualizedList into
 @@ -1631,7 +1686,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
      if (!this.props) {
@@ -189,7 +189,7 @@ index 2648cc3..35863a8 100644
      // But only if there are items before the first rendered item
      if (first > 0) {
 -      const distTop = offset - this._getFrameMetricsApprox(first).offset;
-+      const distStart = offset - this.__getFrameMetricsApprox(first).offset;
++      const distStart = offset - this._getFrameMetricsApprox(first).offset;
        hiPri =
 -        hiPri || distTop < 0 || (velocity < -2 && distTop < scrollingThreshold);
 +          hiPri ||

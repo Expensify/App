@@ -157,8 +157,8 @@ class BaseInvertedFlatList extends Component {
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
 
                 /* eslint-disable-next-line no-console */
-                onStartReached={() => { console.log('onStartReached'); }}
-                onStartReachedThreshold={0.5}
+                // onStartReached={() => { console.log('onStartReached'); }}
+                // onStartReachedThreshold={0.5}
             />
         );
     }

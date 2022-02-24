@@ -298,10 +298,14 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
+        let minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
             .value();
+
+        minSequenceNumber = minSequenceNumber / 2;
+
+        console.log(`minSequenceNumber: ${minSequenceNumber}`);
 
         if (minSequenceNumber === 0) {
             return;
@@ -568,9 +572,13 @@ class ReportActionsView extends React.Component {
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
-                    initialNumToRender={this.calculateInitialNumToRender()}
+                    initialNumToRender={this.calculateInitialNumToRender() * 100}
+                    initialScrollIndex={100}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
+                    /* eslint-disable-next-line no-console */
+                    onStartReached={() => { console.log('onStartReached - ReportActionsView'); }}
+                    onStartReachedThreshold={0.75}
                     ListFooterComponent={this.props.isLoadingReportActions
                         ? <ActivityIndicator size="small" color={themeColors.spinner} />
                         : null}
