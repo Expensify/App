@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import * as Emojis from '../../../../../assets/emojis';
+import * as Emojis from '../../../assets/emojis';
 
 /**
  * Fetch the emoji code of selected skinTone

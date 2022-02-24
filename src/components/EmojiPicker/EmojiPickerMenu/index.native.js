@@ -1,16 +1,19 @@
 import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import compose from '../../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
-import emojis from '../../../../../assets/emojis';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../../styles/styles';
+import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import Text from '../../Text';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -18,9 +21,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -34,6 +34,10 @@ const propTypes = {
 
     /** Props related to translation */
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    preferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -56,8 +60,17 @@ class EmojiPickerMenu extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
+        this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
     }
 
+    /**
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        this.props.onEmojiSelected(emoji);
+    }
 
     /**
      * Check if its a landscape mode of mobile device
@@ -68,6 +81,16 @@ class EmojiPickerMenu extends Component {
         return this.props.windowWidth >= this.props.windowHeight;
     }
 
+    /**
+     * @param {Number} skinTone
+     */
+    updatePreferredSkinTone(skinTone) {
+        if (this.props.preferredSkinTone === skinTone) {
+            return;
+        }
+
+        User.setPreferredSkinTone(skinTone);
+    }
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -98,7 +121,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 emoji={emojiCode}
             />
         );
@@ -120,7 +143,7 @@ class EmojiPickerMenu extends Component {
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
-                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
@@ -129,14 +152,19 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = {
-    preferredSkinTone: undefined,
-    updatePreferredSkinTone: undefined,
-};
+EmojiPickerMenu.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />
