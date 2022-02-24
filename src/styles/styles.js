@@ -120,6 +120,11 @@ const webViewStyles = {
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
+
+        p: {
+            marginTop: 0,
+            marginBottom: 0,
+        },
     },
 
     baseFontStyle: {

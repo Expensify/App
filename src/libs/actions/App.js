@@ -80,7 +80,7 @@ AppState.addEventListener('change', (nextAppState) => {
 });
 
 function triggerUpdateAvailable() {
-    Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);
+    Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
 }
 
 export {

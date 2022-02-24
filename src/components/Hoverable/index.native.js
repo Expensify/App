@@ -14,7 +14,7 @@ const Hoverable = (props) => {
     const childrenWithHoverState = _.isFunction(props.children)
         ? props.children(false)
         : props.children;
-    return <View>{childrenWithHoverState}</View>;
+    return <View style={props.containerStyles}>{childrenWithHoverState}</View>;
 };
 
 Hoverable.propTypes = propTypes;
