@@ -19,9 +19,11 @@ class BaseTextInput extends Component {
     render() {
         return (
             <RNTextInput
-                // eslint-disable-next-line rulesdir/prefer-early-return
                 ref={(ref) => {
-                    if (typeof this.props.forwardedRef === 'function') { this.props.forwardedRef(ref); }
+                    if (typeof this.props.forwardedRef !== 'function') {
+                        return;
+                    }
+                    this.props.forwardedRef(ref);
                 }}
 
                 // By default, align input to the left to override right alignment in RTL mode which is not yet supported in the App.
@@ -40,5 +42,5 @@ BaseTextInput.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <BaseTextInput {...props} forwardRef={ref} />
+    <BaseTextInput {...props} forwardedRef={ref} />
 ));

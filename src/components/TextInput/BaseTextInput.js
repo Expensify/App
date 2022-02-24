@@ -4,7 +4,7 @@ import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../BaseTextInput';
+import BaseInput from '../BaseTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
@@ -215,7 +215,7 @@ class BaseTextInput extends Component {
                                     </>
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
-                                    <RNTextInput
+                                    <BaseInput
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                             this.input = ref;

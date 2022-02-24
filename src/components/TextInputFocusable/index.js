@@ -1,11 +1,9 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import TextInput from '../BaseTextInput';
-
+import BaseTextInput from '../BaseTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
@@ -350,7 +348,7 @@ class TextInputFocusable extends React.Component {
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
-            <TextInput
+            <BaseTextInput
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}

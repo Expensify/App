@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import TextInput from '../BaseTextInput';
-
+import BaseTextInput from '../BaseTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
@@ -76,7 +75,7 @@ class TextInputFocusable extends React.Component {
         // Selection Property not worked in IOS properly, So removed from props.
         const propsToPass = _.omit(this.props, 'selection');
         return (
-            <TextInput
+            <BaseTextInput
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={CONST.COMPOSER_MAX_HEIGHT}
