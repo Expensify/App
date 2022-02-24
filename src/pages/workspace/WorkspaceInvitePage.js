@@ -283,6 +283,7 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                         });
                                     }}
+                                    onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
