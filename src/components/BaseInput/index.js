@@ -34,6 +34,7 @@ const BaseInput = props => (
 
 BaseInput.propTypes = propTypes;
 BaseInput.defaultProps = defaultProps;
+BaseInput.displayName = 'BaseInput';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
