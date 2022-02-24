@@ -39,6 +39,15 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** An error message to display to the user */
+        error: PropTypes.string,
+
+        /** Whether or not a sign on form is loading (being submitted) */
+        loading: PropTypes.bool,
+    }),
+
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
@@ -57,9 +66,14 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
+        // If the account is loading don't send more requests
+        if (this.props.account && this.props.account.loading) {
+            return;
+        }
+
         // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
         if (email !== this.props.session.email) {
-            Session.signOut();
+            Session.signOutAndRedirectToSignIn();
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
@@ -86,7 +100,7 @@ class LogInWithShortLivedTokenPage extends Component {
         if (email !== this.props.session.email) {
             const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
             const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-            Session.signOut();
+            Session.signOutAndRedirectToSignIn();
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
@@ -115,6 +129,9 @@ LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    account: {
+        key: ONYXKEYS.ACCOUNT,
+    },
     session: {
         key: ONYXKEYS.SESSION,
     },
