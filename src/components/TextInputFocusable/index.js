@@ -3,7 +3,7 @@ import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import BaseTextInput from '../BaseTextInput';
+import BaseInput from '../BaseInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
@@ -348,7 +348,7 @@ class TextInputFocusable extends React.Component {
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
-            <BaseTextInput
+            <BaseInput
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}

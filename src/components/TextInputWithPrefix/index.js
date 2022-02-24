@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
-import BaseTextInput from '../BaseTextInput';
+import BaseInput from '../BaseInput';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
@@ -34,7 +34,7 @@ const TextInputWithPrefix = props => (
             ]}
         >
             <Text style={styles.textInputWithPrefix.prefix}>{props.prefixCharacter}</Text>
-            <BaseTextInput
+            <BaseInput
                 style={[
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,

@@ -4,7 +4,7 @@ import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import BaseInput from '../BaseTextInput';
+import BaseInput from '../BaseInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';

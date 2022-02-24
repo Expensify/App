@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 
-
 const propTypes = {
     /** A ref to forward to the text input */
     forwardedRef: PropTypes.func,
