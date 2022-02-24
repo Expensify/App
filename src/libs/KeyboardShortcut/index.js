@@ -66,7 +66,7 @@ function getDisplayName(key, modifiers) {
 function getKeyEventModifiers(event) {
     const modifiers = [];
     if (event.shiftKey) {
-        modifiers.push('PUSH');
+        modifiers.push('SHIFT');
     }
     if (event.ctrlKey) {
         modifiers.push('CONTROL');
