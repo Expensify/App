@@ -2,7 +2,7 @@ import React from 'react';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -22,7 +22,7 @@ const WalletStatementModal = (props) => {
                 },
             }}
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-            startInLoadingState={true}
+            startInLoadingState
             renderLoading={() => (
                 <ActivityIndicator
                     color={themeColors.spinner}
