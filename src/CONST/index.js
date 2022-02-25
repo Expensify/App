@@ -313,7 +313,7 @@ const CONST = {
         UNAUTHORIZED: 401,
     },
     NVP: {
-        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
+        FIRST_TIME_NEW_EXPENSIFY_USER_STEP: 'firstTimeNewExpensifyUserStep',
         BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -343,6 +343,12 @@ const CONST = {
             ALREADY_VALIDATED: 'Account already validated',
             VALIDATE_CODE_FAILED: 'Validate code failed',
         },
+    },
+
+    FIRST_TIME_NEW_EXPENSIFY_USER_STEP: {
+        FINISH: 0,
+        GLOBAL_CREATE_MENU: 2,
+        WELCOME_PROFILE_SETTING: 3,
     },
 
     EMOJI_SPACER: 'SPACER',

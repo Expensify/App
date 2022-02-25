@@ -28,8 +28,9 @@ const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
-    /* Flag for new users used to open the Global Create menu on first load */
-    isFirstTimeNewExpensifyUser: PropTypes.bool,
+    /* New users welcome steps for example open welcome profile setting page and
+     * open Global Create menu on first load */
+    firstTimeNewExpensifyUserStep: PropTypes.number,
 
     /* Is workspace is being created by the user? */
     isCreatingWorkspace: PropTypes.bool,
@@ -39,7 +40,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    isFirstTimeNewExpensifyUser: false,
+    firstTimeNewExpensifyUserStep: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.COMPLETE,
     isCreatingWorkspace: false,
 };
 
@@ -57,6 +58,17 @@ class SidebarScreen extends Component {
         };
     }
 
+    componentDidUpdate() {
+        console.log('did update');
+        if (this.props.firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU) {
+            NameValuePair.set(
+                CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
+                0, 
+                ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP
+            );
+            this.displayCreateMenu();
+        }
+    }
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -64,26 +76,42 @@ class SidebarScreen extends Component {
         // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
         setTimeout(() => {
-            if (!this.props.isFirstTimeNewExpensifyUser) {
+            console.log('stepp => ', this.props.firstTimeNewExpensifyUserStep);
+            if (this.props.firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.COMPLETE) {
                 return;
             }
+            console.log('going');
 
             // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
             // create menu right now.
             const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
             const topRouteName = lodashGet(_.last(routes), 'name', '');
             const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
+            console.log(isDisplayingWorkspaceRoute);
+            console.log(Policy.isAdminOfFreePolicy(this.props.allPolicies));
 
             // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
             // not need to create a workspace.
-            if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
-                this.toggleCreateMenu();
+            if (true) {
+            //if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
+                console.log('Navigating dazo');
+                Navigation.navigate(ROUTES.WELCOME_PROFILE_SETTING);
+                //this.toggleCreateMenu();
+                //NameValuePair.set(CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEPP, false, ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP);
             }
 
             // Set the NVP back to false so we don't automatically open the menu again
             // Note: this may need to be moved if this NVP is used for anything else later
-            NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+            //NameValuePair.set(CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEPP, false, ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP);
         }, 1500);
+
+        window.setTimeout ( () => {
+            NameValuePair.set(
+              CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP, 
+              CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING, 
+              ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
+            );
+        }, 20000);
     }
 
     /**
@@ -98,6 +126,13 @@ class SidebarScreen extends Component {
      */
     navigateToSettings() {
         Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    displayCreateMenu() {
+        if (this.state.isCreateMenuActive) {
+            return;
+        } 
+        this.setState({isCreateMenuActive: true});
     }
 
     /**
@@ -221,8 +256,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        isFirstTimeNewExpensifyUser: {
-            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        firstTimeNewExpensifyUserStep: {
+            key: ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
         },
         isCreatingWorkspace: {
             key: ONYXKEYS.IS_CREATING_WORKSPACE,

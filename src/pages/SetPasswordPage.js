@@ -20,6 +20,9 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
+import TextInput from '../components/TextInput';
+import CONST from '../CONST';
+import * as LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -82,11 +85,51 @@ class SetPasswordPage extends Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.isFormValid = this.isFormValid.bind(this);
+        this.validatePassword = this.validatePassword.bind(this);
+        this.validateConfirmPassword = this.validateConfirmPassword.bind(this);
+        this.handlePasswordChange = this.handlePasswordChange.bind(this);
+        this.handleConfirmPasswordChange = this.handleConfirmPasswordChange.bind(this);
+
+        this.password = '';
+        this.confirmPassword = '';
+        this.isPasswordValid = false;
+        this.isConfirmPasswordValid = false;
 
         this.state = {
-            password: '',
-            isFormValid: false,
-        };
+            showError: false,
+        }
+    }
+
+    validatePassword(text) {
+        return text.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
+    validateConfirmPassword(text) {
+        return text === this.password;
+    }
+
+    isFormValid() {
+        return this.validatePassword(this.password) && this.validateConfirmPassword(this.confirmPassword);
+    }
+
+    handlePasswordChange(text) {
+        if (this.state.showError) { this.setState({showError: false}) };
+        console.log(text);
+        this.password = text;
+        this.isPasswordValid = text.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+        //if (this.isPasswordValid !== isvalid) {
+        //    this.setState({isPasswordValid: isvalid});
+        //}
+    }
+
+    handleConfirmPasswordChange(text) {
+        if (this.state.showError) { this.setState({showError: false}) };
+        this.confirmPassword = text;
+        this.isConfirmPasswordValid = text === this.password;
+        //if (this.isConfirmPasswordValid !== isvalid) {
+        //    this.setState({isConfirmPasswordValid: isvalid});
+        //}
     }
 
     componentDidMount() {
@@ -99,12 +142,16 @@ class SetPasswordPage extends Component {
     }
 
     validateAndSubmitForm() {
-        if (!this.state.isFormValid) {
+        if (!this.isFormValid()) {
+            console.log('going here dazo');
+            this.setState({showError: true});
             return;
         }
+
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        Session.setOrChangePassword(accountID, validateCode, this.state.password, this.props.userSignUp.authToken);
+        //Session.setOrChangePassword(accountID, validateCode, this.password, this.props.userSignUp.authToken);
+        LoginUtil.setPassword(this.password);
     }
 
 
@@ -112,21 +159,66 @@ class SetPasswordPage extends Component {
         const buttonText = this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
+        let errorText = '';
+        if (!this.isPasswordValid) {
+            errorText = this.props.translate('setPasswordPage.newPasswordPrompt');
+        } else if (!this.isConfirmPasswordValid) {
+            errorText = "Make sure confirm password is match";
+        } if (sessionError) {
+            errorText = sessionError
+        }
+
+        // {_.isEmpty(error) ? (
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     shouldShowWelcomeText
-                    welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
+                    welcomeText={''}
                 >
-                    {_.isEmpty(error) ? (
+                    {true ? (
                         <>
+                            <Text style={[styles.mtn5]}>
+                                {'Welcome '} 
+                                <Text style={[styles.textStrong]}>
+                                    {this.props.credentials.login} 
+                                </Text>
+                            </Text>
+                            <Text style={[styles.mv4, ]}>
+                                {'Please set a password below to sign into your account'} 
+                            </Text>
+                            
                             <View style={[styles.mb4]}>
-                                <NewPasswordForm
-                                    password={this.state.password}
-                                    updatePassword={password => this.setState({password})}
-                                    updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                                    onSubmitEditing={this.validateAndSubmitForm}
+                                <TextInput
+                                    containerStyles={[styles.mt5]}
+                                    label={`${this.props.translate('setPasswordPage.enterPassword')}`}
+                                    secureTextEntry
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    onChangeText={this.handlePasswordChange}
+                                    hasError={this.state.showError && !this.isPasswordValid}
+                                    //hasError={this.state.showError && !this.isPasswordValid}
                                 />
+                                <TextInput
+                                    containerStyles={[styles.mt3]}
+                                    label={`Confirm Password`}
+                                    secureTextEntry
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    value={this.props.password}
+                                    onChangeText={this.handleConfirmPasswordChange}
+                                    hasError={this.state.showError && !this.isConfirmPasswordValid}
+                                    //onSubmitEditing={() => this.props.onSubmitEditing()}
+
+                                    //password={this.state.password}
+                                    //updatePassword={password => this.setState({password})}
+                                    //updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                                    //onSubmitEditing={this.validateAndSubmitForm}
+                                />
+                            </View>
+                            <View style={[{height: 60}]}> 
+                                <Text style={[styles.formHelp, this.state.showError && styles.formError]}>
+                                    {errorText}
+                                </Text>
                             </View>
                             <View>
                                 <Button
@@ -135,7 +227,7 @@ class SetPasswordPage extends Component {
                                     text={buttonText}
                                     isLoading={this.props.account.loading || this.props.userSignUp.isValidatingEmail}
                                     onPress={this.validateAndSubmitForm}
-                                    isDisabled={!this.state.isFormValid}
+                                    //isDisabled={!this.state.isFormValid}
                                 />
                             </View>
                         </>

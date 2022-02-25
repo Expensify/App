@@ -27,6 +27,11 @@ module.exports = () => {
             ...proxySettings,
             historyApiFallback: true,
         },
+        resolve: {
+            alias: {
+                react: path.resolve('./node_modules/react'),
+            }
+        },
         plugins: [
             new webpack.DefinePlugin({
                 __REACT_WEB_CONFIG__: JSON.stringify(env),

@@ -34,6 +34,7 @@ export default {
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/payments/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/payments/enable-payments',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
+    SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
     SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
@@ -85,6 +86,8 @@ export default {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
+    GET_ASSISTANCE: 'get-assistance/:taskID',
+    WELCOME_PROFILE_SETTING: 'new-profile-setting',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

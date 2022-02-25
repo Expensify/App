@@ -35,6 +35,9 @@ const propTypes = {
     // Called when navigated Screen's transition is finished.
     onTransitionEnd: PropTypes.func,
 
+    // Called when navigated Screen is about to be unmounted
+    onWillUnmount: PropTypes.func,
+
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
         // Method to attach listener to Navigation state.
@@ -91,6 +94,9 @@ class ScreenWrapper extends React.Component {
         }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
+        }
+        if (_.isFunction(this.props.onWillUnmount)) {
+            this.props.onWillUnmount();
         }
     }
 

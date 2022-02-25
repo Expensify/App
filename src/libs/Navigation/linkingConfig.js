@@ -136,6 +136,9 @@ export default {
                     GetAssistance: {
                         path: ROUTES.GET_ASSISTANCE,
                     },
+                    WelcomeProfileSetting: {
+                        path: ROUTES.WELCOME_PROFILE_SETTING,
+                    },
                 },
             },
             Report_Details: {
