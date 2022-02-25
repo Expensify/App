@@ -7,6 +7,7 @@ import Tooltip from './Tooltip';
 import Text from './Text';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -25,6 +26,9 @@ const propTypes = {
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
 
+    /** Whether this avatar is for a policyExpenseChat */
+    isPolicyExpenseChat: PropTypes.bool,
+
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 
@@ -40,6 +44,7 @@ const defaultProps = {
     isArchivedRoom: false,
     avatarTooltips: [],
     showSubscript: false,
+    isPolicyExpenseChat: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -63,6 +68,8 @@ const MultipleAvatars = (props) => {
                         size={props.size}
                         isChatRoom={props.isChatRoom}
                         isArchivedRoom={props.isArchivedRoom}
+                        isPolicyExpenseChat={props.isPolicyExpenseChat}
+                        fill={themeColors.iconSuccessFill}
                     />
                 </Tooltip>
             </View>

@@ -177,6 +177,7 @@ const OptionRow = (props) => {
                                         ]}
                                         isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
+                                        isPolicyExpenseChat={props.option.isPolicyExpenseChat}
                                         avatarTooltips={avatarTooltips}
                                         showSubscript={props.option.showSubscript}
                                     />

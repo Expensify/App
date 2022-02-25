@@ -140,6 +140,7 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 avatarTooltips={avatarTooltip}
                                 showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                             />
