@@ -16,6 +16,7 @@ const WalletStatementModal = (props) => {
             width="100%"
             seamless="seamless"
             frameBorder="0"
+            onLoad={() => console.log("content loaded")}
         />
     );
 };
