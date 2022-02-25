@@ -7,6 +7,8 @@ import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import LargeDualAvatars from '../../../components/LargeDualAvatars';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -33,12 +35,21 @@ const ReportActionItemCreated = (props) => {
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                <RoomHeaderAvatars
-                    avatarImageURLs={props.report.icons}
-                    isChatRoom={isChatRoom}
-                    isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
-                    showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
-                />
+                {
+                    isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat ? (
+                        <LargeDualAvatars
+                            avatarImageURLs={props.report.icons}
+                            avatarTooltips={[]}
+                            defaultSubscriptIcon={() => Expensicons.Workspace}
+                        />
+                    ) : (
+                        <RoomHeaderAvatars
+                            avatarImageURLs={props.report.icons}
+                            isChatRoom={isChatRoom}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                        />
+                    )
+                }
                 <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />
             </View>
         </View>
