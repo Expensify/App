@@ -1,5 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
@@ -9,6 +10,10 @@ import {ActivityIndicator} from 'react-native';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
+/**
+ * We load an iframe that links back to an www.expensify.com URL
+ * While the iframe is loading, we
+ */
 class WalletStatementModal extends React.Component {
     constructor(props) {
         super(props);
@@ -23,23 +28,21 @@ class WalletStatementModal extends React.Component {
         return (
             <>
                 {this.state.isLoading && (
-                    <ActivityIndicator
-                        size="large"
-                        style={[styles.flex1]}
-                        color={themeColors.textSupporting}
-                    />
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                    </View>
                  )}
-                {!this.state.isLoading && (
-                    <iframe
-                        src={`${this.props.statementPageURL}&authToken=${authToken}`}
-                        title="Statements"
-                        height="100%"
-                        width="100%"
-                        seamless="seamless"
-                        frameBorder="0"
-                        onLoad={() => this.setState({isLoading: false})}
-                    />
-                )}
+                 <View style={[styles.flex1]}>
+                     <iframe
+                         src={`${this.props.statementPageURL}&authToken=${authToken}`}
+                         title="Statements"
+                         height="100%"
+                         width="100%"
+                         seamless="seamless"
+                         frameBorder="0"
+                         onLoad={() => this.setState({isLoading: false})}
+                     />
+                 </View>
             </>
         );
     }
