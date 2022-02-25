@@ -1,12 +1,11 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import {ActivityIndicator, View} from 'react-native';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
-import {ActivityIndicator} from 'react-native';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
@@ -32,7 +31,7 @@ class WalletStatementModal extends React.Component {
                         />
                     </View>
                  )}
-                 <View style={[styles.flex1]}>
+                <View style={[styles.flex1]}>
                      <iframe
                          src={`${this.props.statementPageURL}&authToken=${authToken}`}
                          title="Statements"
@@ -42,7 +41,7 @@ class WalletStatementModal extends React.Component {
                          frameBorder="0"
                          onLoad={() => this.setState({isLoading: false})}
                      />
-                 </View>
+                </View>
             </>
         );
     }

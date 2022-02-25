@@ -2454,7 +2454,7 @@ const styles = {
     walletStatementModalLoadingIndicator: {
         position: 'relative',
         top: '50%',
-    }
+    },
 };
 
 export default styles;
