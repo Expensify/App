@@ -46,6 +46,7 @@ const ReportActionItemCreated = (props) => {
                         <RoomHeaderAvatars
                             avatarImageURLs={props.report.icons}
                             isChatRoom={isChatRoom}
+                            isPolicyExpenseChat={isPolicyExpenseChat}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                         />
                     )

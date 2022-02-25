@@ -50,14 +50,16 @@ const defaultProps = {
 class Avatar extends PureComponent {
     render() {
         let source = this.props.source;
-        if (this.props.isChatRoom) {
-            source = Expensicons.ActiveRoomAvatar;
-        }
-        if (this.props.isArchivedRoom) {
-            source = Expensicons.DeletedRoomAvatar;
-        }
-        if (this.props.isPolicyExpenseChat) {
-            source = Expensicons.Workspace;
+        if (!source) {
+            if (this.props.isChatRoom) {
+                source = Expensicons.ActiveRoomAvatar;
+            }
+            if (this.props.isArchivedRoom) {
+                source = Expensicons.DeletedRoomAvatar;
+            }
+            if (this.props.isPolicyExpenseChat) {
+                source = Expensicons.Workspace;
+            }
         }
 
         if (!source) {

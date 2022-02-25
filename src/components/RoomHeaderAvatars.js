@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -16,12 +17,16 @@ const propTypes = {
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
+
+    /** Whether this avatar is for a policyExpenseChat */
+    isPolicyExpenseChat: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     isChatRoom: false,
     isArchivedRoom: false,
+    isPolicyExpenseChat: false,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -29,13 +34,15 @@ const RoomHeaderAvatars = (props) => {
         return null;
     }
 
-    if (props.avatarImageURLs.length === 1 || props.isChatRoom) {
+    if (props.avatarImageURLs.length === 1) {
         return (
             <Avatar
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
                 isArchivedRoom={props.isArchivedRoom}
+                isPolicyExpenseChat={props.isPolicyExpenseChat}
+                fill={themeColors.iconSuccessFill}
                 size={CONST.AVATAR_SIZE.LARGE}
             />
         );
