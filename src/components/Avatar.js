@@ -8,10 +8,12 @@ import Icon from './Icon';
 import variables from '../styles/variables';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
+
 
 const propTypes = {
-    /** Url source for the avatar */
-    source: PropTypes.string,
+    /** Source for the avatar. Can be the URL of an image or an icon. */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
     /** Extra styles to pass to Image */
     imageStyles: PropTypes.arrayOf(PropTypes.object),
@@ -20,22 +22,29 @@ const propTypes = {
     containerStyles: stylePropTypes,
 
     /** Set the size of Avatar */
-    size: PropTypes.oneOf(['default', 'small']),
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
     /** Whether this avatar is for a chat room */
     isChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an archived default room */
     isArchivedRoom: PropTypes.bool,
+
+    /** Whether this avatar is for a policyExpenseChat */
+    isPolicyExpenseChat: PropTypes.bool,
+
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    fill: PropTypes.string,
 };
 
 const defaultProps = {
-    source: '',
     imageStyles: [],
     containerStyles: [],
-    size: 'default',
+    size: CONST.AVATAR_SIZE.DEFAULT,
     isChatRoom: false,
     isArchivedRoom: false,
+    isPolicyExpenseChat: false,
+    fill: themeColors.icon,
 };
 
 class Avatar extends PureComponent {
@@ -47,26 +56,31 @@ class Avatar extends PureComponent {
         if (this.props.isArchivedRoom) {
             source = Expensicons.DeletedRoomAvatar;
         }
+        if (this.props.isPolicyExpenseChat) {
+            source = Expensicons.Workspace;
+        }
 
         if (!source) {
             return null;
         }
 
         const imageStyle = [
-            this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-
-            // Background color isn't added for room avatar because it changes it's shape to a square
-            this.props.isChatRoom ? {} : {backgroundColor: themeColors.icon},
+            this.props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarSmall : styles.avatarNormal,
             ...this.props.imageStyles,
         ];
 
-        const iconSize = this.props.size === 'small' ? variables.avatarSizeSmall : variables.avatarSizeNormal;
-
+        const AVATAR_SIZES = {
+            [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+            [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+            [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+            [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+        };
+        const iconSize = AVATAR_SIZES[this.props.size];
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {
                 _.isFunction(source)
-                    ? <Icon src={source} height={iconSize} width={iconSize} />
+                    ? <Icon src={source} fill={this.props.fill} height={iconSize} width={iconSize} />
                     : <Image source={{uri: source}} style={imageStyle} />
             }
             </View>

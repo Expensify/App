@@ -36,6 +36,7 @@ const RoomHeaderAvatars = (props) => {
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
                 isArchivedRoom={props.isArchivedRoom}
+                size={CONST.AVATAR_SIZE.LARGE}
             />
         );
     }

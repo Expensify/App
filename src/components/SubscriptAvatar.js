@@ -3,10 +3,9 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
-import Icon from './Icon';
-import themedefault from '../styles/themes/default';
+import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
-import variables from '../styles/variables';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -32,21 +31,12 @@ const SubscriptAvatar = props => (
             style={[styles.secondAvatarSubscript, styles.secondAvatarHovered]}
         >
             <Tooltip text={props.avatarTooltips[1]} absolute>
-                { props.avatarImageURLs[1] === ''
-                    ? (
-                        <Icon
-                            src={props.defaultSubscriptIcon()}
-                            height={variables.iconSizeNormal}
-                            width={variables.iconSizeNormal}
-                            style={styles.singleSubscript}
-                            fill={themedefault.iconSuccessFill}
-                        />
-                    ) : (
-                        <Avatar
-                            source={props.avatarImageURLs[1]}
-                            imageStyles={[styles.singleSubscript]}
-                        />
-                    )}
+                <Avatar
+                    source={props.avatarImageURLs[1] !== '' ? props.avatarImageURLs[1] : props.defaultSubscriptIcon()}
+                    imageStyles={[styles.singleSubscript]}
+                    size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                    fill={themeColors.iconSuccessFill}
+                />
             </Tooltip>
         </View>
     </View>
