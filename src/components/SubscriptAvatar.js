@@ -27,7 +27,7 @@ const defaultProps = {
 };
 
 const SubscriptAvatar = props => (
-    <View style={props.size === 'large' ? styles.emptyAvatarLarge : styles.emptyAvatar}>
+    <View style={props.size === 'large' ? {} : styles.emptyAvatar}>
         <View style={props.size === 'large' ? [styles.secondAvatarHovered, styles.rightSideLargeAvatar] : []}>
             <Tooltip text={props.avatarTooltips[0]} absolute>
                 <Avatar
