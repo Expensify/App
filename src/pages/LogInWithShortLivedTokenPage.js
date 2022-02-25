@@ -63,7 +63,11 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
+        // User is trying to transition with a different account than the one
+        // they are currently signed in as so we will sign them out, clear Onyx,
+        // and cancel all network requests made with their old login. This
+        // component will mount again from PublicScreens and since they are no
+        // longer signed in, a request will be made to sign them in with their new account.
         if (email !== this.props.session.email) {
             Session.signOutAndRedirectToSignIn();
         }
@@ -87,7 +91,11 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
+        // User is trying to transition with a different account than the one
+        // they are currently signed in as so we will sign them out, clear Onyx,
+        // and cancel all network requests. This component will mount again from
+        // PublicScreens and since they are no longer signed in, a request will be
+        // made to sign them in with their new account.
         if (email !== this.props.session.email) {
             Session.signOutAndRedirectToSignIn();
             return;
