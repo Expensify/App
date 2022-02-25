@@ -35,8 +35,8 @@ const ReportActionItemCreated = (props) => {
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
                     avatarImageURLs={props.report.icons}
-                    secondAvatarStyle={[styles.secondAvatarHovered]}
                     isChatRoom={isChatRoom}
+                    isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                     showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />

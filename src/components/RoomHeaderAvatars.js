@@ -16,6 +16,9 @@ const propTypes = {
     /** Whether this avatar is for a custom/default room */
     isChatRoom: PropTypes.bool,
 
+    /** Whether this avatar is for an archived room */
+    isArchivedRoom: PropTypes.bool,
+
     /** Flag to show SubscriptAvatar component */
     showSubscript: PropTypes.bool,
 };
@@ -23,6 +26,7 @@ const propTypes = {
 const defaultProps = {
     avatarImageURLs: [],
     isChatRoom: false,
+    isArchivedRoom: false,
     showSubscript: false,
 };
 
@@ -48,6 +52,7 @@ const RoomHeaderAvatars = (props) => {
                 source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
+                isArchivedRoom={props.isArchivedRoom}
             />
         );
     }
