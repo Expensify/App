@@ -190,6 +190,10 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
+    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+        Log.info('[API] request canceled', false, queuedRequest);
+        return;
+    }
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {
@@ -449,7 +453,9 @@ function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
-    return Network.post(commandName, parameters);
+
+    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
+    return Network.post(commandName, {...parameters, canCancel: false});
 }
 
 /**

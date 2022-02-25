@@ -70,7 +70,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
-            legalMiddleName: 'additionalDetailsStep.legalMiddleNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
             addressStreet: 'common.personalAddress',
             addressCity: 'common.city',
@@ -83,7 +82,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.state = {
             legalFirstName: lodashGet(props.walletAdditionalDetailsDraft, 'legalFirstName', ''),
-            legalMiddleName: lodashGet(props.walletAdditionalDetailsDraft, 'legalMiddleName', ''),
             legalLastName: lodashGet(props.walletAdditionalDetailsDraft, 'legalLastName', ''),
             addressStreet: lodashGet(props.walletAdditionalDetailsDraft, 'addressStreet', ''),
             addressCity: lodashGet(props.walletAdditionalDetailsDraft, 'addressCity', ''),
@@ -207,12 +205,6 @@ class AdditionalDetailsStep extends React.Component {
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
                                     value={this.state.legalFirstName}
                                     errorText={this.getErrorText('legalFirstName')}
-                                />
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalMiddleName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalMiddleName', val)}
-                                    value={this.state.legalMiddleName}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
