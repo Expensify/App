@@ -125,7 +125,6 @@ class SidebarScreen extends Component {
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
                             onItemSelected={this.onCreateMenuItemSelected}
-                            fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
                                     icon: Expensicons.ChatBubble,
