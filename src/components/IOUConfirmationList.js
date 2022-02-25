@@ -423,7 +423,7 @@ class IOUConfirmationList extends Component {
                 listLength={this.allOptions.length + 1}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={this.maybeToggleParticipant}
-                shouldEnterKeyEventBubble={focusedIndex => !this.allOptions[focusedIndex]}
+                shouldEnterKeyEventBubble={focusedIndex => !this.props.hasMultipleParticipants || !this.allOptions[focusedIndex]}
             >
                 {({focusedIndex}) => (
                     <>
