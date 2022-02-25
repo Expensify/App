@@ -21,7 +21,7 @@ const WalletStatementModal = (props) => {
             }}
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
             startInLoadingState
-            renderLoading={() => <FullScreenLoadingIndicator/>}
+            renderLoading={() => <FullScreenLoadingIndicator/> }
         />
     );
 };
