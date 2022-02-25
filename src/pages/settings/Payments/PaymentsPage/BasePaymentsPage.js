@@ -8,6 +8,7 @@ import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
+import variables from '../../../../styles/variables';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView/index';
@@ -93,6 +94,15 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
         let position = getClickedElementLocation(nativeEvent);
+
+        // Check if screen is considered medium, on native
+        if (!this.props.isSmallScreenWidth && position.bottom == 0 && position.left == 0) {
+            position = {
+                bottom: styles.createPaymentMethodMenuContainer.top,
+                left: this.props.windowWidth - variables.sideBarWidth,
+            }
+        }
+        
         if (this.props.shouldListenForResize) {
             window.addEventListener('resize', () => {
                 position = getClickedElementLocation(nativeEvent);
