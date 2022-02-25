@@ -1,7 +1,7 @@
 import React from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import PopoverMenu from '../components/PopoverMenu';
 import * as Expensicons from '../components/Icon/Expensicons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MenuItem from '../components/MenuItem';
 import colors from '../styles/colors';
 
@@ -21,9 +21,20 @@ const Template = (args) => {
     const toggleVisibility = () => setIsVisible(!isVisible);
     return (
         <>
-            <MenuItem {...args.menuItem} onPress={toggleVisibility} wrapperStyle={isVisible ? [{backgroundColor: colors.gray2}] : []} />
+
+            <MenuItem
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...args.menuItem}
+                onPress={toggleVisibility}
+                wrapperStyle={isVisible ? [{backgroundColor: colors.gray2}] : []}
+            />
             <SafeAreaProvider>
-                <PopoverMenu {...args.popoverMenu} isVisible={isVisible} onClose={toggleVisibility} />
+                <PopoverMenu
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...args.popoverMenu}
+                    isVisible={isVisible}
+                    onClose={toggleVisibility}
+                />
             </SafeAreaProvider>
         </>
     );
