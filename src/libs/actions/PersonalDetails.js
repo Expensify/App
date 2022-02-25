@@ -13,6 +13,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
+import NetworkResponseManager from '../NetworkResponseManager';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -235,29 +236,29 @@ function mergeLocalPersonalDetails(details) {
  * Sets the personal details object for the current user
  *
  * @param {Object} details
- * @param {boolean} shouldGrowl
  */
-function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
-        });
+function setPersonalDetails(details) {
+    API.PersonalDetails_Update({details: JSON.stringify(details)});
 }
+
+NetworkResponseManager.subscribe('PersonalDetails_Update', ({request, response}) => {
+    const {data: {details, isDeletingAvatar}} = request;
+    if (isDeletingAvatar) {
+        return;
+    }
+
+    const parsedDetails = JSON.parse(details);
+    if (response.jsonCode === 200) {
+        if (parsedDetails.timezone) {
+            NameValuePair.set(CONST.NVP.TIMEZONE, parsedDetails.timezone);
+        }
+        mergeLocalPersonalDetails(parsedDetails);
+    } else if (response.jsonCode === 400) {
+        Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
+    } else if (response.jsonCode === 401) {
+        Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+    }
+});
 
 /**
  * Sets the onyx with the currency list from the network
@@ -333,7 +334,7 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    API.PersonalDetails_Update({isDeletingAvatar: true, details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 

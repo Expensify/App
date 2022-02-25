@@ -12,6 +12,7 @@ import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
+import NetworkResponseManager from './NetworkResponseManager';
 
 let isAuthenticating;
 let credentials;
@@ -149,6 +150,8 @@ Network.registerRequestSkippedHandler((parameters) => {
 });
 
 Network.registerResponseHandler((queuedRequest, response) => {
+    NetworkResponseManager.publish(queuedRequest.command, {request: queuedRequest, response});
+
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -597,7 +600,7 @@ function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
         parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, {...parameters, persist: true});
 }
 
 /**
