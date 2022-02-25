@@ -236,16 +236,14 @@ function mergeLocalPersonalDetails(details) {
  * Sets the personal details object for the current user
  *
  * @param {Object} details
+ * @param {Boolean} shouldGrowl
  */
-function setPersonalDetails(details) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
+function setPersonalDetails(details, shouldGrowl) {
+    API.PersonalDetails_Update({details: JSON.stringify(details), shouldGrowl});
 }
 
 NetworkResponseManager.subscribe('PersonalDetails_Update', ({request, response}) => {
-    const {data: {details, isDeletingAvatar}} = request;
-    if (isDeletingAvatar) {
-        return;
-    }
+    const {data: {details, shouldGrowl}} = request;
 
     const parsedDetails = JSON.parse(details);
     if (response.jsonCode === 200) {
@@ -253,6 +251,10 @@ NetworkResponseManager.subscribe('PersonalDetails_Update', ({request, response})
             NameValuePair.set(CONST.NVP.TIMEZONE, parsedDetails.timezone);
         }
         mergeLocalPersonalDetails(parsedDetails);
+
+        if (shouldGrowl) {
+            Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        }
     } else if (response.jsonCode === 400) {
         Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
     } else if (response.jsonCode === 401) {
