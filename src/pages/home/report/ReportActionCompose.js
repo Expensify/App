@@ -36,7 +36,6 @@ import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
-import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
@@ -63,9 +62,6 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -112,7 +108,6 @@ const defaultProps = {
     network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -391,7 +386,7 @@ class ReportActionCompose extends React.Component {
 
     render() {
         // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.myPersonalDetails)) {
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -399,7 +394,7 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -631,9 +626,6 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
