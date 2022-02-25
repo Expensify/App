@@ -563,6 +563,8 @@ export default {
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
+        failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
+        failedKYCTextAfter: ' si tiene alguna pregunta.',
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
