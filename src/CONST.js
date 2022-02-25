@@ -3,6 +3,7 @@ import Config from 'react-native-config';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
@@ -184,6 +185,7 @@ const CONST = {
     },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
+    USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     DEEPLINK_BASE_URL: 'new-expensify://',
@@ -191,13 +193,13 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: 'https://use.expensify.com/terms',
-    PRIVACY_URL: 'https://use.expensify.com/privacy',
-    LICENSES_URL: 'https://use.expensify.com/licenses',
+    TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
+    PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+    LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
-    FEES_URL: 'https://use.expensify.com/fees',
+    FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
@@ -296,6 +298,7 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
+        REQUEST_CANCELLED: 'AbortError',
     },
     NETWORK: {
         METHOD: {
@@ -365,7 +368,10 @@ const CONST = {
 
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
-    EMOJI_PICKER_SIZE: 320,
+    EMOJI_PICKER_SIZE: {
+        WIDTH: 320,
+        HEIGHT: 400,
+    },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -531,6 +537,7 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
     TERMS: {
