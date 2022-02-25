@@ -6,8 +6,8 @@ import styles from '../styles/styles';
 import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
-import SubscriptAvatar from './SubscriptAvatar';
 import * as Expensicons from './Icon/Expensicons';
+import LargeDualAvatars from './LargeDualAvatars';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -37,11 +37,10 @@ const RoomHeaderAvatars = (props) => {
 
     if (props.showSubscript) {
         return (
-            <SubscriptAvatar
+            <LargeDualAvatars
                 avatarImageURLs={props.avatarImageURLs}
                 avatarTooltips={[]}
                 defaultSubscriptIcon={() => Expensicons.Workspace}
-                size="large"
             />
         );
     }
