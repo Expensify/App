@@ -59,6 +59,8 @@ function subscribeToNetInfo() {
         // Using API url ensures reachability is tested over internet
         reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
         reachabilityTest: response => Promise.resolve(response.status === 200),
+
+        // If a check is taking longer than this time we're considered offline
         reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
     });
 
