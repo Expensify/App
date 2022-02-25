@@ -244,6 +244,10 @@ function setPersonalDetails(details, shouldGrowl) {
 
 NetworkResponseManager.subscribe('PersonalDetails_Update')
     .done(({request}) => {
+        if (request.caller === 'deleteAvatar') {
+            return;
+        }
+
         const {data: {details, shouldGrowl}} = request;
         const parsedDetails = JSON.parse(details);
 
@@ -256,7 +260,11 @@ NetworkResponseManager.subscribe('PersonalDetails_Update')
             Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         }
     })
-    .handle([400, 401], (code) => {
+    .handle([400, 401], (code, {request}) => {
+        if (request.caller === 'deleteAvatar') {
+            return;
+        }
+
         if (code === 400) {
             Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
         } else if (code === 401) {
@@ -338,7 +346,7 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    API.PersonalDetails_Update({caller: 'deleteAvatar', details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 

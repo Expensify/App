@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 function handleDefaultError(jsonCode, response) {
-
+    // @TODO do some default handling
 }
 
 const NetworkResponseManager = {
