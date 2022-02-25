@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import BaseInput from '../BaseInput';
+import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
@@ -63,7 +63,7 @@ class TextInputFocusable extends React.Component {
 
     render() {
         return (
-            <BaseInput
+            <RNTextInput
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={CONST.COMPOSER_MAX_HEIGHT}

@@ -1,9 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
-import {
-    // eslint-disable-next-line no-restricted-imports
-    TextInput as RNTextInput,
-} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -15,8 +13,8 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
-const BaseInput = props => (
-    <RNTextInput
+const RNTextInput = props => (
+    <TextInput
         ref={(ref) => {
             if (!_.isFunction(props.forwardedRef)) {
                 return;
@@ -33,11 +31,11 @@ const BaseInput = props => (
     />
 );
 
-BaseInput.propTypes = propTypes;
-BaseInput.defaultProps = defaultProps;
-BaseInput.displayName = 'BaseInput';
+RNTextInput.propTypes = propTypes;
+RNTextInput.defaultProps = defaultProps;
+RNTextInput.displayName = 'RNTextInput';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <BaseInput {...props} forwardedRef={ref} />
+    <RNTextInput {...props} forwardedRef={ref} />
 ));
