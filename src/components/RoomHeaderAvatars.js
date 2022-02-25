@@ -37,7 +37,7 @@ const RoomHeaderAvatars = (props) => {
                 avatarImageURLs={props.avatarImageURLs}
                 avatarTooltips={[]}
                 defaultSubscriptIcon={() => Expensicons.Workspace}
-                size={props.showSubscript ? 'large' : 'default'}
+                size="large"
             />
         );
     }
