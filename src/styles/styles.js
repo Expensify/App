@@ -1487,10 +1487,11 @@ const styles = {
     },
 
     singleSubscript: {
-        height: 20,
-        width: 20,
+        height: variables.iconSizeNormal,
+        width: variables.iconSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: 20,
+        zIndex: 1,
     },
 
     singleAvatarSmall: {
@@ -1535,6 +1536,14 @@ const styles = {
         position: 'absolute',
         right: -4,
         bottom: -2,
+        borderWidth: 2,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarLarge: {
+        position: 'absolute',
+        left: -40,
         borderWidth: 2,
         borderRadius: 18,
         borderColor: 'transparent',
@@ -1818,6 +1827,13 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
+    },
+
+    firstAvatar: {
+        zIndex: 2,
+        borderRadius: 100,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
     },
 
     avatarLarge: {
