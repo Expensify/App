@@ -39,21 +39,11 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** An error message to display to the user */
-        error: PropTypes.string,
-
-        /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
-    }),
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    account: {},
     route: {
         params: {},
     },
@@ -67,24 +57,16 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
-        // If the account is loading don't send more requests
-        if (this.props.account && this.props.account.loading) {
+        const signedIn = this.props.session && this.props.session.authToken;
+        if (!signedIn) {
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
 
         // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
         if (email !== this.props.session.email) {
             Session.signOutAndRedirectToSignIn();
-            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
-            return;
         }
-
-        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
-        if (this.props.session.authToken && email === this.props.session.email) {
-            return;
-        }
-
-        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
     }
 
     componentDidUpdate() {
@@ -97,12 +79,17 @@ class LogInWithShortLivedTokenPage extends Component {
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
-        // User is signing in to a different account sign them out and sign in again
-        if (email !== this.props.session.email) {
+        const signedIn = this.props.session && this.props.session.authToken;
+        if (!signedIn) {
             const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
             const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-            Session.signOutAndRedirectToSignIn();
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+            return;
+        }
+
+        // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
+        if (email !== this.props.session.email) {
+            Session.signOutAndRedirectToSignIn();
             return;
         }
 
@@ -130,9 +117,6 @@ LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
     session: {
         key: ONYXKEYS.SESSION,
     },
