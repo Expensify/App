@@ -2,11 +2,11 @@ import React from 'react';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator, View} from 'react-native';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
-import {ActivityIndicator, View} from 'react-native';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 

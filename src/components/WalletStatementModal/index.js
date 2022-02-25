@@ -30,17 +30,17 @@ class WalletStatementModal extends React.Component {
                             style={[styles.walletStatementModalLoadingIndicator]}
                         />
                     </View>
-                 )}
+                )}
                 <View style={[styles.flex1]}>
-                     <iframe
-                         src={`${this.props.statementPageURL}&authToken=${authToken}`}
-                         title="Statements"
-                         height="100%"
-                         width="100%"
-                         seamless="seamless"
-                         frameBorder="0"
-                         onLoad={() => this.setState({isLoading: false})}
-                     />
+                    <iframe
+                        src={`${this.props.statementPageURL}&authToken=${authToken}`}
+                        title="Statements"
+                        height="100%"
+                        width="100%"
+                        seamless="seamless"
+                        frameBorder="0"
+                        onLoad={() => this.setState({isLoading: false})}
+                    />
                 </View>
             </>
         );
