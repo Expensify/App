@@ -303,7 +303,8 @@ export default {
         closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
-        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        enterDefaultContact: 'Enter your default contact method',
+        defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
