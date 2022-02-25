@@ -10,10 +10,6 @@ import {ActivityIndicator} from 'react-native';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
-/**
- * We load an iframe that links back to an www.expensify.com URL
- * While the iframe is loading, we
- */
 class WalletStatementModal extends React.Component {
     constructor(props) {
         super(props);
@@ -29,7 +25,11 @@ class WalletStatementModal extends React.Component {
             <>
                 {this.state.isLoading && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                        <ActivityIndicator
+                            color={themeColors.spinner}
+                            size="large"
+                            style={[styles.walletStatementModalLoadingIndicator]}
+                        />
                     </View>
                  )}
                  <View style={[styles.flex1]}>
