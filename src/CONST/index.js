@@ -545,6 +545,8 @@ const CONST = {
     AVATAR_SIZE: {
         LARGE: 'large',
         DEFAULT: 'default',
+        SMALL: 'small',
+        SUBSCRIPT: 'subscript',
     },
 
     PHONE_MAX_LENGTH: 15,
