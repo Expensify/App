@@ -1,13 +1,13 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 class WalletStatementModal extends React.Component {
     constructor(props) {
@@ -22,15 +22,9 @@ class WalletStatementModal extends React.Component {
         const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
             <>
-                {this.state.isLoading && (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator
-                            color={themeColors.spinner}
-                            size="large"
-                            style={[styles.walletStatementModalLoadingIndicator]}
-                        />
-                    </View>
-                )}
+                <FullScreenLoadingIndicator
+                    visible={this.state.isLoading}
+                />
                 <View style={[styles.flex1]}>
                     <iframe
                         src={`${this.props.statementPageURL}&authToken=${authToken}`}

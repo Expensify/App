@@ -2451,11 +2451,6 @@ const styles = {
         minHeight: 140,
     },
 
-    walletStatementModalLoadingIndicator: {
-        position: 'relative',
-        top: 0,
-    },
-
     walletStatementModalLoadingIndicatorNative: {
         position: 'absolute',
         height: '100%',
