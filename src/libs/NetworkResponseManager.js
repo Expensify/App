@@ -1,11 +1,15 @@
 import _ from 'underscore';
 
+function handleDefaultError(jsonCode, response) {
+
+}
+
 const NetworkResponseManager = {
     commandHandlers: {},
     subscribe(commandName) {
         const connection = {
-            onSuccess: () => {},
-            onHandle: () => {},
+            onSuccess: null,
+            onHandle: null,
         };
 
         this.commandHandlers[commandName] = this.commandHandlers[commandName] || [];
@@ -33,27 +37,33 @@ const NetworkResponseManager = {
         return connection;
     },
     publish(commandName, payload) {
+        const {response} = payload;
+
         if (!this.commandHandlers[commandName]) {
             return;
         }
 
-        const {response} = payload;
         _.each(this.commandHandlers[commandName], (connection) => {
-            if (response.jsonCode === 200 && connection.onSuccess) {
+            if (response.jsonCode === 200) {
+                if (!connection.onSuccess) {
+                    return;
+                }
+
                 connection.onSuccess(payload);
                 return;
             }
 
-            if (!connection.onHandle) {
+            if (connection.onHandle) {
+                const [jsonCodes, callback] = connection.onHandle;
+                if (!_.contains(jsonCodes, response.jsonCode)) {
+                    return;
+                }
+
+                callback(response.jsonCode, payload);
                 return;
             }
 
-            const [jsonCodes, callback] = connection.onHandle;
-            if (!_.contains(jsonCodes, response.jsonCode)) {
-                return;
-            }
-
-            callback(response.jsonCode, payload);
+            handleDefaultError(response);
         });
     },
 };
