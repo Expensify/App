@@ -2453,7 +2453,13 @@ const styles = {
 
     walletStatementModalLoadingIndicator: {
         position: 'relative',
-        top: '50%',
+        top: 0,
+    },
+
+    walletStatementModalLoadingIndicatorNative: {
+        position: 'absolute',
+        height: '100%',
+        width: '100%',
     },
 };
 
