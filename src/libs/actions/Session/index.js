@@ -508,6 +508,11 @@ function authenticatePusher(socketID, channelName, callback) {
                 return;
             }
 
+            if (data.jsonCode !== 200) {
+                Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
+                return;
+            }
+
             Log.info(
                 '[PusherConnectionManager] Pusher authenticated successfully',
                 false,
