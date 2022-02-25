@@ -148,7 +148,7 @@ class IOUConfirmationList extends Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
-        this.maybeToggleIndex = this.maybeToggleIndex.bind(this);
+        this.maybeToggleParticipant = this.maybeToggleParticipant.bind(this);
     }
 
     componentDidMount() {
@@ -397,11 +397,13 @@ class IOUConfirmationList extends Component {
     /**
      * @param {Number} index
      */
-    maybeToggleIndex(index) {
+    maybeToggleParticipant(index) {
+        // This can happen when the search bar is highlighted instead of an option from the list
         if (!this.allOptions[index]) {
             return;
         }
 
+        // If this is a 1:1 request, there's no participant we can toggle, so return early
         if (!this.props.hasMultipleParticipants) {
             return;
         }
@@ -420,7 +422,7 @@ class IOUConfirmationList extends Component {
                 initialFocusedIndex={this.allOptions.length}
                 listLength={this.allOptions.length + 1}
                 onFocusedIndexChanged={this.scrollToIndex}
-                onEnterKeyPressed={this.maybeToggleIndex}
+                onEnterKeyPressed={this.maybeToggleParticipant}
                 shouldEnterKeyEventBubble={focusedIndex => !this.allOptions[focusedIndex]}
             >
                 {({focusedIndex}) => (
