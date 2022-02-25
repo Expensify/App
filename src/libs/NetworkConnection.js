@@ -6,6 +6,7 @@ import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import * as NetowrkLib from './Network';
 import CONFIG from '../CONFIG';
+import CONST from '../CONST';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -57,13 +58,14 @@ function subscribeToNetInfo() {
         // Using API url ensures reachability is tested over internet
         reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
         reachabilityTest: response => Promise.resolve(response.status === 200),
+        reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
     });
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
-        Log.info('[NetworkConnection] NetInfo state', false, state);
-        setOfflineStatus(!state.isInternetReachable);
+        Log.info('[NetworkConnection] NetInfo state change', false, state);
+        setOfflineStatus(state.isInternetReachable === false);
     });
 }
 
