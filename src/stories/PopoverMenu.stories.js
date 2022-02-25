@@ -21,7 +21,6 @@ const Template = (args) => {
     const toggleVisibility = () => setIsVisible(!isVisible);
     return (
         <>
-
             <MenuItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args.menuItem}
