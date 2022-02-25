@@ -1,10 +1,13 @@
 import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import RoomAvatar from './RoomAvatar';
 import stylePropTypes from '../styles/stylePropTypes';
+import Icon from './Icon';
+import variables from '../styles/variables';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Url source for the avatar */
@@ -37,7 +40,15 @@ const defaultProps = {
 
 class Avatar extends PureComponent {
     render() {
-        if (!this.props.source && !this.props.isChatRoom) {
+        let source = this.props.source;
+        if (this.props.isChatRoom) {
+            source = Expensicons.ActiveRoomAvatar;
+        }
+        if (this.props.isArchivedRoom) {
+            source = Expensicons.DeletedRoomAvatar;
+        }
+
+        if (!source) {
             return null;
         }
 
@@ -49,11 +60,15 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
 
+        const iconSize = this.props.size === 'small' ? variables.avatarSizeSmall : variables.avatarSizeNormal;
+
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {this.props.isChatRoom
-                    ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
+                {
+                _.isFunction(source)
+                    ? <Icon src={source} height={iconSize} width={iconSize} />
+                    : <Image source={{uri: source}} style={imageStyle} />
+            }
             </View>
         );
     }
