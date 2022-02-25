@@ -242,11 +242,11 @@ function setPersonalDetails(details, shouldGrowl) {
     API.PersonalDetails_Update({details: JSON.stringify(details), shouldGrowl});
 }
 
-NetworkResponseManager.subscribe('PersonalDetails_Update', ({request, response}) => {
-    const {data: {details, shouldGrowl}} = request;
+NetworkResponseManager.subscribe('PersonalDetails_Update')
+    .done(({request}) => {
+        const {data: {details, shouldGrowl}} = request;
+        const parsedDetails = JSON.parse(details);
 
-    const parsedDetails = JSON.parse(details);
-    if (response.jsonCode === 200) {
         if (parsedDetails.timezone) {
             NameValuePair.set(CONST.NVP.TIMEZONE, parsedDetails.timezone);
         }
@@ -255,12 +255,14 @@ NetworkResponseManager.subscribe('PersonalDetails_Update', ({request, response})
         if (shouldGrowl) {
             Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         }
-    } else if (response.jsonCode === 400) {
-        Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-    } else if (response.jsonCode === 401) {
-        Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-    }
-});
+    })
+    .handle([400, 401], (code) => {
+        if (code === 400) {
+            Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
+        } else if (code === 401) {
+            Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+        }
+    });
 
 /**
  * Sets the onyx with the currency list from the network
