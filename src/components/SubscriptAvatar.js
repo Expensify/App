@@ -6,6 +6,7 @@ import Tooltip from './Tooltip';
 import Icon from './Icon';
 import themedefault from '../styles/themes/default';
 import Avatar from './Avatar';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -27,30 +28,33 @@ const defaultProps = {
 
 const SubscriptAvatar = props => (
     <View style={props.size === 'large' ? styles.emptyAvatarLarge : styles.emptyAvatar}>
-        <Tooltip text={props.avatarTooltips[0]} absolute>
-            <Avatar
-                source={props.avatarImageURLs[0]}
-                imageStyles={[props.size === 'large' ? styles.avatarLarge : null]}
-            />
-        </Tooltip>
+        <View style={props.size === 'large' ? [styles.secondAvatarHovered, styles.rightSideLargeAvatar] : []}>
+            <Tooltip text={props.avatarTooltips[0]} absolute>
+                <Avatar
+                    source={props.avatarImageURLs[0]}
+                    imageStyles={props.size === 'large' ? [styles.avatarLarge] : []}
+                />
+            </Tooltip>
+        </View>
         <View
-            style={[
-                styles.secondAvatarSubscript,
-                styles.secondAvatarHovered,
-            ]}
+            style={
+                props.size === 'large' ? styles.secondAvatarLarge : [styles.secondAvatarSubscript, styles.secondAvatarHovered]
+            }
         >
             <Tooltip text={props.avatarTooltips[1]} absolute>
                 { props.avatarImageURLs[1] === ''
                     ? (
                         <Icon
                             src={props.defaultSubscriptIcon()}
+                            height={props.size === 'large' ? variables.avatarSizeLarge : variables.iconSizeNormal}
+                            width={props.size === 'large' ? variables.avatarSizeLarge : variables.iconSizeNormal}
                             style={styles.singleSubscript}
                             fill={themedefault.iconSuccessFill}
                         />
                     ) : (
-                        <Image
-                            source={{uri: props.avatarImageURLs[1]}}
-                            style={styles.singleSubscript}
+                        <Avatar
+                            source={props.avatarImageURLs[1]}
+                            imageStyles={[props.size === 'large' ? styles.avatarLarge : styles.singleSubscript]}
                         />
                     )}
             </Tooltip>

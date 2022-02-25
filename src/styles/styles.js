@@ -1829,7 +1829,7 @@ const styles = {
         width: '100%',
     },
 
-    firstAvatar: {
+    rightSideLargeAvatar: {
         zIndex: 2,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
