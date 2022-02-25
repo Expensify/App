@@ -2450,12 +2450,6 @@ const styles = {
     closeAccountMessageInput: {
         minHeight: 140,
     },
-
-    walletStatementModalLoadingIndicatorNative: {
-        position: 'absolute',
-        height: '100%',
-        width: '100%',
-    },
 };
 
 export default styles;
