@@ -161,11 +161,13 @@ class SidebarLinks extends React.Component {
         const recentReports = SidebarLinks.getRecentReports(nextProps);
         const orderedReports = shouldReorder
             ? recentReports
-            : _.filter(prevState.orderedReports,
-                orderedReport => _.chain(recentReports)
-                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
-                    .first()
-                    .value());
+            : _.chain(prevState.orderedReports)
+                .map(orderedReport => _.chain(recentReports)
+                .filter(recentReport => orderedReport.reportID === recentReport.reportID)
+                .first()
+                .value())
+              .filter(orderedReport => orderedReport !== undefined)
+              .value();
 
         return {
             orderedReports,
