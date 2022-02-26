@@ -225,6 +225,45 @@ function getParticipants(report) {
 }
 
 /**
+ *  Get the Avatar url or fallback to the default icon according to the chat type
+ *
+ * @param {String} source
+ * @param {Object} options
+ * @param {Boolean} [options.isChatRoom]
+ * @param {Boolean} [options.isArchivedRoom]
+ * @param {Boolean} [options.isPolicyExpenseChat]
+ * @returns {String | Function}
+ */
+function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
+    if (!source) {
+        if (isChatRoom) {
+            return Expensicons.ActiveRoomAvatar;
+        }
+        if (isArchivedRoom) {
+            return Expensicons.DeletedRoomAvatar;
+        }
+        if (isPolicyExpenseChat) {
+            return Expensicons.Workspace;
+        }
+    }
+    return source;
+}
+
+/**
+ * Get the Avatar urls or fallback to the default icons according to the chat type
+ *
+ * @param {Object} report
+ * @returns {Array<String|Function>}
+ */
+function getAvatarSourceFromReport(report) {
+    return _.map(report.icons, source => getAvatarSource(source, {
+        isChatRoom: ReportUtils.isChatRoom(report),
+        isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(report),
+    }));
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<Object>} personalDetailList
@@ -238,6 +277,7 @@ function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
@@ -283,7 +323,7 @@ function createOption(personalDetailList, report, {
     return {
         text,
         alternateText,
-        icons,
+        icons: _.map(icons, source => getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat})),
         tooltipText,
         participantsList: personalDetailList,
 
@@ -303,9 +343,9 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
+        isArchivedRoom,
         isPolicyExpenseChat,
         showSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }
 
@@ -839,49 +879,9 @@ function getReportIcons(report, personalDetails) {
     return _.map(sortedParticipants, item => item.avatar);
 }
 
-/**
- *  Get the Avatar url or fallback to the default icon according to the chat type
- *
- * @param {String} source
- * @param {Object} options
- * @param {Boolean} [options.isChatRoom]
- * @param {Boolean} [options.isArchivedRoom]
- * @param {Boolean} [options.isPolicyExpenseChat]
- * @returns {String | Function}
- */
-function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
-    if (!source) {
-        if (isChatRoom) {
-            return Expensicons.ActiveRoomAvatar;
-        }
-        if (isArchivedRoom) {
-            return Expensicons.DeletedRoomAvatar;
-        }
-        if (isPolicyExpenseChat) {
-            return Expensicons.Workspace;
-        }
-    }
-    return source;
-}
-
-/**
- * Get the Avatar urls or fallback to the default icons according to the chat type
- *
- * @param {Object} report
- * @returns {Array<String|Function>}
- */
-function getAvatarSourceFromReport(report) {
-    return _.map(report.icons, source => getAvatarSource(source, {
-        isChatRoom: ReportUtils.isChatRoom(report),
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
-        isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(report),
-    }));
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
-    getAvatarSource,
     getAvatarSourceFromReport,
     getSearchOptions,
     getNewChatOptions,

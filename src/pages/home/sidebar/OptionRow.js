@@ -21,7 +21,6 @@ import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -165,11 +164,7 @@ const OptionRow = (props) => {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     <MultipleAvatars
-                                        avatarImageURLs={_.map(props.option.icons, source => OptionsListUtils.getAvatarSource(source, {
-                                            isChatRoom: props.option.isChatRoom,
-                                            isArchivedRoom: props.option.isArchivedRoom,
-                                            isPolicyExpenseChat: props.option.isPolicyExpenseChat,
-                                        }))}
+                                        avatarImageURLs={props.option.icons}
                                         size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
                                             StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
