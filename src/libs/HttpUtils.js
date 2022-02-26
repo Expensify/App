@@ -10,17 +10,23 @@ Onyx.connect({
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
 });
 
+// We use the AbortController API to terminate pending request in `cancelPendingRequests`
+let cancellationController = new AbortController();
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  *
  * @param {String} url
- * @param {String} method
- * @param {Object} body
+ * @param {String} [method]
+ * @param {Object} [body]
+ * @param {Boolean} [canCancel]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null) {
+function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
     return fetch(url, {
+        // We hook requests to the same Controller signal, so we can cancel them all at once
+        signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
     })
@@ -44,7 +50,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
 }
 
 /**
@@ -64,7 +70,16 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
+function cancelPendingRequests() {
+    cancellationController.abort();
+
+    // We create a new instance because once `abort()` is called any future requests using the same controller would
+    // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
+    cancellationController = new AbortController();
+}
+
 export default {
     download,
     xhr,
+    cancelPendingRequests,
 };

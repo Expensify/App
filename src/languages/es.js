@@ -303,7 +303,8 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
@@ -897,7 +898,7 @@ export default {
         createRoom: 'Crea una sala de chat',
         policyRoomRenamed: '¡Espacio de trabajo renombrado!',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: 'Este nombre está reservado y no puede usarse',
+        roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
