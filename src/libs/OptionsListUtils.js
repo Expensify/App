@@ -231,11 +231,11 @@ function getParticipants(report) {
  */
 function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
     if (!source) {
-        if (isChatRoom) {
-            return Expensicons.ActiveRoomAvatar;
-        }
         if (isArchivedRoom) {
             return Expensicons.DeletedRoomAvatar;
+        }
+        if (isChatRoom) {
+            return Expensicons.ActiveRoomAvatar;
         }
         if (isPolicyExpenseChat) {
             return Expensicons.Workspace;
