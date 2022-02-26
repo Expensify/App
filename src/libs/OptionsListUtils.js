@@ -10,6 +10,7 @@ import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import md5 from './md5';
+import * as Expensicons from '../components/Icon/Expensicons';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -838,9 +839,50 @@ function getReportIcons(report, personalDetails) {
     return _.map(sortedParticipants, item => item.avatar);
 }
 
+/**
+ *  Get the Avatar url or fallback to the default icon according to the chat type
+ *
+ * @param {String} source
+ * @param {Object} options
+ * @param {Boolean} [options.isChatRoom]
+ * @param {Boolean} [options.isArchivedRoom]
+ * @param {Boolean} [options.isPolicyExpenseChat]
+ * @returns {String | Function}
+ */
+function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
+    if (!source) {
+        if (isChatRoom) {
+            return Expensicons.ActiveRoomAvatar;
+        }
+        if (isArchivedRoom) {
+            return Expensicons.DeletedRoomAvatar;
+        }
+        if (isPolicyExpenseChat) {
+            return Expensicons.Workspace;
+        }
+    }
+    return source;
+}
+
+/**
+ * Get the Avatar urls or fallback to the default icons according to the chat type
+ *
+ * @param {Object} report
+ * @returns {Array<String|Function>}
+ */
+function getAvatarSourceFromReport(report) {
+    return _.map(report.icons, source => getAvatarSource(source, {
+        isChatRoom: ReportUtils.isChatRoom(report),
+        isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(report),
+    }));
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
+    getAvatarSource,
+    getAvatarSourceFromReport,
     getSearchOptions,
     getNewChatOptions,
     getSidebarOptions,
