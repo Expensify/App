@@ -227,7 +227,7 @@ function getParticipants(report) {
  * @param {Boolean} [options.isChatRoom]
  * @param {Boolean} [options.isArchivedRoom]
  * @param {Boolean} [options.isPolicyExpenseChat]
- * @returns {String | Function}
+ * @returns {String | function():any}
  */
 function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
     if (!source) {
@@ -248,7 +248,7 @@ function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseCha
  * Get the Avatar urls or fallback to the default icons according to the chat type
  *
  * @param {Object} report
- * @returns {Array<String|Function>}
+ * @returns {Array<String | function():any>}
  */
 function getAvatarSourceFromReport(report) {
     return _.map(report.icons, source => getAvatarSource(source, {
