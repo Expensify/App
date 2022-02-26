@@ -82,7 +82,6 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions: [],
             userToInvite,
             welcomeNote: this.getWelcomeNote(),
-            pressOnEnter: true,
         };
     }
 
@@ -301,8 +300,6 @@ class WorkspaceInvitePage extends React.Component {
                                     containerStyles={[styles.workspaceInviteWelcome]}
                                     value={this.state.welcomeNote}
                                     onChangeText={text => this.setState({welcomeNote: text})}
-                                    onFocus={() => this.setState({pressOnEnter: false})}
-                                    onBlur={() => this.setState({pressOnEnter: true})}
                                 />
                             </View>
                             <FormAlertWithSubmitButton
@@ -313,7 +310,6 @@ class WorkspaceInvitePage extends React.Component {
                                 onFixTheErrorsLinkPressed={() => {}}
                                 message={this.props.policy.alertMessage}
                                 containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                                pressOnEnter={this.state.pressOnEnter}
                             />
                             <Pressable
                                 onPress={(e) => {

@@ -20,7 +20,7 @@ function getKeyboardShortcuts() {
  * @private
  */
 function bindHandlerToKeyupEvent(event) {
-    if (events[event.keyCode] === undefined) {
+    if (events[event.keyCode] === undefined || event.target.nodeName === 'TEXTAREA') {
         return;
     }
 

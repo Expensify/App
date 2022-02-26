@@ -40,9 +40,6 @@ const propTypes = {
     /** Is the button in a loading state */
     isLoading: PropTypes.bool,
 
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -52,7 +49,6 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
-    pressOnEnter: true,
 };
 
 const FormAlertWithSubmitButton = (props) => {
@@ -108,7 +104,7 @@ const FormAlertWithSubmitButton = (props) => {
             )}
             <Button
                 success
-                pressOnEnter={props.pressOnEnter}
+                pressOnEnter
                 text={props.buttonText}
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
