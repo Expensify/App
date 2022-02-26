@@ -6,7 +6,6 @@ import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import variables from '../styles/variables';
-import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 
@@ -24,15 +23,6 @@ const propTypes = {
     /** Set the size of Avatar */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
-    /** Whether this avatar is for a chat room */
-    isChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an archived default room */
-    isArchivedRoom: PropTypes.bool,
-
-    /** Whether this avatar is for a policyExpenseChat */
-    isPolicyExpenseChat: PropTypes.bool,
-
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
 };
@@ -41,27 +31,12 @@ const defaultProps = {
     imageStyles: [],
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
-    isChatRoom: false,
-    isArchivedRoom: false,
-    isPolicyExpenseChat: false,
     fill: themeColors.icon,
 };
 
 class Avatar extends PureComponent {
     render() {
-        let source = this.props.source;
-        if (!source) {
-            if (this.props.isChatRoom) {
-                source = Expensicons.ActiveRoomAvatar;
-            }
-            if (this.props.isArchivedRoom) {
-                source = Expensicons.DeletedRoomAvatar;
-            }
-            if (this.props.isPolicyExpenseChat) {
-                source = Expensicons.Workspace;
-            }
-        }
-
+        const source = this.props.source;
         if (!source) {
             return null;
         }
