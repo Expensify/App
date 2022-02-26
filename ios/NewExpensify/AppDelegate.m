@@ -38,7 +38,7 @@ static void InitializeFlipper(UIApplication *application) {
   // Configure firebase
   [FIRApp configure];
 
-  //force app to work lrt 
+  // Force the app to LTR mode.
   [[RCTI18nUtil sharedInstance] allowRTL:NO];
   [[RCTI18nUtil sharedInstance] forceRTL:NO];
 
