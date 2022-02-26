@@ -6,7 +6,6 @@ import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
 import SubscriptAvatar from './SubscriptAvatar';
-import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
@@ -64,9 +63,9 @@ const MultipleAvatars = (props) => {
     if (props.showSubscript) {
         return (
             <SubscriptAvatar
-                avatarIcons={props.avatarIcons}
+                mainAvatar={props.avatarIcons[0]}
+                secondaryAvatar={props.avatarIcons[1]}
                 avatarTooltips={props.avatarTooltips}
-                defaultSubscriptIcon={() => Expensicons.Workspace}
             />
         );
     }

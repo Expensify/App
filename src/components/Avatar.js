@@ -12,7 +12,7 @@ import CONST from '../CONST';
 
 const propTypes = {
     /** Source for the avatar. Can be the URL of an image or an icon. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Extra styles to pass to Image */
     imageStyles: PropTypes.arrayOf(PropTypes.object),
@@ -28,6 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    source: null,
     imageStyles: [],
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
