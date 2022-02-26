@@ -9,6 +9,7 @@ import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import LargeDualAvatars from '../../../components/LargeDualAvatars';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,10 +45,7 @@ const ReportActionItemCreated = (props) => {
                         />
                     ) : (
                         <RoomHeaderAvatars
-                            avatarImageURLs={props.report.icons}
-                            isChatRoom={isChatRoom}
-                            isPolicyExpenseChat={isPolicyExpenseChat}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            avatarImageURLs={OptionsListUtils.getAvatarSourceFromReport(props.report)}
                         />
                     )
                 }

@@ -136,11 +136,8 @@ const HeaderView = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             <MultipleAvatars
-                                avatarImageURLs={props.report.icons}
+                                avatarImageURLs={OptionsListUtils.getAvatarSourceFromReport(props.report)}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
-                                isChatRoom={isChatRoom}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
-                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 avatarTooltips={avatarTooltip}
                                 showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                             />

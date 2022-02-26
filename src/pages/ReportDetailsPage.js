@@ -132,11 +132,9 @@ class ReportDetailsPage extends Component {
                             style={styles.reportDetailsTitleContainer}
                         >
                             <Avatar
-                                isChatRoom={isChatRoom}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
-                                source={this.props.report.icons[0]}
+                                source={OptionsListUtils.getAvatarSourceFromReport(this.props.report)}
                             />
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>

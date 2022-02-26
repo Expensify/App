@@ -21,6 +21,7 @@ import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -164,7 +165,11 @@ const OptionRow = (props) => {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     <MultipleAvatars
-                                        avatarImageURLs={props.option.icons}
+                                        avatarImageURLs={_.map(props.option.icons, source => OptionsListUtils.getAvatarSource(source, {
+                                            isChatRoom: props.option.isChatRoom,
+                                            isArchivedRoom: props.option.isArchivedRoom,
+                                            isPolicyExpenseChat: props.option.isPolicyExpenseChat,
+                                        }))}
                                         size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
                                             StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
@@ -175,9 +180,6 @@ const OptionRow = (props) => {
                                                 ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isChatRoom={props.option.isChatRoom}
-                                        isArchivedRoom={props.option.isArchivedRoom}
-                                        isPolicyExpenseChat={props.option.isPolicyExpenseChat}
                                         avatarTooltips={avatarTooltips}
                                         showSubscript={props.option.showSubscript}
                                     />
