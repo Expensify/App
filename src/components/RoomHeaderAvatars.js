@@ -11,22 +11,10 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     /** Array of avatar URLs or icons */
     avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
-
-    /** Whether this avatar is for a custom/default room */
-    isChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an archived room */
-    isArchivedRoom: PropTypes.bool,
-
-    /** Whether this avatar is for a policyExpenseChat */
-    isPolicyExpenseChat: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarIcons: [],
-    isChatRoom: false,
-    isArchivedRoom: false,
-    isPolicyExpenseChat: false,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -39,9 +27,6 @@ const RoomHeaderAvatars = (props) => {
             <Avatar
                 source={props.avatarIcons[0]}
                 imageStyles={[styles.avatarLarge]}
-                isChatRoom={props.isChatRoom}
-                isArchivedRoom={props.isArchivedRoom}
-                isPolicyExpenseChat={props.isPolicyExpenseChat}
                 fill={themeColors.iconSuccessFill}
                 size={CONST.AVATAR_SIZE.LARGE}
             />

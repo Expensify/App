@@ -20,15 +20,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether this avatar is for a chat room */
-    isChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an archived room */
-    isArchivedRoom: PropTypes.bool,
-
-    /** Whether this avatar is for a policyExpenseChat */
-    isPolicyExpenseChat: PropTypes.bool,
-
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 
@@ -40,11 +31,8 @@ const defaultProps = {
     avatarIcons: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    isChatRoom: false,
-    isArchivedRoom: false,
     avatarTooltips: [],
     showSubscript: false,
-    isPolicyExpenseChat: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -66,9 +54,6 @@ const MultipleAvatars = (props) => {
                     <Avatar
                         source={props.avatarIcons[0]}
                         size={props.size}
-                        isChatRoom={props.isChatRoom}
-                        isArchivedRoom={props.isArchivedRoom}
-                        isPolicyExpenseChat={props.isPolicyExpenseChat}
                         fill={themeColors.iconSuccessFill}
                     />
                 </Tooltip>
