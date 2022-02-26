@@ -37,8 +37,7 @@ const defaultProps = {
 
 class Avatar extends PureComponent {
     render() {
-        const source = this.props.source;
-        if (!source) {
+        if (!this.props.source) {
             return null;
         }
 
@@ -57,9 +56,9 @@ class Avatar extends PureComponent {
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {
-                _.isFunction(source)
-                    ? <Icon src={source} fill={this.props.fill} height={iconSize} width={iconSize} />
-                    : <Image source={{uri: source}} style={imageStyle} />
+                _.isFunction(this.props.source)
+                    ? <Icon src={this.props.source} fill={this.props.fill} height={iconSize} width={iconSize} />
+                    : <Image source={{uri: this.props.source}} style={imageStyle} />
             }
             </View>
         );
