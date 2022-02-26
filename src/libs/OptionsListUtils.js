@@ -852,7 +852,7 @@ function getReportIcons(report, personalDetails) {
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]);
 
-        // If the user is not an admin for this workspace chat, return avatar of the workspace
+        // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat) {
             return [policyExpenseChatAvatarURL];
         }
