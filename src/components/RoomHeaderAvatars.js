@@ -11,10 +11,14 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     /** Array of avatar URLs or icons */
     avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+
+    /** Whether show large Avatars */
+    shouldShowLargeAvatars: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarIcons: [],
+    shouldShowLargeAvatars: false,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -30,6 +34,27 @@ const RoomHeaderAvatars = (props) => {
                 fill={themeColors.iconSuccessFill}
                 size={CONST.AVATAR_SIZE.LARGE}
             />
+        );
+    }
+
+    if (props.shouldShowLargeAvatars) {
+        return (
+            <View>
+                <View style={[styles.secondAvatarHovered, styles.rightSideLargeAvatar]}>
+                    <Avatar
+                        source={props.avatarIcons[0]}
+                        imageStyles={[styles.avatarLarge]}
+                    />
+                </View>
+                <View style={styles.secondAvatarLarge}>
+                    <Avatar
+                        source={props.avatarIcons[1]}
+                        imageStyles={[styles.avatarLarge]}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                        fill={themeColors.iconSuccessFill}
+                    />
+                </View>
+            </View>
         );
     }
 

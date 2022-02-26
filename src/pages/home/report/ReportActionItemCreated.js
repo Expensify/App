@@ -7,8 +7,6 @@ import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import LargeDualAvatars from '../../../components/LargeDualAvatars';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
@@ -37,19 +35,10 @@ const ReportActionItemCreated = (props) => {
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                {
-                    isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat ? (
-                        <LargeDualAvatars
-                            avatarIcons={avatarIcons}
-                            avatarTooltips={[]}
-                            defaultSubscriptIcon={() => Expensicons.Workspace}
-                        />
-                    ) : (
-                        <RoomHeaderAvatars
-                            avatarIcons={avatarIcons}
-                        />
-                    )
-                }
+                <RoomHeaderAvatars
+                    avatarIcons={avatarIcons}
+                    shouldShowLargeAvatars={isPolicyExpenseChat}
+                />
                 <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />
             </View>
         </View>
