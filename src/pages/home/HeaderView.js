@@ -114,7 +114,7 @@ const HeaderView = (props) => {
                         </Pressable>
                     </Tooltip>
                 )}
-                {props.report && props.report.reportName && (
+                {Boolean(props.report && props.report.reportName) && (
                     <View
                         style={[
                             styles.flex1,
