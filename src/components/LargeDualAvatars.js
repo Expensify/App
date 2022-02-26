@@ -9,7 +9,7 @@ import CONST from '../CONST';
 
 const propTypes = {
     /** Array of avatar URL */
-    avatarImageURLs: PropTypes.arrayOf(PropTypes.string).isRequired,
+    avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])).isRequired,
 
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -23,7 +23,7 @@ const LargeDualAvatars = props => (
         <View style={[styles.secondAvatarHovered, styles.rightSideLargeAvatar]}>
             <Tooltip text={props.avatarTooltips[0]} absolute>
                 <Avatar
-                    source={props.avatarImageURLs[0]}
+                    source={props.avatarIcons[0]}
                     imageStyles={[styles.avatarLarge]}
                 />
             </Tooltip>
@@ -31,7 +31,7 @@ const LargeDualAvatars = props => (
         <View style={styles.secondAvatarLarge}>
             <Tooltip text={props.avatarTooltips[1]} absolute>
                 <Avatar
-                    source={props.avatarImageURLs[1] !== '' ? props.avatarImageURLs[1] : props.defaultSubscriptIcon()}
+                    source={props.avatarIcons[1] !== '' ? props.avatarIcons[1] : props.defaultSubscriptIcon()}
                     imageStyles={[styles.avatarLarge]}
                     size={CONST.AVATAR_SIZE.LARGE}
                     fill={themeColors.iconSuccessFill}

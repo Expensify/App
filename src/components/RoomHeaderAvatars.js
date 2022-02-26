@@ -9,8 +9,8 @@ import Avatar from './Avatar';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    /** Array of avatar URL */
-    avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
+    /** Array of avatar URLs or icons */
+    avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     /** Whether this avatar is for a custom/default room */
     isChatRoom: PropTypes.bool,
@@ -23,21 +23,21 @@ const propTypes = {
 };
 
 const defaultProps = {
-    avatarImageURLs: [],
+    avatarIcons: [],
     isChatRoom: false,
     isArchivedRoom: false,
     isPolicyExpenseChat: false,
 };
 
 const RoomHeaderAvatars = (props) => {
-    if (!props.avatarImageURLs.length) {
+    if (!props.avatarIcons.length) {
         return null;
     }
 
-    if (props.avatarImageURLs.length === 1) {
+    if (props.avatarIcons.length === 1) {
         return (
             <Avatar
-                source={props.avatarImageURLs[0]}
+                source={props.avatarIcons[0]}
                 imageStyles={[styles.avatarLarge]}
                 isChatRoom={props.isChatRoom}
                 isArchivedRoom={props.isArchivedRoom}
@@ -48,17 +48,17 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    // avatarImageURLsToDisplay
-    const avatarImageURLsToDisplay = props.avatarImageURLs.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    // avatarIconsToDisplay
+    const avatarIconsToDisplay = props.avatarIcons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
-                {_.map(avatarImageURLsToDisplay, (val, index) => (
+                {_.map(avatarIconsToDisplay, (val, index) => (
                     <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
 
-                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.avatarIcons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
@@ -67,7 +67,7 @@ const RoomHeaderAvatars = (props) => {
                                     ]}
                                 />
                                 <Text style={styles.avatarInnerTextChat}>
-                                    {`+${props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
+                                    {`+${props.avatarIcons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
                                 </Text>
                             </>
                         )}

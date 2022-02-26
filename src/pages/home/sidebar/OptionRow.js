@@ -164,7 +164,7 @@ const OptionRow = (props) => {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     <MultipleAvatars
-                                        avatarImageURLs={props.option.icons}
+                                        avatarIcons={props.option.icons}
                                         size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
                                             StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),

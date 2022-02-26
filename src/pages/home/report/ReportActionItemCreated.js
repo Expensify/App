@@ -28,6 +28,7 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const avatarIcons = OptionsListUtils.getAvatarSourceFromReport(props.report);
     return (
         <View style={[
             styles.chatContent,
@@ -39,13 +40,13 @@ const ReportActionItemCreated = (props) => {
                 {
                     isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat ? (
                         <LargeDualAvatars
-                            avatarImageURLs={props.report.icons}
+                            avatarIcons={avatarIcons}
                             avatarTooltips={[]}
                             defaultSubscriptIcon={() => Expensicons.Workspace}
                         />
                     ) : (
                         <RoomHeaderAvatars
-                            avatarImageURLs={OptionsListUtils.getAvatarSourceFromReport(props.report)}
+                            avatarIcons={avatarIcons}
                         />
                     )
                 }

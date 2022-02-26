@@ -10,8 +10,8 @@ import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    /** Array of avatar URL */
-    avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
+    /** Array of avatar URLs or icons */
+    avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     /** Set the sie of avatars */
     size: PropTypes.oneOf(['default', 'small']),
@@ -37,7 +37,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    avatarImageURLs: [],
+    avatarIcons: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
     isChatRoom: false,
@@ -55,16 +55,16 @@ const MultipleAvatars = (props) => {
         ...props.secondAvatarStyle,
     ];
 
-    if (!props.avatarImageURLs.length) {
+    if (!props.avatarIcons.length) {
         return null;
     }
 
-    if (props.avatarImageURLs.length === 1) {
+    if (props.avatarIcons.length === 1) {
         return (
             <View style={avatarContainerStyles}>
                 <Tooltip text={props.avatarTooltips[0]}>
                     <Avatar
-                        source={props.avatarImageURLs[0]}
+                        source={props.avatarIcons[0]}
                         size={props.size}
                         isChatRoom={props.isChatRoom}
                         isArchivedRoom={props.isArchivedRoom}
@@ -79,7 +79,7 @@ const MultipleAvatars = (props) => {
     if (props.showSubscript) {
         return (
             <SubscriptAvatar
-                avatarImageURLs={props.avatarImageURLs}
+                avatarIcons={props.avatarIcons}
                 avatarTooltips={props.avatarTooltips}
                 defaultSubscriptIcon={() => Expensicons.Workspace}
             />
@@ -93,17 +93,17 @@ const MultipleAvatars = (props) => {
             >
                 <Tooltip text={props.avatarTooltips[0]} absolute>
                     <Image
-                        source={{uri: props.avatarImageURLs[0]}}
+                        source={{uri: props.avatarIcons[0]}}
                         style={singleAvatarStyles}
                     />
                 </Tooltip>
                 <View
                     style={secondAvatarStyles}
                 >
-                    {props.avatarImageURLs.length === 2 ? (
+                    {props.avatarIcons.length === 2 ? (
                         <Tooltip text={props.avatarTooltips[1]} absolute>
                             <Image
-                                source={{uri: props.avatarImageURLs[1]}}
+                                source={{uri: props.avatarIcons[1]}}
                                 style={singleAvatarStyles}
                             />
                         </Tooltip>
@@ -116,7 +116,7 @@ const MultipleAvatars = (props) => {
                                     ? styles.avatarInnerTextSmall
                                     : styles.avatarInnerText}
                                 >
-                                    {`+${props.avatarImageURLs.length - 1}`}
+                                    {`+${props.avatarIcons.length - 1}`}
                                 </Text>
                             </View>
                         </Tooltip>
