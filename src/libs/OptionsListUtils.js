@@ -215,11 +215,6 @@ function getParticipants(report) {
         if (!_.contains(participants, report.ownerEmail)) {
             participants.push(report.ownerEmail);
         }
-
-        // Include admin as participant
-        if (!report.isOwnPolicyExpenseChat) {
-            participants.push(currentUserLogin);
-        }
     }
     return participants;
 }
