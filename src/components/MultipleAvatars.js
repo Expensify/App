@@ -23,7 +23,7 @@ const propTypes = {
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 
     /** Flag to show SubscriptAvatar component */
-    showSubscript: PropTypes.bool,
+    shouldShowSubscript: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -31,7 +31,7 @@ const defaultProps = {
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
     avatarTooltips: [],
-    showSubscript: false,
+    shouldShowSubscript: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -60,7 +60,7 @@ const MultipleAvatars = (props) => {
         );
     }
 
-    if (props.showSubscript) {
+    if (props.shouldShowSubscript) {
         return (
             <SubscriptAvatar
                 mainAvatar={props.avatarIcons[0]}

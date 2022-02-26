@@ -176,7 +176,7 @@ const OptionRow = (props) => {
                                                 : undefined,
                                         ]}
                                         avatarTooltips={avatarTooltips}
-                                        showSubscript={props.option.showSubscript}
+                                        shouldShowSubscript={props.option.shouldShowSubscript}
                                     />
                                 )
                             }

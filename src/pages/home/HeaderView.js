@@ -139,7 +139,7 @@ const HeaderView = (props) => {
                                 avatarIcons={OptionsListUtils.getAvatarSourceFromReport(props.report)}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 avatarTooltips={avatarTooltip}
-                                showSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
+                                shouldShowSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames

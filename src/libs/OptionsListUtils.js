@@ -337,7 +337,7 @@ function createOption(personalDetailList, report, {
         iouReportID: lodashGet(report, 'iouReportID'),
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
-        showSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
+        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
     };
 }
 
