@@ -212,7 +212,7 @@ function hasReportDraftComment(report) {
 function getParticipants(report) {
     const participants = [...lodashGet(report, ['participants'], [])];
     if (ReportUtils.isPolicyExpenseChat(report)) {
-        if (!participants.includes(report.ownerEmail)) {
+        if (!_.contains(participants, report.ownerEmail)) {
             participants.push(report.ownerEmail);
         }
 
