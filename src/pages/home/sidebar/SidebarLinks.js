@@ -158,16 +158,25 @@ class SidebarLinks extends React.Component {
 
     static getDerivedStateFromProps(nextProps, prevState) {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+
+        // Pull the reports we want to show on the left hand nav
         const recentReports = SidebarLinks.getRecentReports(nextProps);
+
+        // Determine whether we want to re-order/sort the reports on the left hand nav
         const orderedReports = shouldReorder
             ? recentReports
             : _.chain(prevState.orderedReports)
-                .map(orderedReport => _.chain(recentReports)
-                .filter(recentReport => orderedReport.reportID === recentReport.reportID)
-                .first()
-                .value())
-              .filter(orderedReport => orderedReport !== undefined)
-              .value();
+
+                    // To preserve the order of the conversations, we pull the previous state's order of reports.
+                    // Then match and replace them with the conversations we are supposed to show ('recentReports').
+                    .map(orderedReport => _.chain(recentReports)
+                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
+                    .first()
+                  .value())
+
+                // We have to use map() because we need to replace the older reports objects with the newer ones in recentReports
+                .filter(orderedReport => orderedReport !== undefined)
+                .value();
 
         return {
             orderedReports,
