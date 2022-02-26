@@ -66,7 +66,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
 
-      //force app to work ltr
+      // Force the app to LTR mode.
       I18nUtil sharedI18nUtilInstance = I18nUtil.getInstance();
       sharedI18nUtilInstance.allowRTL(getApplicationContext(), false);
 
