@@ -109,13 +109,16 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                     walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                 });
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
-            } else {
-                Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+                return;
             }
+
+            if (response.message === CONST.WALLET.ERROR.NO_ACCOUNT_TO_LINK) {
+                Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+                return;
+            }
+
+            Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
         })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-        });
 }
 
 /**
