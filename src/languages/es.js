@@ -365,6 +365,15 @@ export default {
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
+        error: {
+            noAccountToLink: 'Something went wrong. Please, contact Concierge.',
+            invalidWallet: 'Your Wallet is currently suspended. Reach out to Concierge for help.',
+            notOwnerOfBankAccount: 'We couldn\'t link this bank account to your Wallet. Please, reach out to Concierge for help.',
+            invalidBankAccount: 'This bank account is temporarily suspended. Reach out to Concierge for help.',
+            notOwnerOfFund: 'We couldn\'t link this fund to your Wallet. Reach out to Concierge for help.',
+            invalidFund: 'This fund is temporarily suspended. Reach out to Concierge for help.',
+            setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        }
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,

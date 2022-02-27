@@ -357,7 +357,6 @@ export default {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        setDefaultFailure: 'Failed to set default payment method.',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
@@ -365,6 +364,15 @@ export default {
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
+        error: {
+            noAccountToLink: 'Something went wrong. Please, contact Concierge.',
+            invalidWallet: 'Your Wallet is currently suspended. Reach out to Concierge for help.',
+            notOwnerOfBankAccount: 'We couldn\'t link this bank account to your Wallet. Please, reach out to Concierge for help.',
+            invalidBankAccount: 'This bank account is temporarily suspended. Reach out to Concierge for help.',
+            notOwnerOfFund: 'We couldn\'t link this fund to your Wallet. Reach out to Concierge for help.',
+            invalidFund: 'This fund is temporarily suspended. Reach out to Concierge for help.',
+            setDefaultFailure: 'Failed to set default payment method.',
+        }
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,

@@ -112,12 +112,30 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                 return;
             }
 
-            if (response.message === CONST.WALLET.ERROR.NO_ACCOUNT_TO_LINK) {
-                Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-                return;
+            // Make sure to show user more specific errors which will help support identify the problem faster.
+            switch (response.message) {
+                case CONST.WALLET.ERROR.NO_ACCOUNT_TO_LINK:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.noAccountToLink'), CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.INVALID_WALLET:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidWallet'), CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount'), CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidBankAccount'), CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfFund'), CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.INVALID_FUND:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidFund'), CONST.GROWL.ERROR, 5000);
+                    return;
+                default:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+                    return;
             }
-
-            Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
         })
 }
 
