@@ -20,25 +20,22 @@ class KYCWall extends React.Component {
         super(props);
 
         this.continue = this.continue.bind(this);
-        this.transferBalanceButtonRef = null;
+        this.setMenuPosition = this.setMenuPosition.bind(this);
         this.dimensionsSubscription = null;
 
         this.state = {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            transferBalanceButton: null,
         };
     }
 
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
-        if (this.props.shouldListenForResize && this.transferBalanceButtonRef) {
-            this.dimensionsSubscription = Dimensions.addEventListener('change', () => {
-                const clickedElementLocation = this.transferBalanceButtonRef.getBoundingClientRect();
-                const btnPosition = this.getAnchorPosition(clickedElementLocation);
-                this.setPositionAddPaymentMenu(btnPosition);
-            });
+        if (this.props.shouldListenForResize) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
     }
 
@@ -47,6 +44,15 @@ class KYCWall extends React.Component {
             this.dimensionsSubscription.remove();
         }
         PaymentMethods.kycWallRef.current = null;
+    }
+
+    setMenuPosition() {
+        if (!this.state.transferBalanceButton) {
+            return;
+        }
+        const btnPosition = getClickedElementLocation(this.state.transferBalanceButton);
+        const position = this.getAnchorPosition(btnPosition);
+        this.setPositionAddPaymentMenu(position);
     }
 
     /**
@@ -87,15 +93,19 @@ class KYCWall extends React.Component {
      * @param {Event} event
      */
     continue(event) {
+        this.setState({
+            transferBalanceButton: event.nativeEvent,
+        });
+
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
             const position = this.getAnchorPosition(clickedElementLocation);
+            this.setPositionAddPaymentMenu(position);
             this.setState({
                 shouldShowAddPaymentMenu: true,
             });
-            this.setPositionAddPaymentMenu(position);
             return;
         }
 
@@ -133,7 +143,7 @@ class KYCWall extends React.Component {
                 />
                 {this.props.isLoadingPaymentMethods
                     ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue, el => this.transferBalanceButtonRef = el)}
+                    : this.props.children(this.continue)}
             </>
         );
     }

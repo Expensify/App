@@ -42,6 +42,7 @@ class BasePaymentsPage extends React.Component {
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            addPaymentMethodButton: null,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -52,25 +53,32 @@ class BasePaymentsPage extends React.Component {
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
-        this.addPaymentMethodButtonRef = null;
+        this.setMenuPosition = this.setMenuPosition.bind(this);
         this.dimensionsSubscription = null;
     }
 
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
         if (this.props.shouldListenForResize) {
-            this.dimensionsSubscription = Dimensions.addEventListener('change', () => {
-                const btnPosition = this.addPaymentMethodButtonRef.getBoundingClientRect();
-                this.setPositionAddPaymentMenu(btnPosition);
-            });
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
     }
 
     componentWillUnmount() {
-        this.addPaymentMethodButtonRef = null;
+        this.setState({
+            addPaymentMethodButton: null,
+        });
         if (this.props.shouldListenForResize && this.dimensionsSubscription) {
             this.dimensionsSubscription.remove();
         }
+    }
+
+    setMenuPosition() {
+        if (!this.state.addPaymentMethodButton) {
+            return;
+        }
+        const btnPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        this.setPositionAddPaymentMenu(btnPosition);
     }
 
     getSelectedPaymentMethodID() {
@@ -108,7 +116,9 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
         const position = getClickedElementLocation(nativeEvent);
-
+        this.setState({
+            addPaymentMethodButton: nativeEvent,
+        });
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -248,9 +258,8 @@ class BasePaymentsPage extends React.Component {
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         popoverPlacement="bottom"
                                     >
-                                        {(triggerKYCFlow, transferBalanceButtonRef) => (
+                                        {triggerKYCFlow => (
                                             <MenuItem
-                                                ref={transferBalanceButtonRef}
                                                 title={this.props.translate('common.transferBalance')}
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
@@ -267,7 +276,6 @@ class BasePaymentsPage extends React.Component {
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
                         </Text>
                         <PaymentMethodList
-                            addPaymentMethodButtonRef={el => this.addPaymentMethodButtonRef = el}
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import {
     View, Pressable,
 } from 'react-native';
@@ -41,9 +41,8 @@ const defaultProps = {
     interactive: true,
 };
 
-const MenuItem = forwardRef((props, ref) => (
+const MenuItem = props => (
     <Pressable
-        ref={ref}
         onPress={(e) => {
             if (props.disabled) {
                 return;
@@ -135,7 +134,7 @@ const MenuItem = forwardRef((props, ref) => (
             </>
         )}
     </Pressable>
-));
+);
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
