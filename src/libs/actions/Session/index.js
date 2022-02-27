@@ -449,7 +449,7 @@ function setOrChangePassword(accountID, validateCode, password, authToken) {
 function validateEmail(accountID, validateCode) {
     Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
-    API.ValidateEmail({
+    return API.ValidateEmail({
         accountID,
         validateCode,
     })

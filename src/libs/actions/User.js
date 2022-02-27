@@ -195,6 +195,39 @@ function setSecondaryLoginAndNavigate(login, password) {
 }
 
 /**
+ * Adds a secondary login to a user's account
+ *
+ * @param {String} login
+ * @param {String} password
+ * @returns {Promise}
+ */
+function setSecondaryLogin(login, password) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+
+    return API.User_SecondaryLogin_Send({
+        email: login,
+        password,
+    }).then((response) => {
+        if (response.jsonCode === 200) {
+            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
+            Onyx.merge(ONYXKEYS.USER, {loginList, error: ''});
+            return;
+        }
+
+        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+        // Replace error with a friendlier message
+        if (error.includes('already belongs to an existing Expensify account.')) {
+            error = 'This login already belongs to an existing Expensify account.';
+        }
+
+        Onyx.merge(ONYXKEYS.USER, {error});
+    }).finally(() => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+    });
+}
+
+/**
  * Validates a login given an accountID and validation code
  *
  * @param {Number} accountID
@@ -405,6 +438,7 @@ export {
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLoginAndNavigate,
+    setSecondaryLogin,
     validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,

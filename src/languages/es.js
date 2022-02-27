@@ -79,6 +79,8 @@ export default {
             invalidAmount: 'Monto no válido',
         },
         please: 'Por favor',
+        welcome: '',
+        getStarted: '',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -475,11 +477,16 @@ export default {
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
+        confirmPassword: '',
+        confirmPasswordInvalidMessage: '',
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
-        passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
+        passwordFormTitle: '',
         passwordNotSet: 'No pudimos cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         verifyingAccount: 'Verificando cuenta',
+    },
+    welcomeProfilePage: {
+        formTitle: '',
     },
     stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {

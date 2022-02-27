@@ -37,7 +37,31 @@ function set(name, value, onyxKeyName) {
     }
 }
 
+/**
+ * Gets the value of an NVP
+ *
+ * @param {String} name
+ * @param {String} onyxKey
+ * @param {*} [defaultValue]
+ * @param {Object} migrationValueMap. {oldvalue: newvalue, ...} 
+ */
+function getAndMigrateValue(name, onyxKey, defaultValue, migrationValueMap) {
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        name,
+    })
+        .then((response) => {
+            let value = lodashGet(response.nameValuePairs, [name], defaultValue);
+            if (_.has(migrationValueMap, value)) {
+                value = migrationValueMap[value]; 
+                set(name, value, onyxKey);
+            }
+            Onyx.set(onyxKey, value);
+        });
+}
+
 export default {
     get,
     set,
+    getAndMigrateValue,
 };

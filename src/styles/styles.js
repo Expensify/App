@@ -602,6 +602,10 @@ const styles = {
         height: 12,
     },
 
+    invalidPasswordMessageSpace: {
+        height: 60,
+    },
+
     pushTextRight: {
         left: 100000,
     },

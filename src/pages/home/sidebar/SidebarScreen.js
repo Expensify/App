@@ -40,7 +40,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    firstTimeNewExpensifyUserStep: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.COMPLETE,
+    firstTimeNewExpensifyUserStep: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH,
     isCreatingWorkspace: false,
 };
 
@@ -59,11 +59,10 @@ class SidebarScreen extends Component {
     }
 
     componentDidUpdate() {
-        console.log('did update');
         if (this.props.firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU) {
             NameValuePair.set(
                 CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
-                0, 
+                CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH, 
                 ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP
             );
             this.displayCreateMenu();
@@ -76,42 +75,22 @@ class SidebarScreen extends Component {
         // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
         setTimeout(() => {
-            console.log('stepp => ', this.props.firstTimeNewExpensifyUserStep);
-            if (this.props.firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.COMPLETE) {
+            if (this.props.firstTimeNewExpensifyUserStep !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
                 return;
             }
-            console.log('going');
 
             // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
             // create menu right now.
             const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
             const topRouteName = lodashGet(_.last(routes), 'name', '');
             const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
-            console.log(isDisplayingWorkspaceRoute);
-            console.log(Policy.isAdminOfFreePolicy(this.props.allPolicies));
 
             // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
             // not need to create a workspace.
-            if (true) {
-            //if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
-                console.log('Navigating dazo');
+            if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
                 Navigation.navigate(ROUTES.WELCOME_PROFILE_SETTING);
-                //this.toggleCreateMenu();
-                //NameValuePair.set(CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEPP, false, ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP);
             }
-
-            // Set the NVP back to false so we don't automatically open the menu again
-            // Note: this may need to be moved if this NVP is used for anything else later
-            //NameValuePair.set(CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEPP, false, ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP);
         }, 1500);
-
-        window.setTimeout ( () => {
-            NameValuePair.set(
-              CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP, 
-              CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING, 
-              ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
-            );
-        }, 20000);
     }
 
     /**

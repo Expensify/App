@@ -1,7 +1,7 @@
 import CONST from '../CONST';
 
 
-let secret = '';
+let secret = null;
 
 /**
  * Remove the special chars from the phone number
@@ -12,7 +12,7 @@ function getPhoneNumberWithoutSpecialChars(phone) {
     return phone.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 }
 
-function setPassword(value) {
+function storePassword(value) {
     secret = value;
 }
 
@@ -24,6 +24,6 @@ function getAndDestroyPassword() {
 
 export default {
     getPhoneNumberWithoutSpecialChars,
-    setPassword,
+    storePassword,
     getAndDestroyPassword,
 };

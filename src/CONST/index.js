@@ -313,7 +313,7 @@ const CONST = {
         UNAUTHORIZED: 401,
     },
     NVP: {
-        FIRST_TIME_NEW_EXPENSIFY_USER_STEP: 'firstTimeNewExpensifyUserStep',
+        FIRST_TIME_NEW_EXPENSIFY_USER_STEP: 'isFirstTimeNewExpensifyUser',
         BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -347,8 +347,8 @@ const CONST = {
 
     FIRST_TIME_NEW_EXPENSIFY_USER_STEP: {
         FINISH: 0,
-        GLOBAL_CREATE_MENU: 2,
-        WELCOME_PROFILE_SETTING: 3,
+        GLOBAL_CREATE_MENU: 9,
+        WELCOME_PROFILE_SETTING: 10,
     },
 
     EMOJI_SPACER: 'SPACER',
