@@ -258,7 +258,6 @@ class ProfilePage extends Component {
                             containerStyles={[styles.mt6]}
                             label={this.props.translate('common.firstName')}
                             onChangeText={this.handleFirstNameChange}
-                            placeholder={this.props.translate('profilePage.john')}
                             errorText={(this.state.showFormError 
                                 && !this.isFirstNameValid 
                                 ? this.props.translate('personalDetails.error.firstNameLength') : '')}
@@ -268,7 +267,6 @@ class ProfilePage extends Component {
                             containerStyles={[styles.mt6]}
                             label={this.props.translate('common.lastName')}
                             onChangeText={this.handleLastNameChange}
-                            placeholder={this.props.translate('profilePage.john')}
                             errorText={(this.state.showFormError 
                                 && !this.isLastNameValid 
                                 ? this.props.translate('personalDetails.error.lastNameLength') : '')}
