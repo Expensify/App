@@ -424,6 +424,7 @@ const CONST = {
             },
         },
         ERROR: {
+            FULL_SSN_NOT_FOUND: 'Full SSN not found',
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',
             UNEXPECTED: 'Unexpected error',
@@ -568,6 +569,7 @@ const CONST = {
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
+        SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
