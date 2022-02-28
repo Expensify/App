@@ -159,18 +159,20 @@ class SidebarLinks extends React.Component {
         this.state = {
             currentlyViewedReportID: props.currentlyViewedReportID,
             orderedReports: [],
+            priorityMode: props.priorityMode,
             unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
         };
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
 
         // Pull the reports we want to show on the left hand nav
         const recentReports = SidebarLinks.getRecentReports(nextProps);
 
         // Determine whether we want to re-order/sort the reports on the left hand nav
-        const orderedReports = shouldReorder
+        const orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
             : _.chain(prevState.orderedReports)
 
@@ -184,6 +186,7 @@ class SidebarLinks extends React.Component {
 
         return {
             orderedReports,
+            priorityMode: nextProps.priorityMode,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
             unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
         };
