@@ -240,7 +240,7 @@ function processNetworkRequestQueue() {
 
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-                if (shouldRetry) {
+                if (shouldRetry && error.name !== CONST.ERROR.REQUEST_CANCELLED) {
                     const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
                     getLogger().info('A retrieable request failed', false, {
                         retryCount,
@@ -303,10 +303,13 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldUseSecure,
         };
 
-        // All requests should be retried by default
-        if (_.isUndefined(request.data.shouldRetry)) {
-            request.data.shouldRetry = true;
-        }
+        // By default, request are retry-able and cancellable
+        // (e.g. any requests currently happening when the user logs out are cancelled)
+        request.data = {
+            ...data,
+            shouldRetry: lodashGet(data, 'shouldRetry', true),
+            canCancel: lodashGet(data, 'canCancel', true),
+        };
 
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);
@@ -346,10 +349,12 @@ function registerParameterEnhancer(callback) {
 }
 
 /**
- * Clear the queue so all pending requests will be cancelled
+ * Clear the queue and cancels all pending requests
+ * Non-cancellable requests like Log would not be cleared
  */
 function clearRequestQueue() {
-    networkRequestQueue = [];
+    networkRequestQueue = _.filter(networkRequestQueue, r => !r.data.canCancel);
+    HttpUtils.cancelPendingRequests();
 }
 
 export {

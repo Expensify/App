@@ -321,6 +321,33 @@ function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => value.length > maxLength);
 }
 
+/**
+ * Checks if is one of the certain names which are reserved for default rooms
+ * and should not be used for policy rooms.
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isReservedRoomName(roomName) {
+    return _.contains(CONST.REPORT.RESERVED_ROOM_NAMES, roomName);
+}
+
+/**
+ * Checks if the room name already exists.
+ *
+ * @param {String} roomName
+ * @param {Object} reports
+ * @param {String} policyID
+ * @returns {Boolean}
+ */
+function isExistingRoomName(roomName, reports, policyID) {
+    return _.some(
+        reports,
+        report => report && report.policyID === policyID
+        && report.reportName === roomName,
+    );
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -344,4 +371,6 @@ export {
     isValidRoutingNumber,
     isValidSSNLastFour,
     doesFailCharacterLimit,
+    isReservedRoomName,
+    isExistingRoomName,
 };
