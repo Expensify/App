@@ -372,7 +372,7 @@ export default {
             notOwnerOfFund: 'We couldn\'t link this fund to your Wallet. Reach out to Concierge for help.',
             invalidFund: 'This fund is temporarily suspended. Reach out to Concierge for help.',
             setDefaultFailure: 'Failed to set default payment method.',
-        }
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
