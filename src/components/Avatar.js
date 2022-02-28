@@ -5,9 +5,9 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
-import variables from '../styles/variables';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
 
 
 const propTypes = {
@@ -46,13 +46,7 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
 
-        const AVATAR_SIZES = {
-            [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-            [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
-            [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-            [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-        };
-        const iconSize = AVATAR_SIZES[this.props.size];
+        const iconSize = StyleUtils.getAvatarSize(this.props.size);
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {

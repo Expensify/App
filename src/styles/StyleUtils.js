@@ -8,6 +8,22 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 
 /**
+ * Return the style size from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarSize(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+        [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    };
+    return AVATAR_SIZES[size];
+}
+
+/**
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
@@ -405,6 +421,7 @@ function parseStyleAsArray(styleParam) {
 }
 
 export {
+    getAvatarSize,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
