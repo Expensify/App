@@ -58,9 +58,7 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    // avatarIconsToDisplay
     const avatarIconsToDisplay = props.avatarIcons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
-
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
