@@ -145,7 +145,6 @@ class SidebarLinks extends React.Component {
         }
 
         // Do not re-order if the active report has a draft
-        // Unless, we are switching priority modes from "#focus" to "Most Recent". Otherwise, we won't display any of the previously hidden conversations
         if (nextProps.currentlyViewedReportID) {
             const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
             return !hasActiveReportDraft;
