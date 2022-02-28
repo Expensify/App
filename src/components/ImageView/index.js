@@ -195,8 +195,6 @@ class ImageView extends PureComponent {
                         containerHeight: height,
                         containerWidth: width,
                         zoomScale: scale,
-                    }, () => {
-                        this.setImageRegion(imageWidth, imageHeight);
                     });
                 }}
                 style={[
