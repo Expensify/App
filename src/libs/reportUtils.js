@@ -171,6 +171,9 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
+    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+        return 'Workspace';
+    }
     return lodashGet(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
