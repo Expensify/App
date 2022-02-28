@@ -233,7 +233,7 @@ class BaseTextInput extends Component {
                                         // eslint-disable-next-line
                                         {...inputProps}
                                         defaultValue={this.value}
-                                        placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                        placeholder={(this.props.prefixCharacter || this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
