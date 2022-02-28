@@ -66,6 +66,9 @@ const propTypes = {
 
     /** Hint text to display below the TextInput */
     hint: PropTypes.string,
+
+    /** Prefix character */
+    prefixCharacter: PropTypes.string,
 };
 
 const defaultProps = {
@@ -94,6 +97,7 @@ const defaultProps = {
     shouldSaveDraft: false,
     maxLength: null,
     hint: '',
+    prefixCharacter: null,
 };
 
 export {propTypes, defaultProps};
