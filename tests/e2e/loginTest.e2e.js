@@ -1,23 +1,17 @@
 /* eslint-disable @lwc/lwc/no-async-await */
 /* eslint-env detox/detox */
-// import detox from 'detox';
-
-// import {
-//     describe, it, beforeAll,
-// } from 'jest-circus';
-
-// import jest from 'jest';
-
-
 // jest.setTimeout(120000 * 10);
 
 describe('Test login page', () => {
+    beforeEach(() => device.launchApp({permissions: {notifications: 'YES'}, newInstance: true}));
+
+    it('should have a Log In button visible', () => expect(element(by.text('Continue'))).toBeVisible());
+
     it('should have a Log In button visible', async () => {
-        await device.launchApp({permissions: {notifications: 'YES'}});
 
         // Enter email or phone number
         await waitFor(element(by.id('username'))).toBeVisible();
-        await element(by.id('username')).typeText('marco+test1@expensify.com');
+        await element(by.id('username')).typeText('marcochavezf+test1@gmail.com');
         await element(by.text('Continue')).tap();
 
         // Enter password
