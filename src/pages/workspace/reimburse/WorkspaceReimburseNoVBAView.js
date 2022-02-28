@@ -56,17 +56,23 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         },
     ];
 
-    /**
-     * Set the rate throttled by 3 seconds so the user does not have to type over the corrected value
-     */
-    updateRateValueThrottled = _.throttle((value) => {
-        this.setState({rateValue: this.getRateDisplayValue(value)});
+    updateRateValueDebounced = _.debounce((value) => {
+        const numValue = parseFloat(value).toFixed(2);
+
+        if (numValue === 'NaN') {
+            return;
+        }
+
+        this.setState({
+            rateValue: numValue.toString(),
+        });
+
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
             name: this.state.rateName,
-            rate: value * 100,
+            rate: numValue * 100,
         }, null);
-    }, 3000, {leading: false, trailing: true});
+    }, 1000);
 
     constructor(props) {
         super(props);
@@ -93,17 +99,15 @@ class WorkspaceReimburseNoVBAView extends React.Component {
     }
 
     setRate(value) {
-        const numValue = parseFloat(value);
-        if (Number.isNaN(numValue)) {
-            this.setState({rateValue: ''});
-            return;
-        }
+        // allow only numbers and dot
+        const numValue = value.replace(/[^0-9/.]/g, '');
 
-        // Set the immediate value so the user does not lose the input
-        this.setState({rateValue: numValue.toString()});
+        this.setState({
+            rateValue: numValue,
+        });
 
         // Set the corrected value with a delay and sync to the server
-        this.updateRateValueThrottled(numValue);
+        this.updateRateValueDebounced(numValue);
     }
 
     setUnit(value) {
@@ -160,6 +164,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 value={this.state.rateValue}
                                 autoCompleteType="off"
                                 autoCorrect={false}
+                                keyboardType="decimal-pad"
                             />
                         </View>
                         <View style={[styles.unitCol]}>
