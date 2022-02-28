@@ -172,7 +172,7 @@ class NewChatPage extends Component {
             }
 
             let searchValue = '';
-            if (!this.props.isGroupChat && isOptionInList) {
+            if (this.props.isGroupChat || isOptionInList) {
                 searchValue = prevState.searchValue;
             }
 
