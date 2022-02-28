@@ -2,7 +2,6 @@
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 /* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
-import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
 import requireParameters from './requireParameters';
@@ -22,7 +21,8 @@ function LogCommand(parameters) {
         parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true});
+    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
+    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false});
 }
 
 /**
@@ -53,7 +53,7 @@ const Log = new Logger({
     clientLoggingCallback: (message) => {
         console.debug(message);
     },
-    isDebug: !CONFIG.IS_IN_PRODUCTION,
+    isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 

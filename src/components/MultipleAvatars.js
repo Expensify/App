@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
+import Tooltip from './Tooltip';
 import Text from './Text';
 
 const propTypes = {
@@ -21,6 +22,9 @@ const propTypes = {
 
     /** Whether this avatar is for an archived room */
     isArchivedRoom: PropTypes.bool,
+
+    /** Tooltip for the Avatar */
+    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -29,6 +33,7 @@ const defaultProps = {
     secondAvatarStyle: [styles.secondAvatarHovered],
     isChatRoom: false,
     isArchivedRoom: false,
+    avatarTooltips: [],
 };
 
 const MultipleAvatars = (props) => {
@@ -46,44 +51,52 @@ const MultipleAvatars = (props) => {
     if (props.avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
-                <Avatar
-                    source={props.avatarImageURLs[0]}
-                    size={props.size}
-                    isChatRoom={props.isChatRoom}
-                    isArchivedRoom={props.isArchivedRoom}
-                />
+                <Tooltip text={props.avatarTooltips[0]}>
+                    <Avatar
+                        source={props.avatarImageURLs[0]}
+                        size={props.size}
+                        isChatRoom={props.isChatRoom}
+                        isArchivedRoom={props.isArchivedRoom}
+                    />
+                </Tooltip>
             </View>
         );
     }
 
     return (
-        <View pointerEvents="none" style={avatarContainerStyles}>
+        <View style={avatarContainerStyles}>
             <View
                 style={singleAvatarStyles}
             >
-                <Image
-                    source={{uri: props.avatarImageURLs[0]}}
-                    style={singleAvatarStyles}
-                />
+                <Tooltip text={props.avatarTooltips[0]} absolute>
+                    <Image
+                        source={{uri: props.avatarImageURLs[0]}}
+                        style={singleAvatarStyles}
+                    />
+                </Tooltip>
                 <View
                     style={secondAvatarStyles}
                 >
                     {props.avatarImageURLs.length === 2 ? (
-                        <Image
-                            source={{uri: props.avatarImageURLs[1]}}
-                            style={singleAvatarStyles}
-                        />
+                        <Tooltip text={props.avatarTooltips[1]} absolute>
+                            <Image
+                                source={{uri: props.avatarImageURLs[1]}}
+                                style={singleAvatarStyles}
+                            />
+                        </Tooltip>
                     ) : (
-                        <View
-                            style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
-                        >
-                            <Text style={props.size === 'small'
-                                ? styles.avatarInnerTextSmall
-                                : styles.avatarInnerText}
+                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
+                            <View
+                                style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
-                                {`+${props.avatarImageURLs.length - 1}`}
-                            </Text>
-                        </View>
+                                <Text style={props.size === 'small'
+                                    ? styles.avatarInnerTextSmall
+                                    : styles.avatarInnerText}
+                                >
+                                    {`+${props.avatarImageURLs.length - 1}`}
+                                </Text>
+                            </View>
+                        </Tooltip>
                     )}
                 </View>
             </View>

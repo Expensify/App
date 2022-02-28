@@ -64,7 +64,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
             name: this.state.rateName,
-            rate: value,
+            rate: value * 100,
         }, null);
     }, 3000, {leading: false, trailing: true});
 
@@ -76,16 +76,20 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
             rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
             rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', '')),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
             rateCurrency: lodashGet(props, 'policy.customUnit.rate.currency', ''),
         };
     }
 
     getRateDisplayValue(value) {
         const numValue = parseFloat(value);
-        return !Number.isNaN(numValue)
-            ? numValue.toFixed(2).toString()
-            : '';
+        if (Number.isNaN(numValue)) {
+            return '';
+        }
+        const fraction = numValue.toString().split('.')[1];
+        return !fraction || fraction.length < 2
+            ? numValue.toFixed(2)
+            : numValue.toString();
     }
 
     setRate(value) {
