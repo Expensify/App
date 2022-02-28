@@ -111,9 +111,10 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
                 return;
             }
-
+            Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+        }).catch((error) => {
             // Make sure to show user more specific errors which will help support identify the problem faster.
-            switch (response.message) {
+            switch (error.message) {
                 case CONST.WALLET.ERROR.NO_ACCOUNT_TO_LINK:
                     Growl.show(Localize.translateLocal('paymentsPage.error.noAccountToLink'), CONST.GROWL.ERROR, 5000);
                     return;
@@ -134,9 +135,8 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                     return;
                 default:
                     Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-                    return;
             }
-        })
+        });
 }
 
 /**
