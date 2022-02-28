@@ -200,7 +200,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
