@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import ENVIRONMENT from './ENVIRONMENT';
-import * as Url from '../libs/Url';
+import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
@@ -299,6 +298,7 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
+        REQUEST_CANCELLED: 'AbortError',
     },
     NETWORK: {
         METHOD: {
@@ -368,7 +368,10 @@ const CONST = {
 
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
-    EMOJI_PICKER_SIZE: 320,
+    EMOJI_PICKER_SIZE: {
+        WIDTH: 320,
+        HEIGHT: 400,
+    },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -391,6 +394,12 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+    },
+
+    ENVIRONMENT: {
+        DEV: 'development',
+        STAGING: 'staging',
+        PRODUCTION: 'production',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -528,6 +537,7 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
     TERMS: {
@@ -610,7 +620,5 @@ const CONST = {
         ];
     },
 };
-
-CONST.ENVIRONMENT = ENVIRONMENT;
 
 export default CONST;
