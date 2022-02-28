@@ -1543,12 +1543,15 @@ const styles = {
         borderColor: 'transparent',
     },
 
-    secondAvatarLarge: {
-        position: 'absolute',
-        left: -40,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+    leftSideLargeAvatar: {
+        left: 15,
+    },
+
+    rightSideLargeAvatar: {
+        right: 15,
+        zIndex: 2,
+        borderWidth: 4,
+        borderRadius: 100,
     },
 
     secondAvatarInline: {
@@ -1823,13 +1826,6 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-    },
-
-    rightSideLargeAvatar: {
-        zIndex: 2,
-        borderRadius: 100,
-        borderColor: themeColors.componentBG,
-        borderWidth: 4,
     },
 
     avatarLarge: {

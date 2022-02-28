@@ -39,19 +39,20 @@ const RoomHeaderAvatars = (props) => {
 
     if (props.shouldShowLargeAvatars) {
         return (
-            <View>
-                <View style={[styles.secondAvatarHovered, styles.rightSideLargeAvatar]}>
-                    <Avatar
-                        source={props.avatarIcons[0]}
-                        imageStyles={[styles.avatarLarge]}
-                    />
-                </View>
-                <View style={styles.secondAvatarLarge}>
+            <View style={[styles.flexRow, styles.wAuto, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={styles.leftSideLargeAvatar}>
                     <Avatar
                         source={props.avatarIcons[1]}
                         imageStyles={[styles.avatarLarge]}
                         size={CONST.AVATAR_SIZE.LARGE}
                         fill={themeColors.iconSuccessFill}
+                    />
+                </View>
+                <View style={[styles.secondAvatarHovered, styles.rightSideLargeAvatar]}>
+                    <Avatar
+                        source={props.avatarIcons[0]}
+                        imageStyles={[styles.avatarLarge]}
+                        size={CONST.AVATAR_SIZE.LARGE}
                     />
                 </View>
             </View>
