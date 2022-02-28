@@ -38,9 +38,6 @@ const propTypes = {
         /** The authToken for the current session */
         email: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -48,7 +45,6 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
@@ -61,7 +57,7 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
-        if (!this.props.betas || !this.props.session.authToken) {
+        if (!this.props.session.authToken) {
             return;
         }
 
@@ -139,8 +135,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);
