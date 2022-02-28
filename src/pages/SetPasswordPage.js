@@ -156,7 +156,7 @@ class SetPasswordPage extends Component {
     }
 
     validateAndSubmitForm() {
-        if (this.linkError) {
+        if (this.linkError || this.props.account.loading || this.props.userSignUp.isValidatingEmail ) {
             return;
         }
 
