@@ -24,11 +24,6 @@ module.exports = (env = {}) => {
     return merge(baseConfig, {
         mode: 'development',
         devtool: 'inline-source-map',
-        resolve: {
-            alias: {
-                react: path.resolve('./node_modules/react'),
-            }
-        },
         devServer: {
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
