@@ -24,8 +24,12 @@ module.exports = (env = {}) => {
     return merge(baseConfig, {
         mode: 'development',
         devtool: 'inline-source-map',
+        resolve: {
+            alias: {
+                react: path.resolve('./node_modules/react'),
+            }
+        },
         devServer: {
-            host: '0.0.0.0',
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
             ...proxySettings,

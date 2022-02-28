@@ -78,7 +78,7 @@ function show({routes, toggleCreateMenu}) {
     // isWelcomeActionValid = stepCheck();
     // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
     // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
-    window.setTimeout(() => { 
+    setTimeout(() => { 
         if (firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH) {
             return;
         }

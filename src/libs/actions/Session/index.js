@@ -464,8 +464,8 @@ function validateEmail(accountID, validateCode) {
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: ''});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: responseValidate.message});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});

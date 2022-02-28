@@ -69,6 +69,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {validated: true},
+    credentials: {},
     route: validateLinkDefaultProps,
     session: {
         error: '',

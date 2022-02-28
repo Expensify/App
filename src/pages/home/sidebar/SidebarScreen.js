@@ -56,6 +56,7 @@ class SidebarScreen extends Component {
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
         WelcomeAction.show({routes, toggleCreateMenu: this.toggleCreateMenu});
     }
@@ -72,13 +73,6 @@ class SidebarScreen extends Component {
      */
     navigateToSettings() {
         Navigation.navigate(ROUTES.SETTINGS);
-    }
-
-    displayCreateMenu() {
-        if (this.state.isCreateMenuActive) {
-            return;
-        } 
-        this.setState({isCreateMenuActive: true});
     }
 
     /**
