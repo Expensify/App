@@ -136,7 +136,7 @@ const HeaderView = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             <MultipleAvatars
-                                avatarIcons={OptionsListUtils.getAvatarSourceFromReport(props.report)}
+                                avatarIcons={OptionsListUtils.getAvatarSources(props.report)}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 avatarTooltips={avatarTooltip}
                                 shouldShowSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
