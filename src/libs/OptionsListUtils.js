@@ -218,42 +218,26 @@ function getParticipants(report) {
 }
 
 /**
- *  Get the Avatar url or fallback to the default icon according to the chat type
- *
- * @param {String} source
- * @param {Object} options
- * @param {Boolean} [options.isChatRoom]
- * @param {Boolean} [options.isArchivedRoom]
- * @param {Boolean} [options.isPolicyExpenseChat]
- * @returns {*}
- */
-function getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat}) {
-    if (!source) {
-        if (isArchivedRoom) {
-            return Expensicons.DeletedRoomAvatar;
-        }
-        if (isChatRoom) {
-            return Expensicons.ActiveRoomAvatar;
-        }
-        if (isPolicyExpenseChat) {
-            return Expensicons.Workspace;
-        }
-    }
-    return source;
-}
-
-/**
- * Get the Avatar urls or fallback to the default icons according to the chat type
+ * Get the Avatar urls or return the icon according to the chat type
  *
  * @param {Object} report
  * @returns {Array<*>}
  */
-function getAvatarSourceFromReport(report) {
-    return _.map(report.icons, source => getAvatarSource(source, {
-        isChatRoom: ReportUtils.isChatRoom(report),
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
-        isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(report),
-    }));
+function getAvatarSources(report) {
+    return _.map(lodashGet(report, 'icons', ['']), (source) => {
+        if (source) {
+            return source;
+        }
+        if (ReportUtils.isArchivedRoom(report)) {
+            return Expensicons.DeletedRoomAvatar;
+        }
+        if (ReportUtils.isChatRoom(report)) {
+            return Expensicons.ActiveRoomAvatar;
+        }
+        if (ReportUtils.isPolicyExpenseChat(report)) {
+            return Expensicons.Workspace;
+        }
+    });
 }
 
 /**
@@ -270,7 +254,6 @@ function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
@@ -293,16 +276,11 @@ function createOption(personalDetailList, report, {
 
     let text;
     let alternateText;
-    let icons;
     if (isChatRoom || isPolicyExpenseChat) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : ReportUtils.getChatRoomSubtitle(report, policies);
-
-        // Chat rooms do not use icons from their users for the avatar so falling back on personalDetails
-        // doesn't make sense here
-        icons = lodashGet(report, 'icons', ['']);
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -311,12 +289,11 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
-        icons = lodashGet(report, 'icons', [personalDetail.avatar]);
     }
     return {
         text,
         alternateText,
-        icons: _.map(icons, source => getAvatarSource(source, {isChatRoom, isArchivedRoom, isPolicyExpenseChat})),
+        icons: getAvatarSources(report),
         tooltipText,
         participantsList: personalDetailList,
 
@@ -872,7 +849,7 @@ function getReportIcons(report, personalDetails) {
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
-    getAvatarSourceFromReport,
+    getAvatarSources,
     getSearchOptions,
     getNewChatOptions,
     getSidebarOptions,
