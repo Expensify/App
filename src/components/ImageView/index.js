@@ -19,6 +19,7 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = canUseTouchScreen();
+        this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.state = {
             containerHeight: 0,
             containerWidth: 0,
@@ -55,6 +56,18 @@ class ImageView extends PureComponent {
         }
 
         document.removeEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    onContainerLayoutChanged(e) {
+        const {width, height} = e.nativeEvent.layout;
+        const imageWidth = this.state.imgWidth;
+        const imageHeight = this.state.imgHeight;
+        const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+        this.setState({
+            containerHeight: height,
+            containerWidth: width,
+            zoomScale: scale,
+        });
     }
 
     /**
@@ -186,17 +199,7 @@ class ImageView extends PureComponent {
         return (
             <View
                 ref={el => this.scrollableRef = el}
-                onLayout={(e) => {
-                    const {width, height} = e.nativeEvent.layout;
-                    const imageWidth = this.state.imgWidth;
-                    const imageHeight = this.state.imgHeight;
-                    const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
-                    this.setState({
-                        containerHeight: height,
-                        containerWidth: width,
-                        zoomScale: scale,
-                    });
-                }}
+                onLayout={this.onContainerLayoutChanged}
                 style={[
                     styles.imageViewContainer,
                     styles.overflowScroll,
