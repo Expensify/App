@@ -167,10 +167,10 @@ class SidebarLinks extends React.Component {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
         const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
 
-        // Pull the reports we want to show on the left hand nav
+        // Pull the reports we want to show on the left hand nav, ordered by priority
         const recentReports = SidebarLinks.getRecentReports(nextProps);
 
-        // Determine whether we want to re-order/sort the reports on the left hand nav
+        // Determine whether we need to keep the previous LHN order
         const orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
             : _.chain(prevState.orderedReports)
@@ -179,7 +179,8 @@ class SidebarLinks extends React.Component {
             // Then match and replace older reports with the newer report conversations from recentReports
                 .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
 
-            // Because we are using map, we have to filter out any undefined reports that may happen when switching priority modes
+            // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
+            // does not have all the conversations in prevState.orderedReports
                 .filter(orderedReport => orderedReport !== undefined)
                 .value();
 
