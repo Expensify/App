@@ -144,7 +144,8 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report has a draft and vice versa.
+        // Do not re-order if the active report has a draft
+        // Unless, we are switching priority modes from "#focus" to "Most Recent". Otherwise, we won't display any of the previously hidden conversations
         if (nextProps.currentlyViewedReportID) {
             const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
             return !hasActiveReportDraft;
@@ -173,14 +174,11 @@ class SidebarLinks extends React.Component {
             ? recentReports
             : _.chain(prevState.orderedReports)
 
-                    // To preserve the order of the conversations, we pull the previous state's order of reports.
-                    // Then match and replace them with the conversations we are supposed to show ('recentReports').
-                    .map(orderedReport => _.chain(recentReports)
-                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
-                    .first()
-                  .value())
+            // To preserve the order of the conversations, we map over the previous state's order of reports.
+            // Then match and replace older reports with the newer report conversations from recentReports
+                .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
 
-                // We have to use map() because we need to replace the older reports objects with the newer ones in recentReports
+            // Because we are using map, we have to filter out any undefined reports that may happen when switching priority modes
                 .filter(orderedReport => orderedReport !== undefined)
                 .value();
 
