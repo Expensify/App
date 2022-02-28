@@ -102,13 +102,13 @@ class BaseTextInput extends Component {
     }
 
     onFocus(event) {
-        if (this.props.onFocus) { this.props.onFocus(event); }
+        if (this.props.onFocus) {this.props.onFocus(event);}
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
     onBlur(event) {
-        if (this.props.onBlur) { this.props.onBlur(event); }
+        if (this.props.onBlur) {this.props.onBlur(event);}
         this.setState({isFocused: false});
         this.deactivateLabel();
     }
@@ -217,17 +217,19 @@ class BaseTextInput extends Component {
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
                                     {Boolean(this.props.prefixCharacter) && (
-                                        <Text style={[
-                                            styles.textInputPrefix,
-                                            !hasLabel && styles.pv0,
-                                        ]}
+                                        <Text
+                                            pointerEvents="none"
+                                            style={[
+                                                styles.textInputPrefix,
+                                                !hasLabel && styles.pv0,
+                                            ]}
                                         >
                                             {this.props.prefixCharacter}
                                         </Text>
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                            if (typeof this.props.innerRef === 'function') {this.props.innerRef(ref);}
                                             this.input = ref;
                                         }}
                                         // eslint-disable-next-line
