@@ -763,6 +763,16 @@ const styles = {
         },
     },
 
+    textInputPrefix: {
+        paddingLeft: 11,
+        paddingTop: 23,
+        paddingBottom: 8,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        textAlignVertical: 'center',
+    },
+
     pickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,

@@ -216,6 +216,15 @@ class BaseTextInput extends Component {
                                     </>
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
+                                    {Boolean(this.props.prefixCharacter) && (
+                                        <Text style={[
+                                            styles.textInputPrefix,
+                                            !hasLabel && styles.pv0,
+                                        ]}
+                                        >
+                                            {this.props.prefixCharacter}
+                                        </Text>
+                                    )}
                                     <RNTextInput
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
