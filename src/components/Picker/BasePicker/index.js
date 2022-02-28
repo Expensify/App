@@ -32,7 +32,7 @@ class BasePicker extends React.Component {
         viewRef.focus = function () {
             // Execute original focus() using apply on ref context to prevent infinite focus() call stack and preserve original focus() functionality
             originalFocus.apply(viewRef);
-            viewRef.scrollIntoView(false);
+            viewRef.scrollIntoView();
         };
         this.props.innerRef(viewRef);
     }
