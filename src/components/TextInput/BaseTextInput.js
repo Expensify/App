@@ -2,10 +2,9 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
-    // eslint-disable-next-line no-restricted-imports
-    TextInput as RNTextInput,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
+import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';

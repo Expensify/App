@@ -49,6 +49,7 @@ const FullNameInputRow = (props) => {
                 <TextInput
                     label={props.translate('common.firstName')}
                     nativeID="firstName"
+                    name="fname"
                     value={props.firstName}
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
@@ -59,6 +60,7 @@ const FullNameInputRow = (props) => {
                 <TextInput
                     label={props.translate('common.lastName')}
                     nativeID="lastName"
+                    name="lname"
                     value={props.lastName}
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
