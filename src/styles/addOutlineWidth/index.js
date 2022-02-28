@@ -17,7 +17,9 @@ function withOutlineWidth(obj, val, error = false) {
     return {
         ...obj,
         outlineWidth: val,
-        boxShadow: `0px 0px 0px ${val}px ${error ? themeDefault.badgeDangerBG : themeDefault.borderFocus}`,
+        ...(val !== 0 && {
+            boxShadow: `0px 0px 0px ${val}px ${error ? themeDefault.badgeDangerBG : themeDefault.borderFocus}`,
+        }),
     };
 }
 
