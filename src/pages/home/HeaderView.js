@@ -14,6 +14,7 @@ import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
+import SubscriptAvatar from '../../components/SubscriptAvatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
@@ -98,9 +99,9 @@ const HeaderView = (props) => {
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
-
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
+    const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -135,12 +136,19 @@ const HeaderView = (props) => {
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            <MultipleAvatars
-                                avatarIcons={OptionsListUtils.getAvatarSources(props.report)}
-                                secondAvatarStyle={[styles.secondAvatarHovered]}
-                                avatarTooltips={avatarTooltip}
-                                shouldShowSubscript={isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat}
-                            />
+                            {shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={avatarIcons[0]}
+                                    secondaryAvatar={avatarIcons[1]}
+                                    avatarTooltips={avatarTooltip}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    avatarIcons={avatarIcons}
+                                    secondAvatarStyle={[styles.secondAvatarHovered]}
+                                    avatarTooltips={avatarTooltip}
+                                />
+                            )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}

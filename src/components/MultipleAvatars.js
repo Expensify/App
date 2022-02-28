@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
-import SubscriptAvatar from './SubscriptAvatar';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
@@ -21,9 +20,6 @@ const propTypes = {
 
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
-
-    /** Flag to show SubscriptAvatar component */
-    shouldShowSubscript: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -31,7 +27,6 @@ const defaultProps = {
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
     avatarTooltips: [],
-    shouldShowSubscript: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -57,16 +52,6 @@ const MultipleAvatars = (props) => {
                     />
                 </Tooltip>
             </View>
-        );
-    }
-
-    if (props.shouldShowSubscript) {
-        return (
-            <SubscriptAvatar
-                mainAvatar={props.avatarIcons[0]}
-                secondaryAvatar={props.avatarIcons[1]}
-                avatarTooltips={props.avatarTooltips}
-            />
         );
     }
 

@@ -21,6 +21,7 @@ import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
+import SubscriptAvatar from '../../../components/SubscriptAvatar';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -163,21 +164,28 @@ const OptionRow = (props) => {
                             {
                                 !_.isEmpty(props.option.icons)
                                 && (
-                                    <MultipleAvatars
-                                        avatarIcons={props.option.icons}
-                                        size={props.mode === 'compact' ? 'small' : 'default'}
-                                        secondAvatarStyle={[
-                                            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                                            props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                : undefined,
-                                            hovered && !props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                : undefined,
-                                        ]}
-                                        avatarTooltips={avatarTooltips}
-                                        shouldShowSubscript={props.option.shouldShowSubscript}
-                                    />
+                                    props.option.shouldShowSubscript ? (
+                                        <SubscriptAvatar
+                                            mainAvatar={props.option.icons[0]}
+                                            secondaryAvatar={props.option.icons[1]}
+                                            avatarTooltips={avatarTooltips}
+                                        />
+                                    ) : (
+                                        <MultipleAvatars
+                                            avatarIcons={props.option.icons}
+                                            size={props.mode === 'compact' ? 'small' : 'default'}
+                                            secondAvatarStyle={[
+                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                                                props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                    : undefined,
+                                                hovered && !props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                    : undefined,
+                                            ]}
+                                            avatarTooltips={avatarTooltips}
+                                        />
+                                    )
                                 )
                             }
                             <View style={contentContainerStyles}>
