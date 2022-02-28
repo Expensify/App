@@ -59,6 +59,7 @@ class BigNumberPad extends React.Component {
                             return (
                                 <Button
                                     key={column}
+                                    shouldEnableHapticFeedback
                                     style={[styles.flex1, marginLeft]}
                                     text={column === '<' ? column : this.props.toLocaleDigit(column)}
                                     onLongPress={() => this.handleLongPress(column)}

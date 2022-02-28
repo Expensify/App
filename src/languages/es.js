@@ -51,6 +51,7 @@ export default {
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
+        ssnFull9: 'Los 9 dígitos del SSN',
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
         noPO: 'No se aceptan apartados ni direcciones postales',
@@ -303,7 +304,8 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        typeToConfirm: ({emailOrPhone}) => `Ingresa ${emailOrPhone} para confirmar`,
+        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
     },
     passwordPage: {

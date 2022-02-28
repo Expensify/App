@@ -52,6 +52,13 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
 }
 
 /**
+ * @param {Boolean} shouldAskForFullSSN
+ */
+function setAdditionalDetailsShouldAskForFullSSN(shouldAskForFullSSN) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {shouldAskForFullSSN});
+}
+
+/**
  * This action can be called repeatedly with different steps until an Expensify Wallet has been activated.
  *
  * Possible steps:
@@ -105,20 +112,24 @@ function activateWallet(currentStep, parameters) {
                 }
 
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
+                    // Hide the loader
+                    setAdditionalDetailsLoading(false);
+
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
-                        // Errors for missing fields are returned from the API as an array of strings so we are converting this to an
-                        // object with field names as keys and boolean for values
-                        const errorFields = _.reduce(response.data.fieldNames, (errors, fieldName) => ({
+                        // Convert array of strings to object with field names as keys and boolean for values (true if error, false if not)
+                        const errorFields = _.has(response, ['data', 'fieldNames']) ? _.reduce(response.data.fieldNames, (errors, fieldName) => ({
                             ...errors,
                             [fieldName]: true,
-                        }), {});
-                        setAdditionalDetailsLoading(false);
+                        }), {}) : {};
                         setAdditionalDetailsErrors(errorFields);
-                        setAdditionalDetailsErrorMessage('');
-                        return;
+                    }
+
+                    if (response.title === CONST.WALLET.ERROR.FULL_SSN_NOT_FOUND) {
+                        setAdditionalDetailsShouldAskForFullSSN(true);
                     }
 
                     const errorTitles = [
+                        CONST.WALLET.ERROR.FULL_SSN_NOT_FOUND,
                         CONST.WALLET.ERROR.IDENTITY_NOT_FOUND,
                         CONST.WALLET.ERROR.INVALID_SSN,
                         CONST.WALLET.ERROR.UNEXPECTED,
@@ -126,15 +137,9 @@ function activateWallet(currentStep, parameters) {
                     ];
 
                     if (_.contains(errorTitles, response.title)) {
-                        setAdditionalDetailsLoading(false);
                         setAdditionalDetailsErrorMessage(response.message);
-                        setAdditionalDetailsErrors(null);
-                        return;
                     }
 
-                    setAdditionalDetailsLoading(false);
-                    setAdditionalDetailsErrors(null);
-                    setAdditionalDetailsErrorMessage('');
                     return;
                 }
 
@@ -154,8 +159,6 @@ function activateWallet(currentStep, parameters) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                 setAdditionalDetailsLoading(false);
-                setAdditionalDetailsErrors(null);
-                setAdditionalDetailsErrorMessage('');
             } else if (currentStep === CONST.WALLET.STEP.TERMS) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }

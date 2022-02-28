@@ -51,6 +51,7 @@ export default {
         here: 'here',
         dob: 'Date of birth',
         ssnLast4: 'Last 4 digits of SSN',
+        ssnFull9: 'Full 9 digits of SSN',
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
         noPO: 'PO boxes and mail drop addresses are not allowed',
@@ -303,7 +304,8 @@ export default {
         closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
-        typeToConfirm: ({emailOrPhone}) => `Enter ${emailOrPhone} to confirm`,
+        enterDefaultContact: 'Enter your default contact method',
+        defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
