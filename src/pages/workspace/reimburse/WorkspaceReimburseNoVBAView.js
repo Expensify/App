@@ -35,9 +35,9 @@ const propTypes = {
                 id: PropTypes.string,
                 name: PropTypes.string,
                 value: PropTypes.number,
-                currency: PropTypes.string,
             }),
         }),
+        outputCurrency: PropTypes.string,
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -77,7 +77,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
             rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
             rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
-            rateCurrency: lodashGet(props, 'policy.customUnit.rate.currency', ''),
+            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''), 
         };
     }
 
@@ -155,7 +155,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                         <View style={[styles.rateCol]}>
                             <TextInput
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.rateCurrency}
+                                placeholder={this.state.outputCurrency}
                                 onChangeText={value => this.setRate(value)}
                                 value={this.state.rateValue}
                                 autoCompleteType="off"
