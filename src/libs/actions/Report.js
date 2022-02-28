@@ -829,8 +829,13 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.setDidTapNotification();
-        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        if (Navigation.isReady()) {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        } else {
+            // Navigation container is not yet ready, use deep linking to open the correct report instead
+            Navigation.setDidTapNotification();
+            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        }
     });
 }
 
@@ -1505,7 +1510,6 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    Navigation.closeDrawer();
 }
 
 /**

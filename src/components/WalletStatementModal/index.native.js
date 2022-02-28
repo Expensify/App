@@ -6,6 +6,7 @@ import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const WalletStatementModal = (props) => {
     const authToken = lodashGet(props, 'session.authToken', null);
@@ -19,6 +20,8 @@ const WalletStatementModal = (props) => {
                 },
             }}
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+            startInLoadingState
+            renderLoading={() => <FullScreenLoadingIndicator />}
         />
     );
 };

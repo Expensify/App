@@ -27,6 +27,7 @@ import * as ValidationUtils from '../libs/ValidationUtils';
 import LoginUtil from '../libs/LoginUtil';
 import NameValuePair from '../libs/actions/NameValuePair';
 import NameInput from '../components/FormInput/NameInput';
+import * as WelcomeAction from '../libs/actions/WelcomeActions';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,16 +35,11 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
-    /* New users welcome steps for example open welcome profile setting page and
-     * open Global Create menu on first load */
-    firstTimeNewExpensifyUserStep: PropTypes.number,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
-    firstTimeNewExpensifyUserStep: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH,
     user: {
         loginList: [],
     },
@@ -90,8 +86,8 @@ class ProfilePage extends Component {
         // Reset error message
         Onyx.merge(ONYXKEYS.USER, {error: ''});
 
-        // Don't set current welcome step if current steap isn't equal welcome profile. Could be direct access to the page by url.
-        if (this.props.firstTimeNewExpensifyUserStep !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
+        // Don't set current welcome step if current step isn't equal to welcome profile. Could be direct access to the page by url.
+        if (WelcomeAction.getCurrentWelcomeStep() !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
             return;
         }
 
@@ -190,6 +186,9 @@ class ProfilePage extends Component {
             this.displayFormError();
             return;
         }
+        if (this.state.waitForResponse) {
+            return;
+        }
 
         // Set loading state of submit button
         this.setState({waitForResponse: true})
@@ -203,16 +202,21 @@ class ProfilePage extends Component {
             submitSecondaryLoginPromise = this.submitSecondaryLogin();
         } 
 
-        Promise.all([submitPersonalDetailsPromise, submitSecondaryLoginPromise]).then(() => {
-            this.secondaryLoginError = submitSecondaryLoginPromise? this.props.user.error || '' : '';
-            this.setState({waitForResponse: false});
-            if (this.secondaryLoginError) {
-                this.displayFormError(); 
-                return;
+        Promise.allSettled([submitPersonalDetailsPromise, submitSecondaryLoginPromise]).then(
+            () => {
+                this.secondaryLoginError = submitSecondaryLoginPromise? this.props.user.error || '' : '';
+                this.setState({waitForResponse: false});
+                if (this.secondaryLoginError) {
+                    this.displayFormError(); 
+                    return;
+                }
+                this.closeModal();
+                // Should show growlSuccessMessage?
+            }, 
+            () => {
+                this.setState({waitForResponse: false});
             }
-            this.closeModal();
-            // Should show growlSuccessMessage?
-        });
+        );
     }
 
     closeModal() {
@@ -321,9 +325,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        firstTimeNewExpensifyUserStep: {
-            key: ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
         },
     }),
 )(ProfilePage);

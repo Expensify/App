@@ -21,6 +21,7 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import TextInput from '../components/TextInput';
+import TextLink from '../components/TextLink';
 import CONST from '../CONST';
 import LoginUtil from '../libs/LoginUtil';
 
@@ -68,7 +69,6 @@ const propTypes = {
 
 const defaultProps = {
     account: {validated: true},
-    credentials: {},
     route: validateLinkDefaultProps,
     session: {
         error: '',
@@ -97,9 +97,9 @@ class SetPasswordPage extends Component {
         this.confirmPassword = '';
         this.isPasswordValid = false;
         this.isConfirmPasswordValid = false;
+        this.linkError = '';
 
         this.state = {
-            linkError: '',
             showFormError: false,
         }
     }
@@ -152,29 +152,11 @@ class SetPasswordPage extends Component {
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        if (this.props.userSignUp.authToken) {
-            return;
-        }
-        Session.validateEmail(accountID, validateCode).then(() => {
-            // Need error message for link already in use
-            const linkAlreadyUsed = (!this.props.credentials.login && this.props.translate('setPasswordPage.setPasswordLinkInvalid')) || '';
-            this.setState({linkError: linkAlreadyUsed});
-        });
-    }
-
-    componentDidUpdate() {
-        const sessionError = (this.props.session.error || !this.props.account.validated) && this.props.translate(this.props.session.error);
-        const error = sessionError || this.state.linkError || this.props.account.error;
-        
-        if (error && this.state.linkError !== error) {
-            this.setState({linkError: error});
-        } else if (!error && this.state.linkError !== '')  {
-            this.setState({linkError: ''});
-        }
+        Session.validateEmail(accountID, validateCode);
     }
 
     validateAndSubmitForm() {
-        if (this.state.linkError) {
+        if (this.linkError) {
             return;
         }
 
@@ -191,14 +173,17 @@ class SetPasswordPage extends Component {
 
 
     render() {
+        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
+        this.linkError = sessionError || this.props.account.error;
         let errorText = '';
         // Prioritize link error message
-        if (this.state.linkError) {
-            errorText = this.state.linkError;
-        } else if (!this.isPasswordValid) {
+        if (!this.isPasswordValid) {
             errorText = this.props.translate('setPasswordPage.newPasswordPrompt');
         } else if (!this.isConfirmPasswordValid) {
             errorText =  this.props.translate('setPasswordPage.confirmPasswordInvalidMessage');
+        } else {
+            //no error show default message
+            errorText = this.props.translate('setPasswordPage.newPasswordPrompt');
         } 
         return (
             <SafeAreaView style={[styles.signInPage]}>
@@ -206,12 +191,12 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={''}
                 >
-                    {true ? (
+                    {_.isEmpty(this.linkError) ? (
                         <>
                             <Text style={[styles.mtn5]}>
                                 {`${this.props.translate('common.welcome')} `}
                                 <Text style={[styles.textStrong]}>
-                                    {this.props.credentials.login} 
+                                    {this.props.credentials && this.props.credentials.login} 
                                 </Text>
                             </Text>
                             <Text style={[styles.mv4, ]}>
@@ -227,7 +212,7 @@ class SetPasswordPage extends Component {
                                     textContentType="password"
                                     onChangeText={this.handlePasswordChange}
                                     // Only show error if there is no link error
-                                    hasError={this.state.showFormError && !this.state.linkError && !this.isPasswordValid}
+                                    hasError={this.state.showFormError && !this.isPasswordValid}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt3]}
@@ -238,12 +223,12 @@ class SetPasswordPage extends Component {
                                     value={this.props.password}
                                     onChangeText={this.handleConfirmPasswordChange}
                                     // Only show error if there is no link error
-                                    hasError={this.state.showFormError && !this.state.linkError && !this.isConfirmPasswordValid}
+                                    hasError={this.state.showFormError && !this.isConfirmPasswordValid}
                                     onSubmitEditing={this.validateAndSubmitForm}
                                 />
                             </View>
                             <View style={[styles.invalidPasswordMessageSpace]}> 
-                                <Text style={[styles.formHelp, (this.state.showFormError || this.state.linkError) && styles.formError]}>
+                                <Text style={[styles.formHelp, this.state.showFormError && styles.formError]}>
                                     {errorText}
                                 </Text>
                             </View>
@@ -258,7 +243,15 @@ class SetPasswordPage extends Component {
                             </View>
                         </>
                     )
-                        : (<Text>{error}</Text>)}
+                        : (
+                              <Text>{this.linkError}
+                                  <br/>
+                                  <TextLink style={[styles.link]}
+                                      href={'/'}
+                                  >{this.props.translate('common.goToHomePage')}
+                                  </TextLink>
+                              </Text>
+                        )}
                 </SignInPageLayout>
             </SafeAreaView>
         );

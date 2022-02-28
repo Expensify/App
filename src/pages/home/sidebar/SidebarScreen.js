@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -22,15 +22,11 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
-import NameValuePair from '../../../libs/actions/NameValuePair';
+import * as WelcomeAction from '../../../libs/actions/WelcomeActions';
 
 const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /* New users welcome steps for example open welcome profile setting page and
-     * open Global Create menu on first load */
-    firstTimeNewExpensifyUserStep: PropTypes.number,
 
     /* Is workspace is being created by the user? */
     isCreatingWorkspace: PropTypes.bool,
@@ -40,7 +36,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    firstTimeNewExpensifyUserStep: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH,
     isCreatingWorkspace: false,
 };
 
@@ -58,39 +53,11 @@ class SidebarScreen extends Component {
         };
     }
 
-    componentDidUpdate() {
-        if (this.props.firstTimeNewExpensifyUserStep === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU) {
-            NameValuePair.set(
-                CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
-                CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH, 
-                ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP
-            );
-            this.displayCreateMenu();
-        }
-    }
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
-
-        // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
-        // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
-        setTimeout(() => {
-            if (this.props.firstTimeNewExpensifyUserStep !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
-                return;
-            }
-
-            // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
-            // create menu right now.
-            const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-            const topRouteName = lodashGet(_.last(routes), 'name', '');
-            const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
-
-            // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
-            // not need to create a workspace.
-            if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
-                Navigation.navigate(ROUTES.WELCOME_PROFILE_SETTING);
-            }
-        }, 1500);
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        WelcomeAction.show({routes, toggleCreateMenu: this.toggleCreateMenu});
     }
 
     /**
@@ -136,6 +103,8 @@ class SidebarScreen extends Component {
     }
 
     render() {
+        // Workspaces are policies with type === 'free'
+        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
             <ScreenWrapper
                 includePaddingBottom={false}
@@ -174,7 +143,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) ? [
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
                                     {
                                         icon: Expensicons.Hashtag,
                                         text: this.props.translate('sidebarScreen.newRoom'),
@@ -234,9 +203,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        firstTimeNewExpensifyUserStep: {
-            key: ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
         },
         isCreatingWorkspace: {
             key: ONYXKEYS.IS_CREATING_WORKSPACE,

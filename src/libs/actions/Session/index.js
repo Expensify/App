@@ -136,7 +136,6 @@ function fetchAccountDetails(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
@@ -250,6 +249,10 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
+            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                return;
+            }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
@@ -461,7 +464,8 @@ function validateEmail(accountID, validateCode) {
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
+                Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: ''});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: responseValidate.message});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
