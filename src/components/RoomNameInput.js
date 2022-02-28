@@ -106,7 +106,7 @@ class RoomNameInput extends Component {
             <TextInput
                 disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
-                prefixCharacter="#"
+                prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
                 onChange={this.setModifiedRoomName}
                 value={this.state.roomName.substring(1)}
