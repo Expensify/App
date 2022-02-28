@@ -219,6 +219,7 @@ class BaseTextInput extends Component {
                                     {Boolean(this.props.prefixCharacter) && (
                                         <Text
                                             pointerEvents="none"
+                                            selectable={false}
                                             style={[
                                                 styles.textInputPrefix,
                                                 !hasLabel && styles.pv0,
