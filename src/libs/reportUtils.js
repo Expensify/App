@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 let sessionEmail;
 Onyx.connect({
@@ -172,7 +173,7 @@ function getChatRoomSubtitle(report, policiesMap) {
         return report.oldPolicyName;
     }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
-        return 'Workspace';
+        return Localize.translateLocal('workspace.common.workspace');
     }
     return lodashGet(
         policiesMap,
