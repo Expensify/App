@@ -5,6 +5,7 @@ import {
     StackActions,
     DrawerActions,
     getPathFromState,
+    CommonActions,
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
@@ -58,7 +59,32 @@ function openDrawer() {
         return;
     }
 
-    navigationRef.current.dispatch(DrawerActions.openDrawer());
+    navigationRef.current.dispatch((state) => {
+        if (state.type === 'drawer') {
+            const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
+
+            // Drawer usages history to open or close the drawer.
+            // Drawer with closed default status can't not have closed status in history. But it is possible when user resize
+            // the browser to Mobile View as we use closed history state to force open the drawer on Desktop Web.
+            if (hasDrawerhistory && hasDrawerhistory.status === 'closed' && state.default === 'closed') {
+
+                // Remove the incorrect history entry and manually open the drawer.
+                // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L132
+                return CommonActions.reset({
+                    ...state,
+                    history: [
+                        ..._.filter(state.history || [], h => h.type !== 'drawer'),
+                        {
+                            type: 'drawer',
+                            status: state.default === 'open' ? 'closed' : 'open',
+                        }
+                    ],
+                });
+            }
+        }
+
+        return DrawerActions.openDrawer();
+    });
     Keyboard.dismiss();
 }
 
