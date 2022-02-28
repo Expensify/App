@@ -188,7 +188,7 @@ class ReportSettingsPage extends Component {
                         <Text style={[styles.formLabel]} numberOfLines={1}>
                             {this.props.translate('newRoomPage.roomName')}
                         </Text>
-                        <View style={[styles.flexRow]}>
+                        <View style={[styles.flexRow, styles.mb5]}>
                             <View style={[styles.flex3]}>
                                 <RoomNameInput
                                     initialValue={this.state.newRoomName}
