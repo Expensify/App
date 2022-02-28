@@ -21,7 +21,7 @@ class BaseTextInput extends Component {
         super(props);
 
         this.value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || this.value.length > 0;
+        const activeLabel = props.forceActiveLabel || this.value.length > 0 || props.prefixCharacter;
 
         this.state = {
             isFocused: false,
@@ -141,7 +141,7 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.value.length !== 0) {
+        if (this.props.forceActiveLabel || this.value.length !== 0 || this.props.prefixCharacter) {
             return;
         }
 
