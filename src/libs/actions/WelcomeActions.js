@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 
 let toggleCreateMenuFunc;
 let isWelcomeActionValid;
-let firstTimeNewExpensifyUserStep = CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING;
+let firstTimeNewExpensifyUserStep = CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH;
 
 const allReports = {};
 Onyx.connect({
