@@ -237,6 +237,7 @@ function getAvatarSources(report) {
         if (ReportUtils.isPolicyExpenseChat(report)) {
             return Expensicons.Workspace;
         }
+        return Expensicons.Profile;
     });
 }
 
