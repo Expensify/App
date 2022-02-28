@@ -892,7 +892,7 @@ export default {
         newRoom: 'Nueva sala de chat',
         roomName: 'Nombre de la sala',
         visibility: 'Visibilidad',
-        restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala a través de "Buscar"',
+        restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
         policyRoomRenamed: '¡Espacio de trabajo renombrado!',
