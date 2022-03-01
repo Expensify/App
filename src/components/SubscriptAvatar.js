@@ -28,16 +28,12 @@ const defaultProps = {
 
 const SubscriptAvatar = props => (
     <View style={styles.emptyAvatar}>
-        <View>
-            <Tooltip text={props.mainTooltip}>
-                <Avatar
-                    source={props.mainAvatar}
-                />
-            </Tooltip>
-        </View>
-        <View
-            style={[styles.secondAvatarSubscript, styles.secondAvatarHovered]}
-        >
+        <Tooltip text={props.mainTooltip}>
+            <Avatar
+                source={props.mainAvatar}
+            />
+        </Tooltip>
+        <View style={[styles.secondAvatarSubscript, styles.secondAvatarHovered]}>
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar}
