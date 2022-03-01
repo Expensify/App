@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -96,6 +97,8 @@ class SidebarScreen extends Component {
     }
 
     render() {
+        // Workspaces are policies with type === 'free'
+        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
             <ScreenWrapper
                 includePaddingBottom={false}
@@ -134,7 +137,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) ? [
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
                                     {
                                         icon: Expensicons.Hashtag,
                                         text: this.props.translate('sidebarScreen.newRoom'),
