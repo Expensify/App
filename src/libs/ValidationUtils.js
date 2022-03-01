@@ -176,6 +176,14 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ * @param {String} ssnFull9
+ * @returns {Boolean}
+ */
+function isValidSSNFullNine(ssnFull9) {
+    return CONST.REGEX.SSN_FULL_NINE.test(ssnFull9);
+}
+
+/**
  *
  * @param {String} paypalUsername
  * @returns {Boolean}
@@ -370,6 +378,7 @@ export {
     isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
+    isValidSSNFullNine,
     doesFailCharacterLimit,
     isReservedRoomName,
     isExistingRoomName,

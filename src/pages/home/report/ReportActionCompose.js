@@ -44,6 +44,7 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** Beta features list */
@@ -551,7 +552,7 @@ class ReportActionCompose extends React.Component {
                                     }}
                                     style={[styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
-                                    maxLines={16} // This is the same that slack has
+                                    maxLines={this.props.isSmallScreenWidth ? 6 : 16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
@@ -565,11 +566,13 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    <EmojiPickerButton
-                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
-                        onModalHide={() => this.focus(true)}
-                        onEmojiSelected={this.addEmojiToTextBox}
-                    />
+                    {canUseTouchScreen() && !this.props.isSmallScreenWidth ? null : (
+                        <EmojiPickerButton
+                            isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
+                            onModalHide={() => this.focus(true)}
+                            onEmojiSelected={this.addEmojiToTextBox}
+                        />
+                    )}
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
+import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -16,7 +17,7 @@ import Text from '../components/Text';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput, CheckboxWithLabel},
+    subcomponents: {TextInput, AddressSearch, CheckboxWithLabel},
 };
 
 const Template = (args) => {
@@ -41,6 +42,12 @@ const Template = (args) => {
             <TextInput
                 label="Account number"
                 inputID="accountNumber"
+                containerStyles={[styles.mt4]}
+                isFormInput
+            />
+            <AddressSearch
+                label="Street"
+                inputID="street"
                 containerStyles={[styles.mt4]}
                 isFormInput
             />

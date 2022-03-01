@@ -44,7 +44,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
+    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (shouldUseSecure && shouldUseSecureStaging) {
         apiRoot = CONST.STAGING_SECURE_URL;
@@ -60,7 +60,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
  * @returns {Promise}
  */
 function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+    const siteRoot = CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL;
 
     // Strip leading slashes and periods from relative path, if present
     const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'

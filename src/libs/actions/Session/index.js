@@ -136,7 +136,6 @@ function fetchAccountDetails(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
@@ -250,6 +249,10 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
+            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                return;
+            }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
@@ -505,6 +508,11 @@ function authenticatePusher(socketID, channelName, callback) {
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
+                return;
+            }
+
+            if (data.jsonCode !== 200) {
+                Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
                 return;
             }
 

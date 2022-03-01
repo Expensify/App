@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-restricted-imports
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
+import RNTextInput from '../RNTextInput';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
@@ -34,7 +34,7 @@ const TextInputWithPrefix = props => (
             ]}
         >
             <Text style={styles.textInputWithPrefix.prefix}>{props.prefixCharacter}</Text>
-            <TextInput
+            <RNTextInput
                 style={[
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,
