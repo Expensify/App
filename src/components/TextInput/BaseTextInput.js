@@ -215,7 +215,7 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]}>
+                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
                                     {Boolean(this.props.prefixCharacter) && (
                                         <Text
                                             pointerEvents="none"
@@ -244,7 +244,7 @@ class BaseTextInput extends Component {
                                             styles.w100,
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
-                                            this.props.prefixCharacter && styles.pl1,
+                                            this.props.prefixCharacter && styles.pl6,
                                             this.props.secureTextEntry && styles.pr2,
                                         ]}
                                         multiline={this.props.multiline}
