@@ -5,6 +5,7 @@ This document lists specific guidelines for using our Form component and general
 ## General Form UI/UX
 
 ### Labels, Placeholders, & Hints
+
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
 
 Labels and hints are enabled by passing the appropriate props to each input:
@@ -70,6 +71,7 @@ To give a slightly more detailed example of how this would work with phone numbe
 3. On submit, repeat validation and submit with the clean value.
 
 ### Form Drafts
+
 Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values will be cleared when a user logs out (like most data) and additionally cleared once the form is successfully filled.
 
 ```
@@ -106,6 +108,7 @@ The Form component takes care of validation internally and the only requirement 
 Individual form fields should be highlighted with a red error outline and present supporting inline error text below the field. Error text will be required for all required fields and optional fields that require validation. This will keep our error handling consistent and ensure we put in a good effort to help the user fix the problem by providing more information than less.
 
 ### Multiple Types of Errors for Individual Fields
+
 Individual fields should support multiple messages depending on validation e.g. a date could be badly formatted or outside of an allowable range. We should not only say “Please enter a valid date” and instead always tell the user why something is failing if we can. The Form component supports an infinite number of possible error messages per field and they are displayed simultaneously if multiple validations fail.
 
 ### Form Alerts
@@ -113,6 +116,7 @@ Individual fields should support multiple messages depending on validation e.g. 
 When any form field fails to validate in addition to the inline error below a field, an error message will also appear inline above the submit button indicating that some fields need to be fixed. A “fix the errors” link will scroll the user to the first input that needs attention and focus on it (putting the cursor at the end of the existing value). By default, on form submit and when tapping the “fix the errors” link we should scroll the user to the first field that needs their attention.
 
 ### Handling Server Errors
+
 Server errors related to form submission should appear in the Form Alert above the submit button. They should not appear in growls or other kinds of alerts. Additionally, as best practice moving forward server errors should never solely do the work that frontend validation can also do. This means that any error that can be validated in the frontend should be validated in the frontend and backend.
 
 Note: This is not meant to suggest that we should avoid validating in the backend if the frontend already validates.
@@ -127,6 +131,7 @@ Submit buttons shall not be disabled or blocked from being pressed in most cases
 The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
 ## Using Form.js
+
 The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
 
 ```
@@ -172,6 +177,7 @@ onSubmit: (values) => {
 ```
 
 ### Props provided to Form inputs
+
 The following props are available to form inputs:
 
 - inputID: An unique identifier for the input.
