@@ -21,7 +21,6 @@ class KYCWall extends React.Component {
 
         this.continue = this.continue.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
-        this.dimensionsSubscription = null;
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -50,8 +49,8 @@ class KYCWall extends React.Component {
         if (!this.state.transferBalanceButton) {
             return;
         }
-        const btnPosition = getClickedElementLocation(this.state.transferBalanceButton);
-        const position = this.getAnchorPosition(btnPosition);
+        const buttonPosition = getClickedElementLocation(this.state.transferBalanceButton);
+        const position = this.getAnchorPosition(buttonPosition);
         this.setPositionAddPaymentMenu(position);
     }
 

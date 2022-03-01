@@ -54,7 +54,6 @@ class BasePaymentsPage extends React.Component {
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
-        this.dimensionsSubscription = null;
     }
 
     componentDidMount() {
@@ -65,12 +64,10 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentWillUnmount() {
-        this.setState({
-            addPaymentMethodButton: null,
-        });
-        if (this.props.shouldListenForResize && this.dimensionsSubscription) {
-            this.dimensionsSubscription.remove();
+        if (!this.props.shouldListenForResize || !this.dimensionsSubscription) {
+            return;
         }
+        this.dimensionsSubscription.remove();
     }
 
     setMenuPosition() {
@@ -188,9 +185,6 @@ class BasePaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
-        }
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
@@ -198,9 +192,6 @@ class BasePaymentsPage extends React.Component {
      * Hide the default / delete modal
      */
     hideDefaultDeleteMenu() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
-        }
         this.setState({shouldShowDefaultDeleteMenu: false});
     }
 
