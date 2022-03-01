@@ -47,17 +47,6 @@ const propTypes = {
     /** Forward the inner ref */
     innerRef: PropTypes.func,
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
-
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
@@ -69,6 +58,19 @@ const propTypes = {
 
     /** Prefix character */
     prefixCharacter: PropTypes.string,
+
+    /** Form props */
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.validateInputIDProps(props),
 
     /** Callback to update the value on Form when input is used in the Form component. */
     onInputChange: PropTypes.func,
