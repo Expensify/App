@@ -41,6 +41,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
 - [ ] I wrote testing steps that cover success & fail scenarios (if applicable)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests & veryfy they passed on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -48,7 +49,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / Chrome
     - [ ] MacOS / Chrome
     - [ ] MacOS / Desktop
-- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I added comments when the code was not self explanatory
@@ -65,6 +65,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
     - [ ] I verified the testing environment is mentioned in the test steps
 - [ ] I verified testing steps cover success & fail scenarios (if applicable)
+- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -72,7 +73,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / Chrome
     - [ ] MacOS / Chrome
     - [ ] MacOS / Desktop
-- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified comments were added when the code was not self explanatory
