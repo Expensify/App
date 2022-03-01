@@ -257,6 +257,7 @@ class WorkspaceInvitePage extends React.Component {
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
+                                    autoFocus={false}
                                     canSelectMultipleOptions
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
