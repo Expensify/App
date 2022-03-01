@@ -359,6 +359,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
     },
 
     ATTACHMENT_PICKER_TYPE: {

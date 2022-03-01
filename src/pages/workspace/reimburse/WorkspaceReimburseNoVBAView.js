@@ -20,6 +20,7 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -164,7 +165,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 value={this.state.rateValue}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                keyboardType="decimal-pad"
+                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                             />
                         </View>
                         <View style={[styles.unitCol]}>
