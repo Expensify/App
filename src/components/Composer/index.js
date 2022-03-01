@@ -99,9 +99,10 @@ const IMAGE_EXTENSIONS = {
 };
 
 /**
+ * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
-class TextInputFocusable extends React.Component {
+class Composer extends React.Component {
     constructor(props) {
         super(props);
 
@@ -366,10 +367,10 @@ class TextInputFocusable extends React.Component {
     }
 }
 
-TextInputFocusable.propTypes = propTypes;
-TextInputFocusable.defaultProps = defaultProps;
+Composer.propTypes = propTypes;
+Composer.defaultProps = defaultProps;
 
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInputFocusable {...props} forwardedRef={ref} />
+    <Composer {...props} forwardedRef={ref} />
 )));
