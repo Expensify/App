@@ -59,14 +59,7 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        // User is trying to transition with a different account than the one
-        // they are currently signed in as so we will sign them out, clear Onyx,
-        // and cancel all network requests made with their old login. This
-        // component will mount again from PublicScreens and since they are no
-        // longer signed in, a request will be made to sign them in with their new account.
-        if (email !== this.props.session.email) {
-            Session.signOutAndRedirectToSignIn();
-        }
+        this.signOutIfNeeded(email);
     }
 
     componentDidUpdate() {
@@ -87,13 +80,8 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        // User is trying to transition with a different account than the one
-        // they are currently signed in as so we will sign them out, clear Onyx,
-        // and cancel all network requests. This component will mount again from
-        // PublicScreens and since they are no longer signed in, a request will be
-        // made to sign them in with their new account.
-        if (email !== this.props.session.email) {
-            Session.signOutAndRedirectToSignIn();
+
+        if (this.signOutIfNeeded(email)) {
             return;
         }
 
@@ -110,6 +98,24 @@ class LogInWithShortLivedTokenPage extends Component {
         // if they cancel out of the new workspace modal.
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
+    }
+
+    /**
+     * If the user is trying to transition with a different account than the one
+     * they are currently signed in as we will sign them out, clear Onyx,
+     * and cancel all network requests. This component will mount again from
+     * PublicScreens and since they are no longer signed in, a request will be
+     * made to sign them in with their new account.
+     * @param {String} email The user's email passed as a route param.
+     * @returns {Boolean}
+     */
+    signOutIfNeeded(email) {
+        if (this.props.session && this.props.session.email === email) {
+            return false;
+        }
+
+        Session.signOutAndRedirectToSignIn();
+        return true;
     }
 
     render() {
