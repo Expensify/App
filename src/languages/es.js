@@ -714,7 +714,7 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Emitir tarjetas corporativas',
+            card: 'Emitir tarjetas',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
@@ -898,6 +898,8 @@ export default {
         policyRoomRenamed: '¡Espacio de trabajo renombrado!',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Este nombre está reservado y no puede usarse',
+        pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
+        pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',

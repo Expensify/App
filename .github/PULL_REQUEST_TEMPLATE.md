@@ -31,6 +31,42 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
+### PR Review Checklist
+<!--
+This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
+-->
+#### Contributor (PR Author) Checklist
+- [ ] I made sure to pull `main` before submitting my PR for review
+- [ ] I linked the correct issue in the `### Fixed Issues` section above
+- [ ] I wrote clear testing steps that cover the changes made in this PR
+    - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
+- [ ] I wrote testing steps that cover success & fail scenarios (if applicable)
+- [ ] I ran the tests & they passed on **all platforms**
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I verified there are no console errors related to changes in this PR
+- [ ] I followed proper code patterns (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [ ] I added comments when the code was not self explanatory
+    - [ ] I put all copy / text shown in the product in all `src/languages/*` files (if applicable)
+    - [ ] I followed proper naming convention for platform-specific files (if applicable)
+    - [ ] I followed style guidelines (in [`Styling.md`](../STYLING.md)) for all style edits I made
+- [ ] I followed the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)
+
+#### PR Reviewer Checklist
+- [ ] I verified the Author pulled `main` before submitting the PR
+- [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
+- [ ] I verified testing steps are clear and they cover the changes made in this PR
+    - [ ] I verified the testing environment is mentioned in the test steps
+- [ ] I verified testing steps cover success & fail scenarios (if applicable)
+- [ ] I verified tests pass on **all platforms** & I tested again on all platforms
+- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I verified there are no console errors related to changes in this PR
+- [ ] I verified proper code patterns were followed (see [Reviewing the code](../PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [ ] I verified comments were added when the code was not self explanatory
+    - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files (if applicable)
+    - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
+    - [ ] I verified [style guidelines](../STYLING.md) were followed
+- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](../PR_REVIEW_GUIDELINES.md)
+
 ### QA Steps
 <!---
 Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
