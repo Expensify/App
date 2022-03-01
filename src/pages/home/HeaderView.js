@@ -158,7 +158,7 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText, styles.textNoWrap]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
-                                {isChatRoom && (
+                                {isChatRoom || isPolicyExpenseChat && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,
