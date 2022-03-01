@@ -97,14 +97,6 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### Tested On
-
-- [ ] Web
-- [ ] Mobile Web
-- [ ] Desktop
-- [ ] iOS
-- [ ] Android
-
 ### Screenshots
 <!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
 
