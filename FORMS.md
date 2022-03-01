@@ -2,7 +2,7 @@
 
 This document lists specific guidelines for using our Form component and general forms guidelines.
 
-## Form UI/UX
+## General Form UI/UX
 
 ### Labels, Placeholders, & Hints
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
@@ -66,9 +66,17 @@ Instead we will format and clean the user input internally before using the valu
 To give a slightly more detailed example of how this would work with phone numbers we should:
 
 1. Allow any character to be entered in the field.
-2. On blur, strip all non-number characters (with the exception of + if the API accepts it) and validate the result against the E.164 regex pattern we use for a valid phone. This change is internal and the user should not see any changes.
+2. On blur, strip all non-number characters (with the exception of + if the API accepts it) and validate the result against the E.164 regex pattern we use for a valid phone. This change is internal and the user should not see any changes. This should be done in the validate callback passed as a prop to Form.
 3. On submit, repeat validation and submit with the clean value.
 
+### Form Drafts
+Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values will be cleared when a user logs out (like most data) and additionally cleared once the form is successfully filled.
+
+```
+<TextInput
+    shouldSaveDraft
+/>
+```
 
 ## Form Validation and Error handling
 
@@ -98,29 +106,67 @@ The Form component takes care of validation internally and the only requirement 
 Individual form fields should be highlighted with a red error outline and present supporting inline error text below the field. Error text will be required for all required fields and optional fields that require validation. This will keep our error handling consistent and ensure we put in a good effort to help the user fix the problem by providing more information than less.
 
 ### Multiple Types of Errors for Individual Fields
-Individual fields should support multiple messages depending on validation e.g. a date could be badly formatted or outside of an allowable range. We should not only say “Please enter a valid date” and instead always tell the user why something is failing if we can. The system we build should support an infinite number of possible error messages per field and we should display them simultaneously if multiple validations fail.
+Individual fields should support multiple messages depending on validation e.g. a date could be badly formatted or outside of an allowable range. We should not only say “Please enter a valid date” and instead always tell the user why something is failing if we can. The Form component supports an infinite number of possible error messages per field and they are displayed simultaneously if multiple validations fail.
 
-The Form component takes care of providing all error messages that fail validation, given that 
-## Form Alerts
+### Form Alerts
 
 When any form field fails to validate in addition to the inline error below a field, an error message will also appear inline above the submit button indicating that some fields need to be fixed. A “fix the errors” link will scroll the user to the first input that needs attention and focus on it (putting the cursor at the end of the existing value). By default, on form submit and when tapping the “fix the errors” link we should scroll the user to the first field that needs their attention.
 
-## Handling Server Errors
-Server errors related to form submission should appear in the Form Alert above the submit button. They should not appear in growls or other kinds of alerts. Additionally, as best practice moving forward server errors should never solely do the work that frontend validation can also do. This means that any error that can be validated in the frontend should be validated in the frontend and backend. (Note: This is not meant to suggest that we should avoid validating in the backend if the frontend already validates).
+### Handling Server Errors
+Server errors related to form submission should appear in the Form Alert above the submit button. They should not appear in growls or other kinds of alerts. Additionally, as best practice moving forward server errors should never solely do the work that frontend validation can also do. This means that any error that can be validated in the frontend should be validated in the frontend and backend.
+
+Note: This is not meant to suggest that we should avoid validating in the backend if the frontend already validates.
 
 Note: There are edge cases where some server errors will inevitably relate to specific fields in a form with other fields unrelated to that error. We had trouble coming to a consensus on exactly how this edge case should be handled (e.g. show inline error, clear on blur, etc). For now, we will show the server error in the form alert and not inline (so the “fix the errors” link will not be present). In those cases, we will still attempt to inform the user which field needs attention, but not highlight the input or display an error below the input. We will be on the lookout for our first validation in the server that could benefit from being tied to a specific field and try to come up with a unified solution for all errors.
 
-# Form Submission
-## Submit Button Disabling
+## Form Submission
+### Submit Button Disabling
 
 Submit buttons shall not be disabled or blocked from being pressed in most cases. We will allow the user to submit a form and point them in the right direction if anything needs their attention.
 
-The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This will also ensure that a form cannot be submitted multiple times.
+The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
+## Using Form.js
+The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples
 
+```
+validate: (values) => {
+    const errors = {};
+    if (!values.routingNumber) {
+        errors.routingNumber = 'Please enter a routing number';
+    }
+    if (!values.accountNumber) {
+        errors.accountNumber = 'Please enter an account number';
+    }
+    return errors;
+}
 
+onSubmit: (values) => {
+    setTimeout(() => {
+        alert(`Form submitted!`);
+        FormActions.setIsSubmitting('TestForm', false);
+    }, 1000);
+}
 
-## Form Drafts
-Forms will NOT store draft values by default. We need to explicitly tell each input to save draft. This approach eliminates accidents in which we save sensitive information to disk. Saving draft values is highly desireable and we should always try to save draft values unless we are dealing with sensitive information, e.g. passwords, SSN, credit card numbers, etc. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Sensitive fields and PII that should not be stored in the front end should be flagged so they are never persisted. The flag used to mark a field as sensitive will be required and throw an obvious error if not specified (this is to minimize the possibility of storing PII). These fields will be cleared when a user logs out (like most data) and additionally cleared once the form is successfully filled.
-
-Each instance of a form will have a unique identifier to avoid device storage conflicts. 
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <View>
+        <TextInput
+            label="Routing number"
+            inputID="routingNumber"
+            isFormInput
+            shouldSaveDraft
+        />
+    </View>
+    <TextInput
+        label="Account number"
+        inputID="accountNumber"
+        containerStyles={[styles.mt4]}
+        isFormInput
+    />
+</Form>
+```
