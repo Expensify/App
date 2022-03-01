@@ -8,7 +8,6 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 
-
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
