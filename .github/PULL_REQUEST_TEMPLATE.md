@@ -59,6 +59,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modified a shared library or component like `Avatar`, I verify the components using `Avatar` are working as expected)
 - [ ] I corroborated the UI performance was not affected (the performance is the same than `main` branch)
+- [ ] If I created a new component I verified a similar component doesn't exist in the codebase.
 
 #### PR Reviewer Checklist
 - [ ] I verified the Author pulled `main` before submitting the PR
@@ -84,6 +85,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verify the components using `Avatar` are working as expected)
 - [ ] I verified the UI performance was not affected (the performance is the same than `main` branch)
+- [ ] If a new component is created I verified a similar component doesn't exist in the codebase.
+
 
 ### QA Steps
 <!---
