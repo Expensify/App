@@ -227,10 +227,6 @@ class TransferBalancePage extends React.Component {
                                     iconWidth={selectedAccount.iconSize}
                                     iconHeight={selectedAccount.iconSize}
                                     icon={selectedAccount.icon}
-                                    wrapperStyle={{
-                                        ...styles.mrn5,
-                                        ...styles.ph0,
-                                    }}
                                     onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
                                 />
                             )}
