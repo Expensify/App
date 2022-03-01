@@ -46,8 +46,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / native
     - [ ] iOS / Safari
     - [ ] Android / Chrome
-    - [ ] OSX / Chrome
-    - [ ] OSX / Desktop
+    - [ ] MacOS / Chrome
+    - [ ] MacOS / Desktop
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
@@ -70,8 +70,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / native
     - [ ] iOS / Safari
     - [ ] Android / Chrome
-    - [ ] OSX / Chrome
-    - [ ] OSX / Desktop
+    - [ ] MacOS / Chrome
+    - [ ] MacOS / Desktop
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified there are no console errors related to changes in this PR
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
