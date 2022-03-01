@@ -49,11 +49,24 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        if (this.signInIfNeeded()) {
+        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+        const email = lodashGet(this.props.route.params, 'email', '');
+        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+
+        const signedIn = this.props.session && this.props.session.authToken;
+        if (!signedIn) {
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
 
-        this.signOutIfNeeded();
+        // User is trying to transition with a different account than the one
+        // they are currently signed in as so we will sign them out, clear Onyx,
+        // and cancel all network requests made with their old login. This
+        // component will mount again from PublicScreens and since they are no
+        // longer signed in, a request will be made to sign them in with their new account.
+        if (email !== this.props.session.email) {
+            Session.signOutAndRedirectToSignIn();
+        }
     }
 
     componentDidUpdate() {
@@ -61,16 +74,28 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        if (this.signInIfNeeded()) {
-            return;
-        }
-
-        if (this.signOutIfNeeded()) {
-            return;
-        }
+        const email = lodashGet(this.props.route.params, 'email', '');
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+
+        const signedIn = this.props.session && this.props.session.authToken;
+        if (!signedIn) {
+            const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+            const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+            return;
+        }
+
+        // User is trying to transition with a different account than the one
+        // they are currently signed in as so we will sign them out, clear Onyx,
+        // and cancel all network requests. This component will mount again from
+        // PublicScreens and since they are no longer signed in, a request will be
+        // made to sign them in with their new account.
+        if (email !== this.props.session.email) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
 
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
@@ -85,43 +110,6 @@ class LogInWithShortLivedTokenPage extends Component {
         // if they cancel out of the new workspace modal.
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
-    }
-
-    /**
-     * Determine if the user needs to be signed in. If so sign them in with the
-     * short lived token.
-     * @returns {Boolean}
-     */
-    signInIfNeeded() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-
-        const isUserSignedIn = this.props.session && this.props.session.authToken;
-        if (isUserSignedIn) {
-            return false;
-        }
-
-        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
-        return true;
-    }
-
-    /**
-     * If the user is trying to transition with a different account than the one
-     * they are currently signed in as so we will sign them out, clear Onyx,
-     * and cancel all network requests. This component will mount again from
-     * PublicScreens and since they are no longer signed in, a request will be
-     * made to sign them in with their new account.
-     * @returns {Boolean}
-     */
-    signOutIfNeeded() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        if (this.props.session && this.props.session.email === email) {
-            return false;
-        }
-
-        Session.signOutAndRedirectToSignIn();
-        return true;
     }
 
     render() {
