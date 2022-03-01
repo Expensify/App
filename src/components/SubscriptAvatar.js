@@ -47,6 +47,7 @@ const SubscriptAvatar = props => (
     </View>
 );
 
+SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;
 SubscriptAvatar.defaultProps = defaultProps;
 export default memo(SubscriptAvatar);
