@@ -97,7 +97,7 @@ const defaultProps = {
     shouldSaveDraft: false,
     maxLength: null,
     hint: '',
-    prefixCharacter: null,
+    prefixCharacter: '',
 };
 
 export {propTypes, defaultProps};
