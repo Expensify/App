@@ -183,8 +183,7 @@ function deletePolicy(policyID) {
         })
         .then(() => Report.fetchAllReports(false, true))
         .then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.goBack();
             return Promise.resolve();
         });
 }
