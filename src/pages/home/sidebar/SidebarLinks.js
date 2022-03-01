@@ -167,7 +167,7 @@ class SidebarLinks extends React.Component {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
         const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
 
-        // Pull the reports we want to show on the left hand nav, ordered by priority
+        // Build the report options we want to show
         const recentReports = SidebarLinks.getRecentReports(nextProps);
 
         // Determine whether we need to keep the previous LHN order
