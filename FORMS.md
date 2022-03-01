@@ -127,7 +127,7 @@ Submit buttons shall not be disabled or blocked from being pressed in most cases
 The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
 ## Using Form.js
-The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples
+The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
 
 ```
 validate: (values) => {
@@ -170,3 +170,17 @@ onSubmit: (values) => {
     />
 </Form>
 ```
+
+### Props provided to Form inputs
+The following props are available to form inputs:
+
+- inputID: An unique identifier for the input.
+- isFormInput: A flag that indicates that this input is being used with Form.js.
+
+Form.js will automatically provide the following props to any input flagged with the isFormInput prop.
+
+- ref: A React ref that must be attached to the input.
+- defaultValue: The input default value.
+- errorText: The translated error text that is returned by validate for that specific input.
+- onBlur: An onBlur handler that calls validate.
+- onChange: An onChange handler that saves draft values and calls validate.
