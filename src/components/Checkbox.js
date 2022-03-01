@@ -19,8 +19,10 @@ const propTypes = {
     disabled: PropTypes.bool,
 
     /** A ref to forward to the Pressable */
-    forwardedRef: PropTypes.oneOfType([PropTypes.object]),
-
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
 };
 
 const defaultProps = {
