@@ -74,8 +74,8 @@ class BasePaymentsPage extends React.Component {
         if (!this.state.addPaymentMethodButton) {
             return;
         }
-        const btnPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
-        this.setPositionAddPaymentMenu(btnPosition);
+        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        this.setPositionAddPaymentMenu(buttonPosition);
     }
 
     getSelectedPaymentMethodID() {
