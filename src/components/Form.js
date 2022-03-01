@@ -3,6 +3,7 @@ import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
@@ -154,12 +155,15 @@ class Form extends React.Component {
                     this.setTouchedInput(inputID);
                     this.validate(this.inputValues);
                 },
-                onChange: (value) => {
+                onChangeText: (value) => {
                     this.inputValues[inputID] = value;
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputID]: value});
                     }
                     this.validate(this.inputValues);
+
+                    // Call the passed callback
+                    Str.result(child.props.onChangeText, value);
                 },
             });
         });
