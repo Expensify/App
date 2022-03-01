@@ -274,14 +274,14 @@ function createOption(personalDetailList, report, {
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(getParticipants(report));
-
+    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : ReportUtils.getChatRoomSubtitle(report, policies);
+            : subtitle;
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -296,6 +296,8 @@ function createOption(personalDetailList, report, {
         alternateText,
         icons: getAvatarSources(report),
         tooltipText,
+        ownerEmail: lodashGet(report, ['ownerEmail']),
+        subtitle,
         participantsList: personalDetailList,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
@@ -313,7 +315,10 @@ function createOption(personalDetailList, report, {
         iouReportID: lodashGet(report, 'iouReportID'),
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
+        isChatRoom,
+        isArchivedRoom: ReportUtils.isArchivedRoom(report),
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
+        isPolicyExpenseChat,
     };
 }
 

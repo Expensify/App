@@ -140,7 +140,8 @@ const HeaderView = (props) => {
                                 <SubscriptAvatar
                                     mainAvatar={avatarIcons[0]}
                                     secondaryAvatar={avatarIcons[1]}
-                                    avatarTooltips={avatarTooltip}
+                                    mainTooltip={props.report.ownerEmail}
+                                    secondaryTooltip={subtitle}
                                 />
                             ) : (
                                 <MultipleAvatars

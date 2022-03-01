@@ -168,7 +168,8 @@ const OptionRow = (props) => {
                                         <SubscriptAvatar
                                             mainAvatar={props.option.icons[0]}
                                             secondaryAvatar={props.option.icons[1]}
-                                            avatarTooltips={avatarTooltips}
+                                            mainTooltip={props.option.ownerEmail}
+                                            secondaryTooltip={props.option.subtitle}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -183,7 +184,7 @@ const OptionRow = (props) => {
                                                     ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                     : undefined,
                                             ]}
-                                            avatarTooltips={avatarTooltips}
+                                            avatarTooltips={props.option.isPolicyExpenseChat ? [props.option.subtitle] : avatarTooltips}
                                         />
                                     )
                                 )

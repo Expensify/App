@@ -14,18 +14,22 @@ const propTypes = {
     /** Subscript avatar URL or icon */
     secondaryAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
-    /** Tooltip for the Avatar */
-    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
+    /** Tooltip for the main avatar */
+    mainTooltip: PropTypes.string,
+
+    /** Tooltip for the subscript avatar */
+    secondaryTooltip: PropTypes.string,
 };
 
 const defaultProps = {
-    avatarTooltips: [],
+    mainTooltip: '',
+    secondaryTooltip: '',
 };
 
 const SubscriptAvatar = props => (
     <View style={styles.emptyAvatar}>
         <View>
-            <Tooltip text={props.avatarTooltips[0]} absolute>
+            <Tooltip text={props.mainTooltip}>
                 <Avatar
                     source={props.mainAvatar}
                 />
@@ -34,7 +38,7 @@ const SubscriptAvatar = props => (
         <View
             style={[styles.secondAvatarSubscript, styles.secondAvatarHovered]}
         >
-            <Tooltip text={props.avatarTooltips[1]} absolute>
+            <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar}
                     imageStyles={[styles.singleSubscript]}
