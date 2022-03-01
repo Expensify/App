@@ -33,6 +33,24 @@ const Template = (args) => {
                     {...args.popoverMenu}
                     isVisible={isVisible}
                     onClose={toggleVisibility}
+                    onItemSelected={toggleVisibility}
+                    menuItems={[
+                        {
+                            text: 'Bank account',
+                            icon: Expensicons.Bank,
+                            onSelected: toggleVisibility,
+                        },
+                        {
+                            text: 'Debit card',
+                            icon: Expensicons.CreditCard,
+                            onSelected: toggleVisibility,
+                        },
+                        {
+                            text: 'PayPal.me',
+                            icon: Expensicons.PayPal,
+                            onSelected: toggleVisibility,
+                        },
+                    ]}
                 />
             </SafeAreaProvider>
         </>
@@ -44,20 +62,6 @@ const Template = (args) => {
 const Default = Template.bind({});
 Default.args = {
     popoverMenu: {
-        menuItems: [
-            {
-                text: 'Bank account',
-                icon: Expensicons.Bank,
-            },
-            {
-                text: 'Debit card',
-                icon: Expensicons.CreditCard,
-            },
-            {
-                text: 'PayPal.me',
-                icon: Expensicons.PayPal,
-            },
-        ],
         anchorPosition: {
             top: 80,
             left: 20,
