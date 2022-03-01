@@ -120,6 +120,9 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
+        if (this.props.onInputChange) {
+            this.props.onInputChange(value);
+        }
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();

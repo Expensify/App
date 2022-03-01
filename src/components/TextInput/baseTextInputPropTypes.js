@@ -69,6 +69,9 @@ const propTypes = {
 
     /** Prefix character */
     prefixCharacter: PropTypes.string,
+
+    /** Callback to update the value on Form when input is used in the Form component. */
+    onInputChange: PropTypes.func,
 };
 
 const defaultProps = {
@@ -98,6 +101,7 @@ const defaultProps = {
     maxLength: null,
     hint: '',
     prefixCharacter: '',
+    onInputChange: () => {},
 };
 
 export {propTypes, defaultProps};
