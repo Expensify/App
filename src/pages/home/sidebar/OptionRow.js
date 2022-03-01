@@ -21,6 +21,7 @@ import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
+import SubscriptAvatar from '../../../components/SubscriptAvatar';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -163,22 +164,29 @@ const OptionRow = (props) => {
                             {
                                 !_.isEmpty(props.option.icons)
                                 && (
-                                    <MultipleAvatars
-                                        avatarImageURLs={props.option.icons}
-                                        size={props.mode === 'compact' ? 'small' : 'default'}
-                                        secondAvatarStyle={[
-                                            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                                            props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                : undefined,
-                                            hovered && !props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                : undefined,
-                                        ]}
-                                        isChatRoom={props.option.isChatRoom}
-                                        isArchivedRoom={props.option.isArchivedRoom}
-                                        avatarTooltips={avatarTooltips}
-                                    />
+                                    props.option.shouldShowSubscript ? (
+                                        <SubscriptAvatar
+                                            mainAvatar={props.option.icons[0]}
+                                            secondaryAvatar={props.option.icons[1]}
+                                            mainTooltip={props.option.ownerEmail}
+                                            secondaryTooltip={props.option.subtitle}
+                                        />
+                                    ) : (
+                                        <MultipleAvatars
+                                            avatarIcons={props.option.icons}
+                                            size={props.mode === 'compact' ? 'small' : 'default'}
+                                            secondAvatarStyle={[
+                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                                                props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                    : undefined,
+                                                hovered && !props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                    : undefined,
+                                            ]}
+                                            avatarTooltips={props.option.isPolicyExpenseChat ? [props.option.subtitle] : avatarTooltips}
+                                        />
+                                    )
                                 )
                             }
                             <View style={contentContainerStyles}>
@@ -188,7 +196,7 @@ const OptionRow = (props) => {
                                     tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isChatRoom}
+                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
                                 />
                                 {props.option.alternateText ? (
                                     <Text

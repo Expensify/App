@@ -1488,6 +1488,14 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleSubscript: {
+        height: variables.iconSizeNormal,
+        width: variables.iconSizeNormal,
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+        zIndex: 1,
+    },
+
     singleAvatarSmall: {
         height: 18,
         width: 18,
@@ -1512,11 +1520,6 @@ const styles = {
         borderColor: 'transparent',
     },
 
-    secondAvatarHovered: {
-        backgroundColor: themeColors.sidebarHover,
-        borderColor: themeColors.sidebarHover,
-    },
-
     secondAvatarSmall: {
         position: 'absolute',
         right: -13,
@@ -1524,6 +1527,26 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: 'transparent',
+    },
+
+    secondAvatarSubscript: {
+        position: 'absolute',
+        right: -4,
+        bottom: -2,
+        borderWidth: 2,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    leftSideLargeAvatar: {
+        left: 15,
+    },
+
+    rightSideLargeAvatar: {
+        right: 15,
+        zIndex: 2,
+        borderWidth: 4,
+        borderRadius: 100,
     },
 
     secondAvatarInline: {
@@ -1801,8 +1824,8 @@ const styles = {
     },
 
     avatarLarge: {
-        width: 80,
-        height: 80,
+        width: variables.avatarSizeLarge,
+        height: variables.avatarSizeLarge,
     },
 
     roomHeaderAvatar: {

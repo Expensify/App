@@ -1,14 +1,18 @@
 import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import RoomAvatar from './RoomAvatar';
 import stylePropTypes from '../styles/stylePropTypes';
+import Icon from './Icon';
+import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
+
 
 const propTypes = {
-    /** Url source for the avatar */
-    source: PropTypes.string,
+    /** Source for the avatar. Can be a URL or an icon. */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Extra styles to pass to Image */
     imageStyles: PropTypes.arrayOf(PropTypes.object),
@@ -17,43 +21,39 @@ const propTypes = {
     containerStyles: stylePropTypes,
 
     /** Set the size of Avatar */
-    size: PropTypes.oneOf(['default', 'small']),
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
-    /** Whether this avatar is for a chat room */
-    isChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an archived default room */
-    isArchivedRoom: PropTypes.bool,
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    fill: PropTypes.string,
 };
 
 const defaultProps = {
-    source: '',
+    source: null,
     imageStyles: [],
     containerStyles: [],
-    size: 'default',
-    isChatRoom: false,
-    isArchivedRoom: false,
+    size: CONST.AVATAR_SIZE.DEFAULT,
+    fill: themeColors.icon,
 };
 
 class Avatar extends PureComponent {
     render() {
-        if (!this.props.source && !this.props.isChatRoom) {
+        if (!this.props.source) {
             return null;
         }
 
         const imageStyle = [
-            this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-
-            // Background color isn't added for room avatar because it changes it's shape to a square
-            this.props.isChatRoom ? {} : {backgroundColor: themeColors.icon},
+            this.props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarSmall : styles.avatarNormal,
             ...this.props.imageStyles,
         ];
 
+        const iconSize = StyleUtils.getAvatarSize(this.props.size);
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {this.props.isChatRoom
-                    ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
+                {
+                _.isFunction(this.props.source)
+                    ? <Icon src={this.props.source} fill={this.props.fill} height={iconSize} width={iconSize} />
+                    : <Image source={{uri: this.props.source}} style={imageStyle} />
+            }
             </View>
         );
     }

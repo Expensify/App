@@ -24,8 +24,8 @@ const optionPropTypes = PropTypes.shape({
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),
 
-    // The array URLs of the person's avatar
-    icons: PropTypes.arrayOf(PropTypes.string),
+    // The array URLs or icons of the person's avatar
+    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     // Descriptive text to be displayed besides selection element
     descriptiveText: PropTypes.string,
