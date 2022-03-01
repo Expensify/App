@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
+import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -14,7 +15,7 @@ import styles from '../styles/styles';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput, Picker},
+    subcomponents: {TextInput, AddressSearch, Picker},
 };
 
 const Template = (args) => {
@@ -37,6 +38,12 @@ const Template = (args) => {
             <TextInput
                 label="Account number"
                 inputID="accountNumber"
+                containerStyles={[styles.mt4]}
+                isFormInput
+            />
+            <AddressSearch
+                label="Street"
+                inputID="street"
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
