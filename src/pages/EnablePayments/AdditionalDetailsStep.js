@@ -44,7 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     walletAdditionalDetails: {
-        errorFields: [],
+        errorFields: {},
         loading: false,
         additionalErrorMessage: '',
     },
@@ -70,7 +70,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
-            legalMiddleName: 'additionalDetailsStep.legalMiddleNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
             addressStreet: 'common.personalAddress',
             addressCity: 'common.city',
@@ -79,11 +78,11 @@ class AdditionalDetailsStep extends React.Component {
             phoneNumber: 'common.phoneNumber',
             dob: 'common.dob',
             ssn: 'common.ssnLast4',
+            ssnFull9: 'common.ssnFull9',
         };
 
         this.state = {
             legalFirstName: lodashGet(props.walletAdditionalDetailsDraft, 'legalFirstName', ''),
-            legalMiddleName: lodashGet(props.walletAdditionalDetailsDraft, 'legalMiddleName', ''),
             legalLastName: lodashGet(props.walletAdditionalDetailsDraft, 'legalLastName', ''),
             addressStreet: lodashGet(props.walletAdditionalDetailsDraft, 'addressStreet', ''),
             addressCity: lodashGet(props.walletAdditionalDetailsDraft, 'addressCity', ''),
@@ -143,7 +142,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
-        if (!ValidationUtils.isValidSSNLastFour(this.state.ssn)) {
+        if (!ValidationUtils.isValidSSNLastFour(this.state.ssn) && !ValidationUtils.isValidSSNFullNine(this.state.ssn)) {
             errors.ssn = true;
         }
 
@@ -182,6 +181,8 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
@@ -207,12 +208,6 @@ class AdditionalDetailsStep extends React.Component {
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
                                     value={this.state.legalFirstName}
                                     errorText={this.getErrorText('legalFirstName')}
-                                />
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalMiddleName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalMiddleName', val)}
-                                    value={this.state.legalMiddleName}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
@@ -261,11 +256,11 @@ class AdditionalDetailsStep extends React.Component {
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.ssn)}
+                                    label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                                     onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
                                     value={this.state.ssn}
                                     errorText={this.getErrorText('ssn')}
-                                    maxLength={4}
+                                    maxLength={shouldAskForFullSSN ? 9 : 4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
                             </View>
