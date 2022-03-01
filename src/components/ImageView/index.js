@@ -20,6 +20,9 @@ class ImageView extends PureComponent {
         this.scrollableRef = null;
         this.canUseTouchScreen = canUseTouchScreen();
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
+        this.onContainerPressIn = this.onContainerPressIn.bind(this);
+        this.onContainerPress = this.onContainerPress.bind(this);
+        this.onContainerPressOut = this.onContainerPressOut.bind(this);
         this.state = {
             containerHeight: 0,
             containerWidth: 0,
@@ -69,6 +72,44 @@ class ImageView extends PureComponent {
             zoomScale: scale,
         });
     }
+
+    onContainerPressIn(e) {
+        const {pageX, pageY} = e.nativeEvent;
+        this.setState({
+            isMouseDown: true,
+            initialX: pageX,
+            initialY: pageY,
+            initialScrollLeft: this.scrollableRef.scrollLeft,
+            initialScrollTop: this.scrollableRef.scrollTop,
+        });
+    }
+
+    onContainerPress(e) {
+        if (this.state.isZoomed && !this.state.isDragging) {
+            const {offsetX, offsetY} = e.nativeEvent;
+            const delta = this.getScrollOffset(offsetX, offsetY);
+            const sX = delta.offsetX;
+            const sY = delta.offsetY;
+            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
+            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
+        }
+
+        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+            this.setState({isDragging: false, isMouseDown: false});
+        }
+    }
+
+    onContainerPressOut() {
+        if (this.state.isDragging) {
+            return;
+        }
+
+        this.setState(prevState => ({
+            isZoomed: !prevState.isZoomed,
+            isMouseDown: false,
+        }));
+    }
+
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
@@ -215,40 +256,9 @@ class ImageView extends PureComponent {
                         ...this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}
-                    onPressIn={(e) => {
-                        const {pageX, pageY} = e.nativeEvent;
-                        this.setState({
-                            isMouseDown: true,
-                            initialX: pageX,
-                            initialY: pageY,
-                            initialScrollLeft: this.scrollableRef.scrollLeft,
-                            initialScrollTop: this.scrollableRef.scrollTop,
-                        });
-                    }}
-                    onPress={(e) => {
-                        if (this.state.isZoomed && !this.state.isDragging) {
-                            const {offsetX, offsetY} = e.nativeEvent;
-                            const delta = this.getScrollOffset(offsetX, offsetY);
-                            const sX = delta.offsetX;
-                            const sY = delta.offsetY;
-                            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
-                            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
-                        }
-
-                        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
-                            this.setState({isDragging: false, isMouseDown: false});
-                        }
-                    }}
-                    onPressOut={() => {
-                        if (this.state.isDragging) {
-                            return;
-                        }
-
-                        this.setState(prevState => ({
-                            isZoomed: !prevState.isZoomed,
-                            isMouseDown: false,
-                        }));
-                    }}
+                    onPressIn={this.onContainerPressIn}
+                    onPress={this.onContainerPress}
+                    onPressOut={this.onContainerPressOut}
                 >
                     <Image
                         source={{uri: this.props.url}}
