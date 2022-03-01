@@ -1520,11 +1520,6 @@ const styles = {
         borderColor: 'transparent',
     },
 
-    secondAvatarHovered: {
-        backgroundColor: themeColors.sidebarHover,
-        borderColor: themeColors.sidebarHover,
-    },
-
     secondAvatarSmall: {
         position: 'absolute',
         right: -13,

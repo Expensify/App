@@ -6,6 +6,7 @@ import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -25,7 +26,7 @@ const propTypes = {
 const defaultProps = {
     avatarIcons: [],
     size: 'default',
-    secondAvatarStyle: [styles.secondAvatarHovered],
+    secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
     avatarTooltips: [],
 };
 

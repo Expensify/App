@@ -6,6 +6,7 @@ import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Avatar URL or icon */
@@ -33,7 +34,7 @@ const SubscriptAvatar = props => (
                 source={props.mainAvatar}
             />
         </Tooltip>
-        <View style={[styles.secondAvatarSubscript, styles.secondAvatarHovered]}>
+        <View style={[styles.secondAvatarSubscript, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar}

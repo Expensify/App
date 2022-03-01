@@ -146,7 +146,6 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     avatarIcons={avatarIcons}
-                                    secondAvatarStyle={[styles.secondAvatarHovered]}
                                     avatarTooltips={avatarTooltip}
                                 />
                             )}

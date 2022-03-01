@@ -7,6 +7,7 @@ import Text from './Text';
 import CONST from '../CONST';
 import Avatar from './Avatar';
 import themeColors from '../styles/themes/default';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -48,7 +49,7 @@ const RoomHeaderAvatars = (props) => {
                         fill={themeColors.iconSuccessFill}
                     />
                 </View>
-                <View style={[styles.secondAvatarHovered, styles.rightSideLargeAvatar]}>
+                <View style={[styles.rightSideLargeAvatar, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
                     <Avatar
                         source={props.avatarIcons[0]}
                         imageStyles={[styles.avatarLarge]}
