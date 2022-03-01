@@ -101,14 +101,12 @@ class WorkspaceReimburseNoVBAView extends React.Component {
 
     setRate(value) {
         // allow only numbers and dot
-        const numValue = value.replace(/[^0-9/.]/g, '');
+        const rateValue = value.replace(/[^0-9/.]/g, '');
 
-        this.setState({
-            rateValue: numValue,
-        });
+        this.setState({rateValue});
 
         // Set the corrected value with a delay and sync to the server
-        this.updateRateValueDebounced(numValue);
+        this.updateRateValueDebounced(rateValue);
     }
 
     setUnit(value) {
