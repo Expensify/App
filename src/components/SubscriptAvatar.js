@@ -15,7 +15,11 @@ const propTypes = {
     secondaryAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
     /** Tooltip for the Avatar */
-    avatarTooltips: PropTypes.arrayOf(PropTypes.string).isRequired,
+    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
+};
+
+const defaultProps = {
+    avatarTooltips: [],
 };
 
 const SubscriptAvatar = props => (
@@ -43,4 +47,5 @@ const SubscriptAvatar = props => (
 );
 
 SubscriptAvatar.propTypes = propTypes;
+SubscriptAvatar.defaultProps = defaultProps;
 export default memo(SubscriptAvatar);
