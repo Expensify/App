@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -170,11 +171,12 @@ const OptionRow = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
+                                            size={props.mode === 'compact' ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             avatarIcons={props.option.icons}
-                                            size={props.mode === 'compact' ? 'small' : 'default'}
+                                            size={props.mode === 'compact' ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                                 props.optionIsFocused

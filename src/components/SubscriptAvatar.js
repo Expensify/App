@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
@@ -20,11 +21,15 @@ const propTypes = {
 
     /** Tooltip for the subscript avatar */
     secondaryTooltip: PropTypes.string,
+
+    /** Set the size of avatars */
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 };
 
 const defaultProps = {
     mainTooltip: '',
     secondaryTooltip: '',
+    size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
 const SubscriptAvatar = props => (
@@ -32,6 +37,7 @@ const SubscriptAvatar = props => (
         <Tooltip text={props.mainTooltip}>
             <Avatar
                 source={props.mainAvatar}
+                size={props.size}
             />
         </Tooltip>
         <View style={[styles.secondAvatarSubscript, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
