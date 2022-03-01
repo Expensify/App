@@ -40,13 +40,11 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
-
+        const dateAsText = moment(this.props.value ? this.props.value : this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING);
         return (
             <>
                 <TextInput
                     label={this.props.label}
-                    value={dateAsText}
                     ref={this.props.forwardedRef}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
@@ -54,7 +52,7 @@ class DatePicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
-                    defaultValue={this.defaultValue}
+                    defaultValue={dateAsText}
                     onBlur={this.props.onBlur}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}

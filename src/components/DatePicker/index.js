@@ -59,7 +59,7 @@ class Datepicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const dateAsText = moment(this.props.value ? this.props.value : this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING);
         return (
             <TextInput
                 forceActiveLabel={!this.props.isSmallScreenWidth}
