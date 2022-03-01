@@ -11,7 +11,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 
 
 const propTypes = {
-    /** Source for the avatar. Can be the URL of an image or an icon. */
+    /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Extra styles to pass to Image */
