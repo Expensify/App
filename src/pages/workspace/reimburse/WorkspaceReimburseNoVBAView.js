@@ -77,7 +77,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
             rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
             rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
-            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''), 
+            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
     }
 
