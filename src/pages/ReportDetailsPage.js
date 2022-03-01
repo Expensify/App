@@ -134,7 +134,7 @@ class ReportDetailsPage extends Component {
                             <Avatar
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
-                                source={OptionsListUtils.getAvatarSources(this.props.report)}
+                                source={_.first(OptionsListUtils.getAvatarSources(this.props.report))}
                             />
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
