@@ -17,10 +17,6 @@ class Datepicker extends React.Component {
 
         this.raiseDateChange = this.raiseDateChange.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
-
-        this.defaultValue = props.defaultValue
-            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : undefined;
     }
 
     componentDidMount() {
@@ -77,8 +73,7 @@ class Datepicker extends React.Component {
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}
                 onBlur={this.props.onBlur}
-                value={dateAsText}
-                defaultValue={this.defaultValue}
+                defaultValue={dateAsText}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
