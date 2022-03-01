@@ -1736,11 +1736,6 @@ const styles = {
         ...flex.alignItemsCenter,
     },
 
-    reportSettingsChangeNameButton: {
-        height: 42,
-        paddingHorizontal: 20,
-    },
-
     reportSettingsVisibilityText: {
         textTransform: 'capitalize',
     },
