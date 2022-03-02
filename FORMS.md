@@ -59,8 +59,14 @@ Browsers use the name prop to autofill information into the input. Here's a [ref
 
 ### Focus and Tab Behavior
 
-All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. 
-Pressing the enter key on any focused field should submit the form.
+All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. In most cases this can be achieved by composition, i.e. rendering the components in the correct order. If we come across a situation where composition is not enough, we can:
+
+1. Create a local tab index state
+2. Assign a tab index to each form input
+3. Add an event listener to the page/component we are creating and update the tab index state on tab/shift + tab key press
+4. Set focus to the input with that tab index.
+
+Additionally, ressing the enter key on any focused field should submit the form.
 
 ### Modifying User Input on Change
 
