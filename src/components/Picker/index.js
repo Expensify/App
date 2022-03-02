@@ -33,7 +33,7 @@ const propTypes = {
      * @param {Object} props - props passed to the input
      * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
      */
-    inputID: props => FormUtils.getInputIDPropTypes(props),
+    inputID: props => FormUtils.validateInputIDProps(props),
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
