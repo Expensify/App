@@ -36,7 +36,7 @@ For example:
 This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
 #### Contributor (PR Author) Checklist
-- [ ] I made sure to pull `main` before submitting my PR for review
+- [ ] I verified the PR has a small number of commits behind `main`
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
@@ -62,7 +62,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] If I created a new component I verified that a similar component doesn't exist in the codebase
 
 #### PR Reviewer Checklist
-- [ ] I verified the Author pulled `main` before submitting the PR
+- [ ] I verified the PR has a small number of commits behind `main`
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
     - [ ] I verified the testing environment is mentioned in the test steps
