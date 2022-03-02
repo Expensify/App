@@ -9,4 +9,4 @@ jobs:
   verifySignedCommits:
     runs-on: ubuntu-latest
     steps:
-      - uses: nadock/verified_commits_check@854c41acbeacfe04b78b37379f942cdd70f9187c
+      - uses: Expensify/App/.github/actions/verifySignedCommits@${{ github.head_ref }}
