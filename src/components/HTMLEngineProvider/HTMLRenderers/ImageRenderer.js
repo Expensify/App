@@ -1,10 +1,10 @@
 import React from 'react';
-import {TouchableOpacity} from 'react-native';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
+import TouchableWithoutFocus from '../../TouchableWithoutFocus';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -35,11 +35,11 @@ const ImageRenderer = (props) => {
 
     // Update the image URL so the images can be accessed depending on the config environment
     previewSource = previewSource.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+        Config.EXPENSIFY.EXPENSIFY_URL,
         Config.EXPENSIFY.URL_API_ROOT,
     );
     source = source.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+        Config.EXPENSIFY.EXPENSIFY_URL,
         Config.EXPENSIFY.URL_API_ROOT,
     );
 
@@ -50,7 +50,7 @@ const ImageRenderer = (props) => {
             originalFileName={originalFileName}
         >
             {({show}) => (
-                <TouchableOpacity
+                <TouchableWithoutFocus
                     style={styles.noOutline}
                     onPress={show}
                 >
@@ -59,7 +59,7 @@ const ImageRenderer = (props) => {
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
-                </TouchableOpacity>
+                </TouchableWithoutFocus>
             )}
         </AttachmentModal>
     );

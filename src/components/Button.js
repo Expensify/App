@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,6 +8,8 @@ import Text from './Text';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
+import HapticFeedback from '../libs/HapticFeedback';
 
 const propTypes = {
     /** The text for the button label */
@@ -73,6 +74,9 @@ const propTypes = {
 
     /** Should we remove the left border radius top + bottom? */
     shouldRemoveLeftBorderRadius: PropTypes.bool,
+
+    /** Should enable the haptic feedback? */
+    shouldEnableHapticFeedback: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -96,12 +100,13 @@ const defaultProps = {
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
+    shouldEnableHapticFeedback: false,
 };
 
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
+        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
@@ -179,8 +184,18 @@ class Button extends Component {
     render() {
         return (
             <Pressable
-                onPress={this.props.onPress}
-                onLongPress={this.props.onLongPress}
+                onPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onPress(e);
+                }}
+                onLongPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onLongPress(e);
+                }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}

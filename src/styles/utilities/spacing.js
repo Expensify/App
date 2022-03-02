@@ -175,6 +175,8 @@ export default {
 
     p0: {
         padding: 0,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
     },
 
     p1: {
@@ -322,6 +324,10 @@ export default {
 
     pb5: {
         paddingBottom: 20,
+    },
+
+    pb8: {
+        paddingBottom: 32,
     },
 
     pb10Percentage: {

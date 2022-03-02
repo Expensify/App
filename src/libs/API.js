@@ -129,6 +129,8 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
+Network.registerLogHandler(() => Log);
+
 Network.registerRequestHandler((queuedRequest, finalParameters) => {
     if (queuedRequest.command === 'Log') {
         return;
@@ -188,6 +190,10 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
+    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+        Log.info('[API] request canceled', false, queuedRequest);
+        return;
+    }
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {
@@ -447,7 +453,9 @@ function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
-    return Network.post(commandName, parameters);
+
+    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
+    return Network.post(commandName, {...parameters, canCancel: false});
 }
 
 /**
@@ -1093,6 +1101,31 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function Policy_CustomUnit_Update(parameters) {
+    const commandName = 'Policy_CustomUnit_Update';
+    requireParameters(['policyID', 'customUnit'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.customUnitID
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function Policy_CustomUnitRate_Update(parameters) {
+    const commandName = 'Policy_CustomUnitRate_Update';
+    requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} [parameters.policyID]
  * @returns {Promise}
  */
@@ -1267,6 +1300,8 @@ export {
     GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
+    Policy_CustomUnit_Update,
+    Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
     Policy_Delete,

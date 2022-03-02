@@ -121,9 +121,9 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return _.without(emailArray, currentUserEmail);
+    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -144,8 +144,8 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
+    // For a basic policy room or a Policy Expense chat, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
         return fullReport.reportName;
     }
 
@@ -182,7 +182,7 @@ function getSimplifiedReportObject(report) {
         // We convert the line-breaks in html to space ' ' before striping the tags
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+            .replace(/(<([^>]+)>)/gi, '');
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -224,6 +224,7 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
+        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
     };
 }
 
@@ -546,21 +547,15 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // Don't do anything for messages that aren't deleted.
-        if (message.html) {
-            return;
+        // If the message is deleted, update the last read message and the unread counter
+        if (!message.html) {
+            setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         }
 
-        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
-        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-    });
-
-    // If this is the most recent message, update the lastMessageText in the report object as well
-    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
         });
-    }
+    });
 }
 
 /**
@@ -1096,6 +1091,7 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -1161,6 +1157,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
+            attachmentInfo,
             loading: true,
             shouldShow: true,
         },
@@ -1502,7 +1499,6 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    Navigation.closeDrawer();
 }
 
 /**

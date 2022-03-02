@@ -8,6 +8,7 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
+import colors from '../styles/colors';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -15,6 +16,7 @@ import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
+import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
@@ -24,9 +26,11 @@ import Text from '../components/Text';
 import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
+import * as Expensicons from '../components/Icon/Expensicons';
 import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import * as User from '../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,6 +75,12 @@ const propTypes = {
 
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
+
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -79,6 +89,7 @@ const defaultProps = {
     },
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
+    blockedFromConcierge: {},
 };
 
 class RequestCallPage extends Component {
@@ -189,30 +200,34 @@ class RequestCallPage extends Component {
      * so we return empty strings instead.
      * @param {String} login
      * @param {String} displayName
+     * @param {String} firstName
+     * @param {String} lastName
      *
      * @returns {Object}
      */
-    getFirstAndLastName({login, displayName}) {
-        let firstName;
-        let lastName;
-
+    getFirstAndLastName({
+        login,
+        displayName,
+        firstName,
+        lastName,
+    }) {
+        if (firstName || lastName) {
+            return {firstName: firstName || '', lastName: lastName || ''};
+        }
         if (Str.removeSMSDomain(login) === displayName) {
-            firstName = '';
-            lastName = '';
-        } else {
-            const firstSpaceIndex = displayName.indexOf(' ');
-            const lastSpaceIndex = displayName.lastIndexOf(' ');
-
-            if (firstSpaceIndex === -1) {
-                firstName = displayName;
-                lastName = '';
-            } else {
-                firstName = displayName.substring(0, firstSpaceIndex);
-                lastName = displayName.substring(lastSpaceIndex);
-            }
+            return {firstName: '', lastName: ''};
         }
 
-        return {firstName, lastName};
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -274,6 +289,8 @@ class RequestCallPage extends Component {
     }
 
     render() {
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -300,42 +317,44 @@ class RequestCallPage extends Component {
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
                             />
-                            <View style={[styles.mt4, styles.flexRow]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        label={this.props.translate('common.phoneNumber')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneNumber}
-                                        placeholder="2109400803"
-                                        errorText={this.state.phoneNumberError}
-                                        onBlur={this.validatePhoneInput}
-                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        label={this.props.translate('requestCallPage.extension')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneExtension}
-                                        placeholder="100"
-                                        errorText={this.state.phoneExtensionError}
-                                        onBlur={this.validatePhoneExtensionInput}
-                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                    />
-                                </View>
-                            </View>
+                            <TextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                name="phone"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="2109400803"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={this.validatePhoneInput}
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                            <TextInput
+                                label={this.props.translate('requestCallPage.extension')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneExtension}
+                                placeholder="100"
+                                errorText={this.state.phoneExtensionError}
+                                onBlur={this.validatePhoneExtensionInput}
+                                onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                containerStyles={[styles.mt4]}
+                            />
                             <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
                     </ScrollView>
                     <FixedFooter>
+                        {isBlockedFromConcierge && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                                <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
+                                <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
+                            </View>
+                        )}
                         <Button
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
                             isLoading={this.props.requestCallForm.loading}
+                            isDisabled={isBlockedFromConcierge}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -369,6 +388,9 @@ export default compose(
         },
         lastAccessedWorkspacePolicyID: {
             key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(RequestCallPage);

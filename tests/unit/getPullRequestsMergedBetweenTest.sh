@@ -4,10 +4,11 @@
 set -e
 
 TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
+SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
 
-source "$TEST_DIR/../shellUtils.sh"
+source "$SCRIPTS_DIR/shellUtils.sh"
 
 function print_version {
   < package.json  jq -r .version

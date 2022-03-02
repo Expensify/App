@@ -15,6 +15,7 @@ import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ReportActionItemCreated from './ReportActionItemCreated';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -23,7 +24,6 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
-import * as ReportUtils from '../../../libs/reportUtils';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 
 const propTypes = {
@@ -96,8 +96,8 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        // Block menu on the message being Edited or is already deleted
-        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -118,6 +118,9 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.reportID} />;
+        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
@@ -186,7 +189,6 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-                                    && !ReportUtils.isDeletedAction(this.props.action)
                                 }
                                 draftMessage={this.props.draftMessage}
                             />

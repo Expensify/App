@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -103,6 +102,16 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Whether the provided report is a Policy Expense chat.
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChat(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/**
  * Whether the provided report is a chat room
  * @param {Object} report
  * @param {String} report.chatType
@@ -180,6 +189,16 @@ function isConciergeChatReport(report) {
 }
 
 /**
+ * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function chatIncludesConcierge(report) {
+    return report.participants
+            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+}
+
+/**
  * Returns true if there is any automated expensify account in emails
  * @param {Array} emails
  * @returns {Boolean}
@@ -191,23 +210,19 @@ function hasExpensifyEmails(emails) {
 /**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
- * @param {Object} myPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
-    const currentUserTimezone = lodashGet(myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasExpensifyEmails(reportParticipants)
         && !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
-        && currentUserTimezone.selected
-        && reportRecipientTimezone.selected
-        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        && reportRecipientTimezone.selected;
 }
 
 /**
@@ -246,4 +261,6 @@ export {
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
+    chatIncludesConcierge,
+    isPolicyExpenseChat,
 };

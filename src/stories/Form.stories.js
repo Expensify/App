@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
+import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -14,7 +15,7 @@ import DatePicker from '../components/DatePicker';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput, DatePicker},
+    subcomponents: {TextInput, DatePicker, AddressSearch},
 };
 
 const Template = (args) => {
@@ -46,6 +47,12 @@ const Template = (args) => {
                 isFormInput
                 containerStyles={[styles.mt4]}
                 shouldSaveDraft
+            />
+            <AddressSearch
+                label="Street"
+                inputID="street"
+                containerStyles={[styles.mt4]}
+                isFormInput
             />
         </Form>
     );

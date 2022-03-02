@@ -86,6 +86,10 @@ function signOut() {
     Onyx.set(ONYXKEYS.SESSION, null);
     Onyx.set(ONYXKEYS.CREDENTIALS, null);
     Timing.clearData();
+}
+
+function signOutAndRedirectToSignIn() {
+    signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
 }
@@ -132,7 +136,6 @@ function fetchAccountDetails(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
@@ -246,6 +249,10 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
+            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                return;
+            }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
@@ -256,6 +263,7 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} accountID
  * @param {String} email
  * @param {String} shortLivedToken
+ * @param {String} exitTo
  */
 function signInWithShortLivedToken(accountID, email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
@@ -503,6 +511,11 @@ function authenticatePusher(socketID, channelName, callback) {
                 return;
             }
 
+            if (data.jsonCode !== 200) {
+                Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
+                return;
+            }
+
             Log.info(
                 '[PusherConnectionManager] Pusher authenticated successfully',
                 false,
@@ -531,6 +544,7 @@ export {
     signIn,
     signInWithShortLivedToken,
     signOut,
+    signOutAndRedirectToSignIn,
     reopenAccount,
     resendValidationLink,
     resetPassword,

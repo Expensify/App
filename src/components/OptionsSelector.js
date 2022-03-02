@@ -67,6 +67,9 @@ const propTypes = {
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
+    /** Whether to autofocus the search input on mount */
+    autoFocus: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +86,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
+    autoFocus: true,
 };
 
 class OptionsSelector extends Component {
@@ -99,6 +103,10 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
+        if (!this.props.autoFocus) {
+            return;
+        }
+
         if (this.props.shouldDelayFocus) {
             setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
