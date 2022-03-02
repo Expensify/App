@@ -574,7 +574,6 @@ export default {
         agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet agreement',
         enablePayments: 'Enable payments',
-        termsMustBeAccepted: 'Terms must be accepted',
         feeAmountZero: '$0',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
@@ -701,7 +700,6 @@ export default {
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         error: {
-            termsAndConditions: 'Must accept terms and conditions',
             certify: 'Must certify information is true and accurate',
         },
     },

@@ -102,7 +102,7 @@ class TermsStep extends React.Component {
                     />
                     {this.state.error && (
                         <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('termsStep.termsMustBeAccepted')}
+                            {this.props.translate('common.error.acceptedTerms')}
                         </Text>
                     )}
                     <Button

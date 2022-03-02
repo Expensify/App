@@ -574,7 +574,6 @@ export default {
         agreeToThe: 'Estoy de acuerdo con la ',
         walletAgreement: 'Acuerdo de billetera',
         enablePayments: 'Habilitar pagos',
-        termsMustBeAccepted: 'Se deben aceptar los términos',
         feeAmountZero: '$0',
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
@@ -703,7 +702,6 @@ export default {
         termsAndConditions: 'Términos y condiciones',
         certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
         error: {
-            termsAndConditions: 'Debe aceptar términos y condiciones',
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
