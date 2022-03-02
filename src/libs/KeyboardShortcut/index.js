@@ -177,15 +177,19 @@ function getShortcutModifiers(modifiers) {
 }
 
 /**
- * Module storing the different keyboard shortcut
+ * This module configures a global keyboard event handler.
  *
- * We are using a push/pop model where new event are pushed at the end of an
- * array of events. When the event occur, we trigger the callback of the last
- * element. This allow us to replace shortcut from a page to a dialog without
- * having the page having to handle that logic.
+ * It uses a stack to store event handlers for each key combination. Some additional details:
  *
- * This is also following the convention of the PubSub module.
- * The "subClass" is used by pages to bind /unbind with no worries
+ * - By default, new handlers are pushed to the top of the stack. If you pass a >0 priority when subscribing to the key event,
+ *   then the handler will get pushed further down the stack. This means that priority of 0 is higher than priority 1.
+ *
+ * - When a key event occurs, we trigger callbacks for that key starting from the top of the stack.
+ *   By default, events do not bubble, and only the handler at the top of the stack will be executed.
+ *   Individual callbacks can be configured with the shouldBubble parameter, to allow the next event handler on the stack execute.
+ *
+ * - Each handler has a unique callbackID, so calling the `unsubscribe` function (returned from `subscribe`) will unsubscribe the expected handler,
+ *   regardless of its position in the stack.
  */
 const KeyboardShortcut = {
     subscribe,
