@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Dimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
@@ -42,6 +42,7 @@ class BasePaymentsPage extends React.Component {
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            addPaymentMethodButton: null,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -52,10 +53,29 @@ class BasePaymentsPage extends React.Component {
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
+        this.setMenuPosition = this.setMenuPosition.bind(this);
     }
 
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
+        if (this.props.shouldListenForResize) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
+        }
+    }
+
+    componentWillUnmount() {
+        if (!this.props.shouldListenForResize || !this.dimensionsSubscription) {
+            return;
+        }
+        this.dimensionsSubscription.remove();
+    }
+
+    setMenuPosition() {
+        if (!this.state.addPaymentMethodButton) {
+            return;
+        }
+        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        this.setPositionAddPaymentMenu(buttonPosition);
     }
 
     getSelectedPaymentMethodID() {
@@ -92,13 +112,10 @@ class BasePaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        let position = getClickedElementLocation(nativeEvent);
-        if (this.props.shouldListenForResize) {
-            window.addEventListener('resize', () => {
-                position = getClickedElementLocation(nativeEvent);
-                this.setPositionAddPaymentMenu(position);
-            });
-        }
+        const position = getClickedElementLocation(nativeEvent);
+        this.setState({
+            addPaymentMethodButton: nativeEvent,
+        });
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -168,9 +185,6 @@ class BasePaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
-        }
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
@@ -178,9 +192,6 @@ class BasePaymentsPage extends React.Component {
      * Hide the default / delete modal
      */
     hideDefaultDeleteMenu() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
-        }
         this.setState({shouldShowDefaultDeleteMenu: false});
     }
 
