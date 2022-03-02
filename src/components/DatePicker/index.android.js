@@ -38,9 +38,6 @@ class DatePicker extends React.Component {
 
     render() {
         const currentDate = moment(this.props.value ? this.props.value : this.props.defaultValue);
-        console.log(currentDate);
-        console.log(currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING));
-        console.log(currentDate.toDate());
         return (
             <>
                 <TextInput
