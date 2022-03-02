@@ -8,9 +8,6 @@ import {propTypes, defaultProps} from './datepickerPropTypes';
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
-        this.defaultValue = props.value
-            ? moment(props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : '';
         this.state = {
             isPickerVisible: false,
         };
@@ -40,7 +37,10 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = moment(this.props.value ? this.props.value : this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING);
+        const currentDate = moment(this.props.value ? this.props.value : this.props.defaultValue);
+        console.log(currentDate);
+        console.log(currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        console.log(currentDate.toDate());
         return (
             <>
                 <TextInput
@@ -52,7 +52,7 @@ class DatePicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
-                    defaultValue={dateAsText}
+                    defaultValue={currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}
                     onBlur={this.props.onBlur}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
@@ -60,7 +60,7 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
-                        value={this.props.value ? moment(this.props.value).toDate() : new Date()}
+                        value={currentDate.toDate()}
                         mode="date"
                         onChange={this.raiseDateChange}
                         maximumDate={this.props.maximumDate}
