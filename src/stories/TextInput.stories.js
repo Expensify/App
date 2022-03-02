@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import TextInput from '../components/TextInput';
 
 /**
@@ -57,6 +57,66 @@ Placeholder.args = {
     placeholder: 'My placeholder text',
 };
 
+const AutoGrow = Template.bind({});
+AutoGrow.storyName = 'Autogrow input';
+AutoGrow.args = {
+    label: 'Autogrow input',
+    name: 'AutoGrow',
+    placeholder: 'My placeholder text',
+};
+
+const Prefixed = Template.bind({});
+Prefixed.storyName = 'Prefixed input';
+Prefixed.args = {
+    label: 'Prefixed input',
+    name: 'Prefixed',
+    placeholder: 'My placeholder text',
+    prefixCharacter: '@',
+};
+
+const WithFixedLabel = Template.bind({});
+WithFixedLabel.storyName = 'Always active label';
+WithFixedLabel.args = {
+    label: 'Active label input',
+    name: 'activelabel',
+    placeholder: 'My placeholder text',
+    forceActiveLabel: 'true',
+};
+
+const MaxLength = Template.bind({});
+MaxLength.storyName = 'Input with maxLength';
+MaxLength.args = {
+    label: 'Label',
+    name: 'inputmaxlength',
+    placeholder: 'My placeholder text',
+    maxLength: 50,
+};
+
+const HintErrorInput = (args) => {
+    const [error, setError] = useState('');
+    return (
+        <TextInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+            onChangeText={(value) => {
+                if (value && value.toLowerCase() === 'damn!') {
+                    setError('Damn! there is an error.');
+                    return;
+                }
+                setError('');
+            }}
+            errorText={error}
+        />
+    );
+};
+HintErrorInput.storyName = 'Input with hint & error';
+HintErrorInput.args = {
+    label: 'Label',
+    name: 'inputhint&error',
+    placeholder: 'My placeholder text',
+    hint: 'Type "Damn!" to see the error.',
+};
+
 export default story;
 export {
     AutoFocus,
@@ -65,4 +125,9 @@ export {
     ErrorStory,
     ForceActiveLabel,
     Placeholder,
+    AutoGrow,
+    Prefixed,
+    WithFixedLabel,
+    MaxLength,
+    HintErrorInput,
 };
