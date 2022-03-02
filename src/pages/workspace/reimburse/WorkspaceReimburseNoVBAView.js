@@ -84,7 +84,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
     }
 
     setRate(value) {
-        // allow only numbers and dot
+        // Allow only numbers and dot
         const rateValue = value.replace(/[^0-9/.]/g, '');
 
         this.setState({rateValue});
