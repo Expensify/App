@@ -171,7 +171,7 @@ const OptionRow = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            mode={props.mode}
                                         />
                                     ) : (
                                         <MultipleAvatars
