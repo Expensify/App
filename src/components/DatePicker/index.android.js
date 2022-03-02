@@ -38,6 +38,7 @@ class DatePicker extends React.Component {
 
     render() {
         const currentDate = moment(this.props.value ? this.props.value : this.props.defaultValue);
+        const dateAsText = currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING);
         return (
             <>
                 <TextInput
@@ -49,7 +50,7 @@ class DatePicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
-                    defaultValue={currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}
+                    defaultValue={dateAsText}
                     onBlur={this.props.onBlur}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
