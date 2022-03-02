@@ -48,7 +48,6 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     value: undefined,
-
 };
 
 class Picker extends PureComponent {
