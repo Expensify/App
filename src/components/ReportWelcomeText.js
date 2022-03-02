@@ -41,7 +41,7 @@ const defaultProps = {
 };
 
 const ReportWelcomeText = (props) => {
-    const shouldIncludeParticipants = ReportUtils.isChatRoom(props.report);
+    const isChatRoom = ReportUtils.isChatRoom(props.report);
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -64,12 +64,12 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const chatUsers = shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+    const chatUsers = isChatRoom ? [{displayName: props.report.reportName}]: displayNamesWithTooltips;
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
-            {!shouldIncludeParticipants
+            {isChatRoom
                 ? (
                     <>
                         <Text>
