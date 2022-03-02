@@ -48,7 +48,7 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
-    /** The priority to assign the enter key event listener */
+    /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority: PropTypes.number,
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
