@@ -152,7 +152,7 @@ document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true})
  * @private
  */
 function unsubscribe(displayName, callbackID) {
-    eventHandlers[displayName] = _.filter(eventHandlers[displayName], callback => callback.id !== callbackID);
+    eventHandlers[displayName] = _.reject(eventHandlers[displayName], callback => callback.id === callbackID);
 }
 
 /**
