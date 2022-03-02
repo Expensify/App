@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -26,9 +27,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    /** Whether it is a default Chat Room */
-    shouldIncludeParticipants: PropTypes.bool,
-
     /** The report currently being looked at */
     report: PropTypes.oneOfType([PropTypes.object]),
 
@@ -40,10 +38,10 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    shouldIncludeParticipants: true,
 };
 
 const ReportWelcomeText = (props) => {
+    const shouldIncludeParticipants = ReportUtils.isChatRoom(props.report);
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -66,12 +64,12 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+    const chatUsers = shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
-            {!props.shouldIncludeParticipants
+            {!shouldIncludeParticipants
                 ? (
                     <>
                         <Text>
