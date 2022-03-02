@@ -54,7 +54,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I added comments when the code was not self explanatory
     - [ ] I put all copy / text shown in the product in all `src/languages/*` files (if applicable)
     - [ ] I followed proper naming convention for platform-specific files (if applicable)
-    - [ ] I followed style guidelines (in [`Styling.md`](../STYLING.md)) for all style edits I made
+    - [ ] I followed style guidelines (in [`Styling.md`](https://github.com/Expensify/App/blob/main/STYLING.md)) for all style edits I made
     - [ ] I followed the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs))
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
@@ -80,13 +80,12 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified comments were added when the code was not self explanatory
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files (if applicable)
     - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
-    - [ ] I verified [style guidelines](../STYLING.md) were followed
+    - [ ] I verified [style guidelines](https://github.com/Expensify/App/blob/main/STYLING.md) were followed
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified the UI performance was not affected (the performance is the same than `main` branch)
 - [ ] If a new component is created I verified that a similar component doesn't exist in the codebase
-
 
 ### QA Steps
 <!---
