@@ -2124,6 +2124,7 @@ const styles = {
         width: '90%',
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
+        ...spacing.ml4,
     },
 
     blockquote: {
