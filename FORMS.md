@@ -8,24 +8,28 @@ This document lists specific guidelines for using our Form component and general
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
 
+![hint](https://user-images.githubusercontent.com/22219519/156266779-72deaf42-832c-453c-a5c2-1b2073b8b3b7.png)
+
 Labels and hints are enabled by passing the appropriate props to each input:
 
-```
+```jsx
 <TextInput
-    label="Routing number"
-    hint="This is the 8 digit number in your bank check"
+    label="Value"
+    hint="Hint text goes here"
 />
 ```
 
 ### Character Limits
 
-If a field has a character limit we should give that field a max limit and let the user know how many characters there are left outside of the input and below it.
+If a field has a character limit we should give that field a max limit and let the user know how many characters there are left outside of the input and below it. This is done by passing the maxLength prop to TextInput.
 
-```
+```jsx
 <TextInput
-    maxLength={4}
+    maxLength={20}
 />
 ```
+
+![char-limit](https://user-images.githubusercontent.com/22219519/156266959-945c6d26-be9b-426b-9399-98d31ea214c9.png)
 
 ### Native Keyboards
 
@@ -33,7 +37,7 @@ We should always set people up for success on native platforms by enabling the b
 
 We have a couple of keyboard types [defined](https://github.com/Expensify/App/blob/572caa9e7cf32a2d64fe0e93d171bb05a1dfb217/src/CONST.js#L357-L360) and should be used like so:
 
-```
+```jsx
 <TextInput
     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
 />
@@ -45,9 +49,9 @@ Forms should autofill information whenever possible i.e. they should work with b
 
 As a best practice we should avoid asking for information we can get via other means e.g. asking for City, State, and Zip if we can use Google Places to gather information with the least amount of hassle to the user.
 
-Browsers use the name parameter to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for names used by Chrome.
+Browsers use the name prop to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for available values for the name prop.
 
-```
+```jsx
 <TextInput
     name="fname"
 />
@@ -72,9 +76,9 @@ To give a slightly more detailed example of how this would work with phone numbe
 
 ### Form Drafts
 
-Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values will be cleared when a user logs out (like most data) and additionally cleared once the form is successfully filled.
+Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
-```
+```jsx
 <TextInput
     shouldSaveDraft
 />
@@ -88,10 +92,10 @@ Each individual form field that requires validation will have its own validate t
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. For example:
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
-```
- validate: (values) => {
+```js
+function validate(values) {
     const errors = {};
     if (!values.routingNumber) {
         errors.routingNumber = props.translate(CONST.ERRORS.ROUTING_NUMBER);
@@ -100,12 +104,16 @@ The Form component takes care of validation internally and the only requirement 
         errors.accountNumber = props.translate(CONST.ERRORS.ACCOUNT_NUMBER);
     }
     return errors;
-},
+}
 ```
 
-### Highlight Fields and & Inline Errors
+For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
+
+### Highlight Fields and Inline Errors
 
 Individual form fields should be highlighted with a red error outline and present supporting inline error text below the field. Error text will be required for all required fields and optional fields that require validation. This will keep our error handling consistent and ensure we put in a good effort to help the user fix the problem by providing more information than less.
+
+![error](https://user-images.githubusercontent.com/22219519/156267035-af40fe93-da27-4e16-bc55-b7cd40b0f1f2.png)
 
 ### Multiple Types of Errors for Individual Fields
 
@@ -114,6 +122,8 @@ Individual fields should support multiple messages depending on validation e.g. 
 ### Form Alerts
 
 When any form field fails to validate in addition to the inline error below a field, an error message will also appear inline above the submit button indicating that some fields need to be fixed. A “fix the errors” link will scroll the user to the first input that needs attention and focus on it (putting the cursor at the end of the existing value). By default, on form submit and when tapping the “fix the errors” link we should scroll the user to the first field that needs their attention.
+
+![form-alert](https://user-images.githubusercontent.com/22219519/156267105-861fbe81-32cc-479d-8eff-3760bd0585b1.png)
 
 ### Handling Server Errors
 
@@ -134,8 +144,8 @@ The only time we won’t allow a user to press the submit button is when we have
 
 The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
 
-```
-validate: (values) => {
+```jsx
+function validate(values) {
     const errors = {};
     if (!values.routingNumber) {
         errors.routingNumber = 'Please enter a routing number';
@@ -146,7 +156,7 @@ validate: (values) => {
     return errors;
 }
 
-onSubmit: (values) => {
+function onSubmit(values) {
     setTimeout(() => {
         alert(`Form submitted!`);
         FormActions.setIsSubmitting('TestForm', false);
@@ -159,10 +169,12 @@ onSubmit: (values) => {
     validate={this.validate}
     onSubmit={this.onSubmit}
 >
+    // Wrapping TextInput in a View to show that Form inputs can be nested in other components
     <View>
         <TextInput
             label="Routing number"
             inputID="routingNumber"
+            maxLength={8}
             isFormInput
             shouldSaveDraft
         />
