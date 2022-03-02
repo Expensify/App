@@ -554,6 +554,7 @@ const CONST = {
         DEFAULT: 'default',
         SMALL: 'small',
         SUBSCRIPT: 'subscript',
+        SMALL_SUBSCRIPT: 'small-subscript',
     },
 
     PHONE_MAX_LENGTH: 15,

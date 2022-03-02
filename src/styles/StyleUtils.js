@@ -16,11 +16,27 @@ import styles from './styles';
 function getAvatarSize(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     };
     return AVATAR_SIZES[size];
+}
+
+/**
+ * Return the style from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getAvatarStyle(size) {
+    const avatarSize = getAvatarSize(size);
+    return {
+        height: avatarSize,
+        width: avatarSize,
+        borderRadius: avatarSize,
+    };
 }
 
 /**
@@ -422,6 +438,7 @@ function parseStyleAsArray(styleParam) {
 
 export {
     getAvatarSize,
+    getAvatarStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
