@@ -269,9 +269,7 @@ class OptionsSelector extends Component {
                                             }
                                             this.props.onChangeText(text);
                                         }}
-                                        onKeyPress={this.handleKeyPress}
-                                        placeholder={this.props.placeholderText
-                                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                        placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                         onBlur={(e) => {
                                             if (!this.props.shouldFocusOnSelectRow) {
                                                 return;
