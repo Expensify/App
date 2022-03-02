@@ -182,11 +182,11 @@ export default {
         multipleUsers: 'Varios usuarios',
     },
     reportArchiveReasons: {
-        // accountClosed: ({login}) => `This workspace chat is no longer active because ${login} closed their account.`,
-        // accountMerged: ({oldLogin, newLogin}) => `This workspace chat is no longer active because ${oldLogin} has merged with ${newLogin}.`,
+        accountClosed: ({login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha cerrado su cuenta`,
+        accountMerged: ({oldLogin, newLogin}) => `Este chat de espacio de trabajo esta desactivado porque ${oldLogin} ha combinado su cuenta con ${newLogin}`,
         default: 'Esta sala de chat ha sido eliminada.',
-        // removedFromPolicy: ({policyName, login}) => `This workspace chat is no longer active because ${login} is no longer a member of the ${policyName} workspace.`,
-        // policyDeleted: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+        removedFromPolicy: ({policyName, login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        policyDeleted: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
