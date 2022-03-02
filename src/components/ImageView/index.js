@@ -61,6 +61,11 @@ class ImageView extends PureComponent {
         document.removeEventListener('mousemove', this.trackMovement.bind(this));
     }
 
+    /**
+     * handle on image container layout change
+     *
+     * @param {SyntheticEvent} e
+     */
     onContainerLayoutChanged(e) {
         const {width, height} = e.nativeEvent.layout;
         const imageWidth = this.state.imgWidth;
@@ -73,6 +78,11 @@ class ImageView extends PureComponent {
         });
     }
 
+    /**
+     * handle on image container layout press in
+     *
+     * @param {SyntheticEvent} e
+     */
     onContainerPressIn(e) {
         const {pageX, pageY} = e.nativeEvent;
         this.setState({
@@ -84,6 +94,11 @@ class ImageView extends PureComponent {
         });
     }
 
+    /**
+     * handle on image container layout press
+     *
+     * @param {SyntheticEvent} e
+     */
     onContainerPress(e) {
         if (this.state.isZoomed && !this.state.isDragging) {
             const {offsetX, offsetY} = e.nativeEvent;
@@ -99,6 +114,10 @@ class ImageView extends PureComponent {
         }
     }
 
+
+    /**
+     * handle on image container layout press out
+     */
     onContainerPressOut() {
         if (this.state.isDragging) {
             return;
