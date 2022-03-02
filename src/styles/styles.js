@@ -733,7 +733,6 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 0,
-        width: 20,
         height: '100%',
         paddingLeft: 11,
         paddingTop: 23,

@@ -28,6 +28,7 @@ class BaseTextInput extends Component {
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
+            prefixWidth: 20,
         };
 
         this.input = null;
@@ -38,6 +39,7 @@ class BaseTextInput extends Component {
         this.setValue = this.setValue.bind(this);
         this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
+        this.storePrefixLayoutDimensions = this.storePrefixLayoutDimensions.bind(this);
     }
 
     componentDidMount() {
@@ -176,6 +178,10 @@ class BaseTextInput extends Component {
         this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
     }
 
+    storePrefixLayoutDimensions(event) {
+        this.setState({prefixWidth: Math.abs(event.nativeEvent.layout.width)});
+    }
+
     render() {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
@@ -224,6 +230,7 @@ class BaseTextInput extends Component {
                                                 styles.textInputPrefix,
                                                 !hasLabel && styles.pv0,
                                             ]}
+                                            onLayout={this.storePrefixLayoutDimensions}
                                         >
                                             {this.props.prefixCharacter}
                                         </Text>
@@ -244,7 +251,7 @@ class BaseTextInput extends Component {
                                             styles.w100,
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
-                                            this.props.prefixCharacter && styles.pl6,
+                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pr1.paddingRight),
                                             this.props.secureTextEntry && styles.pr2,
                                         ]}
                                         multiline={this.props.multiline}

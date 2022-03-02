@@ -15,6 +15,7 @@ import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import Text from '../../components/Text';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';

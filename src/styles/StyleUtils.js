@@ -404,6 +404,16 @@ function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
 }
 
+/**
+ * @param {Number} paddingLeft
+ * @returns {Object}
+ */
+function getPaddingLeft(paddingLeft) {
+    return {
+        paddingLeft,
+    };
+}
+
 export {
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -428,4 +438,5 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    getPaddingLeft,
 };
