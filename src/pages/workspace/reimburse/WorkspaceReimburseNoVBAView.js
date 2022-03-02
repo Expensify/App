@@ -46,35 +46,6 @@ const propTypes = {
 
 
 class WorkspaceReimburseNoVBAView extends React.Component {
-    unitItems = [
-        {
-            label: this.props.translate('workspace.reimburse.kilometers'),
-            value: 'km',
-        },
-        {
-            label: this.props.translate('workspace.reimburse.miles'),
-            value: 'mi',
-        },
-    ];
-
-    updateRateValueDebounced = _.debounce((value) => {
-        const numValue = parseFloat(value).toFixed(2);
-
-        if (numValue === 'NaN') {
-            return;
-        }
-
-        this.setState({
-            rateValue: numValue.toString(),
-        });
-
-        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
-            customUnitRateID: this.state.rateID,
-            name: this.state.rateName,
-            rate: numValue * 100,
-        }, null);
-    }, 1000);
-
     constructor(props) {
         super(props);
         this.state = {
@@ -86,6 +57,19 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
             rateCurrency: lodashGet(props, 'policy.customUnit.rate.currency', ''),
         };
+
+        this.unitItems = [
+            {
+                label: this.props.translate('workspace.reimburse.kilometers'),
+                value: 'km',
+            },
+            {
+                label: this.props.translate('workspace.reimburse.miles'),
+                value: 'mi',
+            },
+        ];
+
+        this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
     }
 
     getRateDisplayValue(value) {
@@ -116,6 +100,24 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
+        }, null);
+    }
+
+    updateRateValue(value) {
+        const numValue = parseFloat(value);
+
+        if (_.isNaN(numValue)) {
+            return;
+        }
+
+        this.setState({
+            rateValue: numValue.toFixed(2),
+        });
+
+        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
+            customUnitRateID: this.state.rateID,
+            name: this.state.rateName,
+            rate: numValue.toFixed(2) * 100,
         }, null);
     }
 
