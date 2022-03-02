@@ -179,7 +179,7 @@ class NewChatPage extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
+                prevState.searchValue,
                 newSelectedOptions,
                 this.excludedGroupEmails,
             );
@@ -189,7 +189,7 @@ class NewChatPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -265,6 +265,7 @@ class NewChatPage extends Component {
                                         headerMessage={headerMessage}
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
+                                        shouldFocusOnSelectRow={this.props.isGroupChat}
                                         shouldShowConfirmButton={this.props.isGroupChat}
                                         confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                         maxParticipantsReached={maxParticipantsReached}

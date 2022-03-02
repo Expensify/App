@@ -191,7 +191,7 @@ class WorkspaceInvitePage extends React.Component {
                 [],
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
+                prevState.searchValue,
                 newSelectedOptions,
                 this.getExcludedUsers(),
             );
@@ -200,7 +200,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -286,6 +286,7 @@ class WorkspaceInvitePage extends React.Component {
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
+                                    shouldFocusOnSelectRow
                                 />
                             )}
                         </View>
