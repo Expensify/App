@@ -114,7 +114,6 @@ class ImageView extends PureComponent {
         }
     }
 
-
     /**
      * handle on image container layout press out
      */
@@ -128,7 +127,6 @@ class ImageView extends PureComponent {
             isMouseDown: false,
         }));
     }
-
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
