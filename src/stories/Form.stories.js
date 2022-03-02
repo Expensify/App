@@ -75,9 +75,7 @@ const WithNativeEventHandler = (args) => {
                 shouldSaveDraft
             />
             <Text>
-                Entered routing number:
-                {' '}
-                {log}
+                {`Entered routing number: ${log}`}
             </Text>
         </Form>
     );
