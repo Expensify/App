@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -182,11 +184,11 @@ export default {
         multipleUsers: 'Varios usuarios',
     },
     reportArchiveReasons: {
-        accountClosed: ({login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha cerrado su cuenta`,
-        accountMerged: ({oldLogin, newLogin}) => `Este chat de espacio de trabajo esta desactivado porque ${oldLogin} ha combinado su cuenta con ${newLogin}`,
-        default: 'Esta sala de chat ha sido eliminada.',
-        removedFromPolicy: ({policyName, login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
-        policyDeleted: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha cerrado su cuenta`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({oldLogin, newLogin}) => `Este chat de espacio de trabajo esta desactivado porque ${oldLogin} ha combinado su cuenta con ${newLogin}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({policyName, login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     sidebarScreen: {
         fabAction: 'Nuevo chat',

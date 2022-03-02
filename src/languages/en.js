@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -182,11 +184,11 @@ export default {
         multipleUsers: 'Multiple users',
     },
     reportArchiveReasons: {
-        accountClosed: ({login}) => `This workspace chat is no longer active because <strong>${login}</strong> closed their account.`,
-        accountMerged: ({oldLogin, newLogin}) => `This workspace chat is no longer active because <strong>${oldLogin}</strong> has merged their account with <strong>${newLogin}</strong>.`,
-        default: 'This chat room has been archived.',
-        removedFromPolicy: ({policyName, login}) => `This workspace chat is no longer active because <strong>${login}</strong> is no longer a member of the <strong>${policyName}</strong> workspace.`,
-        policyDeleted: ({policyName}) => `This workspace chat is no longer active because <strong>${policyName}</strong> is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({login}) => `This workspace chat is no longer active because <strong>${login}</strong> closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({oldLogin, newLogin}) => `This workspace chat is no longer active because <strong>${oldLogin}</strong> has merged their account with <strong>${newLogin}</strong>.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({policyName, login}) => `This workspace chat is no longer active because <strong>${login}</strong> is no longer a member of the <strong>${policyName}</strong> workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because <strong>${policyName}</strong> is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',

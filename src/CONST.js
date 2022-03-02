@@ -222,6 +222,10 @@ const CONST = {
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_MERGED: 'accountMerged',
+            REMOVED_FROM_POLICY: 'removedFromPolicy',
+            POLICY_DELETED: 'policyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
