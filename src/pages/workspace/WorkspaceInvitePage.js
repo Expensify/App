@@ -138,6 +138,7 @@ class WorkspaceInvitePage extends React.Component {
             indexOffset: 0,
         });
 
+        // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
         const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
 

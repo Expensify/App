@@ -108,6 +108,7 @@ class NewChatPage extends Component {
             }
         }
 
+        // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
         const recentReportsWithoutSelected = _.filter(this.state.recentReports, ({login}) => !filterText.includes(login));
         const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
