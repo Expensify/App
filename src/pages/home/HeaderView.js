@@ -102,8 +102,6 @@ const HeaderView = (props) => {
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
     const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
-    console.log(isChatRoom);
-    console.log(subtitle);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
