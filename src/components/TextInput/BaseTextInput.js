@@ -251,7 +251,7 @@ class BaseTextInput extends Component {
                                             styles.w100,
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
-                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pr1.paddingRight),
+                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.pr2,
                                         ]}
                                         multiline={this.props.multiline}
