@@ -209,19 +209,36 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 }
 
 /**
+ * Return platform specific modifiers for keys like Control (Cmd)
+ * @param {Array} modifiers
+ * @returns {Array}
+ */
+function getShortcutModifiers(modifiers) {
+    const operatingSystem = getOperatingSystem();
+    return _.map(modifiers, (modifier) => {
+        if (!_.has(CONST.KEYBOARD_SHORTCUT_MODIFIERS, modifier)) {
+            return modifier;
+        }
+
+        const platformModifiers = CONST.KEYBOARD_SHORTCUT_MODIFIERS[modifier];
+        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || modifier);
+    });
+}
+
+/**
  * This module configures a global keyboard event handler.
  *
  * It uses a stack to store event handlers for each key combination. Some additional details:
  *
- *   - By default, new handlers are pushed to the top of the stack. If you pass a >0 priority when subscribing to the key event,
- *     then the handler will get pushed further down the stack. This means that priority of 0 is higher than priority 1.
+ * - By default, new handlers are pushed to the top of the stack. If you pass a >0 priority when subscribing to the key event,
+ *   then the handler will get pushed further down the stack. This means that priority of 0 is higher than priority 1.
  *
- *   - When a key event occurs, we trigger callbacks for that key starting from the top of the stack.
- *     By default, events do not bubble, and only the handler at the top of the stack will be executed.
- *     Individual callbacks can be configured with the shouldBubble parameter, to allow the next event handler on the stack execute.
+ * - When a key event occurs, we trigger callbacks for that key starting from the top of the stack.
+ *   By default, events do not bubble, and only the handler at the top of the stack will be executed.
+ *   Individual callbacks can be configured with the shouldBubble parameter, to allow the next event handler on the stack execute.
  *
- *   - Each handler has a unique callbackID, so calling the `unsubscribe` function (returned from `subscribe`) will unsubscribe the expected handler,
- *     regardless of its position in the stack.
+ * - Each handler has a unique callbackID, so calling the `unsubscribe` function (returned from `subscribe`) will unsubscribe the expected handler,
+ *   regardless of its position in the stack.
  */
 const KeyboardShortcut = {
     subscribe,
