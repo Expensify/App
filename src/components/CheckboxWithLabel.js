@@ -84,10 +84,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     shouldSaveDraft={props.shouldSaveDraft}
                 />
                 <TouchableOpacity
-                    onPress={() => {
-                        props.onPress(!props.isChecked);
-                        props.onChange(!props.isChecked);
-                    }}
+                    onPress={onCheckboxPress}
                     style={[
                         styles.ml3,
                         styles.pr2,
