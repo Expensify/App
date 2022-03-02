@@ -195,7 +195,13 @@ class OptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
+        // Hack alert: for some reason, scrolling to the first item in the second section does not work properly and the intended item will be covered.
+        let adjustedItemIndex = itemIndex;
+        if (this.props.sections[0] && this.props.sections[0].data.length > 0 && sectionIndex === 1 && itemIndex === 0) {
+            adjustedItemIndex++;
+        }
+
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex: adjustedItemIndex});
     }
 
     /**
