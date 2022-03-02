@@ -29,12 +29,17 @@ const ArchivedReportFooter = props => (
             <View style={[
                 styles.flexRow,
                 styles.alignItemsCenter,
-                styles.justifyContentBetween,
                 styles.p5,
                 styles.borderRadiusNormal,
                 isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
             ]}
             >
+                <View style={[styles.mr3]}>
+                    <Icon
+                        src={Expensicons.Exclamation}
+                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    />
+                </View>
                 {
                     props.archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT
                         ? <Text>{props.translate(`reportArchiveReasons.${props.archiveReason}`)}</Text>
@@ -42,12 +47,6 @@ const ArchivedReportFooter = props => (
                         // TODO: pass displayName, policyName, and other parameters to translate()
                         : <RenderHTML html={props.translate(`reportArchiveReasons.${props.archiveReason}`)} />
                 }
-                <View style={[styles.ml3]}>
-                    <Icon
-                        src={Expensicons.Exclamation}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                    />
-                </View>
             </View>
         )}
     </Hoverable>
