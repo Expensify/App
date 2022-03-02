@@ -138,10 +138,13 @@ class WorkspaceInvitePage extends React.Component {
             indexOffset: 0,
         });
 
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
@@ -192,7 +195,7 @@ class WorkspaceInvitePage extends React.Component {
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
-                newSelectedOptions,
+                [],
                 this.getExcludedUsers(),
             );
 
