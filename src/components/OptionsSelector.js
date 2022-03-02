@@ -122,8 +122,6 @@ class OptionsSelector extends Component {
         this.state = {
             allOptions: OptionsListUtils.flattenSections(this.props.sections),
         };
-
-        this.viewableItems = [];
     }
 
     componentDidMount() {
