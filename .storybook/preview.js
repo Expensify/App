@@ -2,6 +2,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import '../assets/css/fonts.css';
 import ComposeProviders from '../src/components/ComposeProviders';
+import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../src/components/withLocalize';
 import ONYXKEYS from '../src/ONYXKEYS';
@@ -16,6 +17,7 @@ const decorators = [
             components={[
                 OnyxProvider,
                 LocaleContextProvider,
+                HTMLEngineProvider,
             ]}
         >
             <Story />
