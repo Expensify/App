@@ -71,6 +71,9 @@ const propTypes = {
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
+    /** Whether to autofocus the search input on mount */
+    autoFocus: PropTypes.bool,
+
     /** Should a button be shown if a selection is made (only relevant if canSelectMultipleOptions is true) */
     shouldShowConfirmButton: PropTypes.bool,
 
@@ -100,6 +103,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
+    autoFocus: true,
     shouldShowConfirmButton: false,
     confirmButtonText: undefined,
     maxParticipantsReached: false,
@@ -138,6 +142,10 @@ class OptionsSelector extends Component {
             modifiers,
             true,
         );
+
+        if (!this.props.autoFocus) {
+            return;
+        }
 
         if (this.props.shouldDelayFocus) {
             setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
