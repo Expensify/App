@@ -7,10 +7,12 @@ import Text from './Text';
 const propTypes = {
     /** Text to display */
     children: PropTypes.string,
+    style: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     children: 'Error',
+    style: [],
 };
 
 const InlineErrorText = (props) => {
@@ -19,7 +21,7 @@ const InlineErrorText = (props) => {
     }
 
     return (
-        <Text style={[styles.formError, styles.mt1, styles.ml3]}>{props.children}</Text>
+        <Text style={[styles.formError, styles.mt1, ...props.style]}>{props.children}</Text>
     );
 };
 
