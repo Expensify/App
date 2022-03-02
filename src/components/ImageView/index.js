@@ -129,7 +129,7 @@ class ImageView extends PureComponent {
         }
 
         // Fit the image to container size if image small than container.
-        const aspectRatio = Math.min((containerHeight / imageHeight), (containerWidth / imageWidth));
+        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
         if (aspectRatio > 1) {
             width *= (aspectRatio);
             height *= (aspectRatio);
