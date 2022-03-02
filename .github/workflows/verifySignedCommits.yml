@@ -1,0 +1,12 @@
+name: Verify signed commits
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+
+jobs:
+  verifySignedCommits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nadock/verified_commits_check@854c41acbeacfe04b78b37379f942cdd70f9187c
