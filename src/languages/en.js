@@ -173,6 +173,9 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
         beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
