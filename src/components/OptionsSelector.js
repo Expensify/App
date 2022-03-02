@@ -257,9 +257,20 @@ class OptionsSelector extends Component {
                                     <TextInput
                                         ref={el => this.textInput = el}
                                         value={this.props.value}
-                                        onChangeText={this.props.onChangeText}
-                                        placeholder={this.props.placeholderText
-                                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                        onChangeText={(text) => {
+                                            if (this.props.shouldFocusOnSelectRow) {
+                                                this.textInput.setNativeProps({selection: null});
+                                            }
+                                            this.props.onChangeText(text);
+                                        }}
+                                        placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                        onBlur={(e) => {
+                                            if (!this.props.shouldFocusOnSelectRow) {
+                                                return;
+                                            }
+                                            this.relatedTarget = e.relatedTarget;
+                                        }}
+                                        selectTextOnFocus
                                     />
                                 </View>
                                 <OptionsList
