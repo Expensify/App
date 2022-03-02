@@ -78,8 +78,9 @@ const propTypes = {
     shouldShowConfirmButton: PropTypes.bool,
 
     /** Text to show in the confirm button (only visible if multiple options are selected) */
-    confirmButtonText: PropTypes.bool,
+    confirmButtonText: PropTypes.string,
 
+    /** True if the maximum number of options have been selected, false otherwise. */
     maxParticipantsReached: PropTypes.bool,
 
     /** Text to show if the maximum number of participants are reached */
