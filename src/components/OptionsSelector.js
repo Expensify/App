@@ -283,7 +283,7 @@ class OptionsSelector extends Component {
                                     optionHoveredStyle={styles.hoveredComponentBG}
                                     onSelectRow={this.selectRow}
                                     sections={this.props.sections}
-                                    focusedIndex={this.state.focusedIndex}
+                                    focusedIndex={focusedIndex}
                                     selectedOptions={this.props.selectedOptions}
                                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                                     hideSectionHeaders={this.props.hideSectionHeaders}
