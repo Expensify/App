@@ -62,8 +62,6 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * handle on image container layout change
-     *
      * @param {SyntheticEvent} e
      */
     onContainerLayoutChanged(e) {
@@ -79,8 +77,6 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * handle on image container layout press in
-     *
      * @param {SyntheticEvent} e
      */
     onContainerPressIn(e) {
@@ -95,8 +91,6 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * handle on image container layout press
-     *
      * @param {SyntheticEvent} e
      */
     onContainerPress(e) {
@@ -114,9 +108,6 @@ class ImageView extends PureComponent {
         }
     }
 
-    /**
-     * handle on image container layout press out
-     */
     onContainerPressOut() {
         if (this.state.isDragging) {
             return;
@@ -138,7 +129,6 @@ class ImageView extends PureComponent {
         let height = imageHeight;
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
-
 
         // return if image not loaded yet
         if (imageHeight <= 0 || containerHeight <= 0) {
