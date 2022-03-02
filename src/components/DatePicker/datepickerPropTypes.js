@@ -18,7 +18,6 @@ const propTypes = {
 
     /* Restricts for selectable max date range for the picker */
     maximumDate: PropTypes.instanceOf(Date),
-
 };
 
 const defaultProps = {
