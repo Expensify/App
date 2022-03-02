@@ -53,8 +53,8 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
-        const signedIn = this.props.session && this.props.session.authToken;
-        if (!signedIn) {
+        const isUserSignedIn = this.props.session && this.props.session.authToken;
+        if (!isUserSignedIn) {
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
@@ -63,7 +63,7 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
-        if (!this.props.session.authToken) {
+        if (!lodashGet(this.props, 'session.authToken', null)) {
             return;
         }
 
@@ -71,15 +71,6 @@ class LogInWithShortLivedTokenPage extends Component {
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-
-        const signedIn = this.props.session && this.props.session.authToken;
-        if (!signedIn) {
-            const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
-            const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
-            return;
-        }
-
 
         if (this.signOutIfNeeded(email)) {
             return;
