@@ -80,7 +80,7 @@ WithFixedLabel.args = {
     label: 'Active label input',
     name: 'activelabel',
     placeholder: 'My placeholder text',
-    forceActiveLabel: 'true',
+    forceActiveLabel: true,
 };
 
 const MaxLength = Template.bind({});
