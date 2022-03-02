@@ -77,6 +77,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
         error: {
             invalidAmount: 'Monto no válido',
+            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -348,7 +349,6 @@ export default {
             addressStreet: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
             addressCity: 'Por favor ingrese una ciudad',
-            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             genericFailureMessage: 'Se produjo un error al agregar su tarjeta. Vuelva a intentarlo',
             password: 'Por favor ingrese tu contraseña de Expensify',
         },

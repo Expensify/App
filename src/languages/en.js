@@ -77,6 +77,7 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
+            acceptedTerms: 'You must accept the Terms of Service to continue',
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -348,7 +349,6 @@ export default {
             addressStreet: 'Please enter a valid billing address that is not a PO Box',
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
             password: 'Please enter your Expensify password',
         },
