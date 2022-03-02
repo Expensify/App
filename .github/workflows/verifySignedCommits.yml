@@ -10,3 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: Expensify/App/.github/actions/verifySignedCommits@17da0f886c04fcc92d9773a983da9f041dcbf483
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
