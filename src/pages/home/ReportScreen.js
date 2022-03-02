@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
+import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -170,6 +171,7 @@ class ReportScreen extends React.Component {
         let archiveReason;
         if (isArchivedRoom) {
             archiveReason = lodashFindLast(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            Log.alert(`No closed action found for archived room w/ reportID ${this.props.route.params.reportID}`);
         }
 
         return (
