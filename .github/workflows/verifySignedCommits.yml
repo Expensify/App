@@ -9,4 +9,4 @@ jobs:
   verifySignedCommits:
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/verifySignedCommits@${{ github.head_ref }}
+      - uses: Expensify/App/.github/actions/verifySignedCommits@0b80043189ee1501f312407c3afb4e3927ab0671
