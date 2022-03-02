@@ -1540,8 +1540,8 @@ const styles = {
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
-        bottom: 10,
-        right: 11,
+        bottom: -1,
+        right: -1,
         borderWidth: 1,
         borderRadius: 18,
         borderColor: 'transparent',

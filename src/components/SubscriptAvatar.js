@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const SubscriptAvatar = props => (
-    <View style={styles.emptyAvatar}>
+    <View style={props.mode === CONST.OPTION_MODE.COMPACT ? styles.emptyAvatarSmall : styles.emptyAvatar}>
         <Tooltip text={props.mainTooltip}>
             <Avatar
                 source={props.mainAvatar}
