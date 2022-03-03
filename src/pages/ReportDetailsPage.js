@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
-import Avatar from '../components/Avatar';
+import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -131,11 +131,12 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <Avatar
-                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
-                                imageStyles={[styles.singleAvatarLarge]}
-                                source={_.first(OptionsListUtils.getAvatarSources(this.props.report))}
-                            />
+                            <View style={styles.mb4} >
+                                <RoomHeaderAvatars
+                                    avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
+                                    shouldShowLargeAvatars={isPolicyExpenseChat}
+                                />
+                            </View>
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
