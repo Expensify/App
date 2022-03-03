@@ -8,7 +8,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
