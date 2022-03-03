@@ -68,6 +68,7 @@ class BankAccountStep extends React.Component {
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
+            hasAcceptedTerms: 'common.error.acceptedTerms',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -177,7 +178,7 @@ class BankAccountStep extends React.Component {
         const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
-        const bankAccountRoute = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH}${ROUTES.BANK_ACCOUNT}`;
+        const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -312,6 +313,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
+                            errorText={this.getErrorText('hasAcceptedTerms')}
                             hasError={this.getErrors().hasAcceptedTerms}
                         />
                     </ReimbursementAccountForm>

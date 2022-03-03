@@ -13,8 +13,8 @@ const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
+const CONFIG = require('../src/CONFIG').default;
 
-const isDev = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 8080;
 
 /**
@@ -22,10 +22,6 @@ const port = process.env.PORT || 8080;
  *
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
-
-// TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
-// the electron app from making any API requests.
-app.commandLine.appendSwitch('disable-web-security');
 
 // This is necessary for NetInfo to work correctly as it does not handle the NetworkInformation API events correctly
 // See: https://github.com/electron/electron/issues/22597
@@ -43,17 +39,6 @@ autoUpdater.logger.transports.file.level = 'info';
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
-
-// setup Hot reload
-if (isDev) {
-    try {
-        require('electron-reloader')(module, {
-            watchRenderer: false,
-            ignore: [/^(desktop)/],
-        });
-        // eslint-disable-next-line no-empty
-    } catch {}
-}
 
 // This sets up the command line arguments used to manage the update. When
 // the --expected-update-version flag is set, the app will open pre-hidden
@@ -90,7 +75,7 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send('show-keyboard-shortcuts-modal');
+    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
 // Defines the system-level menu item for manually triggering an update after
@@ -109,17 +94,17 @@ const keyboardShortcutsMenu = new MenuItem({
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
-        autoUpdater.on('update-downloaded', (info) => {
+        autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             downloadedVersion = info.version;
             updateAppMenuItem.enabled = true;
             if (browserWindow.isVisible()) {
-                browserWindow.webContents.send('update-downloaded', info.version);
+                browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
             }
         });
 
-        ipcMain.on('start-update', quitAndInstallWithUpdate);
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -128,13 +113,14 @@ const electronUpdater = browserWindow => ({
 });
 
 const mainWindow = (() => {
-    const loadURL = isDev
+    const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
-        : serve({directory: `${__dirname}/../dist`});
+        : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
-    if (isDev) {
-        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+    if (__DEV__) {
+        console.debug('CONFIG: ', CONFIG);
+        app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify');
     }
 
@@ -145,13 +131,48 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    nodeIntegration: true,
+                    preload: `${__dirname}/contextBridge.js`,
+                    contextIsolation: true,
                 },
                 titleBarStyle: 'hidden',
             });
 
+            /*
+             * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
+             * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+             * The same issue happens when using the web proxy to communicate with the staging or production API on dev.
+             *
+             * To fix this, we'll:
+             *
+             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
+             *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
+             */
+            const webRequest = browserWindow.webContents.session.webRequest;
+            const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+            /* eslint-disable no-param-reassign */
+            if (!__DEV__) {
+                // Modify the origin and referer for requests sent to our API
+                webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                    details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                    details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                    callback({requestHeaders: details.requestHeaders});
+                });
+
+                // Modify access-control-allow-origin header for the response
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
+                    callback({responseHeaders: details.responseHeaders});
+                });
+            } else {
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${process.env.PORT}`];
+                    callback({responseHeaders: details.responseHeaders});
+                });
+            }
+            /* eslint-enable */
+
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (isDev) {
+            if (__DEV__) {
                 browserWindow.setTitle('New Expensify');
             }
 
@@ -201,15 +222,17 @@ const mainWindow = (() => {
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
-            browserWindow.webContents.on('new-window', (e, url) => {
-                // make sure local urls stay in electron perimeter
-                if (url.substr(0, 'file://'.length) === 'file://') {
-                    return;
+            browserWindow.webContents.setWindowOpenHandler(({url}) => {
+                const denial = {action: 'deny'};
+
+                // Make sure local urls stay in electron perimeter
+                if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    return denial;
                 }
 
-                // and open every other protocol in the browser
-                e.preventDefault();
-                return shell.openExternal(url);
+                // Open every other protocol in the default browser, not Electron
+                shell.openExternal(url);
+                return denial;
             });
 
             // Flag to determine is user is trying to quit the whole application altogether
@@ -287,7 +310,7 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (isDev) {
+            if (__DEV__) {
                 return;
             }
 

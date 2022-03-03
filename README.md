@@ -40,13 +40,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
+For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
+
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
-* Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
+* Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -67,9 +70,9 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `EXPENSIFY_URL_CASH` - The root URL used for the website
-- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
-- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `NEW_EXPENSIFY_URL` - The root URL used for the website
+- `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
+- `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com

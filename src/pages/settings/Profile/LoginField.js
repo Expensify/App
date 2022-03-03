@@ -41,6 +41,7 @@ class LoginField extends Component {
         };
         this.timeout = null;
         this.onResendClicked = this.onResendClicked.bind(this);
+        this.getLabelMargin = this.getLabelMargin.bind(this);
     }
 
     /**
@@ -61,6 +62,16 @@ class LoginField extends Component {
                 this.timeout = null;
             }, 5000);
         }
+    }
+
+    /**
+    * Bottom margin is not needed for phone/email label when unverified.
+    * When phone/email is not verified, the resend button increases the gap between the label and text,
+    * so the bottom margin is not required.
+    * @returns {Object}
+    */
+    getLabelMargin() {
+        return this.props.login.partnerUserID && !this.props.login.validatedDate ? styles.mb0 : {};
     }
 
     render() {
@@ -86,7 +97,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={styles.formLabel}>{this.props.label}</Text>
+                <Text style={[styles.formLabel, this.getLabelMargin()]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
@@ -105,12 +116,13 @@ class LoginField extends Component {
                         </Text>
                         {!this.props.login.validatedDate && (
                             <Button
+                                small
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
-                                    <Text style={styles.createMenuText}>
+                                    <Text style={styles.buttonSmallText}>
                                         {this.props.translate('common.resend')}
                                     </Text>
                                 ))}

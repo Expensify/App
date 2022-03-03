@@ -38,9 +38,6 @@ const propTypes = {
         /** The authToken for the current session */
         email: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -48,7 +45,6 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
@@ -57,22 +53,29 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
-        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
-        if (this.props.session.authToken && email === this.props.session.email) {
+        const isUserSignedIn = this.props.session && this.props.session.authToken;
+        if (!isUserSignedIn) {
+            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
 
-        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+        this.signOutIfNeeded(email);
     }
 
     componentDidUpdate() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        if (!this.props.betas || !this.props.session.authToken || email !== this.props.session.email) {
+        if (!lodashGet(this.props, 'session.authToken', null)) {
             return;
         }
 
+        const email = lodashGet(this.props.route.params, 'email', '');
+
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+
+        if (this.signOutIfNeeded(email)) {
+            return;
+        }
+
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
             return;
@@ -88,6 +91,24 @@ class LogInWithShortLivedTokenPage extends Component {
         Navigation.navigate(exitTo);
     }
 
+    /**
+     * If the user is trying to transition with a different account than the one
+     * they are currently signed in as we will sign them out, clear Onyx,
+     * and cancel all network requests. This component will mount again from
+     * PublicScreens and since they are no longer signed in, a request will be
+     * made to sign them in with their new account.
+     * @param {String} email The user's email passed as a route param.
+     * @returns {Boolean}
+     */
+    signOutIfNeeded(email) {
+        if (this.props.session && this.props.session.email === email) {
+            return false;
+        }
+
+        Session.signOutAndRedirectToSignIn();
+        return true;
+    }
+
     render() {
         return <FullScreenLoadingIndicator />;
     }
@@ -99,8 +120,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);

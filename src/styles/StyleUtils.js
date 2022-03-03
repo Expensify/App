@@ -104,7 +104,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
-        if (zoomScale > 1) {
+        if (zoomScale >= 1) {
             return {
                 height: `${imgHeight * zoomScale}px`,
                 width: `${imgWidth * zoomScale}px`,
@@ -309,8 +309,14 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
  * @returns {String}
  */
 function getEmojiPickerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            width: '100%',
+        };
+    }
     return {
-        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+        width: CONST.EMOJI_PICKER_SIZE.WIDTH,
+        height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
     };
 }
 
@@ -337,8 +343,13 @@ function getLoginPagePromoStyle() {
             backgroundColor: colors.blue,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
+        {
+            backgroundColor: colors.floralwhite,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
+            redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
+        },
     ];
-    return promos[_.random(0, 3)];
+    return promos[_.random(0, 4)];
 }
 
 /**

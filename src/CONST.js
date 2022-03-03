@@ -3,7 +3,8 @@ import Config from 'react-native-config';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
+const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
+const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -14,11 +15,11 @@ const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
-    ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -109,6 +110,7 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -183,6 +185,7 @@ const CONST = {
     },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
+    USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     DEEPLINK_BASE_URL: 'new-expensify://',
@@ -190,17 +193,15 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: 'https://use.expensify.com/terms',
-    PRIVACY_URL: 'https://use.expensify.com/privacy',
-    LICENSES_URL: 'https://use.expensify.com/licenses',
+    TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
+    PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+    LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
-    FEES_URL: 'https://use.expensify.com/fees',
+    FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
-    NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
@@ -235,6 +236,7 @@ const CONST = {
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
+            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -282,6 +284,7 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -293,12 +296,13 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
+        REQUEST_CANCELLED: 'AbortError',
     },
     NETWORK: {
         METHOD: {
             POST: 'post',
         },
-        MAX_PERSISTED_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
     },
     HTTP_STATUS_CODE: {
@@ -362,7 +366,10 @@ const CONST = {
 
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
-    EMOJI_PICKER_SIZE: 320,
+    EMOJI_PICKER_SIZE: {
+        WIDTH: 320,
+        HEIGHT: 400,
+    },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -388,9 +395,9 @@ const CONST = {
     },
 
     ENVIRONMENT: {
-        DEV: 'DEV',
-        STAGING: 'STG',
-        PRODUCTION: 'PROD',
+        DEV: 'development',
+        STAGING: 'staging',
+        PRODUCTION: 'production',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -417,6 +424,7 @@ const CONST = {
             },
         },
         ERROR: {
+            FULL_SSN_NOT_FOUND: 'Full SSN not found',
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',
             UNEXPECTED: 'Unexpected error',
@@ -528,6 +536,7 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
     TERMS: {
@@ -560,6 +569,7 @@ const CONST = {
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
+        SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,

@@ -31,13 +31,14 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
-import MarkerBadge from './MarkerBadge';
+import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
+import EmojiPicker from '../../../components/EmojiPicker';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -75,9 +76,6 @@ const propTypes = {
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
-
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -97,7 +95,6 @@ const defaultProps = {
     isLoadingReportActions: false,
     isLoadingReportData: false,
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -203,11 +200,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (!_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []))) {
-            return true;
-        }
-
-        return false;
+        return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
     componentDidUpdate(prevProps) {
@@ -349,7 +342,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .map((item, index) => ({action: item, index}))
@@ -573,7 +566,7 @@ class ReportActionsView extends React.Component {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         return (
             <>
@@ -606,6 +599,7 @@ class ReportActionsView extends React.Component {
                     extraData={extraData}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
             </>
         );
     }
@@ -627,9 +621,6 @@ export default compose(
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionsView);

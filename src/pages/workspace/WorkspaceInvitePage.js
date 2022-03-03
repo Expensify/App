@@ -81,7 +81,7 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            welcomeNote: this.getWelcomeNotePlaceholder(),
+            welcomeNote: this.getWelcomeNote(),
         };
     }
 
@@ -99,7 +99,7 @@ class WorkspaceInvitePage extends React.Component {
      *
      * @returns {Object}
      */
-    getWelcomeNotePlaceholder() {
+    getWelcomeNote() {
         return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
@@ -138,10 +138,14 @@ class WorkspaceInvitePage extends React.Component {
             indexOffset: 0,
         });
 
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
@@ -191,8 +195,8 @@ class WorkspaceInvitePage extends React.Component {
                 [],
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
-                newSelectedOptions,
+                prevState.searchValue,
+                [],
                 this.getExcludedUsers(),
             );
 
@@ -200,7 +204,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -215,7 +219,7 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
+        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
     }
 
     /**
@@ -257,6 +261,7 @@ class WorkspaceInvitePage extends React.Component {
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
+                                    autoFocus={false}
                                     canSelectMultipleOptions
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
@@ -285,6 +290,7 @@ class WorkspaceInvitePage extends React.Component {
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
+                                    shouldFocusOnSelectRow
                                 />
                             )}
                         </View>
@@ -299,7 +305,6 @@ class WorkspaceInvitePage extends React.Component {
                                     multiline
                                     containerStyles={[styles.workspaceInviteWelcome]}
                                     value={this.state.welcomeNote}
-                                    placeholder={this.getWelcomeNotePlaceholder()}
                                     onChangeText={text => this.setState({welcomeNote: text})}
                                 />
                             </View>

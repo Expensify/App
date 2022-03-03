@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-restricted-imports
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
+import RNTextInput from '../RNTextInput';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
@@ -17,14 +17,11 @@ const propTypes = {
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
 
-    /** Callback to execute the text input is modified */
-    onChangeText: PropTypes.func,
 };
 
 const defaultProps = {
     errorText: '',
     disabled: false,
-    onChangeText: () => {},
 };
 
 const TextInputWithPrefix = props => (
@@ -38,15 +35,14 @@ const TextInputWithPrefix = props => (
             ]}
         >
             <Text style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</Text>
-            <TextInput
+            <RNTextInput
                 style={[
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,
                     {height: 40},
                 ]}
-                onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {..._.omit(props, ['prefixCharacter', 'errorText', 'onChangeText'])}
+                {..._.omit(props, ['prefixCharacter', 'errorText'])}
             />
         </View>
         {!_.isEmpty(props.errorText) && (

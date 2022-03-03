@@ -6,6 +6,9 @@ import androidx.multidex.MultiDexApplication;
 import com.expensify.chat.bootsplash.BootSplashPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.existfragger.rnimagesize.RNImageSizePackage;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.facebook.react.ReactInstanceManager;
@@ -15,6 +18,7 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.util.List;
+import com.facebook.react.modules.i18nmanager.I18nUtil;
 
 import com.facebook.react.bridge.JSIModulePackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
@@ -64,6 +68,10 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
+
+      // Force the app to LTR mode.
+      I18nUtil sharedI18nUtilInstance = I18nUtil.getInstance();
+      sharedI18nUtilInstance.allowRTL(getApplicationContext(), false);
 
       // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
       // module in the JS so we can measure total time starting in the native layer and ending in

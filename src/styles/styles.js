@@ -31,6 +31,7 @@ const picker = {
     borderStyle: 'solid',
     borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
+    textAlign: 'left',
 };
 
 const link = {
@@ -120,6 +121,11 @@ const webViewStyles = {
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
+
+        p: {
+            marginTop: 0,
+            marginBottom: 0,
+        },
     },
 
     baseFontStyle: {
@@ -140,6 +146,19 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+
+    rateCol: {
+        margin: 0,
+        padding: 0,
+        flexBasis: '48%',
+    },
+
+    unitCol: {
+        margin: 0,
+        padding: 0,
+        marginLeft: '4%',
+        flexBasis: '48%',
+    },
 
     webViewStyles,
 
@@ -638,6 +657,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        textAlign: 'left',
     },
 
     textInputLabelBackground: {
@@ -675,6 +695,8 @@ const styles = {
     },
 
     textInputAndIconContainer: {
+        flex: 1,
+        height: '100%',
         zIndex: -1,
         flexDirection: 'row',
     },
@@ -1596,6 +1618,10 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderNone: {
+        borderWidth: 0,
+    },
+
     borderRight: {
         borderRightWidth: 1,
         borderColor: themeColors.border,
@@ -1952,6 +1978,7 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
+        lineHeight: undefined,
     }, 0),
 
     iouPreviewBox: {
@@ -2198,7 +2225,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 100,
+        minHeight: 115,
     },
 
     peopleRow: {

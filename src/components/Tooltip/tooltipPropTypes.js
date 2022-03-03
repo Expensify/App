@@ -6,7 +6,7 @@ const propTypes = {
     absolute: PropTypes.bool,
 
     /** The text to display in the tooltip. */
-    text: PropTypes.string.isRequired,
+    text: PropTypes.string,
 
     /** Styles to be assigned to the Tooltip wrapper views */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -31,6 +31,7 @@ const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
     containerStyles: [],
+    text: '',
 };
 
 export {

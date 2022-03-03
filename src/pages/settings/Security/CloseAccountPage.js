@@ -73,6 +73,7 @@ class CloseAccountPage extends Component {
                         <TextInput
                             multiline
                             numberOfLines={6}
+                            textAlignVertical="top"
                             value={this.state.reasonForLeaving}
                             onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
@@ -85,18 +86,24 @@ class CloseAccountPage extends Component {
                             {' '}
                             {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.defaultContact')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
+                        </Text>
                         <TextInput
                             autoCapitalize="none"
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
-                            label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
+                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
                         />
                     </ScrollView>
                     <FixedFooter>
                         <Button
                             danger
-                            style={[styles.mb5]}
                             text={this.props.translate('closeAccountPage.closeAccount')}
                             isLoading={this.state.loading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}

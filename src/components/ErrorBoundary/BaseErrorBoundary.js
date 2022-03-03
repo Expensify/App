@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import BootSplash from '../../libs/BootSplash';
-import GenericErrorPage from '../../pages/GenericErrorPage';
+import GenericErrorPage from '../../pages/ErrorPage/GenericErrorPage';
 
 const propTypes = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */
@@ -36,7 +36,7 @@ class BaseErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        this.props.logError(this.props.errorMessage, error, errorInfo);
+        this.props.logError(this.props.errorMessage, error, JSON.stringify(errorInfo));
 
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();

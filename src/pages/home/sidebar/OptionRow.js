@@ -82,6 +82,7 @@ const defaultProps = {
 };
 
 const OptionRow = (props) => {
+    let touchableRef = null;
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -129,13 +130,16 @@ const OptionRow = (props) => {
         },
     );
 
+    const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
+                    ref={el => touchableRef = el}
                     onPress={(e) => {
                         e.preventDefault();
-                        props.onSelectRow(props.option);
+                        props.onSelectRow(props.option, touchableRef);
                     }}
                     disabled={props.disableRowInteractivity}
                     activeOpacity={0.8}
@@ -175,6 +179,7 @@ const OptionRow = (props) => {
                                         ]}
                                         isChatRoom={props.option.isChatRoom}
                                         isArchivedRoom={props.option.isArchivedRoom}
+                                        avatarTooltips={avatarTooltips}
                                     />
                                 )
                             }

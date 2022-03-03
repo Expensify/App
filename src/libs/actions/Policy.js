@@ -53,10 +53,26 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} [fullPolicyOrPolicySummary.avatarURL]
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
+ * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
+ * @param {Boolean} isFromFullPolicy,
  * @returns {Object}
  */
-function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
+function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
+    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
+    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
+    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
+    const customUnitSimplified = customUnit && {
+        id: customUnit.customUnitID,
+        name: customUnit.name,
+        value: customUnitValue,
+        rate: {
+            id: customUnitRate.customUnitRateID,
+            name: customUnitRate.name,
+            value: Number(customUnitRate.rate),
+        },
+    };
     return {
+        isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
         name: fullPolicyOrPolicySummary.name,
         role: fullPolicyOrPolicySummary.role,
@@ -68,6 +84,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
+        customUnit: customUnitSimplified,
     };
 }
 
@@ -165,8 +182,7 @@ function deletePolicy(policyID) {
         })
         .then(() => Report.fetchAllReports(false, true))
         .then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.goBack();
             return Promise.resolve();
         });
 }
@@ -192,7 +208,7 @@ function getPolicyList() {
 
             const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
                 ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
             }), {});
 
             if (!_.isEmpty(policyCollection)) {
@@ -229,7 +245,10 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
+                ...getSimplifiedPolicyObject(policy, true),
+            });
         });
 }
 
@@ -281,8 +300,8 @@ function removeMembers(members, policyID) {
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
-            console.error(data.message);
-            Growl.show(Localize.translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+            const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
+            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
         });
 }
 
@@ -410,6 +429,66 @@ function hideWorkspaceAlertMessage(policyID) {
 }
 
 /**
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function setCustomUnit(policyID, values) {
+    API.Policy_CustomUnit_Update({
+        policyID: policyID.toString(),
+        customUnit: JSON.stringify(values),
+        lastModified: null,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error();
+            }
+
+            updateLocalPolicyValues(policyID, {
+                customUnit: {
+                    id: values.customUnitID,
+                    name: values.name,
+                    value: values.attributes.unit,
+                },
+            });
+        }).catch(() => {
+            // Show the user feedback
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
+        });
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} customUnitID
+ * @param {Object} values
+ */
+function setCustomUnitRate(policyID, customUnitID, values) {
+    API.Policy_CustomUnitRate_Update({
+        policyID: policyID.toString(),
+        customUnitID: customUnitID.toString(),
+        customUnitRate: JSON.stringify(values),
+        lastModified: null,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error();
+            }
+
+            updateLocalPolicyValues(policyID, {
+                customUnit: {
+                    rate: {
+                        id: values.customUnitRateID,
+                        name: values.name,
+                        value: Number(values.rate),
+                    },
+                },
+            });
+        }).catch(() => {
+            // Show the user feedback
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
+        });
+}
+
+/**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String} policyID
  */
@@ -431,5 +510,7 @@ export {
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
+    setCustomUnit,
+    setCustomUnitRate,
     updateLastAccessedWorkspace,
 };

@@ -195,8 +195,12 @@ class AuthScreens extends React.Component {
         }
 
         const path = new URL(url).pathname;
-        const exitTo = new URLSearchParams(url).get('exitTo');
-        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+        const params = new URLSearchParams(url);
+        const exitTo = params.get('exitTo');
+        const email = params.get('email');
+        const isLoggingInAsNewUser = !_.isNull(this.props.session.email) && (email !== this.props.session.email);
+        return !isLoggingInAsNewUser
+            && Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
             && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
@@ -353,6 +357,12 @@ class AuthScreens extends React.Component {
                     component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
+                <RootStack.Screen
+                    name="Wallet_Statement"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
             </RootStack.Navigator>
         );
     }
@@ -365,6 +375,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(AuthScreens);
