@@ -115,9 +115,6 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
         }).catch((error) => {
             // Make sure to show user more specific errors which will help support identify the problem faster.
             switch (error.message) {
-                case CONST.WALLET.ERROR.NO_ACCOUNT_TO_LINK:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.noAccountToLink'), CONST.GROWL.ERROR, 5000);
-                    return;
                 case CONST.WALLET.ERROR.INVALID_WALLET:
                     Growl.show(Localize.translateLocal('paymentsPage.error.invalidWallet'), CONST.GROWL.ERROR, 5000);
                     return;

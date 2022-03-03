@@ -371,7 +371,7 @@ export default {
             invalidBankAccount: 'This bank account is temporarily suspended. Please reach out to Concierge for help.',
             notOwnerOfFund: 'We\'re unable to set this card as your default payment method. Please reach out to Concierge for help.',
             invalidFund: 'We\'re unable to set this card as your default payment method. Please reach out to Concierge for help.',
-            setDefaultFailure: 'Failed to set default payment method.',
+            setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
     },
     transferAmountPage: {
