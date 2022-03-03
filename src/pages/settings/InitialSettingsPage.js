@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
-import * as Session from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';

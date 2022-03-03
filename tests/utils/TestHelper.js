@@ -1,4 +1,4 @@
-import * as Session from '../../src/libs/actions/Session';
+import * as Session from '../../src/libs/actions/Session/Session';
 import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from './waitForPromisesToResolve';

@@ -19,7 +19,7 @@ import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
-import * as Session from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session/Session';
 
 const propTypes = {
     /* Onyx Props */

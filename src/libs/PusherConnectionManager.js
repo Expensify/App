@@ -1,5 +1,5 @@
 import * as Pusher from './Pusher/pusher';
-import * as Session from './actions/Session';
+import * as Session from './actions/Session/Session';
 import Log from './Log';
 
 function init() {

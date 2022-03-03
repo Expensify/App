@@ -42,7 +42,7 @@ import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedToke
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
-import * as Session from '../../actions/Session';
+import * as Session from '../../actions/Session/Session';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,

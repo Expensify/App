@@ -8,7 +8,7 @@ import Text from '../../components/Text';
 import Button from '../../components/Button';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as Session from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session/Session';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';

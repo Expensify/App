@@ -11,7 +11,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import CONST from '../../src/CONST';
 import * as Network from '../../src/libs/Network';
-import * as Session from '../../src/libs/actions/Session';
+import * as Session from '../../src/libs/actions/Session/Session';
 import * as NetworkQueue from '../../src/libs/actions/NetworkRequestQueue';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.

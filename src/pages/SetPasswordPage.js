@@ -12,7 +12,7 @@ import {
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import * as Session from '../libs/actions/Session';
+import * as Session from '../libs/actions/Session/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
