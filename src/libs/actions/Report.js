@@ -215,7 +215,6 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
-        newMarkerSequenceNumber: getUnreadActionCount(report) === 0 ? 0 : lastReadSequenceNumbers[report.reportID] + 1,
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
@@ -336,11 +335,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
         .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
-
-            // Fetch last viewed report because we want to get its informations as soon as possible.
-            const earlyReport = _.find(fetchedReports, report => report.reportID === lastViewedReportID);
-            const simplifiedEarlyReport = getSimplifiedReportObject(earlyReport);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${earlyReport.reportID}`, simplifiedEarlyReport);
 
             // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
             if (jsonCode === 404 && shouldRedirectIfInaccessible) {

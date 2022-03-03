@@ -72,6 +72,9 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
+    /** Are we waiting for more report data? */
+    isLoadingReportData: PropTypes.bool,
+
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
@@ -92,6 +95,7 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingReportActions: false,
+    isLoadingReportData: false,
     personalDetails: {},
     myPersonalDetails: {},
 };
@@ -126,6 +130,7 @@ class ReportActionsView extends React.Component {
         this.toggleMarker = this.toggleMarker.bind(this);
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
     componentDidMount() {
@@ -144,11 +149,8 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-
-        // Only mark as read if the report is open
-        if (!this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
+        if (!this.props.isLoadingReportData) {
+            this.updateNewMarkerAndMarkReadOnce();
         }
 
         Report.fetchActions(this.props.reportID);
@@ -174,6 +176,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
+            return true;
+        }
+
+        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
             return true;
         }
 
@@ -205,6 +211,12 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Update the last read action for the report currently in view when report data finishes loading.
+        // This report should now be up-to-date and since it is in view we mark it as read.
+        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
+            this.updateNewMarkerAndMarkReadOnce();
+        }
+
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
@@ -445,6 +457,18 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Update NEW marker and mark report as read
+     */
+    updateNewMarkerAndMarkRead() {
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
+        // Only mark as read if the report is open
+        if (!this.props.isDrawerOpen) {
+            Report.updateLastReadActionID(this.props.reportID);
+        }
+    }
+
+    /**
      * Show the new MarkerBadge
      */
     showMarker() {
@@ -597,6 +621,9 @@ export default compose(
     withLocalize,
     withPersonalDetails(),
     withOnyx({
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
