@@ -17,6 +17,7 @@ module.exports = {
         category: 'public.app-category.finance',
         target: [
             {target: 'dmg', arch: ['x64', 'arm64', 'universal']},
+            {target: 'zip', arch: ['x64', 'arm64', 'universal']},
         ],
         icon: isStaging ? './desktop/icon-stg.png' : './desktop/icon.png',
         hardenedRuntime: true,
