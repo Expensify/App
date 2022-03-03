@@ -4,6 +4,7 @@ import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
+import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
@@ -12,7 +13,6 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
-import TextInputWithName from '../TextInputWithName';
 import * as StyleUtils from '../../styles/StyleUtils';
 
 class BaseTextInput extends Component {
@@ -58,7 +58,8 @@ class BaseTextInput extends Component {
 
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
-        if (this.value === this.props.value) {
+        // Only update when value prop is provided
+        if (this.props.value === undefined || this.value === this.props.value) {
             return;
         }
 
@@ -215,7 +216,7 @@ class BaseTextInput extends Component {
                                     </>
                                 ) : null}
                                 <View style={[styles.textInputAndIconContainer]}>
-                                    <TextInputWithName
+                                    <RNTextInput
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                             this.input = ref;
@@ -240,7 +241,6 @@ class BaseTextInput extends Component {
                                         onChangeText={this.setValue}
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
-                                        name={this.props.name}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
                                     />
                                     {this.props.secureTextEntry && (

@@ -31,6 +31,7 @@ const picker = {
     borderStyle: 'solid',
     borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
+    textAlign: 'left',
 };
 
 const link = {
@@ -119,6 +120,11 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+        },
+
+        p: {
+            marginTop: 0,
+            marginBottom: 0,
         },
     },
 
@@ -651,6 +657,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        textAlign: 'left',
     },
 
     textInputLabelBackground: {

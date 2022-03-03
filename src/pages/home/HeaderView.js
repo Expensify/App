@@ -98,6 +98,8 @@ const HeaderView = (props) => {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
 
+    const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -111,7 +113,7 @@ const HeaderView = (props) => {
                         </Pressable>
                     </Tooltip>
                 )}
-                {props.report && props.report.reportName && (
+                {Boolean(props.report && props.report.reportName) && (
                     <View
                         style={[
                             styles.flex1,
@@ -137,6 +139,7 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 isChatRoom={isChatRoom}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                                avatarTooltips={avatarTooltip}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames

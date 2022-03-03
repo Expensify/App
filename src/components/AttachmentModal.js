@@ -139,7 +139,7 @@ class AttachmentModal extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
-        const attachmentViewStyles = this.props.isSmallScreenWidth
+        const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
 
