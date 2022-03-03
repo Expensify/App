@@ -77,7 +77,7 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const chatUsers = isChatRoom ? [{displayName: props.report.reportName}]: displayNamesWithTooltips;
+    const chatUsers = isChatRoom ? [{displayName: props.report.reportName}] : displayNamesWithTooltips;
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
