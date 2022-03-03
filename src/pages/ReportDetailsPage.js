@@ -80,7 +80,7 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        // Chat rooms will allow you to more things than typical chats so they have extra options
+        // Chat rooms will allow you to do more things than typical chats so they have extra options
         if (ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems = this.menuItems.concat([
                 {
