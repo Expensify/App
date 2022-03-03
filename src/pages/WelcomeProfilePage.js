@@ -293,7 +293,6 @@ class ProfilePage extends Component {
                                 && !this.state.requestTimeoutError
                                 && !this.isLastNameValid
                                 ? this.props.translate('personalDetails.error.lastNameLength') : '')}
-
                             onSubmitEditing={!this.password && this.submitForm}
                         />
                         {this.password && (

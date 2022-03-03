@@ -208,7 +208,6 @@ class SetPasswordPage extends Component {
                                     autoCompleteType="password"
                                     textContentType="password"
                                     onChangeText={this.handlePasswordChange}
-
                                     // Only show error if there is no link error
                                     hasError={this.state.showFormError && !this.isPasswordValid}
                                 />
@@ -220,7 +219,6 @@ class SetPasswordPage extends Component {
                                     textContentType="password"
                                     value={this.props.password}
                                     onChangeText={this.handleConfirmPasswordChange}
-
                                     // Only show error if there is no link error
                                     hasError={this.state.showFormError && !this.isConfirmPasswordValid}
                                     onSubmitEditing={this.validateAndSubmitForm}
