@@ -121,9 +121,17 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return (ReportUtils.isChatRoom(reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) ? emailArray : _.without(emailArray, currentUserEmail);
+    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
+        return emailArray;
+    }
+    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
+        // The owner of the policyExpenseChat isn't in the sharedReportsList so
+        // they need to be explicitely included  
+        return [ownerEmail, ...emailArray];
+    }
+    return _.without(emailArray, currentUserEmail);
 }
 
 /**
