@@ -46,7 +46,7 @@ import AddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage'
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 import ReportSettingsPage from '../../../pages/ReportSettingsPage';
-import WelcomeProfilePage from '../../../pages/WelcomeProfilePage'
+import WelcomeProfilePage from '../../../pages/WelcomeProfilePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,

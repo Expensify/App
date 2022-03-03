@@ -489,6 +489,7 @@ export default {
     },
     welcomeProfilePage: {
         formTitle: '',
+        requestTimeoutErrorMessage: '',
     },
     stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {

@@ -39,11 +39,12 @@ function set(name, value, onyxKeyName) {
 
 /**
  * Gets the value of an NVP
+ * migrationValueMap: {oldvalue: newvalue, ...}
  *
  * @param {String} name
  * @param {String} onyxKey
  * @param {*} [defaultValue]
- * @param {Object} migrationValueMap. {oldvalue: newvalue, ...} 
+ * @param {Object} migrationValueMap
  */
 function getAndMigrateValue(name, onyxKey, defaultValue, migrationValueMap) {
     API.Get({
@@ -53,7 +54,7 @@ function getAndMigrateValue(name, onyxKey, defaultValue, migrationValueMap) {
         .then((response) => {
             let value = lodashGet(response.nameValuePairs, [name], defaultValue);
             if (_.has(migrationValueMap, value)) {
-                value = migrationValueMap[value]; 
+                value = migrationValueMap[value];
                 set(name, value, onyxKey);
             }
             Onyx.set(onyxKey, value);

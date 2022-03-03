@@ -1,6 +1,5 @@
 import CONST from '../CONST';
 
-
 let secret = null;
 
 /**
@@ -12,10 +11,18 @@ function getPhoneNumberWithoutSpecialChars(phone) {
     return phone.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 }
 
+/**
+ * Store password value
+ * @param {String} value
+ */
 function storePassword(value) {
     secret = value;
 }
 
+/**
+ * Returns password then delete it
+ * @return {String}
+ */
 function getAndDestroyPassword() {
     const password = secret;
     secret = null;

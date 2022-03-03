@@ -57,6 +57,7 @@ const defaultProps = {
     includePaddingBottom: true,
     includePaddingTop: true,
     onTransitionEnd: () => {},
+    onWillUnmount: () => {},
     navigation: {
         addListener: () => {},
     },

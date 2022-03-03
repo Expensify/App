@@ -18,7 +18,6 @@ import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import TextInput from '../components/TextInput';
 import TextLink from '../components/TextLink';
@@ -92,7 +91,7 @@ class SetPasswordPage extends Component {
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleConfirmPasswordChange = this.handleConfirmPasswordChange.bind(this);
         this.displayFormError = this.displayFormError.bind(this);
-        this.hideFormError= this.hideFormError.bind(this);
+        this.hideFormError = this.hideFormError.bind(this);
 
         this.password = '';
         this.confirmPassword = '';
@@ -102,20 +101,13 @@ class SetPasswordPage extends Component {
 
         this.state = {
             showFormError: false,
-        }
+        };
     }
 
-    validatePassword(text) {
-        return text.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-    }
-
-    validateConfirmPassword(text) {
-        return text === this.password;
-    }
-
-    // Check whether password and confirm pasword is valid
-    isFormValid() {
-        return this.validatePassword(this.password) && this.validateConfirmPassword(this.confirmPassword);
+    componentDidMount() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        Session.validateEmail(accountID, validateCode);
     }
 
     handlePasswordChange(text) {
@@ -140,7 +132,7 @@ class SetPasswordPage extends Component {
         }
         this.setState({showFormError: true});
     }
-    
+
     // Hide error message for invalid text input value
     hideFormError() {
         // Prevent unncessary render
@@ -150,14 +142,21 @@ class SetPasswordPage extends Component {
         this.setState({showFormError: false});
     }
 
-    componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        Session.validateEmail(accountID, validateCode);
+    // Check whether password and confirm pasword is valid
+    isFormValid() {
+        return this.validatePassword(this.password) && this.validateConfirmPassword(this.confirmPassword);
+    }
+
+    validatePassword(text) {
+        return text.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
+    validateConfirmPassword(text) {
+        return text === this.password;
     }
 
     validateAndSubmitForm() {
-        if (this.linkError || this.props.account.loading || this.props.userSignUp.isValidatingEmail ) {
+        if (this.linkError || this.props.account.loading || this.props.userSignUp.isValidatingEmail) {
             return;
         }
 
@@ -172,38 +171,35 @@ class SetPasswordPage extends Component {
         LoginUtil.storePassword(this.password);
     }
 
-
     render() {
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         this.linkError = sessionError || this.props.account.error;
         let errorText = '';
-        // Prioritize link error message
-        if (!this.isPasswordValid) {
-            errorText = this.props.translate('setPasswordPage.newPasswordPrompt');
-        } else if (!this.isConfirmPasswordValid) {
-            errorText =  this.props.translate('setPasswordPage.confirmPasswordInvalidMessage');
+
+        if (!this.isConfirmPasswordValid) {
+            errorText = this.props.translate('setPasswordPage.confirmPasswordInvalidMessage');
         } else {
-            //no error show default message
+            // no error show default message
             errorText = this.props.translate('setPasswordPage.newPasswordPrompt');
-        } 
+        }
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     shouldShowWelcomeText
-                    welcomeText={''}
+                    welcomeText=""
                 >
                     {_.isEmpty(this.linkError) ? (
                         <>
                             <Text style={[styles.mtn5]}>
                                 {`${this.props.translate('common.welcome')} `}
                                 <Text style={[styles.textStrong]}>
-                                    {this.props.credentials && this.props.credentials.login} 
+                                    {this.props.credentials && this.props.credentials.login}
                                 </Text>
                             </Text>
-                            <Text style={[styles.mv4, ]}>
-                                {this.props.translate('setPasswordPage.passwordFormTitle')} 
+                            <Text style={[styles.mv4]}>
+                                {this.props.translate('setPasswordPage.passwordFormTitle')}
                             </Text>
-                            
+
                             <View style={[styles.mb4]}>
                                 <TextInput
                                     containerStyles={[styles.mt5]}
@@ -212,6 +208,7 @@ class SetPasswordPage extends Component {
                                     autoCompleteType="password"
                                     textContentType="password"
                                     onChangeText={this.handlePasswordChange}
+
                                     // Only show error if there is no link error
                                     hasError={this.state.showFormError && !this.isPasswordValid}
                                 />
@@ -223,12 +220,13 @@ class SetPasswordPage extends Component {
                                     textContentType="password"
                                     value={this.props.password}
                                     onChangeText={this.handleConfirmPasswordChange}
+
                                     // Only show error if there is no link error
                                     hasError={this.state.showFormError && !this.isConfirmPasswordValid}
                                     onSubmitEditing={this.validateAndSubmitForm}
                                 />
                             </View>
-                            <View style={[styles.invalidPasswordMessageSpace]}> 
+                            <View style={[styles.invalidPasswordMessageSpace]}>
                                 <Text style={[styles.formHelp, this.state.showFormError && styles.formError]}>
                                     {errorText}
                                 </Text>
@@ -245,13 +243,16 @@ class SetPasswordPage extends Component {
                         </>
                     )
                         : (
-                              <Text>{this.linkError}
-                                  <br/>
-                                  <TextLink style={[styles.link]}
-                                      href={'/'}
-                                  >{this.props.translate('common.goToHomePage')}
-                                  </TextLink>
-                              </Text>
+                            <Text>
+                                {this.linkError}
+                                <br />
+                                <TextLink
+                                    style={[styles.link]}
+                                    href="/"
+                                >
+                                    {this.props.translate('common.goToHomePage')}
+                                </TextLink>
+                            </Text>
                         )}
                 </SignInPageLayout>
             </SafeAreaView>

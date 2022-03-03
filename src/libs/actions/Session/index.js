@@ -448,6 +448,7 @@ function setOrChangePassword(accountID, validateCode, password, authToken) {
  * @param {String} validateCode
  * @param {String} login
  * @param {String} authToken
+ * @return {Promise}
  */
 function validateEmail(accountID, validateCode) {
     Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});

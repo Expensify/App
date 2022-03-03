@@ -85,7 +85,6 @@ export default {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
-    GET_ASSISTANCE: 'get-assistance/:taskID',
     WELCOME_PROFILE_SETTING: 'new-profile-setting',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used

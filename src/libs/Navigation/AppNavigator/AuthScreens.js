@@ -115,8 +115,8 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         NameValuePair.getAndMigrateValue(
-            CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP, 
-            ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP, 
+            CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
+            ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
             CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING,
             {false: CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH},
         );

@@ -75,7 +75,6 @@ function getMaxCharacterError(isError) {
     return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
-
 /**
  * Format personal details
  *
@@ -236,6 +235,7 @@ function mergeLocalPersonalDetails(details) {
  *
  * @param {Object} details
  * @param {boolean} shouldGrowl
+ * @returns {Promise}
  */
 function setPersonalDetails(details, shouldGrowl) {
     return API.PersonalDetails_Update({details: JSON.stringify(details)})

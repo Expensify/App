@@ -489,6 +489,7 @@ export default {
     },
     welcomeProfilePage: {
         formTitle: 'Welcome to Expensify! Tell us a little bit about yourself before getting started.',
+        requestTimeoutErrorMessage: 'Request taking too long than expected, some network request could be failed. Please try again.',
 
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
