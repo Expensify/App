@@ -1538,6 +1538,15 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarSubscriptCompact: {
+        position: 'absolute',
+        bottom: -1,
+        right: -1,
+        borderWidth: 1,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1555,6 +1564,11 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.componentBG,
+    },
+
+    avatarLarge: {
+        width: variables.avatarSizeLarge,
+        height: variables.avatarSizeLarge,
     },
 
     avatarNormal: {
@@ -1821,11 +1835,6 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-    },
-
-    avatarLarge: {
-        width: variables.avatarSizeLarge,
-        height: variables.avatarSizeLarge,
     },
 
     roomHeaderAvatar: {

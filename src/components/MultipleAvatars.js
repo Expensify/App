@@ -1,19 +1,21 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
     avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
-    /** Set the sie of avatars */
-    size: PropTypes.oneOf(['default', 'small']),
+    /** Set the size of avatars */
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
     /** Style for Second Avatar */
     // eslint-disable-next-line react/forbid-prop-types
@@ -25,16 +27,16 @@ const propTypes = {
 
 const defaultProps = {
     avatarIcons: [],
-    size: 'default',
+    size: CONST.AVATAR_SIZE.DEFAULT,
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
     avatarTooltips: [],
 };
 
 const MultipleAvatars = (props) => {
-    const avatarContainerStyles = props.size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
-    const singleAvatarStyles = props.size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
+    const avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
-        props.size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
+        props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar,
         ...props.secondAvatarStyle,
     ];
 
@@ -82,7 +84,7 @@ const MultipleAvatars = (props) => {
                             <View
                                 style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
-                                <Text style={props.size === 'small'
+                                <Text style={props.size === CONST.AVATAR_SIZE.SMALL
                                     ? styles.avatarInnerTextSmall
                                     : styles.avatarInnerText}
                                 >

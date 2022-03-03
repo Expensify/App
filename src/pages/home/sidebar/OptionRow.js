@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Text from '../../../components/Text';
 import SelectCircle from '../../../components/SelectCircle';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -56,7 +57,7 @@ const propTypes = {
     showTitleTooltip: PropTypes.bool,
 
     /** Toggle between compact and default view */
-    mode: PropTypes.oneOf(['compact', 'default']),
+    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
@@ -88,16 +89,16 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = props.mode === 'compact'
+    const displayNameStyle = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle];
-    const alternateTextStyle = props.mode === 'compact'
+    const alternateTextStyle = props.mode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
-    const contentContainerStyles = props.mode === 'compact'
+    const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === 'compact' ? [
+    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === CONST.OPTION_MODE.COMPACT ? [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -170,11 +171,12 @@ const OptionRow = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
+                                            mode={props.mode}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             avatarIcons={props.option.icons}
-                                            size={props.mode === 'compact' ? 'small' : 'default'}
+                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                                 props.optionIsFocused

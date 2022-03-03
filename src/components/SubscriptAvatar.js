@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
@@ -20,26 +21,33 @@ const propTypes = {
 
     /** Tooltip for the subscript avatar */
     secondaryTooltip: PropTypes.string,
+
+    /** Set the size of avatars */
+    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 };
 
 const defaultProps = {
     mainTooltip: '',
     secondaryTooltip: '',
+    mode: CONST.OPTION_MODE.DEFAULT,
 };
 
 const SubscriptAvatar = props => (
-    <View style={styles.emptyAvatar}>
+    <View style={props.mode === CONST.OPTION_MODE.COMPACT ? styles.emptyAvatarSmall : styles.emptyAvatar}>
         <Tooltip text={props.mainTooltip}>
             <Avatar
                 source={props.mainAvatar}
+                size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
             />
         </Tooltip>
-        <View style={[styles.secondAvatarSubscript, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
+        <View style={[
+            props.mode === CONST.OPTION_MODE.COMPACT ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
+            StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}
+        >
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar}
-                    imageStyles={[styles.singleSubscript]}
-                    size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                    size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                     fill={themeColors.iconSuccessFill}
                 />
             </Tooltip>

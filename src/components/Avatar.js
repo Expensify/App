@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
@@ -42,7 +41,7 @@ class Avatar extends PureComponent {
         }
 
         const imageStyle = [
-            this.props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarSmall : styles.avatarNormal,
+            StyleUtils.getAvatarStyle(this.props.size),
             ...this.props.imageStyles,
         ];
 
