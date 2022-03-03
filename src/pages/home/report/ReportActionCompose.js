@@ -429,7 +429,7 @@ class ReportActionCompose extends React.Component {
                     >
                         {({displayFileInModal}) => (
                             <>
-                                <AttachmentPicker 
+                                <AttachmentPicker
                                     anchorPosition={styles.createMenuPositionReportActionCompose}
                                 >
                                     {({openPicker}) => (

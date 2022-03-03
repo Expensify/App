@@ -116,16 +116,16 @@ class BasePaymentsPage extends React.Component {
         let position = getClickedElementLocation(nativeEvent);
 
         // Check if screen is considered medium, on native
-        if (!this.props.isSmallScreenWidth && position.bottom == 0 && position.left == 0) {
+        if (!this.props.isSmallScreenWidth && position.bottom === 0 && position.left === 0) {
             position = {
                 bottom: styles.createPaymentMethodMenuContainer.top,
                 left: this.props.windowWidth - variables.sideBarWidth,
-            }
+            };
         }
         this.setState({
             addPaymentMethodButton: nativeEvent,
         });
-        
+
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
