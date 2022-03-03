@@ -1,28 +1,18 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable no-param-reassign */
-const path = require('path');
-const dotenv = require('dotenv');
 const _ = require('underscore');
-const custom = require('../config/webpack/webpack.common')({
-    envFile: '../.env.production',
-});
-
-const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).parsed;
+const lodashMerge = require('lodash/merge');
+const getCommonConfig = require('../config/webpack/webpack.common');
 
 module.exports = ({config}) => {
-    config.resolve.alias = {
-        'react-native-config': 'react-web-config',
-        'react-native$': 'react-native-web',
-        '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
-    };
+    const webConfig = getCommonConfig({envFile: '.env.production'});
 
-    // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
-    const definePluginIndex = _.findIndex(config.plugins, plugin => plugin.constructor.name === 'DefinePlugin');
-    config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
-    config.resolve.extensions.push('.web.js', '.website.js');
+    lodashMerge(config.resolve, webConfig.resolve);
 
-    const babelRulesIndex = _.findIndex(custom.module.rules, rule => rule.loader === 'babel-loader');
-    const babelRule = custom.module.rules[babelRulesIndex];
+    // Insert our custom definitions to the storybook config
+    const definePlugin = _.find(webConfig.plugins, plugin => plugin.constructor.name === 'DefinePlugin');
+    config.plugins.push(definePlugin);
+
+    const babelRulesIndex = _.findIndex(webConfig.module.rules, rule => rule.loader === 'babel-loader');
+    const babelRule = webConfig.module.rules[babelRulesIndex];
     config.module.rules.push(babelRule);
 
     // Allows loading SVG - more context here https://github.com/storybookjs/storybook/issues/6188
