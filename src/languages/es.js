@@ -173,7 +173,7 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
         beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
         beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el sitio donde chatear, pedir dinero y pagar.',
     },
