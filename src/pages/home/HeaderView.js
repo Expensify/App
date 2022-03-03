@@ -126,7 +126,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (isChatRoom) {
+                                if (isChatRoom || isPolicyExpenseChat) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
