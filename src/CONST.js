@@ -551,8 +551,14 @@ const CONST = {
     AVATAR_SIZE: {
         LARGE: 'large',
         DEFAULT: 'default',
+        SMALL: 'small',
+        SUBSCRIPT: 'subscript',
+        SMALL_SUBSCRIPT: 'small-subscript',
     },
-
+    OPTION_MODE: {
+        COMPACT: 'compact',
+        DEFAULT: 'default',
+    },
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {
