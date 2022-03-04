@@ -1495,14 +1495,6 @@ const styles = {
         borderRadius: 18,
     },
 
-    singleAvatarLarge: {
-        height: 64,
-        width: 64,
-        backgroundColor: themeColors.icon,
-        borderRadius: 64,
-        overflow: 'hidden',
-    },
-
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1752,7 +1744,7 @@ const styles = {
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
         ...spacing.mt4,
-        height: 150,
+        height: 170,
     },
 
     reportDetailsRoomInfo: {
