@@ -65,6 +65,3 @@ brew install cocoapods
 You now have a dedicated Mac machine running 🎉
 
 The clipboard is shared with your local machine, and it’s crazy fast and responsive.
-
-## Alternative solution
-Virtual machines for MacOS like [macOS-Simple-KVM](https://github.com/foxlet/macOS-Simple-KVM) are the easiest and most accessible way for a contributor to test the app on these platforms. But it violates Apple’s EULA, and isn’t legal.
