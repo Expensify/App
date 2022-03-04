@@ -38,6 +38,7 @@ class BaseTextInput extends Component {
         this.setValue = this.setValue.bind(this);
         this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
+        this.eyeButton = React.createRef();
     }
 
     componentDidMount() {
@@ -46,6 +47,10 @@ class BaseTextInput extends Component {
                 'change',
                 this.dismissKeyboardWhenBackgrounded,
             );
+        }
+
+        if (this.props.disableEyeButtonTabNavigation && this.eyeButton.current) {
+            this.eyeButton.current.setNativeProps({tabIndex: undefined});
         }
 
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
@@ -85,7 +90,6 @@ class BaseTextInput extends Component {
 
         this.appStateSubscription.remove();
     }
-
 
     onPress(event) {
         if (this.props.disabled) {
@@ -245,6 +249,7 @@ class BaseTextInput extends Component {
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
+                                            ref={this.eyeButton}
                                             accessibilityRole="button"
                                             style={styles.secureInputEyeButton}
                                             onPress={this.togglePasswordVisibility}
