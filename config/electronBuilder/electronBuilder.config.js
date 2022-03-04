@@ -26,6 +26,8 @@ module.exports = {
         type: 'distribution',
     },
     dmg: {
+        title: 'New Expensify',
+        artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
     publish: [{
