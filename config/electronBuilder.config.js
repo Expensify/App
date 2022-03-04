@@ -1,4 +1,4 @@
-const {version} = require('../../package.json');
+const {version} = require('../package.json');
 
 const isStaging = process.env.ELECTRON_ENV === 'staging';
 const isPublishing = process.argv.includes('--publish');
@@ -17,6 +17,7 @@ module.exports = {
         category: 'public.app-category.finance',
         target: [
             {target: 'dmg', arch: ['x64', 'arm64', 'universal']},
+            {target: 'zip', arch: ['x64', 'arm64', 'universal']},
         ],
         icon: isStaging ? './desktop/icon-stg.png' : './desktop/icon.png',
         hardenedRuntime: true,
@@ -25,6 +26,8 @@ module.exports = {
         type: 'distribution',
     },
     dmg: {
+        title: 'New Expensify',
+        artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
     publish: [{

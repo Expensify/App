@@ -136,7 +136,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
-        if (zoomScale > 1) {
+        if (zoomScale >= 1) {
             return {
                 height: `${imgHeight * zoomScale}px`,
                 width: `${imgWidth * zoomScale}px`,

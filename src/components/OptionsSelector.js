@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import OptionsList from './OptionsList';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -96,6 +96,7 @@ class OptionsSelector extends Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
+        this.relatedTarget = null;
 
         this.state = {
             focusedIndex: 0,
@@ -199,10 +200,16 @@ class OptionsSelector extends Component {
      * Completes the follow up actions after a row is selected
      *
      * @param {Object} option
+     * @param {Object} ref
      */
-    selectRow(option) {
+    selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
-            this.textInput.focus();
+            // Input is permanently focused on native platforms, so we always highlight the text inside of it
+            this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
+            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+                this.textInput.focus();
+            }
+            this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
     }
@@ -214,10 +221,22 @@ class OptionsSelector extends Component {
                     <TextInput
                         ref={el => this.textInput = el}
                         value={this.props.value}
-                        onChangeText={this.props.onChangeText}
+                        onChangeText={(text) => {
+                            if (this.props.shouldFocusOnSelectRow) {
+                                this.textInput.setNativeProps({selection: null});
+                            }
+                            this.props.onChangeText(text);
+                        }}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        onBlur={(e) => {
+                            if (!this.props.shouldFocusOnSelectRow) {
+                                return;
+                            }
+                            this.relatedTarget = e.relatedTarget;
+                        }}
+                        selectTextOnFocus
                     />
                 </View>
                 <OptionsList

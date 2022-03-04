@@ -77,6 +77,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
         error: {
             invalidAmount: 'Monto no válido',
+            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -351,7 +352,6 @@ export default {
             addressStreet: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
             addressCity: 'Por favor ingrese una ciudad',
-            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             genericFailureMessage: 'Se produjo un error al agregar su tarjeta. Vuelva a intentarlo',
             password: 'Por favor ingrese tu contraseña de Expensify',
         },
@@ -567,6 +567,8 @@ export default {
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
+        failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
+        failedKYCTextAfter: ' si tiene alguna pregunta.',
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
@@ -575,7 +577,6 @@ export default {
         agreeToThe: 'Estoy de acuerdo con la ',
         walletAgreement: 'Acuerdo de billetera',
         enablePayments: 'Habilitar pagos',
-        termsMustBeAccepted: 'Se deben aceptar los términos',
         feeAmountZero: '$0',
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
@@ -704,7 +705,6 @@ export default {
         termsAndConditions: 'Términos y condiciones',
         certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
         error: {
-            termsAndConditions: 'Debe aceptar términos y condiciones',
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },

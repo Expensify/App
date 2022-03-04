@@ -84,6 +84,7 @@ const defaultProps = {
 };
 
 const OptionRow = (props) => {
+    let touchableRef = null;
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -137,9 +138,10 @@ const OptionRow = (props) => {
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
+                    ref={el => touchableRef = el}
                     onPress={(e) => {
                         e.preventDefault();
-                        props.onSelectRow(props.option);
+                        props.onSelectRow(props.option, touchableRef);
                     }}
                     disabled={props.disableRowInteractivity}
                     activeOpacity={0.8}
