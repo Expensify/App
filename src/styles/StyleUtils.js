@@ -405,6 +405,7 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
  */

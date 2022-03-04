@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -28,7 +29,7 @@ class BaseTextInput extends Component {
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
-            prefixWidth: 20,
+            prefixWidth: variables.fontSizeNormalHeight,
         };
 
         this.input = null;
