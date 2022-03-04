@@ -7,6 +7,36 @@ on:
     branches-ignore: [staging, production]
 
 jobs:
+  # Debugging
+  isExpensifyEngineer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check whether the actor is member of engineering team
+        id: checkActor
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: engineering
+      - name: Debug engineer
+        run: echo "The author is Expensify engineer - ${{ steps.checkActor.outputs.isTeamMember }}"
+
+  # Debugging
+  isExpensifyEmployee:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check whether the actor is member of expensify-expensify team
+        id: checkActor
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: expensify-expensify
+      - name: Debug employee
+        run: echo "The author is Expensify employee - ${{ steps.checkActor.outputs.isTeamMember }}"
+
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
