@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
+import Text from '../components/Text';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -50,6 +51,36 @@ const Template = (args) => {
     );
 };
 
+/**
+ * Story to exhibit the native event handlers for TextInput in the Form Component
+ * @param {Object} args
+ * @returns {JSX}
+ */
+const WithNativeEventHandler = (args) => {
+    const [log, setLog] = useState('');
+
+    // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
+    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    FormActions.setDraftValues(args.formID, args.draftValues);
+
+    return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Form {...args}>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                onChangeText={setLog}
+                isFormInput
+                shouldSaveDraft
+            />
+            <Text>
+                {`Entered routing number: ${log}`}
+            </Text>
+        </Form>
+    );
+};
+
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
@@ -90,6 +121,7 @@ Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
 InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
+WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;
 export {
@@ -97,4 +129,5 @@ export {
     Loading,
     ServerError,
     InputError,
+    WithNativeEventHandler,
 };
