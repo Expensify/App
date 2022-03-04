@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ELECTRON_ENV=${1:-development}
+export ELECTRON_ENV=${1:-development}
 
 if [[ "$ELECTRON_ENV" == "staging" ]]; then
   ENV_FILE=".env.staging"
