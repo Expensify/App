@@ -1,6 +1,6 @@
 # Test MacOS and iOS app on windows/linux
 
-If at any point you need help, have any questions or suggestions, please ask in the [`#expensify-open-source` Slack channel](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions).
+If you need help, have any questions or suggestions, please ask in the [`#expensify-open-source` Slack channel](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions).
 
 ## Problem
 MacOS is needed for testing New Expensify on iOS and MacOS. They are the most important platforms for Expensify. But, many issues aren’t being tested on MacOS and iOS by the contributors because they have Windows or Linux machines, and sometimes, proposals aren’t made with keeping these platforms in mind. 
