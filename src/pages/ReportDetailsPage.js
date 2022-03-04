@@ -132,22 +132,12 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-<<<<<<< HEAD
-                            <Avatar
-                                isChatRoom={isChatRoom}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
-                                imageStyles={[styles.singleAvatarLarge]}
-                                source={this.props.report.icons[0]}
-                            />
-=======
                             <View style={styles.mb4}>
                                 <RoomHeaderAvatars
                                     avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
                                     shouldShowLargeAvatars={isPolicyExpenseChat}
                                 />
                             </View>
->>>>>>> d64f8c52c (Merge pull request #8011 from Expensify/amal-fix-reportdetails-icons)
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
