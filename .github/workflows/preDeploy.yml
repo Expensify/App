@@ -213,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      isExpensifyEmployee: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
+      IS_EXPENSIFY_EMPLOYEE: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
 
     steps:
       - name: Check whether the actor is member of expensify-expensify team
@@ -227,7 +227,7 @@ jobs:
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
     needs: isExpensifyEmployee
-    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.isExpensifyEmployee) }}
+    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
