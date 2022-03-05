@@ -1,6 +1,7 @@
 import React from 'react';
 import OptionRow from '../components/OptionRow';
 import {ActiveRoomAvatar} from '../components/Icon/Expensicons';
+
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
