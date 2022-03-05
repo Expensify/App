@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
@@ -26,7 +27,7 @@ class RadioButtons extends React.Component {
 
     render() {
         return (
-            <view>
+            <View>
                 {_.map(this.props.items, item => (
                     <RadioButtonWithLabel
                         isChecked={item.value === this.state.checkedValue}
@@ -38,7 +39,7 @@ class RadioButtons extends React.Component {
                         label={item.label}
                     />
                 ))}
-            </view>
+            </View>
         );
     }
 }
