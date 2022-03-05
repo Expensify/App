@@ -79,7 +79,6 @@ class TermsStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
-                        style={styles.mb4}
                         isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
                         onPress={this.togglePrivacyPolicy}
                         LabelComponent={() => (
@@ -107,7 +106,7 @@ class TermsStep extends React.Component {
                     )}
                     <Button
                         success
-                        style={styles.mb4}
+                        style={[styles.mb4, styles.mt4]}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {
