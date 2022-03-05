@@ -8,21 +8,21 @@ import {
     StyleSheet,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import {optionPropTypes} from './optionPropTypes';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import Hoverable from '../../../components/Hoverable';
-import DisplayNames from '../../../components/DisplayNames';
-import IOUBadge from '../../../components/IOUBadge';
-import colors from '../../../styles/colors';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
-import SelectCircle from '../../../components/SelectCircle';
-import SubscriptAvatar from '../../../components/SubscriptAvatar';
-import CONST from '../../../CONST';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import optionPropTypes from './optionPropTypes';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import MultipleAvatars from './MultipleAvatars';
+import Hoverable from './Hoverable';
+import DisplayNames from './DisplayNames';
+import IOUBadge from './IOUBadge';
+import colors from '../styles/colors';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
+import SelectCircle from './SelectCircle';
+import SubscriptAvatar from './SubscriptAvatar';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Background Color of the Option Row */
