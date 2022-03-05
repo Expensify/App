@@ -1,6 +1,6 @@
 import React from 'react';
 import OptionRow from '../components/OptionRow';
-import {ActiveRoomAvatar} from '../components/Icon/Expensicons';
+import * as Expensicons from '../components/Icon/Expensicons';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -31,7 +31,7 @@ export default {
             isUnread: false,
             text: 'Test Option',
             alternateText: 'Alternate text',
-            icons: [ActiveRoomAvatar],
+            icons: [Expensicons.ActiveRoomAvatar],
             login: 'test@expensify.com',
             reportID: null,
             hasDraftComment: false,
@@ -44,11 +44,8 @@ export default {
     },
 };
 
-const Template = (args) => {
-    return (
-        <OptionRow {...args} />
-    );
-};
+// eslint-disable-next-line react/jsx-props-no-spreading
+const Template = args => <OptionRow {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
