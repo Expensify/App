@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../../libs/Log';
 import styles from '../../styles/styles';
-import OptionRow from '../../pages/home/sidebar/OptionRow';
+import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
