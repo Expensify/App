@@ -35,7 +35,7 @@ class PressableWithSecondaryInteraction extends Component {
             return;
         }
 
-        // map gesture event to normal ResponderEvent event
+        // Map gesture event to normal Responder event
         const {
             absoluteX, absoluteY, locationX, locationY,
         } = e.nativeEvent;
