@@ -68,7 +68,7 @@ const RadioButtonWithLabel = (props) => {
                     ]}
                 >
                     {props.label && (
-                        <Text style={[styles.ml2]}>
+                        <Text style={[styles.ml1]}>
                             {props.label}
                         </Text>
                     )}
