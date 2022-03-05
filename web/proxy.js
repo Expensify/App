@@ -10,7 +10,7 @@ if (process.env.USE_WEB_PROXY === 'false') {
 let host = 'www.expensify.com';
 
 // If we are testing against the staging API then we must use the correct host here or nothing with work.
-if (/staging/.test(process.env.EXPENSIFY_URL_COM)) {
+if (/staging/.test(process.env.EXPENSIFY_URL)) {
     host = 'staging.expensify.com';
 }
 
