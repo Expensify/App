@@ -77,7 +77,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     mode: 'default',
-    onSelectRow: null,
+    onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
     disableRowInteractivity: false,
@@ -292,6 +292,22 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
 
     // Re-render when the text changes
     if (prevProps.option.text !== nextProps.option.text) {
+        return false;
+    }
+
+    if (prevProps.showSelectedState !== nextProps.showSelectedState) {
+        return false;
+    }
+
+    if (prevProps.isDisabled !== nextProps.isDisabled) {
+        return false;
+    }
+
+    if (prevProps.showTitleTooltip !== nextProps.showTitleTooltip) {
+        return false;
+    }
+
+    if (prevProps.backgroundColor !== nextProps.backgroundColor) {
         return false;
     }
 

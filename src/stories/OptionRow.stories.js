@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import OptionRow from '../components/OptionRow';
-
+import {ActiveRoomAvatar} from '../components/Icon/Expensicons';
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
@@ -9,7 +9,37 @@ import OptionRow from '../components/OptionRow';
 export default {
     title: 'Components/OptionRow',
     component: OptionRow,
+    argTypes: {
+        mode: {
+            options: ['default', 'compact'],
+            control: {type: 'radio'},
+        },
+    },
     args: {
+        mode: 'default',
+        optionIsFocused: false,
+        showSelectedState: false,
+        isSelected: false,
+        hideAdditionalOptionStates: false,
+        forceTextUnreadStyle: false,
+        showTitleTooltip: false,
+        isDisabled: false,
+        disableRowInteractivity: false,
+        backgroundColor: 'white',
+        option: {
+            isUnread: false,
+            text: 'Test Option',
+            alternateText: 'Alternate text',
+            icons: [ActiveRoomAvatar],
+            login: 'test@expensify.com',
+            reportID: null,
+            hasDraftComment: false,
+            isPinned: false,
+            isChatRoom: false,
+            participantsList: [],
+            descriptiveText: '',
+            tooltipText: 'Tooltip text',
+        },
     },
 };
 
