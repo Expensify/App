@@ -10,15 +10,20 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
+import getOperatingSystem from '../../libs/getOperatingSystem';
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
+// Initialize deferredPrompt for use later to show browser install prompt.
+let deferredPrompt;
+
 const AppDownloadLinksPage = (props) => {
     const menuItems = [
         {
-            translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
+            title: props.translate('initialSettingsPage.appDownloadLinks.android.label'),
             icon: Expensicons.Android,
             iconRight: Expensicons.NewWindow,
             action: () => {
@@ -26,7 +31,7 @@ const AppDownloadLinksPage = (props) => {
             },
         },
         {
-            translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
+            title: props.translate('initialSettingsPage.appDownloadLinks.ios.label'),
             icon: Expensicons.Apple,
             iconRight: Expensicons.NewWindow,
             action: () => {
@@ -34,11 +39,26 @@ const AppDownloadLinksPage = (props) => {
             },
         },
         {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
+            title: `${getOperatingSystem()} ${deferredPrompt
+                ? ''
+                : props.translate('initialSettingsPage.appDownloadLinks.desktop.alreadyInstalled')}`,
             icon: Expensicons.Monitor,
-            iconRight: Expensicons.NewWindow,
+            iconRight: Expensicons.Plus,
+            disabled: !deferredPrompt,
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
+                if (!deferredPrompt) {
+                    return;
+                }
+
+                // Show the installation prompt
+                deferredPrompt.prompt();
+
+                deferredPrompt.userChoice.then(({outcome}) => {
+                    Log.info('[PWA] User response to the install prompt', false, outcome);
+                });
+
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
             },
         },
     ];
@@ -54,10 +74,11 @@ const AppDownloadLinksPage = (props) => {
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, item => (
                     <MenuItem
-                        key={item.translationKey}
-                        title={props.translate(item.translationKey)}
+                        key={item.title}
+                        title={item.title}
                         icon={item.icon}
                         iconRight={item.iconRight}
+                        disabled={item.disabled}
                         onPress={() => item.action()}
                         shouldShowRightIcon
                     />
@@ -69,5 +90,14 @@ const AppDownloadLinksPage = (props) => {
 
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+
+    // Stash the event so it can be triggered later.
+    deferredPrompt = e;
+    Log.info('[PWA] beforeinstallprompt event was fired');
+});
 
 export default withLocalize(AppDownloadLinksPage);

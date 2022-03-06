@@ -288,6 +288,7 @@ export default {
             },
             desktop: {
                 label: 'macOS',
+                alreadyInstalled: '(Installed)',
             },
         },
         security: 'Security',
