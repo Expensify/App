@@ -6,7 +6,9 @@ const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
+const packageMeta = require('../../package.json');
 
 const includeModules = [
     'react-native-animatable',
@@ -82,6 +84,24 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // and not allow any straggling "old" SWs to hang around
             clientsClaim: true,
             skipWaiting: true,
+        }),
+
+        new WebpackPwaManifest({
+            name: 'New Expensify',
+            short_name: 'Expensify',
+            description: packageMeta.description,
+            background_color: '#ffffff',
+            theme_color: '#03d47c',
+            orientation: 'natural',
+            ios: true,
+            icons: [
+                {
+                    src: path.resolve(__dirname, '../../desktop', process.env.NODE_ENV === 'development' ? 'icon-dev.png' : 'icon.png'),
+                    sizes: [96, 128, 192, 256, 384, 512],
+                    purpose: 'any maskable',
+                    ios: true,
+                },
+            ],
         }),
 
         // This allows us to interactively inspect JS bundle contents
