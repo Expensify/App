@@ -364,6 +364,8 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    UNSUPPORTED_FILE_TYPES: ['image/svg+xml'],
+
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {

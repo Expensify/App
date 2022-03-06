@@ -70,6 +70,8 @@ class AttachmentModal extends PureComponent {
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+            confirmModalTitle: '',
+            confirmModalPrompt: '',
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -124,6 +126,15 @@ class AttachmentModal extends PureComponent {
      */
     closeConfirmModal() {
         this.setState({isConfirmModalOpen: false});
+    }
+
+    /**
+     * Checks whether file type is acceptable
+     * @param {String} type
+     * @returns {boolean}
+     */
+    isValidFileType(type) {
+        return !CONST.UNSUPPORTED_FILE_TYPES.includes(type);
     }
 
     /**
@@ -192,18 +203,30 @@ class AttachmentModal extends PureComponent {
                     )}
                 </Modal>
                 <ConfirmModal
-                    title={this.props.translate('attachmentPicker.attachmentTooLarge')}
+                    title={this.state.confirmModalTitle}
                     onConfirm={this.closeConfirmModal}
                     onCancel={this.closeConfirmModal}
                     isVisible={this.state.isConfirmModalOpen}
-                    prompt={this.props.translate('attachmentPicker.sizeExceeded')}
+                    prompt={this.state.confirmModalPrompt}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
                 {this.props.children({
                     displayFileInModal: ({file}) => {
+                        if (!this.isValidFileType(file.type)) {
+                            this.setState({
+                                isConfirmModalOpen: true,
+                                confirmModalTitle: this.props.translate('attachmentPicker.attachmentError'),
+                                confirmModalPrompt: this.props.translate('attachmentPicker.errorWhileSelectingUnsupportedFile'),
+                            });
+                            return;
+                        }
                         if (!this.isValidSize(file)) {
-                            this.setState({isConfirmModalOpen: true});
+                            this.setState({
+                                isConfirmModalOpen: true,
+                                confirmModalTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
+                                confirmModalPrompt: this.props.translate('attachmentPicker.sizeExceeded'),
+                            });
                             return;
                         }
                         if (file instanceof File) {
