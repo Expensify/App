@@ -2458,7 +2458,7 @@ const styles = {
     },
 
     closeAccountMessageInput: {
-        minHeight: 140,
+        height: 153,
     },
 };
 
