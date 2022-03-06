@@ -62,4 +62,5 @@ export default {
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
+    USE_SERVICE_WORKER: lodashGet(Config, 'USE_SERVICE_WORKER') === 'true' || global.location.hostname !== 'localhost',
 };

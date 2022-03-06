@@ -4,21 +4,10 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import Log from '../libs/Log';
+import CONFIG from '../CONFIG';
 
-export default function () {
-    /*
-     * Initialize the Onyx store when the app loads for the first time.
-     *
-     * Note: This Onyx initialization has been very intentionally placed completely outside of the React lifecycle of the main App component.
-     *
-     * To understand why we must do this, you must first understand that a typical React Native Android application consists of an Application and an Activity.
-     * The project root's index.js runs in the Application, but the main RN `App` component + UI runs in a separate Activity, spawned when you call AppRegistry.registerComponent.
-     * When an application launches in a headless JS context (i.e: when woken from a killed state by a push notification), only the Application is available, but not the UI Activity.
-     * This means that in a headless context NO REACT CODE IS EXECUTED, and none of your components will mount.
-     *
-     * However, we still need to use Onyx to update the underlying app data from the headless JS context.
-     * Therefore it must be initialized completely outside the React component lifecycle.
-     */
+function initOnyx() {
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
@@ -35,6 +24,38 @@ export default function () {
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
     });
+}
+
+function initSW() {
+    if (!navigator.serviceWorker || !CONFIG.USE_SERVICE_WORKER) {
+        return;
+    }
+
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+            Log.info('[SW] Service Worker registered', false, registration);
+        }).catch((registrationError) => {
+            Log.warn('[SW] SW registration failed', registrationError);
+        });
+    });
+}
+
+export default function () {
+    /*
+     * Initialize the Onyx store when the app loads for the first time.
+     *
+     * Note: This Onyx initialization has been very intentionally placed completely outside of the React lifecycle of the main App component.
+     *
+     * To understand why we must do this, you must first understand that a typical React Native Android application consists of an Application and an Activity.
+     * The project root's index.js runs in the Application, but the main RN `App` component + UI runs in a separate Activity, spawned when you call AppRegistry.registerComponent.
+     * When an application launches in a headless JS context (i.e: when woken from a killed state by a push notification), only the Application is available, but not the UI Activity.
+     * This means that in a headless context NO REACT CODE IS EXECUTED, and none of your components will mount.
+     *
+     * However, we still need to use Onyx to update the underlying app data from the headless JS context.
+     * Therefore it must be initialized completely outside the React component lifecycle.
+     */
+    initOnyx();
+    initSW();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
