@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const WorkboxPlugin = require('workbox-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -74,6 +75,13 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
             __DEV__: /staging|prod/.test(envFile) === false,
+        }),
+
+        new WorkboxPlugin.GenerateSW({
+            // these options encourage the ServiceWorkers to get in there fast
+            // and not allow any straggling "old" SWs to hang around
+            clientsClaim: true,
+            skipWaiting: true,
         }),
 
         // This allows us to interactively inspect JS bundle contents
