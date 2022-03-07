@@ -11,6 +11,7 @@ import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
+import * as store from './ReimbursementAccount/store';
 
 /**
  * Deletes a debit card
@@ -57,6 +58,19 @@ function continueSetup() {
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack();
     kycWallRef.current.continue();
+}
+
+/**
+ * Clears local reimbursement account if it doesn't exist in bankAccounts
+ * @param {Object[]} bankAccounts
+ */
+function cleanLocalReimbursementData(bankAccounts) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+    // We check if the bank account list doesn't have the reimbursementAccount
+    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    }
 }
 
 /**
@@ -247,16 +261,6 @@ function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
 
-function cleanLocalReimbursementData(bankAccounts) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-   // We check if the bank account list doesn't have the reimbursementAccount
-    if(!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    }
-}
-
-
 export {
     deleteDebitCard,
     deletePayPalMe,
@@ -272,5 +276,5 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
-    cleanLocalReimbursementData
+    cleanLocalReimbursementData,
 };
