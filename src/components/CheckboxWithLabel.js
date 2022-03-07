@@ -62,10 +62,10 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 
-    const onCheckboxPress = () => {
+    function toggleCheckbox() {
         props.onPress(!props.isChecked);
         props.onChange(!props.isChecked);
-    };
+    }
 
     if (!props.label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
@@ -75,7 +75,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
             <View style={wrapperStyles}>
                 <Checkbox
                     isChecked={props.isChecked}
-                    onPress={onCheckboxPress}
+                    onPress={toggleCheckbox}
                     label={props.label}
                     errorText={props.errorText}
                     forwardedRef={ref}
@@ -84,7 +84,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     shouldSaveDraft={props.shouldSaveDraft}
                 />
                 <TouchableOpacity
-                    onPress={onCheckboxPress}
+                    onPress={toggleCheckbox}
                     style={[
                         styles.ml3,
                         styles.pr2,
