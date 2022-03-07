@@ -189,7 +189,7 @@ class DebitCardPage extends Component {
     }
 
     /**
-     * Adds slash to the expiry date
+     * Add slash to the expiry date
      * @param {String} inputExpiryDate
      */
     addSlashToExpiryDate(inputExpiryDate) {
@@ -197,16 +197,25 @@ class DebitCardPage extends Component {
             return;
         }
         let expiryDate = inputExpiryDate;
+
+        // Expiry Date(MM)is added so append a slash(/)
         if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             expiryDate = `${inputExpiryDate}/`;
-        } if (inputExpiryDate.length > 3 && _.indexOf(inputExpiryDate, '/') === -1) {
+        } else if (inputExpiryDate.length > 3 && _.indexOf(inputExpiryDate, '/') === -1) {
+            // Expiry Date with MM and YY without slash, hence adding slash(/)
             expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
         }
         this.clearErrorAndSetValue('expirationDate', expiryDate);
     }
 
+    /**
+     * Remove slash from expiry date on backspace
+     * @param {Object} nativeEvent
+     */
     removeSlashFromExpiryDate(nativeEvent) {
         const expirationDate = this.state.expirationDate;
+
+        // Auto remove the slash and digit when backspace is pressed and it ends with slash
         if (nativeEvent.key === 'Backspace' && (expirationDate.length === 4 || (expirationDate.length === 3 && lodashEndsWith(expirationDate, '/')))) {
             this.allowExpirationDateChange = false;
             this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, prevState.expirationDate.length - 1)}));
