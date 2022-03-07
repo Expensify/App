@@ -82,13 +82,13 @@ class ReportDetailsPage extends Component {
 
         // Chat rooms will allow you to more things than typical chats so they have extra options
         if (ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
-                {
-                    translationKey: 'common.settings',
-                    icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-                },
-                {
+            this.menuItems.push({
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+            });
+            if (!ReportUtils.isDefaultRoom(this.props.report)) {
+                this.menuItems.push({
                     translationKey: 'common.invite',
                     icon: Expensicons.Plus,
                     action: () => { /* Placeholder for when inviting other users is built in */ },
@@ -97,8 +97,8 @@ class ReportDetailsPage extends Component {
                     translationKey: 'common.leaveRoom',
                     icon: Expensicons.Exit,
                     action: () => { /* Placeholder for when leaving rooms is built in */ },
-                },
-            ]);
+                });
+            }
         }
     }
 
