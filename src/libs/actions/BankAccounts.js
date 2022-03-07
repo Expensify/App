@@ -103,7 +103,13 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
  * @param {Number} bankAccountID
  */
 function deleteBankAccount(bankAccountID) {
-    DeprecatedAPI.DeleteBankAccount({
+    const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+    if(reimbursementBankAccountId === bankAccountID) {
+        BankAccounts.resetFreePlanBankAccount();
+        return;
+    }
+
+    API.DeleteBankAccount({
         bankAccountID,
     }).then((response) => {
         if (response.jsonCode === 200) {
