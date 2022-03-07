@@ -196,10 +196,7 @@ class BaseTextInput extends Component {
             this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
-        ], (finalStyles, s) => ({
-            ...finalStyles,
-            ...s,
-        }), {});
+        ], (finalStyles, s) => ({...finalStyles, ...s}), {});
 
         return (
             <>
@@ -211,7 +208,14 @@ class BaseTextInput extends Component {
                         ]}
                     >
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
-                            <View style={[textInputContainerStyles, this.props.autoGrow && styles.mnw2]}>
+                            <View
+                                style={[
+                                    textInputContainerStyles,
+
+                                    // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
+                                    this.props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
+                                ]}
+                            >
                                 {hasLabel ? (
                                     <>
                                         {/* Adding this background to the label only for multiline text input,
