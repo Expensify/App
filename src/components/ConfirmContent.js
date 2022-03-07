@@ -40,7 +40,6 @@ const propTypes = {
     contentStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
-
 };
 
 const defaultProps = {
