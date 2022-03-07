@@ -188,15 +188,19 @@ class DebitCardPage extends Component {
         }));
     }
 
-    addSlashToExpiryDate(text) {
+    /**
+     * Adds slash to the expiry date
+     * @param {String} inputExpiryDate
+     */
+    addSlashToExpiryDate(inputExpiryDate) {
         if (!this.allowExpirationDateChange) {
             return;
         }
-        let expiryDate = text;
-        if (text.length === 2 && _.indexOf(text, '/') === -1) {
-            expiryDate = `${text}/`;
-        } if (text.length > 3 && _.indexOf(text, '/') === -1) {
-            expiryDate = `${text.slice(0, 2)}/${text.slice(2)}`;
+        let expiryDate = inputExpiryDate;
+        if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+            expiryDate = `${inputExpiryDate}/`;
+        } if (inputExpiryDate.length > 3 && _.indexOf(inputExpiryDate, '/') === -1) {
+            expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
         }
         this.clearErrorAndSetValue('expirationDate', expiryDate);
     }
