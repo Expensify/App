@@ -70,9 +70,9 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `EXPENSIFY_URL_CASH` - The root URL used for the website
-- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
-- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `NEW_EXPENSIFY_URL` - The root URL used for the website
+- `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
+- `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
@@ -98,15 +98,6 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
-
-## End to end tests
-End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
-In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
-We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
-
-You are first required to build the tests, then you can run them:
-1. To build the **Detox end to end tests**: `npm run detox-build`
-2. To run the **Detox end to end tests**: `npm run detox-test`
 
 ----
 

@@ -9,7 +9,7 @@ BaseErrorBoundary.defaultProps.logError = (errorMessage, error, errorInfo) => {
 
     /* On native we also log the error to crashlytics
     * Since the error was handled we need to manually tell crashlytics about it */
-    crashlytics().log(`errorInfo: ${JSON.stringify(errorInfo)}`);
+    crashlytics().log(`errorInfo: ${errorInfo}`);
     crashlytics().recordError(error);
 };
 

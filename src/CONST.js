@@ -1,11 +1,10 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import ENVIRONMENT from './ENVIRONMENT';
-import * as Url from '../libs/Url';
+import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
-const ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com'));
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
@@ -16,11 +15,11 @@ const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
-    ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: `${ACTIVE_ENVIRONMENT_NEW_EXPENSIFY_URL}NewExpensify.dmg`,
+        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -203,8 +202,6 @@ const CONST = {
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
-    NEWDOT: 'new.expensify.com',
-    NEW_EXPENSIFY_URL: 'https://new.expensify.com',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
@@ -299,6 +296,7 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
+        REQUEST_CANCELLED: 'AbortError',
     },
     NETWORK: {
         METHOD: {
@@ -306,6 +304,7 @@ const CONST = {
         },
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
+        MAX_PENDING_TIME_MS: 10 * 1000,
     },
     HTTP_STATUS_CODE: {
         SUCCESS: 200,
@@ -368,7 +367,10 @@ const CONST = {
 
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
-    EMOJI_PICKER_SIZE: 320,
+    EMOJI_PICKER_SIZE: {
+        WIDTH: 320,
+        HEIGHT: 400,
+    },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -391,6 +393,12 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+    },
+
+    ENVIRONMENT: {
+        DEV: 'development',
+        STAGING: 'staging',
+        PRODUCTION: 'production',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -417,6 +425,7 @@ const CONST = {
             },
         },
         ERROR: {
+            FULL_SSN_NOT_FOUND: 'Full SSN not found',
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',
             UNEXPECTED: 'Unexpected error',
@@ -528,6 +537,7 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+        ROOM_PREFIX: '#',
     },
 
     TERMS: {
@@ -542,8 +552,14 @@ const CONST = {
     AVATAR_SIZE: {
         LARGE: 'large',
         DEFAULT: 'default',
+        SMALL: 'small',
+        SUBSCRIPT: 'subscript',
+        SMALL_SUBSCRIPT: 'small-subscript',
     },
-
+    OPTION_MODE: {
+        COMPACT: 'compact',
+        DEFAULT: 'default',
+    },
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {
@@ -560,6 +576,7 @@ const CONST = {
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
+        SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
@@ -610,7 +627,5 @@ const CONST = {
         ];
     },
 };
-
-CONST.ENVIRONMENT = ENVIRONMENT;
 
 export default CONST;
