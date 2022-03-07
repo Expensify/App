@@ -74,14 +74,13 @@ const ConfirmContent = props => (
             pressOnEnter
             text={props.confirmText || props.translate('common.yes')}
         />
-        {props.shouldShowCancelButton
-    && (
-        <Button
-            style={[styles.mt3]}
-            onPress={props.onCancel}
-            text={props.cancelText || props.translate('common.no')}
-        />
-    )}
+        {props.shouldShowCancelButton && (
+            <Button
+                style={[styles.mt3]}
+                onPress={props.onCancel}
+                text={props.cancelText || props.translate('common.no')}
+            />
+        )}
     </View>
 );
 
