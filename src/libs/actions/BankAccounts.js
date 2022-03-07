@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as Plaid from './Plaid';
@@ -8,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as PaymentMethods from './PaymentMethods';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -104,8 +106,8 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
  */
 function deleteBankAccount(bankAccountID) {
     const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-    if(reimbursementBankAccountId === bankAccountID) {
-        BankAccounts.resetFreePlanBankAccount();
+    if (reimbursementBankAccountId === bankAccountID) {
+        ReimbursementAccount.resetFreePlanBankAccount();
         return;
     }
 
