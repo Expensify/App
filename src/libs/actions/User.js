@@ -15,10 +15,12 @@ import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
+import CONFIG from '../../CONFIG';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
+import fileDownload from '../fileDownload';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -397,6 +399,25 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
+/**
+ * Downloads the statement PDF for the provided period
+ * @param {String} period YYYYMM format
+ */
+function downloadStatementPDF(period) {
+    API.GetStatementPDF({period})
+        .then((response) => {
+            if (response.jsonCode === 200 && response.filename) {
+                const downloadFileName = `Expensify_Statement_${response.period}.pdf`;
+                const pdfURL = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
+
+                fileDownload(pdfURL, downloadFileName);
+            } else {
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        })
+        .catch(() => Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000));
+}
+
 export {
     changePasswordAndNavigate,
     closeAccount,
@@ -416,4 +437,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
+    downloadStatementPDF,
 };
