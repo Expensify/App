@@ -139,6 +139,7 @@ class ReportActionCompose extends React.Component {
 
         this.currentSelection = null;
         this.isEmojiPickerShown = false;
+        this.maxLines = 16;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -157,7 +158,10 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        TextInputUtils.setTextAndSelection(this.textInput, this.comment, {start: this.comment.length, end: this.comment.length});
+        TextInputUtils.setTextAndSelection(
+            this.textInput, 
+            {text: this.comment, selection: {start: this.comment.length, end: this.comment.length}},
+        );
         this.updateComment(this.comment);
     }
 
@@ -276,7 +280,11 @@ class ReportActionCompose extends React.Component {
             end: start + emoji.length,
         };
 
-        TextInputUtils.setTextAndSelection(this.textInput, newComment, nextSelection);
+        TextInputUtils.setTextAndSelection(
+            this.textInput, 
+            {text: newComment, selection: nextSelection},
+            {shouldUpdateRowHeight: true, maxLines: this.maxLines},
+        );
         this.updateComment(newComment);
     }
 
@@ -582,7 +590,7 @@ class ReportActionCompose extends React.Component {
                                         this.setState({isDraggingOver: false});
                                     }}
                                     style={[styles.textInputCompose, styles.flex4]}
-                                    maxLines={16} // This is the same that slack has
+                                    maxLines={this.maxLines} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
