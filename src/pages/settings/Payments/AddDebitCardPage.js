@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import lodashEndsWith from 'lodash/endsWith';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -201,7 +202,8 @@ class DebitCardPage extends Component {
     }
 
     removeSlashFromExpiryDate(nativeEvent) {
-        if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 4) {
+        const expirationDate = this.state.expirationDate;
+        if (nativeEvent.key === 'Backspace' && (expirationDate.length === 4 || (expirationDate.length === 3 && lodashEndsWith(expirationDate, '/')))) {
             this.allowExpirationDateChange = false;
             this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, prevState.expirationDate.length - 1)}));
         } else {
