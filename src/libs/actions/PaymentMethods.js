@@ -77,6 +77,7 @@ function getPaymentMethods() {
             // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
             const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
             const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
+            cleanLocalReimbursementData(bankAccounts);
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
@@ -246,6 +247,16 @@ function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
 
+function cleanLocalReimbursementData(bankAccounts) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+   // We check if the bank account list doesn't have the reimbursementAccount
+    if(!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    }
+}
+
+
 export {
     deleteDebitCard,
     deletePayPalMe,
@@ -261,4 +272,5 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
+    cleanLocalReimbursementData
 };
