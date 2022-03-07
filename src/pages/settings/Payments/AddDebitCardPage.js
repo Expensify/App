@@ -185,17 +185,26 @@ class DebitCardPage extends Component {
         }));
     }
 
-    /**
-     * Insert string at index position for a given input string
-     * @param {String} inputString
-     * @param {Number} indexPosition
-     * @param {String} stringToAdd
-     * @returns {String}
-     */
-    insertStringAt(inputString, indexPosition, stringToAdd) {
-        return inputString.slice(0, indexPosition)
-                    + stringToAdd
-                    + inputString.slice(indexPosition);
+    addSlashToExpiryDate(text) {
+        if (!this.allowExpirationDateChange) {
+            return;
+        }
+        let expiryDate = text;
+        if (text.length === 2 && _.indexOf(text, '/') === -1) {
+            expiryDate = `${text}/`;
+        } if (text.length > 3 && _.indexOf(text, '/') === -1) {
+            expiryDate = `${text.slice(0, 2)}/${text.slice(2)}`;
+        }
+        this.clearErrorAndSetValue('expirationDate', expiryDate);
+    }
+
+    removeSlashFromExpiryDate(nativeEvent) {
+        if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 4) {
+            this.allowExpirationDateChange = false;
+            this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, prevState.expirationDate.length - 1)}));
+        } else {
+            this.allowExpirationDateChange = true;
+        }
     }
 
     render() {
@@ -235,20 +244,8 @@ class DebitCardPage extends Component {
                                         maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                        onKeyPress={({nativeEvent}) => {
-                                            if (nativeEvent.key === 'Backspace' && this.state.expirationDate.length === 4) {
-                                                this.allowExpirationDateChange = false;
-                                                this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, 3)}));
-                                            } else {
-                                                this.allowExpirationDateChange = true;
-                                            }
-                                        }}
-                                        onChangeText={(text) => {
-                                            if (!this.allowExpirationDateChange) {
-                                                return;
-                                            }
-                                            this.clearErrorAndSetValue('expirationDate', text.length === 2 && _.indexOf(text, '/') === -1 ? `${text}/` : text);
-                                        }}
+                                        onKeyPress={this.removeSlashFromExpiryDate}
+                                        onChangeText={this.addSlashToExpiryDate}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
