@@ -161,7 +161,7 @@ const InitialSettingsPage = (props) => {
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
-                                size="large"
+                                size={CONST.AVATAR_SIZE.LARGE}
                                 source={props.myPersonalDetails.avatar}
                                 isActive={props.network.isOffline === false}
                                 tooltipText={props.myPersonalDetails.displayName}

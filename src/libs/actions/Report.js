@@ -123,7 +123,7 @@ function getUnreadActionCount(report) {
  */
 function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
+    return (ReportUtils.isChatRoom(reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -182,7 +182,7 @@ function getSimplifiedReportObject(report) {
         // We convert the line-breaks in html to space ' ' before striping the tags
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+            .replace(/(<([^>]+)>)/gi, '');
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -547,21 +547,15 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // Don't do anything for messages that aren't deleted.
-        if (message.html) {
-            return;
+        // If the message is deleted, update the last read message and the unread counter
+        if (!message.html) {
+            setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         }
 
-        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
-        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-    });
-
-    // If this is the most recent message, update the lastMessageText in the report object as well
-    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
         });
-    }
+    });
 }
 
 /**
@@ -1505,7 +1499,6 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    Navigation.closeDrawer();
 }
 
 /**

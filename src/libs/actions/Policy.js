@@ -68,7 +68,6 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         rate: {
             id: customUnitRate.customUnitRateID,
             name: customUnitRate.name,
-            currency: customUnitRate.currency,
             value: Number(customUnitRate.rate),
         },
     };
@@ -183,8 +182,7 @@ function deletePolicy(policyID) {
         })
         .then(() => Report.fetchAllReports(false, true))
         .then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.goBack();
             return Promise.resolve();
         });
 }
