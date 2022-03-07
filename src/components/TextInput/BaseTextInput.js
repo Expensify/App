@@ -313,7 +313,7 @@ class BaseTextInput extends Component {
                 */}
                 {this.props.autoGrow && (
                     <Text
-                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow]}
+                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                     >
                         {this.state.value || this.props.placeholder}
