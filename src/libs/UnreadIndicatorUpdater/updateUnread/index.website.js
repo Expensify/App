@@ -12,6 +12,14 @@ function updateUnread(totalCount) {
     const hasUnread = totalCount !== 0;
     document.title = hasUnread ? `(${totalCount}) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
     document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+
+    if ('setAppBadge' in global.navigator) {
+        if (hasUnread) {
+            navigator.setAppBadge(totalCount).catch(console.error);
+        } else {
+            navigator.clearAppBadge().catch(console.error);
+        }
+    }
 }
 
 export default updateUnread;
