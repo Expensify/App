@@ -4,7 +4,6 @@ import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import ConfirmContent from './ConfirmContent';
 
-
 const propTypes = {
     /** Title of the modal */
     title: PropTypes.string.isRequired,
