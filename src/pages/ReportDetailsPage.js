@@ -100,6 +100,17 @@ class ReportDetailsPage extends Component {
                 },
             ]);
         }
+
+        // Policy Expense Chats will also allow the user to see settings[]
+        if (ReportUtils.isPolicyExpenseChat(this.props.report)) {
+            this.menuItems = this.menuItems.concat([
+                {
+                    translationKey: 'common.settings',
+                    icon: Expensicons.Gear,
+                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+                },
+            ])
+        }
     }
 
     render() {

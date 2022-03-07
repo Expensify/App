@@ -152,7 +152,9 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+        const shouldShowRename = !ReportUtils.isPolicyExpenseChat(this.props.report);
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
+            || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
         return (
@@ -184,32 +186,34 @@ class ReportSettingsPage extends Component {
                             />
                         </View>
                     </View>
-                    <View style={styles.mt4}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('newRoomPage.roomName')}
-                        </Text>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex3]}>
-                                <RoomNameInput
-                                    initialValue={this.state.newRoomName}
-                                    policyID={linkedWorkspace && linkedWorkspace.id}
-                                    errorText={this.state.errors.newRoomName}
-                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                    disabled={shouldDisableRename}
+                    {shouldShowRename && (
+                        <View style={styles.mt4}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('newRoomPage.roomName')}
+                            </Text>
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex3]}>
+                                    <RoomNameInput
+                                        initialValue={this.state.newRoomName}
+                                        policyID={linkedWorkspace && linkedWorkspace.id}
+                                        errorText={this.state.errors.newRoomName}
+                                        onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                        disabled={shouldDisableRename}
+                                    />
+                                </View>
+                                <Button
+                                    success={!shouldDisableRename}
+                                    text={this.props.translate('common.save')}
+                                    onPress={this.validateAndRenameReport}
+                                    style={[styles.ml2, styles.flex1]}
+                                    textStyles={[styles.label]}
+                                    innerStyles={[styles.reportSettingsChangeNameButton]}
+                                    isLoading={this.props.isLoadingRenamePolicyRoom}
+                                    isDisabled={shouldDisableRename}
                                 />
                             </View>
-                            <Button
-                                success={!shouldDisableRename}
-                                text={this.props.translate('common.save')}
-                                onPress={this.validateAndRenameReport}
-                                style={[styles.ml2, styles.flex1]}
-                                textStyles={[styles.label]}
-                                innerStyles={[styles.reportSettingsChangeNameButton]}
-                                isLoading={this.props.isLoadingRenamePolicyRoom}
-                                isDisabled={shouldDisableRename}
-                            />
                         </View>
-                    </View>
+                    )}
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
