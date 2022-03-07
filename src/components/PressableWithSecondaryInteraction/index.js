@@ -12,7 +12,7 @@ import styles from '../../styles/styles';
 class PressableWithSecondaryInteraction extends Component {
     constructor(props) {
         super(props);
-        this.onLongPressGestureHandlerStateChange = this.onLongPressGestureHandlerStateChange.bind(this);
+        this.callSecondaryInteractionWithMappedEvent = this.callSecondaryInteractionWithMappedEvent.bind(this);
         this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
     }
 
@@ -64,7 +64,7 @@ class PressableWithSecondaryInteraction extends Component {
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
-            <LongPressGestureHandler onHandlerStateChange={this.onLongPressGestureHandlerStateChange}>
+            <LongPressGestureHandler onHandlerStateChange={this.callSecondaryInteractionWithMappedEvent}>
                 <Pressable
                     style={this.props.inline && styles.dInline}
                     onPressIn={this.props.onPressIn}
