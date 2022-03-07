@@ -190,6 +190,16 @@ class BaseTextInput extends Component {
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
         const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
+        const textInputContainerStyles = _.reduce([
+            styles.textInputContainer,
+            ...this.props.textInputContainerStyles,
+            this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+            !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
+            (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+        ], (finalStyles, s) => ({
+            ...finalStyles,
+            ...s,
+        }), {});
 
         return (
             <>
@@ -201,15 +211,7 @@ class BaseTextInput extends Component {
                         ]}
                     >
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
-                            <View
-                                style={[
-                                    styles.textInputContainer,
-                                    ...this.props.textInputContainerStyles,
-                                    this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
-                                    !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
-                                    (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
-                                ]}
-                            >
+                            <View style={[textInputContainerStyles, this.props.autoGrow && styles.mnw2]}>
                                 {hasLabel ? (
                                     <>
                                         {/* Adding this background to the label only for multiline text input,
