@@ -108,17 +108,22 @@ class NewChatPage extends Component {
             }
         }
 
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const recentReportsWithoutSelected = _.filter(this.state.recentReports, ({login}) => !filterText.includes(login));
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+
         sections.push({
             title: this.props.translate('common.recents'),
-            data: this.state.recentReports,
-            shouldShow: !_.isEmpty(this.state.recentReports),
+            data: recentReportsWithoutSelected,
+            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
@@ -175,8 +180,8 @@ class NewChatPage extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
-                newSelectedOptions,
+                prevState.searchValue,
+                [],
                 this.excludedGroupEmails,
             );
 
@@ -185,7 +190,7 @@ class NewChatPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -262,6 +267,7 @@ class NewChatPage extends Component {
                                         disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
+                                        shouldFocusOnSelectRow={this.props.isGroupChat}
                                     />
                                     {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>

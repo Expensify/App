@@ -8,6 +8,38 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 
 /**
+ * Return the style size from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarSize(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+        [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    };
+    return AVATAR_SIZES[size];
+}
+
+/**
+ * Return the style from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getAvatarStyle(size) {
+    const avatarSize = getAvatarSize(size);
+    return {
+        height: avatarSize,
+        width: avatarSize,
+        borderRadius: avatarSize,
+    };
+}
+
+/**
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
@@ -104,7 +136,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
-        if (zoomScale > 1) {
+        if (zoomScale >= 1) {
             return {
                 height: `${imgHeight * zoomScale}px`,
                 width: `${imgWidth * zoomScale}px`,
@@ -309,8 +341,14 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
  * @returns {String}
  */
 function getEmojiPickerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            width: '100%',
+        };
+    }
     return {
-        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+        width: CONST.EMOJI_PICKER_SIZE.WIDTH,
+        height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
     };
 }
 
@@ -398,7 +436,20 @@ function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
 }
 
+/**
+ * Get variable padding-left as style
+ * @param {Number} paddingLeft
+ * @returns {Object}
+ */
+function getPaddingLeft(paddingLeft) {
+    return {
+        paddingLeft,
+    };
+}
+
 export {
+    getAvatarSize,
+    getAvatarStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
@@ -422,4 +473,5 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    getPaddingLeft,
 };

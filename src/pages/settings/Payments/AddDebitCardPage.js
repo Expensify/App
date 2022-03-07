@@ -84,7 +84,7 @@ class DebitCardPage extends Component {
             addressStreet: 'addDebitCardPage.error.addressStreet',
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
-            acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            acceptedTerms: 'common.error.acceptedTerms',
             password: 'addDebitCardPage.error.password',
         };
 

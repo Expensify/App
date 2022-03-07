@@ -7,12 +7,16 @@ import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
         /**  Avatars corresponding to a chat */
         icons: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the user is not an admin of policyExpenseChat chat */
+        isOwnPolicyExpenseChat: PropTypes.bool,
     }),
 };
 const defaultProps = {
@@ -21,7 +25,8 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
-
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
     return (
         <View style={[
             styles.chatContent,
@@ -31,9 +36,8 @@ const ReportActionItemCreated = (props) => {
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
-                    avatarImageURLs={props.report.icons}
-                    secondAvatarStyle={[styles.secondAvatarHovered]}
-                    isChatRoom={isChatRoom}
+                    avatarIcons={avatarIcons}
+                    shouldShowLargeAvatars={isPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />
             </View>

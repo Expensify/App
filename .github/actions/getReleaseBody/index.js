@@ -47,8 +47,25 @@ function getJSONInput(name, options, defaultValue = undefined) {
     return defaultValue;
 }
 
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+
 module.exports = {
     getJSONInput,
+    getStringInput,
 };
 
 

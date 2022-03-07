@@ -31,6 +31,62 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
+### PR Review Checklist
+<!--
+This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
+-->
+#### Contributor (PR Author) Checklist
+- [ ] I verified the PR has a small number of commits behind `main`
+- [ ] I linked the correct issue in the `### Fixed Issues` section above
+- [ ] I wrote clear testing steps that cover the changes made in this PR
+    - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
+- [ ] I wrote testing steps that cover success & fail scenarios (if applicable)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I ran the tests & veryfy they passed on:
+    - [ ] iOS / native
+    - [ ] Android / native
+    - [ ] iOS / Safari
+    - [ ] Android / Chrome
+    - [ ] MacOS / Chrome
+    - [ ] MacOS / Desktop
+- [ ] I verified there are no console errors related to changes in this PR
+- [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [ ] I added comments when the code was not self explanatory
+    - [ ] I put all copy / text shown in the product in all `src/languages/*` files (if applicable)
+    - [ ] I followed proper naming convention for platform-specific files (if applicable)
+    - [ ] I followed style guidelines (in [`Styling.md`](https://github.com/Expensify/App/blob/main/STYLING.md)) for all style edits I made
+    - [ ] I followed the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs))
+- [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
+- [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
+- [ ] I corroborated the UI performance was not affected (the performance is the same than `main` branch)
+- [ ] If I created a new component I verified that a similar component doesn't exist in the codebase
+
+#### PR Reviewer Checklist
+- [ ] I verified the PR has a small number of commits behind `main`
+- [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
+- [ ] I verified testing steps are clear and they cover the changes made in this PR
+    - [ ] I verified the testing environment is mentioned in the test steps
+- [ ] I verified testing steps cover success & fail scenarios (if applicable)
+- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I verified tests pass on **all platforms** & I tested again on:
+    - [ ] iOS / native
+    - [ ] Android / native
+    - [ ] iOS / Safari
+    - [ ] Android / Chrome
+    - [ ] MacOS / Chrome
+    - [ ] MacOS / Desktop
+- [ ] I verified there are no console errors related to changes in this PR
+- [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [ ] I verified comments were added when the code was not self explanatory
+    - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files (if applicable)
+    - [ ] I verified proper naming convention for platform-specific files was followed (if applicable)
+    - [ ] I verified [style guidelines](https://github.com/Expensify/App/blob/main/STYLING.md) were followed
+    - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
+- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
+- [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
+- [ ] I verified the UI performance was not affected (the performance is the same than `main` branch)
+- [ ] If a new component is created I verified that a similar component doesn't exist in the codebase
+
 ### QA Steps
 <!---
 Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
@@ -44,14 +100,6 @@ For example:
 --->
 
 - [ ] Verify that no errors appear in the JS console
-
-### Tested On
-
-- [ ] Web
-- [ ] Mobile Web
-- [ ] Desktop
-- [ ] iOS
-- [ ] Android
 
 ### Screenshots
 <!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
