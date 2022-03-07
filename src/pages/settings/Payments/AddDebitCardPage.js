@@ -210,13 +210,13 @@ class DebitCardPage extends Component {
 
     /**
      * Remove slash from expiry date on backspace
-     * @param {Object} nativeEvent
+     * @param {Object} e
      */
-    removeSlashFromExpiryDate(nativeEvent) {
+    removeSlashFromExpiryDate(e) {
         const expirationDate = this.state.expirationDate;
 
         // Auto remove the slash and digit when backspace is pressed and it ends with slash
-        if (nativeEvent.key === 'Backspace' && (expirationDate.length === 4 || (expirationDate.length === 3 && lodashEndsWith(expirationDate, '/')))) {
+        if (e.nativeEvent.key === 'Backspace' && (expirationDate.length === 4 || (expirationDate.length === 3 && lodashEndsWith(expirationDate, '/')))) {
             this.allowExpirationDateChange = false;
             this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, prevState.expirationDate.length - 1)}));
         } else {
