@@ -2,7 +2,7 @@
 
 If you need help, have any questions or suggestions, please ask in the [`#expensify-open-source` Slack channel](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#asking-questions).
 
-Majority of the contributors need MacOS for short bursts of time for the purpose of testing. Cloud services that offer MacOS instances like AWS, MacInCloud, MacStadium etc have a very high minimum cost. [Scaleway’s M1 Mac minis](https://www.scaleway.com/en/hello-m1/) provide dedicated instances at just $2.7 per day.
+The majority of the contributors need MacOS for short bursts of time for the purpose of testing. Cloud services that offer MacOS instances like AWS, MacInCloud, MacStadium etc have a very high minimum cost. [Scaleway’s M1 Mac minis](https://www.scaleway.com/en/hello-m1/) provide dedicated instances at just $2.7 per day.
 
 | **Cloud provider**|**Minimum cost** |
 | ----------- | ----------- |
