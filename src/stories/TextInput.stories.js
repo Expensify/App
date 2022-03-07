@@ -62,7 +62,11 @@ AutoGrow.storyName = 'Autogrow input';
 AutoGrow.args = {
     label: 'Autogrow input',
     name: 'AutoGrow',
-    placeholder: 'My placeholder text',
+    placeholder: 'My placeholder',
+    autoGrow: true,
+    textInputContainerStyles: [{
+        minWidth: 150,
+    }],
 };
 
 const Prefixed = Template.bind({});
