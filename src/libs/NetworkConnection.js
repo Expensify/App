@@ -1,15 +1,19 @@
 import _ from 'underscore';
-import NetInfo from './NetInfo';
+import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
-import * as Network from './actions/Network';
+import * as NetworkActions from './actions/Network';
+import * as NetowrkLib from './Network';
+import CONFIG from '../CONFIG';
+import CONST from '../CONST';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
 let unsubscribeFromAppState;
 let isOffline = false;
+let hasPendingNetworkCheck = true;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -19,9 +23,9 @@ const reconnectionCallbacks = [];
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
     Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-    Network.setIsLoadingAfterReconnect(true);
+    NetworkActions.setIsLoadingAfterReconnect(true);
     promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
-        .then(() => Network.setIsLoadingAfterReconnect(false));
+        .then(() => NetworkActions.setIsLoadingAfterReconnect(false));
 }, 5000, {trailing: false});
 
 /**
@@ -31,7 +35,7 @@ const triggerReconnectionCallbacks = _.throttle((reason) => {
  * @param {Boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
-    Network.setIsOffline(isCurrentlyOffline);
+    NetworkActions.setIsOffline(isCurrentlyOffline);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
@@ -47,6 +51,30 @@ function setOfflineStatus(isCurrentlyOffline) {
  * internet connectivity or not. This is more reliable than the Pusher
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
+function subscribeToNetInfo() {
+    // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
+    NetInfo.configure({
+        // By default, for web (including Electron) NetInfo uses `/` for `reachabilityUrl`
+        // When App is served locally or from Electron this would respond with OK even with no internet
+        // Using API url ensures reachability is tested over internet
+        reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
+        reachabilityTest: response => Promise.resolve(response.status === 200),
+
+        // If a check is taking longer than this time we're considered offline
+        reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+    });
+
+    // Subscribe to the state change event via NetInfo so we can update
+    // whether a user has internet connectivity or not.
+    unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
+        Log.info('[NetworkConnection] NetInfo state change', false, state);
+        setOfflineStatus(state.isInternetReachable === false);
+
+        // When internet state is indeterminate a check is already running. Set the flag to prevent duplicate checks
+        hasPendingNetworkCheck = state.isInternetReachable === null;
+    });
+}
+
 function listenForReconnect() {
     Log.info('[NetworkConnection] listenForReconnect called');
 
@@ -54,12 +82,7 @@ function listenForReconnect() {
         triggerReconnectionCallbacks('app became active');
     });
 
-    // Subscribe to the state change event via NetInfo so we can update
-    // whether a user has internet connectivity or not.
-    unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
-        Log.info(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
-        setOfflineStatus(!state.isConnected);
-    });
+    subscribeToNetInfo();
 }
 
 /**
@@ -85,6 +108,19 @@ function stopListeningForReconnect() {
 function onReconnect(callback) {
     reconnectionCallbacks.push(callback);
 }
+
+function recheckNetworkConnection() {
+    if (hasPendingNetworkCheck) {
+        return;
+    }
+
+    Log.info('[NetworkConnection] recheck NetInfo');
+    hasPendingNetworkCheck = true;
+    unsubscribeFromNetInfo();
+    subscribeToNetInfo();
+}
+
+NetowrkLib.registerConnectionCheckCallback(recheckNetworkConnection);
 
 export default {
     setOfflineStatus,

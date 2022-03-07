@@ -68,6 +68,7 @@ class BankAccountStep extends React.Component {
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
+            hasAcceptedTerms: 'common.error.acceptedTerms',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -312,7 +313,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
-                            errorText={this.getErrors().hasAcceptedTerms ? this.props.translate('addDebitCardPage.error.acceptedTerms') : ''}
+                            errorText={this.getErrorText('hasAcceptedTerms')}
                         />
                     </ReimbursementAccountForm>
                 )}

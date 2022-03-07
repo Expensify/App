@@ -55,7 +55,7 @@ class ACHContractStep extends React.Component {
 
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
-            acceptTermsAndConditions: 'beneficialOwnersStep.error.termsAndConditions',
+            acceptTermsAndConditions: 'common.error.acceptedTerms',
             certifyTrueInformation: 'beneficialOwnersStep.error.certify',
         };
 
