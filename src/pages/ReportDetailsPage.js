@@ -109,7 +109,7 @@ class ReportDetailsPage extends Component {
                     icon: Expensicons.Gear,
                     action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
                 },
-            ])
+            ]);
         }
     }
 
