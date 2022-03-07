@@ -92,6 +92,8 @@ class DebitCardPage extends Component {
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
         this.allowExpirationDateChange = true;
+        this.addSlashToExpiryDate = this.addSlashToExpiryDate.bind(this);
+        this.removeSlashFromExpiryDate = this.removeSlashFromExpiryDate.bind(this);
     }
 
     /**
