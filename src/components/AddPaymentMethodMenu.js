@@ -42,7 +42,6 @@ const AddPaymentMethodMenu = props => (
         isVisible={props.isVisible}
         onClose={props.onClose}
         anchorPosition={props.anchorPosition}
-        fromSidebarMediumScreen={!props.isSmallScreenWidth}
         onItemSelected={() => props.onClose()}
         menuItems={[
             {
