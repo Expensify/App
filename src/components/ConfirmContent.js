@@ -30,7 +30,7 @@ const propTypes = {
     /** Whether we should use the success button color */
     success: PropTypes.bool,
 
-    /** Is the action destructive */
+    /** Whether we should use the danger button color. Use if the action is destructive */
     danger: PropTypes.bool,
 
     /** Whether we should show the cancel button */
