@@ -30,7 +30,7 @@ class PressableWithSecondaryInteraction extends Component {
     /**
      * @param {Object} e
      */
-    onLongPressGestureHandlerStateChange(e) {
+    callSecondaryInteractionWithMappedEvent(e) {
         if (e.nativeEvent.state !== State.ACTIVE) {
             return;
         }
