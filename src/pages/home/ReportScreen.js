@@ -106,9 +106,6 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
-        setTimeout(() => {
-            this.setState({isGhostScreenVisible: false});
-        }, 3000);
     }
 
     componentDidUpdate(prevProps) {
@@ -122,6 +119,21 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
+    }
+
+    /**
+     * When the report data is loaded, hide the ghost screen
+     *
+     * @static
+     * @param {Object} props
+     * @param {Object} state
+     * @return {Object|null}
+     */
+    static getDerivedStateFromProps(props, state) {
+        if (state.isGhostScreenVisible && props.isLoadingReportData === false) {
+            return {isGhostScreenVisible: false};
+        }
+        return null;
     }
 
     /**
