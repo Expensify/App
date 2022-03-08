@@ -11,7 +11,7 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
         };
-        this.defaultValue = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        this.defaultValue = this.props.defaultValue !== undefined ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         this.showPicker = this.showPicker.bind(this);
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }

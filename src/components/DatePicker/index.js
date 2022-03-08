@@ -17,6 +17,7 @@ class Datepicker extends React.Component {
 
         this.raiseDateChange = this.raiseDateChange.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
+        this.defaultValue = this.props.defaultValue !== undefined ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
     }
 
     componentDidMount() {
@@ -59,8 +60,6 @@ class Datepicker extends React.Component {
     }
 
     render() {
-        const inputValue = this.props.value !== undefined ? this.props.value : this.props.defaultValue;
-        const dateAsText = inputValue !== undefined ? moment(inputValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <TextInput
                 forceActiveLabel={!this.props.isSmallScreenWidth}
@@ -74,7 +73,7 @@ class Datepicker extends React.Component {
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}
                 onBlur={this.props.onBlur}
-                defaultValue={dateAsText}
+                defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}

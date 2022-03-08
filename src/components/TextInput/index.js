@@ -20,7 +20,19 @@ class TextInput extends React.Component {
             <BaseTextInput
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                ref={this.props.innerRef}
+                innerRef={(el) => {
+                    this.textInput = el;
+                    if (!this.props.innerRef) {
+                        return;
+                    }
+
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(el);
+                        return;
+                    }
+
+                    this.props.innerRef.current = el;
+                }}
                 inputStyle={[styles.baseTextInput, styles.textInputDesktop, ...this.props.inputStyle]}
             />
         );
