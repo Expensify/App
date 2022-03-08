@@ -149,6 +149,8 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -307,7 +309,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.length === 0,
+            isCommentEmpty: newComment.trim().length === 0,
         });
 
         // Indicate that draft has been created.
@@ -346,7 +348,7 @@ class ReportActionCompose extends React.Component {
         }
 
         // Trigger the edit box for last sent message if ArrowUp is pressed
-        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
             e.preventDefault();
 
             const reportActionKey = _.find(
