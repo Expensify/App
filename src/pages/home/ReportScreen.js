@@ -99,12 +99,16 @@ class ReportScreen extends React.Component {
 
         this.state = {
             isLoading: true,
+            isGhostScreenVisible: true,
         };
     }
 
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
+        setTimeout(() => {
+            this.setState({isGhostScreenVisible: false});
+        }, 3000);
     }
 
     componentDidUpdate(prevProps) {
@@ -179,10 +183,10 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
                     {
-                    this.props.isLoadingReportData && <ChatGhostUI />
-                  }
-                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
-                    {!this.shouldShowLoader() && (
+                      this.state.isGhostScreenVisible && <ChatGhostUI />
+                    }
+                    <FullScreenLoadingIndicator visible={!this.state.isGhostScreenVisible && this.shouldShowLoader()} />
+                    {!this.state.isGhostScreenVisible && !this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
