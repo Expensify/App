@@ -11,7 +11,7 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
         };
-
+        this.defaultValue = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         this.showPicker = this.showPicker.bind(this);
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }
@@ -33,36 +33,39 @@ class DatePicker extends React.Component {
             this.props.onChange(selectedDate);
         }
 
+        // Updates the value of TextInput on Date Change
+        this.textInput.setNativeProps({text: moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)});
         this.setState({isPickerVisible: false});
     }
 
     render() {
-        const currentDate = moment(this.props.value ? this.props.value : this.props.defaultValue);
-        const dateAsText = currentDate.format(CONST.DATE.MOMENT_FORMAT_STRING);
         return (
             <>
                 <TextInput
                     label={this.props.label}
-                    ref={this.props.forwardedRef}
+                    ref={(el) => {
+                        this.textInput = el;
+                        if (this.props.forwardedRef) { this.props.forwardedRef(el); }
+                    }}
+                    defaultValue={this.defaultValue}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
-                    defaultValue={dateAsText}
                     onBlur={this.props.onBlur}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
                     inputID={this.props.inputID}
                 />
                 {this.state.isPickerVisible && (
-                    <RNDatePicker
-                        value={currentDate.toDate()}
-                        mode="date"
-                        onChange={this.raiseDateChange}
-                        maximumDate={this.props.maximumDate}
-                    />
+                <RNDatePicker
+                    value={this.props.defaultValue ? moment(this.props.defaultValue).toDate() : new Date()}
+                    mode="date"
+                    onChange={this.raiseDateChange}
+                    maximumDate={this.props.maximumDate}
+                />
                 )}
             </>
         );

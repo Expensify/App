@@ -59,20 +59,19 @@ class BaseTextInput extends Component {
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
         // Only update when value prop is provided
-        if (this.props.value === undefined && this.props.defaultValue === undefined) {
+        if (this.props.value === undefined || this.value === this.props.value) {
             return;
         }
 
-        // Update current value when defaultValue is updated.
-        this.value = this.props.value === undefined ? this.props.defaultValue : this.props.value;
+        this.value = this.props.value;
         this.input.setNativeProps({text: this.value});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (this.value === '') {
+        if (this.props.value === '') {
             this.input.clear();
         }
 
-        if (this.value) {
+        if (this.props.value) {
             this.activateLabel();
         } else if (!this.state.isFocused) {
             this.deactivateLabel();
@@ -293,7 +292,7 @@ class BaseTextInput extends Component {
                         style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                     >
-                        {this.value || this.props.placeholder}
+                        {this.props.value || this.props.placeholder}
                     </Text>
                 )}
             </>
