@@ -91,8 +91,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             short_name: 'Expensify',
             description: packageMeta.description,
             background_color: '#ffffff',
-            theme_color: '#03d47c',
+            theme_color: '#fafafa',
             orientation: 'natural',
+            display_override: ['window-controls-overlay'],
             ios: true,
             icons: [
                 {
