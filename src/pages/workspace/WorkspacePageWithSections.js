@@ -16,6 +16,7 @@ import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import withFullPolicy, {fullPolicyDefaultProps} from './withFullPolicy';
 
 const propTypes = {
     /** The text to display in the header */
@@ -47,6 +48,7 @@ const propTypes = {
     guidesCallTaskID: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...fullPolicyDefaultProps,
 };
 
 const defaultProps = {
@@ -68,12 +70,14 @@ class WorkspacePageWithSections extends React.Component {
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
+        const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.headerText}
+                        subtitle={policyName}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
                         shouldShowBackButton
@@ -109,4 +113,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withFullPolicy,
 )(WorkspacePageWithSections);

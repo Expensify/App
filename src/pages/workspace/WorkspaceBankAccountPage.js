@@ -19,12 +19,14 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
+import withFullPolicy, {fullPolicyPropTypes} from './withFullPolicy';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
     ...withLocalizePropTypes,
+    ...fullPolicyPropTypes,
 };
 
 const defaultProps = {
@@ -86,11 +88,13 @@ class WorkspaceBankAccountPage extends React.Component {
             this.navigateToBankAccountRoute();
             return null;
         }
+        const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
+                    subtitle={policyName}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
                     shouldShowGetAssistanceButton
@@ -137,4 +141,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withFullPolicy,
 )(WorkspaceBankAccountPage);
