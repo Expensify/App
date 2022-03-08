@@ -159,30 +159,50 @@ function getChatReportName(fullReport, chatType) {
 }
 
 /**
- * Modify simplifiedReport of Report Data fetched from server
- * Returns updated simplifiedReport, based on newer local report data
+ * Returns number of optimisticReportActionIDs exist in reportActions
+ *
+ * @param {String} reportID
+ * @return {Number}
+ */
+function getNumberOfOptimisticActions(reportID) {
+    const optimisticActionIds = lodashGet(allReports, [reportID, 'optimisticReportActionIDs'], []);
+    return _.filter(optimisticActionIds, actionId => ReportActions.isOptimisticReportActionExist(reportID, actionId)).length;
+}
+
+/**
+ * If onyx local report data is newer than fetched report then return updated version of simplifiedReport
+ * Local report data could be newer than fetched report because pusher new comment event coming while fetch report request isn't completed yet
  *
  * @param {Object} simplifiedReport, simplifiedReport of Report Data
  * @return {Object}
  */
-function updateSimplifiedReportWithNewerLocalData(simplifiedReport) {
+function checkAndUpdateSimplifiedReport(simplifiedReport) {
     const currentReport = lodashGet(allReports, simplifiedReport.reportID, 0);
     if (!currentReport) {
         return simplifiedReport;
     }
+    const simplifiedReportMaxSeqNumber = lodashGet(simplifiedReport, 'maxSequenceNumber', 0);
+    const currentReportMaxSeqNumber = lodashGet(currentReport, 'maxSequenceNumber', 0);
 
-    const currentMaxSequenceNumber = currentReport.maxSequenceNumber;
+    // Exclude optimisticActionIds from maxSequenceNumber of current local report when comparing maxSequenceNumber of fetched report and local onyx report.
+    // Optimistic report actions is a new comment not yet sent to the server.
+    const currentMaxSeqNumberWithoutOptimisticActions = currentReportMaxSeqNumber - getNumberOfOptimisticActions(currentReport.reportID);
+    if (simplifiedReportMaxSeqNumber >= currentMaxSeqNumberWithoutOptimisticActions) {
+        return simplifiedReport;
+    }
+
     const lastReadSequenceNumber = lastReadSequenceNumbers[simplifiedReport.reportID];
-    const unreadActionCount = currentMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(simplifiedReport.reportID, lastReadSequenceNumber);
+    const unreadActionCount = currentMaxSeqNumberWithoutOptimisticActions - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(simplifiedReport.reportID, lastReadSequenceNumber);
 
-    const newSimplifiedReport = _.clone(simplifiedReport);
-    newSimplifiedReport.maxSequenceNumber = currentMaxSequenceNumber;
-    newSimplifiedReport.unreadActionCount = unreadActionCount;
-    newSimplifiedReport.lastMessageTimestamp = currentReport.lastMessageTimestamp;
-    newSimplifiedReport.lastMessageText = currentReport.lastMessageText;
-    newSimplifiedReport.lastActorEmail = currentReport.lastActorEmail;
+    // Update some fields that are set by updateReportWithNewAction, the handler of pusher new comment event.
+    const updatedSimplifiedReport = _.clone(simplifiedReport);
+    updatedSimplifiedReport.maxSequenceNumber = currentReport.MaxSeqNumber;
+    updatedSimplifiedReport.unreadActionCount = unreadActionCount;
+    updatedSimplifiedReport.lastMessageTimestamp = currentReport.lastMessageTimestamp;
+    updatedSimplifiedReport.lastMessageText = currentReport.lastMessageText;
+    updatedSimplifiedReport.lastActorEmail = currentReport.lastActorEmail;
 
-    return newSimplifiedReport;
+    return updatedSimplifiedReport;
 }
 
 /**
@@ -227,16 +247,14 @@ function getSimplifiedReportObject(report) {
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
 
-    const reportMaxSequenceNumber = lodashGet(report, 'reportActionCount', 0);
-
-    const simplifiedReport = {
+    return {
         reportID: report.reportID,
         reportName,
         chatType,
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: reportMaxSequenceNumber,
+        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -254,14 +272,6 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
     };
-
-    const currentMaxSeqNumber = lodashGet(allReports, [report.reportID, 'maxSequenceNumber'], 0);
-
-    // Current local data is newer than report data from fetchReport. For example if Pusher new comment event is comming while API request of fetchReport isn't completed.
-    if (currentMaxSeqNumber > reportMaxSequenceNumber) {
-        return updateSimplifiedReportWithNewerLocalData(simplifiedReport);
-    }
-    return simplifiedReport;
 }
 
 /**
@@ -415,7 +425,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             const reportIOUData = {};
             _.each(fetchedReports, (report) => {
                 const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
+                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = checkAndUpdateSimplifiedReport(simplifiedReport);
             });
 
             _.each(iouReportObjects, (iouReportObject) => {
@@ -639,6 +649,8 @@ function updateReportWithNewAction(
         // If lastReadSequenceNumbers[reportID] is undefined (fetchAllReports isn't completed yet), fallback to local unreadActionCount
         unreadActionCount: lastReadSequenceNumbers[reportID]
             ? newMaxSequenceNumber - lastReadSequenceNumbers[reportID] - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID])
+
+            // If lastReadSequenceNumbers[reportID] isn't ready, use local/onyx unreadActionCount and increment it by one each time pusher new comment event arrived
             : lodashGet(allReports, [reportID, 'unreadActionCount'], 0) + 1,
         maxSequenceNumber: reportAction.sequenceNumber,
     };

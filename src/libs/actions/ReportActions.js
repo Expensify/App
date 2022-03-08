@@ -95,8 +95,19 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
     }, 0);
 }
 
+/**
+ * Returns check result wheter optimisticActionId exist in reportActions
+ * @param {Number|String} reportID
+ * @param {Number|String} optimisticActionId
+ * @return {Boolean}
+ */
+function isOptimisticReportActionExist(reportID, optimisticActionId) {
+    return _.has(reportActions[reportID], optimisticActionId);
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
+    isOptimisticReportActionExist,
 };
