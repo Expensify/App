@@ -190,6 +190,10 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
+    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+        Log.info('[API] request canceled', false, queuedRequest);
+        return;
+    }
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {
@@ -449,7 +453,9 @@ function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
     requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
-    return Network.post(commandName, parameters);
+
+    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
+    return Network.post(commandName, {...parameters, canCancel: false});
 }
 
 /**
@@ -1228,6 +1234,17 @@ function TransferWalletBalance(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Fetches the filename of the user's statement
+ * @param {Object} parameters
+ * @param {String} [parameters.period]
+ * @return {Promise}
+ */
+function GetStatementPDF(parameters) {
+    const commandName = 'GetStatementPDF';
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1247,6 +1264,7 @@ export {
     Get,
     GetAccountStatus,
     GetShortLivedAuthToken,
+    GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
     GetPolicySummaryList,

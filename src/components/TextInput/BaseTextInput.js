@@ -2,10 +2,9 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
-    // eslint-disable-next-line no-restricted-imports
-    TextInput as RNTextInput,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
+import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
@@ -21,7 +20,7 @@ class BaseTextInput extends Component {
         super(props);
 
         this.value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || this.value.length > 0;
+        const activeLabel = props.forceActiveLabel || this.value.length > 0 || props.prefixCharacter;
 
         this.state = {
             isFocused: false,
@@ -29,6 +28,7 @@ class BaseTextInput extends Component {
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
+            prefixWidth: 0,
         };
 
         this.input = null;
@@ -39,6 +39,7 @@ class BaseTextInput extends Component {
         this.setValue = this.setValue.bind(this);
         this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
+        this.storePrefixLayoutDimensions = this.storePrefixLayoutDimensions.bind(this);
     }
 
     componentDidMount() {
@@ -59,7 +60,8 @@ class BaseTextInput extends Component {
 
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
-        if (this.value === this.props.value) {
+        // Only update when value prop is provided
+        if (this.props.value === undefined || this.value === this.props.value) {
             return;
         }
 
@@ -120,8 +122,8 @@ class BaseTextInput extends Component {
      * @memberof BaseTextInput
      */
     setValue(value) {
-        if (this.props.onChange) {
-            this.props.onChange(value);
+        if (this.props.onInputChange) {
+            this.props.onInputChange(value);
         }
         this.value = value;
         Str.result(this.props.onChangeText, value);
@@ -141,7 +143,7 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.value.length !== 0) {
+        if (this.props.forceActiveLabel || this.value.length !== 0 || this.props.prefixCharacter) {
             return;
         }
 
@@ -174,6 +176,10 @@ class BaseTextInput extends Component {
 
     togglePasswordVisibility() {
         this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
+    }
+
+    storePrefixLayoutDimensions(event) {
+        this.setState({prefixWidth: Math.abs(event.nativeEvent.layout.width)});
     }
 
     render() {
@@ -215,7 +221,20 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]}>
+                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
+                                    {Boolean(this.props.prefixCharacter) && (
+                                        <Text
+                                            pointerEvents="none"
+                                            selectable={false}
+                                            style={[
+                                                styles.textInputPrefix,
+                                                !hasLabel && styles.pv0,
+                                            ]}
+                                            onLayout={this.storePrefixLayoutDimensions}
+                                        >
+                                            {this.props.prefixCharacter}
+                                        </Text>
+                                    )}
                                     <RNTextInput
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
@@ -224,7 +243,7 @@ class BaseTextInput extends Component {
                                         // eslint-disable-next-line
                                         {...inputProps}
                                         defaultValue={this.value}
-                                        placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                        placeholder={(this.props.prefixCharacter || this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
@@ -232,6 +251,7 @@ class BaseTextInput extends Component {
                                             styles.w100,
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
+                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.pr2,
                                         ]}
                                         multiline={this.props.multiline}
