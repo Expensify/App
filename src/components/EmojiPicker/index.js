@@ -117,6 +117,7 @@ class EmojiPicker extends React.Component {
                 onModalShow={this.focusEmojiSearchInput}
                 onModalHide={this.onModalHide}
                 hideModalContentWhileAnimating
+                shouldSetModalVisibility={false}
                 animationInTiming={1}
                 animationOutTiming={1}
                 anchorPosition={{

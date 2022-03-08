@@ -220,7 +220,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                     <EmojiPickerButton
                         isDisabled={isArchivedChatRoom || isBlockedFromConcierge}
-                        onModalHide={() => this.textInput.focus()}
+                        onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                         onEmojiSelected={this.addEmojiToTextBox}
                     />
                 </View>
