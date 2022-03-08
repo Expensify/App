@@ -116,19 +116,15 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
             // Make sure to show user more specific errors which will help support identify the problem faster.
             switch (error.message) {
                 case CONST.WALLET.ERROR.INVALID_WALLET:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidWallet'), CONST.GROWL.ERROR, 5000);
-                    return;
                 case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
                     Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount'), CONST.GROWL.ERROR, 5000);
                     return;
-                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidBankAccount'), CONST.GROWL.ERROR, 5000);
-                    return;
                 case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
+                case CONST.WALLET.ERROR.INVALID_FUND:
                     Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfFund'), CONST.GROWL.ERROR, 5000);
                     return;
-                case CONST.WALLET.ERROR.INVALID_FUND:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidFund'), CONST.GROWL.ERROR, 5000);
+                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidBankAccount'), CONST.GROWL.ERROR, 5000);
                     return;
                 default:
                     Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
