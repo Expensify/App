@@ -33,8 +33,9 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
+          team: Expensify/expensify
       - name: Debug employee
-        run: echo "The author is Expensify employee - ${{ steps.checkActor.outputs.teams }}"
+        run: echo "The author is Expensify employee - ${{ steps.checkActor.outputs.isTeamMember }}"
 
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
