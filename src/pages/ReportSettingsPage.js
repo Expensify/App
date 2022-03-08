@@ -191,7 +191,7 @@ class ReportSettingsPage extends Component {
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('newRoomPage.roomName')}
                             </Text>
-                            <View style={[styles.flexRow]}>
+                            <View style={[styles.flexRow, styles.mb1]}>
                                 <View style={[styles.flex3]}>
                                     <RoomNameInput
                                         initialValue={this.state.newRoomName}
@@ -202,12 +202,13 @@ class ReportSettingsPage extends Component {
                                     />
                                 </View>
                                 <Button
+                                    large
                                     success={!shouldDisableRename}
                                     text={this.props.translate('common.save')}
                                     onPress={this.validateAndRenameReport}
                                     style={[styles.ml2, styles.flex1]}
                                     textStyles={[styles.label]}
-                                    innerStyles={[styles.reportSettingsChangeNameButton]}
+                                    innerStyles={[styles.ph5]}
                                     isLoading={this.props.isLoadingRenamePolicyRoom}
                                     isDisabled={shouldDisableRename}
                                 />

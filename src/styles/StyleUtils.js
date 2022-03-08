@@ -436,6 +436,17 @@ function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
 }
 
+/**
+ * Get variable padding-left as style
+ * @param {Number} paddingLeft
+ * @returns {Object}
+ */
+function getPaddingLeft(paddingLeft) {
+    return {
+        paddingLeft,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -462,4 +473,5 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    getPaddingLeft,
 };

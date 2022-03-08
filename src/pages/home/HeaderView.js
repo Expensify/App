@@ -19,7 +19,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import {participantPropTypes} from './sidebar/optionPropTypes';
+import participantPropTypes from '../../components/participantPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';

@@ -16,7 +16,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/reportUtils';
-import {participantPropTypes} from './home/sidebar/optionPropTypes';
+import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
@@ -114,8 +114,8 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
+        const isChatRoom = ReportUtils.isChatRoom(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;

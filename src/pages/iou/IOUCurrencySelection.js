@@ -8,7 +8,7 @@ import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
-import OptionRow from '../home/sidebar/OptionRow';
+import OptionRow from '../../components/OptionRow';
 import TextInput from '../../components/TextInput';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
