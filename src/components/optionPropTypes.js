@@ -35,6 +35,9 @@ export default PropTypes.shape({
     // Whether the report corresponds to a chat room
     isChatRoom: PropTypes.bool,
 
+    // Whether the option has an outstanding IOU
+    hasOutstandingIOU: PropTypes.bool,
+
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),
 

@@ -62,9 +62,6 @@ const propTypes = {
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
-    /** Whether to disable the interactivity of this row */
-    disableRowInteractivity: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -80,7 +77,6 @@ const defaultProps = {
     onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
-    disableRowInteractivity: false,
 };
 
 const OptionRow = (props) => {
@@ -143,7 +139,7 @@ const OptionRow = (props) => {
                         e.preventDefault();
                         props.onSelectRow(props.option, touchableRef);
                     }}
-                    disabled={props.disableRowInteractivity}
+                    disabled={props.isDisabled}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,

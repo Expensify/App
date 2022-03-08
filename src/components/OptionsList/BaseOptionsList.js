@@ -111,7 +111,7 @@ class BaseOptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                disableRowInteractivity={this.props.disableRowInteractivity}
+                isDisabled={this.props.isDisabled}
             />
         );
     }

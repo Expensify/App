@@ -215,7 +215,7 @@ class WorkspaceMembersPage extends React.Component {
                     <View style={styles.flex1}>
                         <OptionRow
                             forceTextUnreadStyle
-                            disableRowInteractivity
+                            isDisabled
                             option={{
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),

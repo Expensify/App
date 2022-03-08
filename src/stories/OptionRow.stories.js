@@ -25,7 +25,6 @@ export default {
         forceTextUnreadStyle: false,
         showTitleTooltip: false,
         isDisabled: false,
-        disableRowInteractivity: false,
         backgroundColor: 'white',
         option: {
             isUnread: false,
