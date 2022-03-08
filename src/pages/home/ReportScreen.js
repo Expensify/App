@@ -60,6 +60,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Flag to check if report data is being loaded */
     isLoadingReportData: PropTypes.bool,
 };
 

@@ -376,6 +376,7 @@ const CONST = {
     EMOJI_PICKER_HEADER_HEIGHT: 38,
 
     COMPOSER_MAX_HEIGHT: 116,
+    CHAT_GHOST_ROW_HEIGHT: 80,
 
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
