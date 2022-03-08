@@ -36,7 +36,7 @@ import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
