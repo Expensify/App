@@ -300,7 +300,7 @@ class BankAccountStep extends React.Component {
                             errorText={this.getErrorText('accountNumber')}
                         />
                         <CheckboxWithLabel
-                            style={styles.mt5}
+                            style={styles.mt4}
                             isChecked={this.state.hasAcceptedTerms}
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
