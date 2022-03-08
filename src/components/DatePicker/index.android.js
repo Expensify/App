@@ -11,7 +11,7 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
         };
-        this.defaultValue = this.props.defaultValue !== undefined ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : 'dd/mm/yyyy';
+        this.defaultValue = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : CONST.DATE.MOMENT_FORMAT_STRING;
         this.showPicker = this.showPicker.bind(this);
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }
@@ -29,13 +29,13 @@ class DatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     raiseDateChange(event, selectedDate) {
+        this.setState({isPickerVisible: false});
         if (event.type === 'set') {
             this.props.onChange(selectedDate);
         }
 
         // Updates the value of TextInput on Date Change
         this.textInput.setNativeProps({text: moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)});
-        this.setState({isPickerVisible: false});
     }
 
     render() {

@@ -26,7 +26,7 @@ class Datepicker extends React.Component {
         };
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : '';
+            : CONST.DATE.MOMENT_FORMAT_STRING;
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
         this.selectDate = this.selectDate.bind(this);
