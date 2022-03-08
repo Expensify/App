@@ -99,15 +99,6 @@ to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
 
-## End to end tests
-End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
-In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
-We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
-
-You are first required to build the tests, then you can run them:
-1. To build the **Detox end to end tests**: `npm run detox-build`
-2. To run the **Detox end to end tests**: `npm run detox-test`
-
 ----
 
 # Debugging
