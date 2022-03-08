@@ -39,7 +39,7 @@ const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
 
-        /** participants associated with current report */
+        /** Participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
@@ -48,7 +48,6 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
-
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -61,7 +60,6 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     blockedFromConcierge: {},
-
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -161,7 +159,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
      */
@@ -176,7 +173,6 @@ class ReportActionItemMessageEdit extends React.Component {
         }));
         this.updateDraft(newComment);
     }
-
 
     /**
      * Key event handlers that short cut to saving/canceling.
@@ -194,8 +190,9 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
-        const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
+        const shouldDisableEmojiPicker = (ReportUtils.chatIncludesConcierge(this.props.report)
+                                            && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                                            || ReportUtils.isArchivedRoom(this.props.report);
 
         return (
             <View style={styles.chatItemMessage}>
@@ -219,7 +216,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onSelectionChange={this.onSelectionChange}
                     />
                     <EmojiPickerButton
-                        isDisabled={isArchivedChatRoom || isBlockedFromConcierge}
+                        isDisabled={shouldDisableEmojiPicker}
                         onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                         onEmojiSelected={this.addEmojiToTextBox}
                     />
