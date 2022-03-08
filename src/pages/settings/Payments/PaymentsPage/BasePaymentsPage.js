@@ -362,8 +362,10 @@ class BasePaymentsPage extends React.Component {
                         isDangerousAction
                     />
                     <ConfirmPopover
+                        contentStyles={[!this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}
                         isVisible={this.state.shouldShowConfirmPopover}
-                        title={this.props.translate('paymentsPage.deleteConfirmation')}
+                        title={this.props.translate('paymentsPage.deleteAccount')}
+                        prompt={this.props.translate('paymentsPage.deleteConfirmation')}
                         confirmText={this.props.translate('common.delete')}
                         cancelText={this.props.translate('common.cancel')}
                         anchorPosition={{

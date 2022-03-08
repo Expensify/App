@@ -14,11 +14,12 @@ import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
+import SubscriptAvatar from '../../components/SubscriptAvatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import {participantPropTypes} from './sidebar/optionPropTypes';
+import participantPropTypes from '../../components/participantPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -86,7 +87,8 @@ const HeaderView = (props) => {
         },
     );
     const isChatRoom = ReportUtils.isChatRoom(props.report);
-    const title = isChatRoom
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const title = (isChatRoom || isPolicyExpenseChat)
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
@@ -97,9 +99,9 @@ const HeaderView = (props) => {
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
-
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
+    const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -134,13 +136,19 @@ const HeaderView = (props) => {
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            <MultipleAvatars
-                                avatarImageURLs={props.report.icons}
-                                secondAvatarStyle={[styles.secondAvatarHovered]}
-                                isChatRoom={isChatRoom}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
-                                avatarTooltips={avatarTooltip}
-                            />
+                            {shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={avatarIcons[0]}
+                                    secondaryAvatar={avatarIcons[1]}
+                                    mainTooltip={props.report.ownerEmail}
+                                    secondaryTooltip={subtitle}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    avatarIcons={avatarIcons}
+                                    avatarTooltips={avatarTooltip}
+                                />
+                            )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
@@ -148,7 +156,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.textNoWrap]}
-                                    shouldUseFullTitle={isChatRoom}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
                                 {isChatRoom && (
                                     <Text
