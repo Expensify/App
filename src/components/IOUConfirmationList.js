@@ -364,7 +364,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        disableRowInteractivity={!this.props.isGroupSplit}
+                        isDisabled={!this.props.isGroupSplit}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>

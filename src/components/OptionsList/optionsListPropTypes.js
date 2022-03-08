@@ -74,7 +74,7 @@ const propTypes = {
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     /** Whether to disable the interactivity of the list's option row(s) */
-    disableRowInteractivity: PropTypes.bool,
+    isDisabled: PropTypes.bool,
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
@@ -98,7 +98,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
-    disableRowInteractivity: false,
+    isDisabled: false,
     onLayout: undefined,
 };
 
