@@ -53,6 +53,7 @@ class EmojiPicker extends React.Component {
     }
 
     hideEmojiPicker() {
+        this.emojiPopoverAnchor = null;
         this.setState({isEmojiPickerVisible: false});
     }
 
@@ -68,7 +69,6 @@ class EmojiPicker extends React.Component {
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
 
-        this.setState({isEmojiPickerVisible: true});
         this.measureEmojiPopoverAnchorPosition();
     }
 
@@ -79,6 +79,7 @@ class EmojiPicker extends React.Component {
 
         this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
             emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
+            isEmojiPickerVisible: true,
         }));
     }
 
