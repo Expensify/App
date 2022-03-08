@@ -43,7 +43,10 @@ android/app/src/main/java/com/expensify/chat/generated/
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# Bundled code
 dist/
+desktop-build/
 
 # BUCK
 buck-out/
