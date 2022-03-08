@@ -7,8 +7,8 @@ export default PropTypes.shape({
     // Alternate text to display
     alternateText: PropTypes.string,
 
-    // Array of icon urls
-    icons: PropTypes.arrayOf(PropTypes.string),
+    // Array of URLs or icons
+    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     // Login (only present when there is a single participant)
     login: PropTypes.string,

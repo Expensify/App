@@ -286,6 +286,10 @@ export default {
         paddingRight: 60,
     },
 
+    pl1: {
+        paddingLeft: 4,
+    },
+
     pl5: {
         paddingLeft: 20,
     },

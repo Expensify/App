@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
+import * as ReportUtils from '../reportUtils';
 
 /**
  * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
@@ -105,9 +106,25 @@ function isOptimisticReportActionExist(reportID, optimisticActionId) {
     return _.has(reportActions[reportID], optimisticActionId);
 }
 
+/**
+ * Get the message text for the last action that was not deleted
+ * @param {Number} reportID
+ * @return {String}
+ */
+function getLastVisibleMessageText(reportID) {
+    const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
+        !ReportUtils.isDeletedAction(action)
+    ));
+
+    return ReportUtils.formatReportLastMessageText(
+        lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'text'], ''),
+    );
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     isOptimisticReportActionExist,
+    getLastVisibleMessageText,
 };

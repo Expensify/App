@@ -144,7 +144,7 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report has a draft and vice versa.
+        // Do not re-order if the active report has a draft
         if (nextProps.currentlyViewedReportID) {
             const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
             return !hasActiveReportDraft;
@@ -158,23 +158,35 @@ class SidebarLinks extends React.Component {
         this.state = {
             currentlyViewedReportID: props.currentlyViewedReportID,
             orderedReports: [],
+            priorityMode: props.priorityMode,
             unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
         };
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
+
+        // Build the report options we want to show
         const recentReports = SidebarLinks.getRecentReports(nextProps);
-        const orderedReports = shouldReorder
+
+        // Determine whether we need to keep the previous LHN order
+        const orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
-            : _.map(prevState.orderedReports,
-                orderedReport => _.chain(recentReports)
-                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
-                    .first()
-                    .value());
+            : _.chain(prevState.orderedReports)
+
+            // To preserve the order of the conversations, we map over the previous state's order of reports.
+            // Then match and replace older reports with the newer report conversations from recentReports
+                .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
+
+            // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
+            // does not have all the conversations in prevState.orderedReports
+                .filter(orderedReport => orderedReport !== undefined)
+                .value();
 
         return {
             orderedReports,
+            priorityMode: nextProps.priorityMode,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
             unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
         };
