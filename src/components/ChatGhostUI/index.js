@@ -20,7 +20,7 @@ const ChatList = (props) => {
     return (
         <>
             {
-                _.keys(contentItems, (index) => {
+                _.map(contentItems, (_item, index) => {
                     const iconIndex = (index + 1) % 4;
                     switch (iconIndex) {
                         case 2:
