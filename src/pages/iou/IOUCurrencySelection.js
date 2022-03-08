@@ -204,9 +204,15 @@ class IOUCurrencySelection extends Component {
                                     )}
                                     renderSectionHeader={({section: {title}}) => (
                                         <View>
-                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                                                {title}
-                                            </Text>
+                                            {this.state.currencyData.length === 0 ? (
+                                                <Text style={[styles.ph5, styles.textLabel, styles.colorMuted]}>
+                                                    {this.props.translate('common.noResultsFound')}
+                                                </Text>
+                                            ) : (
+                                                <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                                    {title}
+                                                </Text>
+                                            )}
                                         </View>
                                     )}
                                 />
