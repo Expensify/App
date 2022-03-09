@@ -90,8 +90,12 @@ function bindHandlerToKeyupEvent(event) {
         }
         event.preventDefault();
 
-        // Short circuit the loop because the event is triggered
-        return false;
+        // If the event should not bubble, short-circuit the loop
+        let shouldBubble = callback.shouldBubble || false;
+        if (_.isFunction(callback.shouldBubble)) {
+            shouldBubble = callback.shouldBubble();
+        }
+        return shouldBubble;
     });
 }
 
@@ -132,11 +136,12 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String} descriptionKey Translation key for shortcut description
- * @param {String|Array} modifiers Can either be shift or control
- * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
+ * @param {String|Array} [modifiers] Can either be shift or control
+ * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
+ * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false) {
     const displayName = getDisplayName(key, modifiers);
     if (!_.has(eventHandlers, displayName)) {
         eventHandlers[displayName] = [];
@@ -147,6 +152,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         id: callbackID,
         callback,
         captureOnInputs,
+        shouldBubble,
     });
 
     if (descriptionKey) {
