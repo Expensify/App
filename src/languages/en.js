@@ -98,6 +98,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        conciergeHelp: 'Please reach out to Concierge for help.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -366,9 +367,9 @@ export default {
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
         error: {
-            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method. Please reach out to Concierge for help.',
-            invalidBankAccount: 'This bank account is temporarily suspended. Please reach out to Concierge for help.',
-            notOwnerOfFund: 'There was an error setting this card as your default payment method. Please reach out to Concierge for help.',
+            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
+            invalidBankAccount: 'This bank account is temporarily suspended.',
+            notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
     },
