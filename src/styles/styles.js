@@ -1951,12 +1951,23 @@ const styles = {
         backgroundColor: colors.white,
     },
 
+    radioButtonContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 10,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.icon,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 2,
         height: 20,
         width: 20,
-        borderColor: themeColors.border,
+        borderColor: themeColors.icon,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -2451,7 +2462,7 @@ const styles = {
     },
 
     closeAccountMessageInput: {
-        minHeight: 140,
+        height: 153,
     },
 };
 

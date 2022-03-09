@@ -53,16 +53,18 @@ function setOfflineStatus(isCurrentlyOffline) {
  */
 function subscribeToNetInfo() {
     // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
-    NetInfo.configure({
-        // By default, for web (including Electron) NetInfo uses `/` for `reachabilityUrl`
-        // When App is served locally or from Electron this would respond with OK even with no internet
-        // Using API url ensures reachability is tested over internet
-        reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
-        reachabilityTest: response => Promise.resolve(response.status === 200),
+    if (CONFIG.IS_IN_PRODUCTION) {
+        NetInfo.configure({
+            // By default, for web (including Electron) NetInfo uses `/` for `reachabilityUrl`
+            // When App is served locally or from Electron this would respond with OK even with no internet
+            // Using API url ensures reachability is tested over internet
+            reachabilityUrl: CONFIG.EXPENSIFY.URL_API_ROOT,
+            reachabilityTest: response => Promise.resolve(response.status === 200),
 
-        // If a check is taking longer than this time we're considered offline
-        reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
-    });
+            // If a check is taking longer than this time we're considered offline
+            reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+        });
+    }
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
