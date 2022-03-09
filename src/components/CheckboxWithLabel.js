@@ -77,7 +77,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     isChecked={props.isChecked}
                     onPress={toggleCheckbox}
                     label={props.label}
-                    errorText={props.errorText}
+                    hasError={Boolean(props.errorText)}
                     forwardedRef={ref}
                     isFormInput={props.isFormInput}
                     inputID={props.inputID}

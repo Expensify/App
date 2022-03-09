@@ -13,7 +13,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Should the input be styled for errors  */
-    errorText: PropTypes.string,
+    hasError: PropTypes.bool,
 
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
@@ -26,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    errorText: '',
+    hasError: false,
     disabled: false,
     forwardedRef: undefined,
 };
@@ -41,7 +41,7 @@ const Checkbox = props => (
             style={[
                 styles.checkboxContainer,
                 props.isChecked && styles.checkedContainer,
-                props.errorText && styles.borderColorDanger,
+                props.hasError && styles.borderColorDanger,
                 props.disabled && styles.cursorDisabled,
             ]}
         >
