@@ -84,7 +84,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
     }
 
     setRate(value) {
-        const isInvalidRateValue = value.includes('.') && !CONST.REGEX.RATE_VALUE.test(value);
+        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
         this.setState(prevState => ({
             rateValue: !isInvalidRateValue ? value : prevState.rateValue,
