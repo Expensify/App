@@ -308,6 +308,8 @@ class BasePaymentsPage extends React.Component {
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                    disabled
+                                    interactive={false}
                                 />
                             )}
                             {Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
