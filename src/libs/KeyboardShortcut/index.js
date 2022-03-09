@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
-const events = {};
+const eventHandlers = {};
 const keyboardShortcutMap = {};
 
 /**
@@ -20,11 +20,11 @@ function getKeyboardShortcuts() {
  * @private
  */
 function bindHandlerToKeyupEvent(event) {
-    if (events[event.keyCode] === undefined) {
+    if (eventHandlers[event.keyCode] === undefined) {
         return;
     }
 
-    const eventCallbacks = events[event.keyCode];
+    const eventCallbacks = eventHandlers[event.keyCode];
     const reversedEventCallbacks = [...eventCallbacks].reverse();
 
     // Loop over all the callbacks
@@ -116,7 +116,7 @@ function getKeyCode(key) {
  */
 function unsubscribe(key) {
     const keyCode = getKeyCode(key);
-    events[keyCode].pop();
+    eventHandlers[keyCode].pop();
 }
 
 /**
@@ -156,10 +156,10 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
     const keyCode = getKeyCode(key);
-    if (events[keyCode] === undefined) {
-        events[keyCode] = [];
+    if (eventHandlers[keyCode] === undefined) {
+        eventHandlers[keyCode] = [];
     }
-    events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+    eventHandlers[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
 
     if (descriptionKey) {
         addKeyToMap(key, modifiers, descriptionKey);
