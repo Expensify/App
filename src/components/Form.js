@@ -59,7 +59,7 @@ class Form extends React.Component {
         this.state = {
             errors: {},
         };
-
+        this.test = null;
         this.inputRefs = {};
         this.inputValues = {};
         this.touchedInputs = {};
