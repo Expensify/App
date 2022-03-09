@@ -117,14 +117,14 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
             switch (error.message) {
                 case CONST.WALLET.ERROR.INVALID_WALLET:
                 case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount') + ' ' + Localize.translateLocal('common.conciergeHelp'), CONST.GROWL.ERROR, 5000);
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
                     return;
                 case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
                 case CONST.WALLET.ERROR.INVALID_FUND:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.notOwnerOfFund') + ' ' + Localize.translateLocal('common.conciergeHelp'), CONST.GROWL.ERROR, 5000);
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
                     return;
                 case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.invalidBankAccount') + ' ' + Localize.translateLocal('common.conciergeHelp'), CONST.GROWL.ERROR, 5000);
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
                     return;
                 default:
                     Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
