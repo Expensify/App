@@ -139,16 +139,17 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @param {String|Array} [modifiers] Can either be shift or control
  * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
+ * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
     const displayName = getDisplayName(key, modifiers);
     if (!_.has(eventHandlers, displayName)) {
         eventHandlers[displayName] = [];
     }
 
     const callbackID = Str.guid();
-    eventHandlers[displayName].push({
+    eventHandlers[displayName].splice(priority, 0, {
         id: callbackID,
         callback,
         captureOnInputs,
@@ -179,15 +180,19 @@ function getShortcutModifiers(modifiers) {
 }
 
 /**
- * Module storing the different keyboard shortcut
+ * This module configures a global keyboard event handler.
  *
- * We are using a push/pop model where new event are pushed at the end of an
- * array of events. When the event occur, we trigger the callback of the last
- * element. This allow us to replace shortcut from a page to a dialog without
- * having the page having to handle that logic.
+ * It uses a stack to store event handlers for each key combination. Some additional details:
  *
- * This is also following the convention of the PubSub module.
- * The "subClass" is used by pages to bind /unbind with no worries
+ *   - By default, new handlers are pushed to the top of the stack. If you pass a >0 priority when subscribing to the key event,
+ *     then the handler will get pushed further down the stack. This means that priority of 0 is higher than priority 1.
+ *
+ *   - When a key event occurs, we trigger callbacks for that key starting from the top of the stack.
+ *     By default, events do not bubble, and only the handler at the top of the stack will be executed.
+ *     Individual callbacks can be configured with the shouldBubble parameter, to allow the next event handler on the stack execute.
+ *
+ *   - Each handler has a unique callbackID, so calling the `unsubscribe` function (returned from `subscribe`) will unsubscribe the expected handler,
+ *     regardless of its position in the stack.
  */
 const KeyboardShortcut = {
     subscribe,
