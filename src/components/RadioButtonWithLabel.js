@@ -3,15 +3,15 @@ import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Checkbox from './Checkbox';
+import RadioButton from './RadioButton';
 import Text from './Text';
 import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
-    /** Whether the checkbox is checked */
+    /** Whether the radioButton is checked */
     isChecked: PropTypes.bool.isRequired,
 
-    /** Called when the checkbox or label is pressed */
+    /** Called when the radioButton or label is pressed */
     onPress: PropTypes.func.isRequired,
 
     /** Container styles */
@@ -38,7 +38,7 @@ const defaultProps = {
     errorText: '',
 };
 
-const CheckboxWithLabel = (props) => {
+const RadioButtonWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
@@ -49,14 +49,14 @@ const CheckboxWithLabel = (props) => {
     return (
         <>
             <View style={wrapperStyles}>
-                <Checkbox
+                <RadioButton
                     isChecked={props.isChecked}
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={props.onPress}
                     label={props.label}
                     hasError={props.hasError}
                 />
                 <TouchableOpacity
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={() => props.onPress()}
                     style={[
                         styles.ml3,
                         styles.pr2,
@@ -84,8 +84,8 @@ const CheckboxWithLabel = (props) => {
     );
 };
 
-CheckboxWithLabel.propTypes = propTypes;
-CheckboxWithLabel.defaultProps = defaultProps;
-CheckboxWithLabel.displayName = 'CheckboxWithLabel';
+RadioButtonWithLabel.propTypes = propTypes;
+RadioButtonWithLabel.defaultProps = defaultProps;
+RadioButtonWithLabel.displayName = 'RadioButtonWithLabel';
 
-export default CheckboxWithLabel;
+export default RadioButtonWithLabel;
