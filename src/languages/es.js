@@ -730,6 +730,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            settlementFrequency: 'Frecuencia de liquidación',
             growlMessageOnCreate: 'El espacio de trabajo ha sido creado',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',

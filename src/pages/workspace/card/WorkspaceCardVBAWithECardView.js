@@ -32,6 +32,13 @@ const WorkspaceCardVBAWithECardView = props => (
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
             },
+            {
+                title: props.translate('workspace.common.settlementFrequency'),
+                onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"configureSettings"}')),
+                icon: Expensicons.Gear,
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+            },
         ]}
     >
         <View style={[styles.mv4]}>
