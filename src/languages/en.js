@@ -111,7 +111,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
-    textInputFocusable: {
+    composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },

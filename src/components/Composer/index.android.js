@@ -76,7 +76,7 @@ class Composer extends React.Component {
     }
 }
 
-Composer.displayName = 'TextInputFocusable';
+Composer.displayName = 'Composer';
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 

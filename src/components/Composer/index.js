@@ -198,7 +198,6 @@ class Composer extends React.Component {
      * Handles all types of drag-N-drop events on the composer
      *
      * @param {Object} e native Event
-     * @memberof TextInputFocusable
      */
     dragNDropListener(e) {
         let isOriginComposer = false;
@@ -238,7 +237,6 @@ class Composer extends React.Component {
      * Manually place the pasted HTML into Composer
      *
      * @param {String} html - pasted HTML
-     * @memberof TextInputFocusable
      */
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
@@ -286,14 +284,14 @@ class Composer extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('textInputFocusable.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
                     .catch(() => {
-                        const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
+                        const errorDesc = this.props.translate('composer.problemGettingImageYouPasted');
                         Growl.error(errorDesc);
 
                         /*
