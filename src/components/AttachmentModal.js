@@ -128,7 +128,7 @@ class AttachmentModal extends PureComponent {
      * Close the confirm modal.
      */
     closeConfirmModal() {
-        this.setState({isConfirmModalOpen: false});
+        this.setState({isConfirmModalOpen: false, confirmModalTitle: '', confirmModalPrompt: ''});
     }
 
     /**
