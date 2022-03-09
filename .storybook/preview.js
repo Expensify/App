@@ -25,7 +25,15 @@ const decorators = [
     ),
 ];
 
+const parameters = {
+    controls: {
+        matchers: {
+            color: /(background|color)$/i,
+        },
+    },
+};
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     decorators,
+    parameters,
 };

@@ -17,6 +17,8 @@ const CONFIG = require('../src/CONFIG').default;
 
 const port = process.env.PORT || 8080;
 
+app.setName('New Expensify');
+
 /**
  * Electron main process that handles wrapping the web application.
  *

@@ -312,6 +312,7 @@ const CONST = {
         },
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
+        MAX_PENDING_TIME_MS: 10 * 1000,
     },
     HTTP_STATUS_CODE: {
         SUCCESS: 200,
@@ -559,8 +560,14 @@ const CONST = {
     AVATAR_SIZE: {
         LARGE: 'large',
         DEFAULT: 'default',
+        SMALL: 'small',
+        SUBSCRIPT: 'subscript',
+        SMALL_SUBSCRIPT: 'small-subscript',
     },
-
+    OPTION_MODE: {
+        COMPACT: 'compact',
+        DEFAULT: 'default',
+    },
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {
