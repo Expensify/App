@@ -67,7 +67,7 @@ function getDisplayName(key, modifiers) {
  */
 function bindHandlerToKeydownEvent(event) {
     const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key.toUpperCase(), eventModifiers);
+    const displayName = getDisplayName(event.key, eventModifiers);
 
     // Loop over all the callbacks
     _.every(eventHandlers[displayName], (callback) => {

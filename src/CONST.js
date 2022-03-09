@@ -177,8 +177,9 @@ const CONST = {
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
+        ESCAPE: 'ESC',
         META: 'CMD',
-        SHIFT: 'SHIFT',
+        SHIFT: 'Shift',
     },
     CURRENCY: {
         USD: 'USD',
