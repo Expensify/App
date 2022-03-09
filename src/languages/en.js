@@ -186,9 +186,9 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({login}) => `This workspace chat is no longer active because <strong>${login}</strong> closed their account.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({oldLogin, newLogin}) => `This workspace chat is no longer active because <strong>${oldLogin}</strong> has merged their account with <strong>${newLogin}</strong>.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({policyName, login}) => `This workspace chat is no longer active because <strong>${login}</strong> is no longer a member of the <strong>${policyName}</strong> workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because <strong>${displayName}</strong> closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because <strong>${oldDisplayName}</strong> has merged their account with <strong>${displayName}</strong>.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because <strong>${displayName}</strong> is no longer a member of the <strong>${policyName}</strong> workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because <strong>${policyName}</strong> is no longer an active workspace.`,
     },
     sidebarScreen: {

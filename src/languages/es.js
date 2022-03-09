@@ -186,9 +186,9 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha cerrado su cuenta`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({oldLogin, newLogin}) => `Este chat de espacio de trabajo esta desactivado porque ${oldLogin} ha combinado su cuenta con ${newLogin}`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({policyName, login}) => `Este chat de espacio de trabajo esta desactivado porque ${login} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     sidebarScreen: {

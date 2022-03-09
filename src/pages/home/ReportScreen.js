@@ -171,7 +171,9 @@ class ReportScreen extends React.Component {
         let archiveReason;
         if (isArchivedRoom) {
             archiveReason = lodashFindLast(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-            Log.alert(`No closed action found for archived room w/ reportID ${this.props.route.params.reportID}`);
+            if (!archiveReason) {
+                Log.alert(`No closed action found for archived room w/ reportID ${this.props.route.params.reportID}`);
+            }
         }
 
         return (
@@ -198,8 +200,12 @@ class ReportScreen extends React.Component {
                         <View style={styles.chatFooter}>
                             {
                                 isArchivedRoom
-                                    ? <ArchivedReportFooter archiveReason={archiveReason} />
-                                    : (
+                                    ? (
+                                        <ArchivedReportFooter
+                                            archiveReason={archiveReason}
+                                            report={this.props.report}
+                                        />
+                                    ) : (
                                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                             <ReportActionCompose
                                                 onSubmit={this.onSubmitComment}
