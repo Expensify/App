@@ -65,19 +65,12 @@ function getDisplayName(key, modifiers) {
  * @param {Event} event
  * @private
  */
-function bindHandlerToKeyupEvent(event) {
+function bindHandlerToKeydownEvent(event) {
     const eventModifiers = getKeyEventModifiers(event);
     const displayName = getDisplayName(event.key.toUpperCase(), eventModifiers);
 
-    if (!_.has(eventHandlers, displayName)) {
-        return;
-    }
-
-    const eventCallbacks = eventHandlers[event.keyCode];
-    const reversedEventCallbacks = [...eventCallbacks].reverse();
-
     // Loop over all the callbacks
-    _.every(reversedEventCallbacks, (callback) => {
+    _.every(eventHandlers[displayName], (callback) => {
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -102,8 +95,8 @@ function bindHandlerToKeyupEvent(event) {
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
+document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
 
 /**
  * Unsubscribes a keyboard event handler.
