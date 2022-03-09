@@ -77,10 +77,8 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         if (Number.isNaN(numValue)) {
             return '';
         }
-        const fraction = numValue.toString().split('.')[1];
-        return !fraction || fraction.length < 2
-            ? numValue.toFixed(2)
-            : numValue.toString();
+
+        return numValue.toFixed(2);
     }
 
     setRate(value) {
