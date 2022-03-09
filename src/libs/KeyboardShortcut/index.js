@@ -132,6 +132,24 @@ function addKeyToMap(key, modifiers, descriptionKey) {
 }
 
 /**
+ * Return platform specific modifiers for keys like Control (CMD on macOS)
+ *
+ * @param {Array} keys
+ * @returns {Array}
+ */
+function getPlatformEquivalentForKeys(keys) {
+    const operatingSystem = getOperatingSystem();
+    return _.map(keys, (key) => {
+        if (!_.has(CONST.PLATFORM_SPECIFIC_KEYS, key)) {
+            return key;
+        }
+
+        const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
+        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || key);
+    });
+}
+
+/**
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
@@ -143,7 +161,8 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
-    const displayName = getDisplayName(key, modifiers);
+    const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
+    const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
         eventHandlers[displayName] = [];
     }
@@ -157,26 +176,9 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     });
 
     if (descriptionKey) {
-        addKeyToMap(key, modifiers, descriptionKey);
+        addKeyToMap(key, platformAdjustedModifiers, descriptionKey);
     }
     return () => unsubscribe(displayName, callbackID);
-}
-
-/**
- * Return platform specific modifiers for keys like Control (Cmd)
- * @param {Array} modifiers
- * @returns {Array}
- */
-function getShortcutModifiers(modifiers) {
-    const operatingSystem = getOperatingSystem();
-    return _.map(modifiers, (modifier) => {
-        if (!_.has(CONST.KEYBOARD_SHORTCUT_MODIFIERS, modifier)) {
-            return modifier;
-        }
-
-        const platformModifiers = CONST.KEYBOARD_SHORTCUT_MODIFIERS[modifier];
-        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || modifier);
-    });
 }
 
 /**
@@ -197,7 +199,6 @@ function getShortcutModifiers(modifiers) {
 const KeyboardShortcut = {
     subscribe,
     getKeyboardShortcuts,
-    getShortcutModifiers,
 };
 
 export default KeyboardShortcut;

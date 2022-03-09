@@ -134,7 +134,7 @@ const CONST = {
         WEB: 'web',
         DESKTOP: 'desktop',
     },
-    KEYBOARD_SHORTCUT_MODIFIERS: {
+    PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
