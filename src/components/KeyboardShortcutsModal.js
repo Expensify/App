@@ -72,7 +72,7 @@ class KeyboardShortcutsModal extends React.Component {
     }
 
     render() {
-        const shortcuts = KeyboardShortcut.getKeyboardShortcuts();
+        const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
         const modalType = this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
 
         return (

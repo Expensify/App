@@ -4,15 +4,17 @@ import Str from 'expensify-common/lib/str';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
+// Handlers for the various keyboard listeners we set up
 const eventHandlers = {};
-const keyboardShortcutMap = {};
+
+// Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
+const documentedShortcuts = {};
 
 /**
- * Return the key-value pair for shortcut keys and translate keys
  * @returns {Array}
  */
-function getKeyboardShortcuts() {
-    return _.values(keyboardShortcutMap);
+function getDocumentedShortcuts() {
+    return _.values(documentedShortcuts);
 }
 
 /**
@@ -115,23 +117,6 @@ function unsubscribe(displayName, callbackID) {
 }
 
 /**
- * Add key to the shortcut map
- *
- * @param {String} key The key to watch, i.e. 'K' or 'Escape'
- * @param {String|String[]} modifiers Can either be shift or control
- * @param {String} descriptionKey Translation key for shortcut description
- */
-function addKeyToMap(key, modifiers, descriptionKey) {
-    const displayName = getDisplayName(key, modifiers);
-    keyboardShortcutMap[displayName] = {
-        shortcutKey: key,
-        descriptionKey,
-        displayName,
-        modifiers,
-    };
-}
-
-/**
  * Return platform specific modifiers for keys like Control (CMD on macOS)
  *
  * @param {Array} keys
@@ -176,8 +161,14 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     });
 
     if (descriptionKey) {
-        addKeyToMap(key, platformAdjustedModifiers, descriptionKey);
+        documentedShortcuts[displayName] = {
+            shortcutKey: key,
+            descriptionKey,
+            displayName,
+            modifiers,
+        };
     }
+
     return () => unsubscribe(displayName, callbackID);
 }
 
@@ -198,7 +189,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
  */
 const KeyboardShortcut = {
     subscribe,
-    getKeyboardShortcuts,
+    getDocumentedShortcuts,
 };
 
 export default KeyboardShortcut;
