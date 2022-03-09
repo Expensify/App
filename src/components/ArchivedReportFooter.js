@@ -19,7 +19,7 @@ const defaultProps = {
 const ArchivedReportFooter = props => (
     <Banner
         text={props.translate(`reportArchiveReasons.${props.archiveReason}`)}
-        shouldRenderHTML={props.archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+        shouldRenderHTML={props.archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
     />
 );
 
