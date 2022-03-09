@@ -79,8 +79,7 @@ function push({
                 setTimeout(notification.close.bind(notification), delay);
             }
 
-            notification.onclick = (event) => {
-                event.preventDefault();
+            notification.onclick = () => {
                 onClick();
                 window.parent.focus();
                 window.focus();
