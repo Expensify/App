@@ -38,7 +38,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-
         /** Participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
@@ -159,7 +158,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     /**
-     *
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
