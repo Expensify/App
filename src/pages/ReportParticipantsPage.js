@@ -83,11 +83,7 @@ const ReportParticipantsPage = (props) => {
                 title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.goBack}
-<<<<<<< HEAD
                 shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
-=======
-                shouldShowBackButton={ReportUtils.isChatRoom(props.report)}
->>>>>>> bc4f429849f87da71962638c204351a946cee474
             />
             <View
                 pointerEvents="box-none"
