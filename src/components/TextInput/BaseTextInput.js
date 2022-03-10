@@ -65,6 +65,7 @@ class BaseTextInput extends Component {
             return;
         }
 
+        // console.log('Values to Compare in BaseTextInput', this.value, this.props.value);
         this.value = this.props.value;
         this.input.setNativeProps({text: this.value});
 

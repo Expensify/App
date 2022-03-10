@@ -218,13 +218,17 @@ class DebitCardPage extends Component {
         // Auto remove the slash and digit when backspace is pressed and it ends with slash
         if (e.nativeEvent.key === 'Backspace' && (expirationDate.length === 4 || (expirationDate.length === 3 && lodashEndsWith(expirationDate, '/')))) {
             this.allowExpirationDateChange = false;
-            this.setState(prevState => ({expirationDate: prevState.expirationDate.substring(0, prevState.expirationDate.length - 1)}));
+            e.preventDefault();
+
+            // console.log('About to update state', expirationDate.substring(0, expirationDate.length - 2));
+            this.clearErrorAndSetValue('expirationDate', expirationDate.substring(0, expirationDate.length - 2));
         } else {
             this.allowExpirationDateChange = true;
         }
     }
 
     render() {
+        // console.log('Current State', this.state.expirationDate);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
