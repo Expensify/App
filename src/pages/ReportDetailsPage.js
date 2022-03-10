@@ -81,28 +81,24 @@ class ReportDetailsPage extends Component {
         });
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems.push(
-                {
+            this.menuItems.push({
                     translationKey: 'common.settings',
                     icon: Expensicons.Gear,
                     action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-                },
-            );
+            });
         }
 
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
-                {
-                    translationKey: 'common.invite',
-                    icon: Expensicons.Plus,
-                    action: () => { /* Placeholder for when inviting other users is built in */ },
-                },
-                {
-                    translationKey: 'common.leaveRoom',
-                    icon: Expensicons.Exit,
-                    action: () => { /* Placeholder for when leaving rooms is built in */ },
-                },
-            ]);
+            this.menuItems.push({
+                translationKey: 'common.invite',
+                icon: Expensicons.Plus,
+                action: () => { /* Placeholder for when inviting other users is built in */ },
+            },
+            {
+                translationKey: 'common.leaveRoom',
+                icon: Expensicons.Exit,
+                action: () => { /* Placeholder for when leaving rooms is built in */ },
+            });
         }
     }
 
