@@ -12,7 +12,7 @@ on:
         default: ''
 
 env:
-  GITHUB_TOKEN: ${{ secrets.BOTIFY_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   validateActor:
