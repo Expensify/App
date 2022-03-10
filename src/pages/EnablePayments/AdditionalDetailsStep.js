@@ -44,7 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     walletAdditionalDetails: {
-        errorFields: [],
+        errorFields: {},
         loading: false,
         additionalErrorMessage: '',
     },
@@ -78,6 +78,7 @@ class AdditionalDetailsStep extends React.Component {
             phoneNumber: 'common.phoneNumber',
             dob: 'common.dob',
             ssn: 'common.ssnLast4',
+            ssnFull9: 'common.ssnFull9',
         };
 
         this.state = {
@@ -141,7 +142,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
-        if (!ValidationUtils.isValidSSNLastFour(this.state.ssn)) {
+        if (!ValidationUtils.isValidSSNLastFour(this.state.ssn) && !ValidationUtils.isValidSSNFullNine(this.state.ssn)) {
             errors.ssn = true;
         }
 
@@ -180,6 +181,8 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
@@ -253,11 +256,11 @@ class AdditionalDetailsStep extends React.Component {
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.ssn)}
+                                    label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                                     onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
                                     value={this.state.ssn}
                                     errorText={this.getErrorText('ssn')}
-                                    maxLength={4}
+                                    maxLength={shouldAskForFullSSN ? 9 : 4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
                             </View>
