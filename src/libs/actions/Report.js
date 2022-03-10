@@ -130,6 +130,9 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
         // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitely included.
         return [ownerEmail, ...emailArray];
     }
+
+    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
+    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
     return _.without(emailArray, currentUserEmail);
 }
 
