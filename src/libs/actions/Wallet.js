@@ -337,4 +337,5 @@ export {
     updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
+    buildIdologyError,
 };
