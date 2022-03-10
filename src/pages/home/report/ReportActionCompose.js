@@ -35,8 +35,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
-import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
@@ -64,9 +63,6 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -113,7 +109,6 @@ const defaultProps = {
     network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -154,6 +149,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -312,7 +308,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.length === 0,
+            isCommentEmpty: newComment.trim().length === 0,
         });
 
         // Indicate that draft has been created.
@@ -350,8 +346,8 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed
-        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -392,7 +388,7 @@ class ReportActionCompose extends React.Component {
 
     render() {
         // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.myPersonalDetails)) {
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -400,7 +396,7 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -634,9 +630,6 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
