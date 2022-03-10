@@ -98,6 +98,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -360,7 +361,6 @@ export default {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
-        setDefaultFailure: 'No se ha podido configurar el método de pago.',
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
@@ -369,6 +369,12 @@ export default {
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
+        error: {
+            notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
+            invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
+            notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
+            setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
