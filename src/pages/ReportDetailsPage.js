@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
-import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
+import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -16,7 +16,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/reportUtils';
-import {participantPropTypes} from './home/sidebar/optionPropTypes';
+import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
@@ -103,7 +103,6 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
@@ -132,12 +131,13 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <View style={styles.mb4}>
-                                <RoomHeaderAvatars
-                                    avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
-                                    shouldShowLargeAvatars={isPolicyExpenseChat}
-                                />
-                            </View>
+                            <Avatar
+                                isChatRoom={isChatRoom}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
+                                imageStyles={[styles.singleAvatarLarge]}
+                                source={this.props.report.icons[0]}
+                            />
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
