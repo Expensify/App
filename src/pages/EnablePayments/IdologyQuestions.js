@@ -123,7 +123,7 @@ class IdologyQuestions extends React.Component {
     render() {
         const questionIndex = this.state.questionNumber;
         const question = this.props.questions[questionIndex] || {};
-        const possibleAnwers = _.filter(_.map(question.answer, (answer) => {
+        const possibleAnswers = _.filter(_.map(question.answer, (answer) => {
             if (this.state.hideSkip && answer === SKIP_QUESTION_TEXT) {
                 return;
             }
@@ -149,7 +149,7 @@ class IdologyQuestions extends React.Component {
                     <View style={[styles.mh5, styles.mb5, styles.mt5]} key={question.type}>
                         <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
                         <RadioButtons
-                            items={possibleAnwers}
+                            items={possibleAnswers}
                             onPress={answer => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>

@@ -236,7 +236,7 @@ function activateWallet(currentStep, parameters) {
                         return;
                     }
 
-                    let qualifiers = _.get(response, ['data', 'requestorIdentityID', 'apiResult', 'qualifiers', 'qualifier'], []);
+                    let qualifiers = lodashGet(response, 'data.requestorIdentityID.apiResult.qualifiers.qualifier', []);
 
                     // ExpectID sometimes returns qualifier as an object when there is only one, or as an array if there are several
                     if (qualifiers.key) {
@@ -268,7 +268,7 @@ function activateWallet(currentStep, parameters) {
                         }
                     }
 
-                    if (_.get(response, ['data', 'requestorIdentityID', 'apiResult', 'results', 'key']) === 'result.no.match'
+                    if (lodashGet(response, 'data.requestorIdentityID.apiResult.results.key') === 'result.no.match'
                         || response.title === CONST.WALLET.ERROR.WRONG_ANSWERS) {
                         setAdditionalDetailsShouldShowFailedKYC(true);
                         return;
