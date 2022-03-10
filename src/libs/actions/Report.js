@@ -127,7 +127,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
         return emailArray;
     }
     if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
-        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitely included.
+        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
         return [ownerEmail, ...emailArray];
     }
 
