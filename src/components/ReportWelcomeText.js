@@ -74,7 +74,6 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const chatUsers = isChatRoom ? [{displayName: props.report.reportName}] : displayNamesWithTooltips;
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
 
     return (
@@ -107,7 +106,7 @@ const ReportWelcomeText = (props) => {
                             : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
                     </Text>
                     <Text style={[styles.textStrong]}>
-                        {lodashGet(chatUsers, '[0].displayName', '')}
+                        {props.report.reportName}
                     </Text>
                     <Text>
                         {isResctrictedRoom
@@ -121,15 +120,15 @@ const ReportWelcomeText = (props) => {
                     <Text>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
-                    {_.map(chatUsers, ({displayName, pronouns}, index) => (
+                    {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
                         <Text key={displayName}>
                             <Text style={[styles.textStrong]}>
                                 {displayName}
                             </Text>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                            {(index === chatUsers.length - 1) && <Text>.</Text>}
-                            {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                            {(index < chatUsers.length - 2) && <Text>, </Text>}
+                            {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
+                            {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                            {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                         </Text>
                     ))}
                 </>
