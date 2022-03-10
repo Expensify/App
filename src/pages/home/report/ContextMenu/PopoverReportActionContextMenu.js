@@ -305,6 +305,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
+                    danger
                 />
             </>
         );

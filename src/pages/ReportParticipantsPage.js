@@ -82,7 +82,7 @@ const ReportParticipantsPage = (props) => {
             <HeaderWithCloseButton
                 title={props.translate(ReportUtils.isChatRoom(props.report) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={Navigation.dismissModal}
+                onBackButtonPress={Navigation.goBack}
                 shouldShowBackButton={ReportUtils.isChatRoom(props.report)}
             />
             <View
