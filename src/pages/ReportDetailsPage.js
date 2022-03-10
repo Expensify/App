@@ -80,7 +80,7 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems.push(
                 {
                     translationKey: 'common.settings',
