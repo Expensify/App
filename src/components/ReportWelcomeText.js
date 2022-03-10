@@ -30,19 +30,16 @@ const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.oneOfType([PropTypes.object]),
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
-
     /* Onyx Props */
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** The policy name */
         name: PropTypes.string,
-
-        /** ID of the policy */
-        id: PropTypes.string,
     }).isRequired,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
     ...withLocalizePropTypes,
 };
