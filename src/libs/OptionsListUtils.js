@@ -206,14 +206,6 @@ function hasReportDraftComment(report) {
 }
 
 /**
- * @param {Object} report
- * @returns {Array<String>}
- */
-function getParticipants(report) {
-    return [...lodashGet(report, ['participants'], [])];
-}
-
-/**
  * Get the Avatar urls or return the icon according to the chat type
  *
  * @param {Object} report
@@ -269,7 +261,7 @@ function createOption(personalDetailList, report, {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    const tooltipText = ReportUtils.getReportParticipantsTitle(getParticipants(report));
+    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
     let text;
     let alternateText;
@@ -429,7 +421,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const logins = getParticipants(report);
+        const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
