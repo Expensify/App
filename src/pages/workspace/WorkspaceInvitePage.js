@@ -242,12 +242,14 @@ class WorkspaceInvitePage extends React.Component {
             Boolean(this.state.userToInvite),
             this.state.searchValue,
         );
+        const policyName = lodashGet(this.props.policy, 'name');
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <HeaderWithCloseButton
                             title={this.props.translate('workspace.invite.invitePeople')}
+                            subtitle={policyName}
                             onCloseButtonPress={() => {
                                 this.clearErrors();
                                 Navigation.dismissModal();

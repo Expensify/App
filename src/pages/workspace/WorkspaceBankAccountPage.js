@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,10 +20,16 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        name: PropTypes.string,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -86,11 +93,13 @@ class WorkspaceBankAccountPage extends React.Component {
             this.navigateToBankAccountRoute();
             return null;
         }
+        const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
+                    subtitle={policyName}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
                     shouldShowGetAssistanceButton
@@ -137,4 +146,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withFullPolicy,
 )(WorkspaceBankAccountPage);
