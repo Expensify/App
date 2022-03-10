@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import InlineErrorText from './InlineErrorText';
+import * as FormUtils from '../libs/FormUtils';
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -13,6 +14,9 @@ const propTypes = {
 
     /** Called when the checkbox or label is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Called when the checkbox or label is pressed */
+    onChange: PropTypes.func,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -23,25 +27,45 @@ const propTypes = {
     /** Component to display for label */
     LabelComponent: PropTypes.func,
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
 
     /** Error text to display */
     errorText: PropTypes.string,
+
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.getInputIDPropTypes(props),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
+    onChange: () => {},
+    isFormInput: false,
+    inputID: undefined,
     style: [],
     label: undefined,
     LabelComponent: undefined,
-    hasError: false,
     errorText: '',
+    shouldSaveDraft: false,
 };
 
-const CheckboxWithLabel = (props) => {
+const CheckboxWithLabel = React.forwardRef((props, ref) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
+
+    function toggleCheckbox() {
+        props.onPress(!props.isChecked);
+        props.onChange(!props.isChecked);
+    }
 
     if (!props.label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
@@ -51,12 +75,16 @@ const CheckboxWithLabel = (props) => {
             <View style={wrapperStyles}>
                 <Checkbox
                     isChecked={props.isChecked}
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={toggleCheckbox}
                     label={props.label}
-                    hasError={props.hasError}
+                    hasError={Boolean(props.errorText)}
+                    forwardedRef={ref}
+                    isFormInput={props.isFormInput}
+                    inputID={props.inputID}
+                    shouldSaveDraft={props.shouldSaveDraft}
                 />
                 <TouchableOpacity
-                    onPress={() => props.onPress(!props.isChecked)}
+                    onPress={toggleCheckbox}
                     style={[
                         styles.ml3,
                         styles.pr2,
@@ -76,13 +104,13 @@ const CheckboxWithLabel = (props) => {
                 </TouchableOpacity>
             </View>
             {!_.isEmpty(props.errorText) && (
-                <InlineErrorText>
+                <InlineErrorText styles={[styles.ml8]}>
                     {props.errorText}
                 </InlineErrorText>
             )}
         </>
     );
-};
+});
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;

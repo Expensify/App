@@ -279,7 +279,6 @@ class ACHContractStep extends React.Component {
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                         errorText={this.getErrorText('certifyTrueInformation')}
-                        hasError={this.getErrors().certifyTrueInformation}
                     />
                 </ReimbursementAccountForm>
             </>
