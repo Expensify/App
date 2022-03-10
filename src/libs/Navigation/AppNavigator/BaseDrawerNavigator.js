@@ -42,9 +42,9 @@ class BaseDrawerNavigator extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            // calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
+            // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
             // Directly passing the dynamically calculated defaultStatus to drawer Navigator breaks the internal state
-            // And prevents the Drawer actions from reaching to action Drawer Navigation while screen is resized on from Web to mobile Web.
+            // And prevents the drawer actions from reaching to active Drawer Navigator while screen is resized on from Web to mobile Web.
             defaultStatus: Navigation.getDefaultDrawerState(props.isSmallScreenWidth),
         };
     }
