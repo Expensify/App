@@ -80,7 +80,7 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             this.menuItems.push(
                 {
                     translationKey: 'common.settings',
@@ -90,7 +90,7 @@ class ReportDetailsPage extends Component {
             );
         }
 
-        if (ReportUtils.isChatRoom(this.props.report)) {
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             this.menuItems = this.menuItems.concat([
                 {
                     translationKey: 'common.invite',
@@ -104,7 +104,6 @@ class ReportDetailsPage extends Component {
                 },
             ]);
         }
-
     }
 
     render() {
