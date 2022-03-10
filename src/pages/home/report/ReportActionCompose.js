@@ -149,7 +149,6 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-
         this.updateComment(this.comment);
     }
 
@@ -347,7 +346,7 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
         if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
             e.preventDefault();
 
