@@ -25,9 +25,9 @@ const parser = new ExpensiMark();
 const Default = (args) => {
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
-    const renderedHTML = parser.replace(comment);
     const [droppingFile, setDroppingFile] = useState(false);
     const [isComposerDroppingTarget, setIsComposerDroppingTarget] = useState(false);
+    const renderedHTML = parser.replace(comment);
 
     return (
         <View>

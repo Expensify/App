@@ -190,6 +190,7 @@ class BaseTextInput extends Component {
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
         const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
+        const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
@@ -251,16 +252,7 @@ class BaseTextInput extends Component {
                                         // eslint-disable-next-line
                                         {...inputProps}
                                         defaultValue={this.state.value}
-                                        placeholder={
-                                            (
-                                                this.props.prefixCharacter
-                                                || this.state.isFocused
-                                                || !hasLabel
-                                                || (hasLabel && this.props.forceActiveLabel)
-                                            )
-                                                ? this.props.placeholder
-                                                : null
-                                        }
+                                        placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
