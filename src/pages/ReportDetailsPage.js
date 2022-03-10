@@ -80,13 +80,18 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        if (ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems.push(
                 {
                     translationKey: 'common.settings',
                     icon: Expensicons.Gear,
                     action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
                 },
+            );
+        }
+
+        if (ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems = this.menuItems.concat([
                 {
                     translationKey: 'common.invite',
                     icon: Expensicons.Plus,
@@ -100,15 +105,6 @@ class ReportDetailsPage extends Component {
             ]);
         }
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
-                {
-                    translationKey: 'common.settings',
-                    icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-                },
-            ]);
-        }
     }
 
     render() {
