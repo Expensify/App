@@ -51,7 +51,6 @@ const propTypes = {
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority: PropTypes.number,
 
-
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
