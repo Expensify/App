@@ -12,7 +12,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
-
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,

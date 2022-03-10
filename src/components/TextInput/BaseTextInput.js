@@ -88,7 +88,6 @@ class BaseTextInput extends Component {
         this.appStateSubscription.remove();
     }
 
-
     onPress(event) {
         if (this.props.disabled) {
             return;

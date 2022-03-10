@@ -28,7 +28,6 @@ const propTypes = {
         keywords: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
 
-
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -118,7 +117,6 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
-
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -126,7 +124,6 @@ class EmojiPickerMenu extends Component {
             />
         );
     }
-
 
     render() {
         return (

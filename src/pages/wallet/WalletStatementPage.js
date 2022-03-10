@@ -14,7 +14,6 @@ import CONFIG from '../../CONFIG';
 import WalletStatementModal from '../../components/WalletStatementModal';
 import * as User from '../../libs/actions/User';
 
-
 const propTypes = {
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({

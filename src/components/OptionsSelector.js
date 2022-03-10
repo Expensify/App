@@ -170,7 +170,6 @@ class OptionsSelector extends Component {
                     return {focusedIndex: newFocusedIndex};
                 });
 
-
                 e.preventDefault();
                 break;
             }

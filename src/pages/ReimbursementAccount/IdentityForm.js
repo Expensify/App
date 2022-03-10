@@ -8,7 +8,6 @@ import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import AddressForm from './AddressForm';
 
-
 const propTypes = {
     /** Style for wrapping View */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -63,7 +62,6 @@ const defaultProps = {
     },
     errors: {},
 };
-
 
 const IdentityForm = (props) => {
     // dob field has multiple validations/errors, we are handling it temporarily like this.

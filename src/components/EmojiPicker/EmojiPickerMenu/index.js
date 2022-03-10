@@ -125,7 +125,6 @@ class EmojiPickerMenu extends Component {
         this.setState({selection: event.nativeEvent.selection});
     }
 
-
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
@@ -414,7 +413,6 @@ class EmojiPickerMenu extends Component {
         const emojiCode = types && types[this.props.preferredSkinTone]
             ? types[this.props.preferredSkinTone]
             : code;
-
 
         return (
             <EmojiPickerMenuItem
