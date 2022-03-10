@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,14 +20,18 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import withFullPolicy, {fullPolicyPropTypes} from './withFullPolicy';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        name: PropTypes.string,
+    }).isRequired,
+
     ...withLocalizePropTypes,
-    ...fullPolicyPropTypes,
 };
 
 const defaultProps = {

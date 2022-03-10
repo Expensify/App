@@ -16,7 +16,7 @@ import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import withFullPolicy, {fullPolicyDefaultProps} from './withFullPolicy';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** The text to display in the header */
@@ -47,8 +47,12 @@ const propTypes = {
     /** The guides call task ID to associate with the workspace page being shown */
     guidesCallTaskID: PropTypes.string,
 
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        name: PropTypes.string,
+    }).isRequired,
+
     ...withLocalizePropTypes,
-    ...fullPolicyDefaultProps,
 };
 
 const defaultProps = {
