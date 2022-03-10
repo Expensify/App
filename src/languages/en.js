@@ -742,6 +742,7 @@ export default {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
+            unavailable: 'Unavailable workspace',
         },
         new: {
             newWorkspace: 'New workspace',

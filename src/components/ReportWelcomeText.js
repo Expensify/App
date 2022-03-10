@@ -92,7 +92,7 @@ const ReportWelcomeText = (props) => {
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                     </Text>
                     <Text style={[styles.textStrong]}>
-                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], 'Unknown Policy')}
+                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
                     </Text>
                     <Text>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}

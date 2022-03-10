@@ -744,6 +744,7 @@ export default {
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
+            unavailable: 'Espacio de trabajo no disponible',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

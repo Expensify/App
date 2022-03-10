@@ -177,7 +177,7 @@ function getChatRoomSubtitle(report, policiesMap) {
     return lodashGet(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        'Unknown Policy',
+        Localize.translateLocal('workspace.common.unavailable'),
     );
 }
 
