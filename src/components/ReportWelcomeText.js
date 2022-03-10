@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as Localize from '../libs/Localize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
