@@ -99,6 +99,7 @@ export default {
         message: 'Message ',
         leaveRoom: 'Leave room',
         your: 'your',
+        conciergeHelp: 'Please reach out to Concierge for help.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -358,7 +359,6 @@ export default {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        setDefaultFailure: 'Failed to set default payment method.',
         deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
@@ -367,6 +367,12 @@ export default {
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
+        error: {
+            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
+            invalidBankAccount: 'This bank account is temporarily suspended.',
+            notOwnerOfFund: 'There was an error setting this card as your default payment method.',
+            setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,

@@ -431,6 +431,12 @@ const CONST = {
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
+            NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
+            INVALID_WALLET: '405 Invalid wallet account',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
+            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
+            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
+            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
         STEP: {
             // In the order they appear in the Wallet flow
