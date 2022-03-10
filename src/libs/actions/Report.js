@@ -1171,7 +1171,7 @@ function addAction(reportID, text, file) {
         persist: true,
     })
         .then((response) => {
-            if (response.jsonCode === 408 || (response.jsonCode === 666 && isAttachment)) {
+            if (response.jsonCode === 408) {
                 Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
