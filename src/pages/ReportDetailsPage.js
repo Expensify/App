@@ -82,9 +82,9 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems.push({
-                    translationKey: 'common.settings',
-                    icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
             });
         }
 
@@ -104,6 +104,7 @@ class ReportDetailsPage extends Component {
 
     render() {
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
