@@ -11,20 +11,26 @@ import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 
 /**
+ * Gets the IOU Reports for new transaction
+ *
  * @param {Object[]} requestParams
  * @param {Number} requestParams.reportID the ID of the IOU report
  * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
- * @returns {Promise}
- * Gets the IOU Reports for new transaction
  */
 function getIOUReportsForNewTransaction(requestParams) {
-    return API.Get({
+    API.Get({
         returnValueList: 'reportStuff',
         reportIDList: _.pluck(requestParams, 'reportID').join(','),
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then(({reports}) => {
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
+            }
+
+            const reports = response.response;
             const chatReportsToUpdate = {};
             const iouReportsToUpdate = {};
 
@@ -49,7 +55,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 
             // Now, merge the updated objects into our store
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
