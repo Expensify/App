@@ -103,7 +103,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
     }
 
     handleKeyPress = (event) => {
-        if (!_.includes(['ArrowLeft', 'ArrowRight'], event.key)) {
+        if (!_.contains(['ArrowLeft', 'ArrowRight'], event.key)) {
             return;
         }
 
