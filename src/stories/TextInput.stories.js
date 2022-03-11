@@ -103,8 +103,8 @@ const HintErrorInput = (args) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             onChangeText={(value) => {
-                if (value && value.toLowerCase() === 'damn!') {
-                    setError('Damn! there is an error.');
+                if (value && value.toLowerCase() === 'oops!') {
+                    setError('Oops! Looks like there\'s an error.');
                     return;
                 }
                 setError('');
@@ -118,7 +118,7 @@ HintErrorInput.args = {
     label: 'Label',
     name: 'inputhint&error',
     placeholder: 'My placeholder text',
-    hint: 'Type "Damn!" to see the error.',
+    hint: 'Type "Oops!" to see the error.',
 };
 
 export default story;
