@@ -1,17 +1,63 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
-const events = {};
-const keyboardShortcutMap = {};
+// Handlers for the various keyboard listeners we set up
+const eventHandlers = {};
+
+// Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
+const documentedShortcuts = {};
 
 /**
- * Return the key-value pair for shortcut keys and translate keys
  * @returns {Array}
  */
-function getKeyboardShortcuts() {
-    return _.values(keyboardShortcutMap);
+function getDocumentedShortcuts() {
+    return _.values(documentedShortcuts);
+}
+
+/**
+ * Gets modifiers from a keyboard event.
+ *
+ * @param {Event} event
+ * @returns {Array<String>}
+ */
+function getKeyEventModifiers(event) {
+    const modifiers = [];
+    if (event.shiftKey) {
+        modifiers.push('SHIFT');
+    }
+    if (event.ctrlKey) {
+        modifiers.push('CONTROL');
+    }
+    if (event.altKey) {
+        modifiers.push('ALT');
+    }
+    if (event.metaKey) {
+        modifiers.push('META');
+    }
+    return modifiers;
+}
+
+/**
+ * Generates the normalized display name for keyboard shortcuts.
+ *
+ * @param {String} key
+ * @param {String|Array<String>} modifiers
+ * @returns {String}
+ */
+function getDisplayName(key, modifiers) {
+    let displayName = [key.toUpperCase()];
+    if (_.isString(modifiers)) {
+        displayName.unshift(modifiers);
+    } else if (_.isArray(modifiers)) {
+        displayName = [..._.sortBy(modifiers), ...displayName];
+    }
+
+    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+
+    return displayName.join(' + ');
 }
 
 /**
@@ -19,54 +65,12 @@ function getKeyboardShortcuts() {
  * @param {Event} event
  * @private
  */
-function bindHandlerToKeyupEvent(event) {
-    if (events[event.keyCode] === undefined || event.target.nodeName === 'TEXTAREA') {
-        return;
-    }
-
-    const eventCallbacks = events[event.keyCode];
-    const reversedEventCallbacks = [...eventCallbacks].reverse();
+function bindHandlerToKeydownEvent(event) {
+    const eventModifiers = getKeyEventModifiers(event);
+    const displayName = getDisplayName(event.key, eventModifiers);
 
     // Loop over all the callbacks
-    _.every(reversedEventCallbacks, (callback) => {
-        const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-            if (modifier === 'shift' && !event.shiftKey) {
-                return false;
-            }
-            if (modifier === 'control' && !event.ctrlKey) {
-                return false;
-            }
-            if (modifier === 'alt' && !event.altKey) {
-                return false;
-            }
-            if (modifier === 'meta' && !event.metaKey) {
-                return false;
-            }
-            return true;
-        });
-
-        const extraModifiers = _.difference(['shift', 'control', 'alt', 'meta'], callback.modifiers);
-
-        // returns true if extra modifiers are pressed
-        const pressedExtraModifiers = _.some(extraModifiers, (extraModifier) => {
-            if (extraModifier === 'shift' && event.shiftKey) {
-                return true;
-            }
-            if (extraModifier === 'control' && event.ctrlKey) {
-                return true;
-            }
-            if (extraModifier === 'alt' && event.altKey) {
-                return true;
-            }
-            if (extraModifier === 'meta' && event.metaKey) {
-                return true;
-            }
-            return false;
-        });
-        if (!pressedModifiers || pressedExtraModifiers) {
-            return true;
-        }
-
+    _.every(eventHandlers[displayName], (callback) => {
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -81,68 +85,46 @@ function bindHandlerToKeyupEvent(event) {
         }
         event.preventDefault();
 
-        // Short circuit the loop because the event is triggered
-        return false;
+        // If the event should not bubble, short-circuit the loop
+        let shouldBubble = callback.shouldBubble || false;
+        if (_.isFunction(callback.shouldBubble)) {
+            shouldBubble = callback.shouldBubble();
+        }
+        return shouldBubble;
     });
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
+document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
 
 /**
- * Returns keyCode for a given key
- * @param {String} key The key to watch, i.e. 'K' or 'Escape'
- * @returns {Number} The key's keyCode, i.e. 75 or 27
- * @private
- */
-function getKeyCode(key) {
-    // For keys that have longer names we must catch and return the correct key key.charCodeAt(0) would return the
-    // key code for 'E' (the letter at index 0 in the string) not 'Escape'
-    switch (key) {
-        case 'Enter':
-            return 13;
-        case 'Escape':
-            return 27;
-        default:
-            return key.charCodeAt(0);
-    }
-}
-
-/**
- * Unsubscribes to a keyboard event.
- * @param {Number} key The key to stop watching
- * @private
- */
-function unsubscribe(key) {
-    const keyCode = getKeyCode(key);
-    events[keyCode].pop();
-}
-
-/**
- * Add key to the shortcut map
+ * Unsubscribes a keyboard event handler.
  *
- * @param {String} key The key to watch, i.e. 'K' or 'Escape'
- * @param {String|String[]} modifiers Can either be shift or control
- * @param {String} descriptionKey Translation key for shortcut description
+ * @param {String} displayName The display name for the key combo to stop watching
+ * @param {String} callbackID The specific ID given to the callback at the time it was added
+ * @private
  */
-function addKeyToMap(key, modifiers, descriptionKey) {
-    let displayName = [key];
-    if (_.isString(modifiers)) {
-        displayName.unshift(modifiers);
-    } else if (_.isArray(modifiers)) {
-        displayName = [...modifiers, ...displayName];
-    }
+function unsubscribe(displayName, callbackID) {
+    eventHandlers[displayName] = _.reject(eventHandlers[displayName], callback => callback.id === callbackID);
+}
 
-    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+/**
+ * Return platform specific modifiers for keys like Control (CMD on macOS)
+ *
+ * @param {Array<String>} keys
+ * @returns {Array}
+ */
+function getPlatformEquivalentForKeys(keys) {
+    const operatingSystem = getOperatingSystem();
+    return _.map(keys, (key) => {
+        if (!_.has(CONST.PLATFORM_SPECIFIC_KEYS, key)) {
+            return key;
+        }
 
-    displayName = displayName.join(' + ');
-    keyboardShortcutMap[displayName] = {
-        shortcutKey: key,
-        descriptionKey,
-        displayName,
-        modifiers,
-    };
+        const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
+        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || key);
+    });
 }
 
 /**
@@ -150,55 +132,57 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String} descriptionKey Translation key for shortcut description
- * @param {String|Array} modifiers Can either be shift or control
- * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
+ * @param {String|Array<String>} [modifiers] Can either be shift or control
+ * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
+ * @param {Boolean|Function} [shouldBubble] Should the event bubble?
+ * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
-    const keyCode = getKeyCode(key);
-    if (events[keyCode] === undefined) {
-        events[keyCode] = [];
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
+    const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
+    const displayName = getDisplayName(key, platformAdjustedModifiers);
+    if (!_.has(eventHandlers, displayName)) {
+        eventHandlers[displayName] = [];
     }
-    events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+
+    const callbackID = Str.guid();
+    eventHandlers[displayName].splice(priority, 0, {
+        id: callbackID,
+        callback,
+        captureOnInputs,
+        shouldBubble,
+    });
 
     if (descriptionKey) {
-        addKeyToMap(key, modifiers, descriptionKey);
+        documentedShortcuts[displayName] = {
+            shortcutKey: key,
+            descriptionKey,
+            displayName,
+            modifiers,
+        };
     }
-    return () => unsubscribe(key);
+
+    return () => unsubscribe(displayName, callbackID);
 }
 
 /**
- * Return platform specific modifiers for keys like Control (Cmd)
- * @param {Array} modifiers
- * @returns {Array}
- */
-function getShortcutModifiers(modifiers) {
-    const operatingSystem = getOperatingSystem();
-    return _.map(modifiers, (modifier) => {
-        if (!_.has(CONST.KEYBOARD_SHORTCUT_MODIFIERS, modifier)) {
-            return modifier;
-        }
-
-        const platformModifiers = CONST.KEYBOARD_SHORTCUT_MODIFIERS[modifier];
-        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || modifier);
-    });
-}
-
-/**
- * Module storing the different keyboard shortcut
+ * This module configures a global keyboard event handler.
  *
- * We are using a push/pop model where new event are pushed at the end of an
- * array of events. When the event occur, we trigger the callback of the last
- * element. This allow us to replace shortcut from a page to a dialog without
- * having the page having to handle that logic.
+ * It uses a stack to store event handlers for each key combination. Some additional details:
  *
- * This is also following the convention of the PubSub module.
- * The "subClass" is used by pages to bind /unbind with no worries
+ *   - By default, new handlers are pushed to the top of the stack. If you pass a >0 priority when subscribing to the key event,
+ *     then the handler will get pushed further down the stack. This means that priority of 0 is higher than priority 1.
+ *
+ *   - When a key event occurs, we trigger callbacks for that key starting from the top of the stack.
+ *     By default, events do not bubble, and only the handler at the top of the stack will be executed.
+ *     Individual callbacks can be configured with the shouldBubble parameter, to allow the next event handler on the stack execute.
+ *
+ *   - Each handler has a unique callbackID, so calling the `unsubscribe` function (returned from `subscribe`) will unsubscribe the expected handler,
+ *     regardless of its position in the stack.
  */
 const KeyboardShortcut = {
     subscribe,
-    getKeyboardShortcuts,
-    getShortcutModifiers,
+    getDocumentedShortcuts,
 };
 
 export default KeyboardShortcut;

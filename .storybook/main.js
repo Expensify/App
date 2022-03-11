@@ -9,5 +9,6 @@ module.exports = {
     ],
     staticDirs: [
         './public',
+        '../assets/css',
     ],
 };

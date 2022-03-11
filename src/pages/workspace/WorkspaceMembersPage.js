@@ -24,7 +24,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import OptionRow from '../home/sidebar/OptionRow';
+import OptionRow from '../../components/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
@@ -215,7 +215,7 @@ class WorkspaceMembersPage extends React.Component {
                     <View style={styles.flex1}>
                         <OptionRow
                             forceTextUnreadStyle
-                            disableRowInteractivity
+                            isDisabled
                             option={{
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),

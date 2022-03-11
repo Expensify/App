@@ -28,6 +28,7 @@ const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 const [getLogger, registerLogHandler] = createCallback();
+const [recheckConnectivity, registerConnectionCheckCallback] = createCallback();
 
 /**
  * @param {Object} request
@@ -42,8 +43,12 @@ function processRequest(request) {
         ? enhanceParameters(request.command, request.data)
         : request.data;
 
+    // If request is still in processing after this time, we might be offline
+    const timerId = setTimeout(recheckConnectivity, CONST.NETWORK.MAX_PENDING_TIME_MS);
+
     onRequest(request, finalParameters);
-    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
+        .finally(() => clearTimeout(timerId));
 }
 
 function processPersistedRequestsQueue() {
@@ -231,6 +236,8 @@ function processNetworkRequestQueue() {
         processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
             .catch((error) => {
+                recheckConnectivity();
+
                 // When the request did not reach its destination add it back the queue to be retried
                 const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
                 if (shouldRetry && error.name !== CONST.ERROR.REQUEST_CANCELLED) {
@@ -362,4 +369,5 @@ export {
     setIsReady,
     registerRequestSkippedHandler,
     registerLogHandler,
+    registerConnectionCheckCallback,
 };
