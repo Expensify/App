@@ -51,20 +51,19 @@ function getIOUReportsForNewTransaction(requestParams) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
 /**
  *  Returns IOU Transaction Error Messages
- * @param {Object} error
+ * @param {Object} response
  */
 
-function getIOUErrorMessage(error) {
-    if (error && error.jsonCode) {
-        if (error.jsonCode === 405) {
+function getIOUErrorMessage(response) {
+    if (response && response.jsonCode) {
+        if (response.jsonCode === 405) {
             return Localize.translateLocal('common.error.invalidAmount');
-        } if (error.jsonCode === 404) {
+        } if (response.jsonCode === 404) {
             return Localize.translateLocal('iou.error.invalidSplit');
         }
     }
@@ -82,17 +81,19 @@ function getIOUErrorMessage(error) {
 function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
     API.CreateIOUTransaction(params)
-        .then((data) => {
-            getIOUReportsForNewTransaction([data]);
-            Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
-        })
-        .catch((error) => {
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                getIOUReportsForNewTransaction([response]);
+                Navigation.navigate(ROUTES.getReportRoute(response.chatReportID));
+                return;
+            }
+
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,
                 error: true,
             });
-            Growl.error(getIOUErrorMessage(error));
+            Growl.error(getIOUErrorMessage(response));
         });
 }
 
@@ -111,38 +112,40 @@ function createIOUSplit(params) {
     API.CreateChatReport({
         emailList: _.map(params.splits, participant => participant.email).join(','),
     })
-        .then((data) => {
-            chatReportID = data.reportID;
+        .then((response) => {
+            chatReportID = response.reportID;
             return API.CreateIOUSplit({
                 ...params,
                 splits: JSON.stringify(params.splits),
-                reportID: data.reportID,
+                reportID: response.reportID,
             });
         })
-        .then((data) => {
-            // This data needs to go from this:
-            // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
-            // to this:
-            // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
-            // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
-            // chat reports
-            const reportParams = [];
-            for (let i = 0; i < data.reportIDList.length; i++) {
-                reportParams.push({
-                    reportID: data.reportIDList[i],
-                    chatReportID: data.chatReportIDList[i],
-                });
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                // This data needs to go from this:
+                // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
+                // to this:
+                // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
+                // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
+                // chat reports
+                const reportParams = [];
+                for (let i = 0; i < response.reportIDList.length; i++) {
+                    reportParams.push({
+                        reportID: response.reportIDList[i],
+                        chatReportID: response.chatReportIDList[i],
+                    });
+                }
+                getIOUReportsForNewTransaction(reportParams);
+                Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+                return;
             }
-            getIOUReportsForNewTransaction(reportParams);
-            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        })
-        .catch((error) => {
+
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,
                 error: true,
             });
-            Growl.error(getIOUErrorMessage(error));
+            Growl.error(getIOUErrorMessage(response));
         });
 }
 
@@ -162,8 +165,7 @@ function createIOUSplitGroup(params) {
         ...params,
         splits: JSON.stringify(params.splits),
     })
-        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}))
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}));
+        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
 /**
@@ -188,14 +190,13 @@ function rejectTransaction({
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(`${response.code} ${response.message}`);
+                return;
             }
 
             const chatReport = response.reports[chatReportID];
             const iouReport = response.reports[reportID];
             Report.syncChatAndIOUReports(chatReport, iouReport);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
             // setting as null deletes the tranactionID
             Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
@@ -281,26 +282,24 @@ function payIOUReport({
     const promiseWithHandlers = payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                switch (response.message) {
+                    // eslint-disable-next-line max-len
+                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                        break;
+                    case 'This report doesn\'t have reimbursable expenses.':
+                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
+                        break;
+                    default:
+                        Growl.error(response.message, 5000);
+                }
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
             }
 
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
             Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .catch((error) => {
-            switch (error.message) {
-                // eslint-disable-next-line max-len
-                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                    break;
-                case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                    break;
-                default:
-                    Growl.error(error.message, 5000);
-            }
-            Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
