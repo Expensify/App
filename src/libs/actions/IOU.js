@@ -22,7 +22,7 @@ function prepareChatAndIOUReports(response, requestParams) {
     const iouReportsToUpdate = {};
 
     _.each(reports, (reportData) => {
-        // First, the existing chat report needs updated with the details about the new IOU
+        // First, the existing chat report needs to be updated with the details about the new IOU
         const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
         if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
             const chatReportID = paramsForIOUReport.chatReportID;
@@ -34,7 +34,7 @@ function prepareChatAndIOUReports(response, requestParams) {
                 hasOutstandingIOU: true,
             };
 
-            // Second, the IOU report needs updated with the new IOU details too
+            // Second, the IOU report needs to be updated with the new IOU details too
             const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
             iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
         }
@@ -192,7 +192,14 @@ function createIOUSplitGroup(params) {
         ...params,
         splits: JSON.stringify(params.splits),
     })
-        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false});
+        });
 }
 
 /**

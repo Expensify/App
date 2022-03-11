@@ -310,9 +310,10 @@ function setAvatar(file) {
                 setPersonalDetails({avatarUploading: false});
                 if (response.jsonCode === 405 || response.jsonCode === 502) {
                     Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-                } else {
-                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                    return;
                 }
+
+                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
                 return;
             }
 
