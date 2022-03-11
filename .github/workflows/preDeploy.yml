@@ -44,11 +44,30 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+  # Get details about the merged pull request
+  getMergedPullRequest:
+    runs-on: ubuntu-latest
+
+    outputs:
+      title: ${{ steps.getMergedPullRequest.outputs.title }}
+      body: ${{ steps.getMergedPullRequest.outputs.body }}
+      number: ${{ steps.getMergedPullRequest.outputs.number }}
+      labels: ${{ steps.getMergedPullRequest.outputs.labels }}
+      assignees: ${{ steps.getMergedPullRequest.outputs.assignees }}
+
+    steps:
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   chooseDeployActions:
     runs-on: ubuntu-latest
-    needs: confirmPassingBuild
+    needs: [confirmPassingBuild, getMergedPullRequest]
     outputs:
-      mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
+      mergedPullRequest: ${{ fromJSON(needs.getMergedPullRequest.outputs.number) }}
       isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
       isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_VERSION_BUMP_PR }}
       shouldCherryPick: ${{ steps.shouldCherryPick.outputs.SHOULD_CHERRY_PICK }}
@@ -59,12 +78,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
@@ -78,7 +91,7 @@ jobs:
 
       - name: Check if merged pull request has `CP Staging` label
         id: shouldCherryPick
-        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
+        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(fromJSON(needs.getMergedPullRequest.outputs.labels), 'CP Staging') }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
@@ -211,29 +224,23 @@ jobs:
   # Check if actor is member of Expensify organization by looking for Expensify/expensify team
   isExpensifyEmployee:
     runs-on: ubuntu-latest
+    needs: getMergedPullRequest
 
     outputs:
-      IS_EXPENSIFY_EMPLOYEE: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
+      IS_EXPENSIFY_EMPLOYEE: ${{ steps.checkActor.outputs.isTeamMember }}
 
     steps:
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
-        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check whether the actor is member of Expensify/expensify team
         id: checkActor
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          username: ${{ steps.getMergedPullRequest.outputs.author }}
+          username: ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}
           team: Expensify/expensify
 
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
-    needs: isExpensifyEmployee
+    needs: [isExpensifyEmployee, getMergedPullRequest]
     if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
     steps:
       # Version: 2.3.4
@@ -241,26 +248,19 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
-        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}
-        run: echo "PR_COUNT=$(gh pr list --author ${{ steps.getMergedPullRequest.outputs.author }} --state any | grep -c '')" >> "$GITHUB_ENV"
+      - name: Get PR count for ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}
+        run: echo "PR_COUNT=$(gh pr list --author ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }} --state any | grep -c '')" >> "$GITHUB_ENV"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Comment on ${{ steps.getMergedPullRequest.outputs.author }}\'s first pull request!
+      - name: Comment on ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}\'s first pull request!
         if: ${{ fromJSON(env.PR_COUNT) == 1 }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.getMergedPullRequest.outputs.number }}
+          number: ${{ fromJSON(needs.getMergedPullRequest.outputs.number) }}
           body: |
-            @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
+            @${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
 
             I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md), so here are some points to take note of :memo::
 
