@@ -408,7 +408,7 @@ function downloadStatementPDF(period) {
         .then((response) => {
             if (response.jsonCode === 200 && response.filename) {
                 const downloadFileName = `Expensify_Statement_${response.period}.pdf`;
-                const pdfURL = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
+                const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
 
                 fileDownload(pdfURL, downloadFileName);
             } else {
