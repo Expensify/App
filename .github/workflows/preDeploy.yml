@@ -137,7 +137,7 @@ jobs:
         run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
 
       - name: Cherry pick to staging
-        if: ${{ env.DO_CHERRY_PICK }}
+        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -161,7 +161,7 @@ jobs:
           NPM_VERSION: ${{ env.NEW_VERSION }}
 
       - name: Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked
-        if: ${{ env.DO_CHERRY_PICK }}
+        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
         run: |
           PR_URL="https://github.com/Expensify/App/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}"
           printf -v COMMENT ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version \`%s\` :rocket:" "$PR_URL" ${{ env.NEW_VERSION }}
@@ -172,14 +172,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Wait for staging deploys to finish
-        if: ${{ env.DO_CHERRY_PICK }}
+        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
         uses: Expensify/App/.github/actions/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           TAG: ${{ env.NEW_VERSION }}
 
       - name: Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.
-        if: ${{ env.DO_CHERRY_PICK }}
+        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
         run: |
           gh issue comment \
           "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
