@@ -179,7 +179,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
-    // All other jsonCode are treated as a successful response
+    // All other jsonCode besides 407 are treated as a successful response
     queuedRequest.resolve(response);
 });
 
