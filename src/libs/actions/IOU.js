@@ -9,6 +9,7 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
+import Log from '../Log';
 
 /**
  * @param {Object} response
@@ -216,6 +217,7 @@ function rejectTransaction({
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
+                Log.hmmm('Error rejecting transaction', {error: response.error});
                 return;
             }
 
@@ -304,7 +306,6 @@ function payIOUReport({
         .then((response) => {
             if (response.jsonCode !== 200) {
                 switch (response.message) {
-                    // eslint-disable-next-line max-len
                     case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
                         Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
                         break;

@@ -22,13 +22,13 @@ import NameValuePair from './NameValuePair';
 function deleteDebitCard(fundID) {
     return API.DeleteFund({fundID})
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            if (response.jsonCode === 200) {
+                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
+                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
                 return;
             }
 
-            Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
-            Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         });
 }
 
@@ -102,30 +102,30 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
         fundID,
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Make sure to show user more specific errors which will help support identify the problem faster.
-                switch (response.message) {
-                    case CONST.WALLET.ERROR.INVALID_WALLET:
-                    case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
-                        Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                        return;
-                    case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
-                    case CONST.WALLET.ERROR.INVALID_FUND:
-                        Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                        return;
-                    case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                        Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                        return;
-                    default:
-                        Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-                }
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.USER_WALLET, {
+                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                });
+                Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.USER_WALLET, {
-                walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-            });
-            Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
+            // Make sure to show user more specific errors which will help support identify the problem faster.
+            switch (response.message) {
+                case CONST.WALLET.ERROR.INVALID_WALLET:
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
+                case CONST.WALLET.ERROR.INVALID_FUND:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                default:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+            }
         });
 }
 
