@@ -24,36 +24,36 @@ AutoFocus.args = {
     autoFocus: true,
 };
 
-const Default = Template.bind({});
-Default.args = {
+const DefaultInput = Template.bind({});
+DefaultInput.args = {
     label: 'Default text input',
     name: 'Default',
 };
 
-const DefaultValue = Template.bind({});
-DefaultValue.args = {
-    label: 'Input with default value',
+const DefaultValueInput = Template.bind({});
+DefaultValueInput.args = {
+    label: 'Default value input',
     name: 'DefaultValue',
     defaultValue: 'My default value',
 };
 
-const ErrorStory = Template.bind({});
-ErrorStory.args = {
-    label: 'Input with error',
+const ErrorInput = Template.bind({});
+ErrorInput.args = {
+    label: 'Error input',
     name: 'InputWithError',
-    errorText: 'This field has an error.',
+    errorText: 'Oops! Looks like there\'s an error',
 };
 
 const ForceActiveLabel = Template.bind({});
 ForceActiveLabel.args = {
-    label: 'Forced active label',
+    label: 'Force active label',
     placeholder: 'My placeholder text',
     forceActiveLabel: true,
 };
 
-const Placeholder = Template.bind({});
-Placeholder.args = {
-    label: 'Input with placeholder',
+const PlaceholderInput = Template.bind({});
+PlaceholderInput.args = {
+    label: 'Placeholder input',
     name: 'Placeholder',
     placeholder: 'My placeholder text',
 };
@@ -80,7 +80,7 @@ PrefixedInput.args = {
 const MaxLengthInput = Template.bind({});
 MaxLengthInput.args = {
     label: 'MaxLength input',
-    name: 'MaxLengthInput',
+    name: 'MaxLength',
     placeholder: 'My placeholder text',
     maxLength: 50,
 };
@@ -93,7 +93,7 @@ const HintAndErrorInput = (args) => {
             {...args}
             onChangeText={(value) => {
                 if (value && value.toLowerCase() === 'oops!') {
-                    setError('Oops! Looks like there\'s an error.');
+                    setError('Oops! Looks like there\'s an error');
                     return;
                 }
                 setError('');
@@ -104,19 +104,19 @@ const HintAndErrorInput = (args) => {
 };
 HintAndErrorInput.args = {
     label: 'HintAndError input',
-    name: 'HintAndErrorInput',
+    name: 'HintAndError',
     placeholder: 'My placeholder text',
-    hint: 'Type "Oops!" to see the error.',
+    hint: 'Type "Oops!" to see the error',
 };
 
 export default story;
 export {
     AutoFocus,
-    Default,
-    DefaultValue,
-    ErrorStory,
+    DefaultInput,
+    DefaultValueInput,
+    ErrorInput,
     ForceActiveLabel,
-    Placeholder,
+    PlaceholderInput,
     AutoGrowInput,
     PrefixedInput,
     MaxLengthInput,
