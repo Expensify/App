@@ -42,7 +42,6 @@ describe('generateAndroidVersionCode', () => {
     });
 });
 
-
 describe('updateAndroidVersion', () => {
     test.each([
         [

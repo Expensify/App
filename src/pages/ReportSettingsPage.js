@@ -21,7 +21,6 @@ import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './wor
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Growl from '../libs/Growl';
 
-
 const propTypes = {
     /** Route params */
     route: PropTypes.shape({
@@ -76,7 +75,6 @@ const propTypes = {
 const defaultProps = {
     ...fullPolicyDefaultProps,
 };
-
 
 class ReportSettingsPage extends Component {
     constructor(props) {
