@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.41-6",
+  "version": "1.1.42-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -106,6 +106,7 @@
     "react-web-config": "^1.0.0",
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
+    "shim-keyboard-event-key": "^1.0.3",
     "smoothscroll-polyfill": "^0.4.4",
     "underscore": "^1.13.1",
     "urbanairship-react-native": "^11.0.2"
@@ -151,7 +152,7 @@
     "electron-notarize": "^1.0.0",
     "electron-reloader": "^1.2.1",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "2.0.23",
+    "eslint-config-expensify": "2.0.24",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-jest": "^24.1.0",
     "flipper-plugin-bridgespy-client": "^0.1.9",
