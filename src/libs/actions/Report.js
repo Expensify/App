@@ -707,7 +707,6 @@ function getReportChannelName(reportID) {
  * @param {String} eventName
  * @param {Function} onEvent
  * @param {Boolean} isChunked
- * @returns {Object}
  */
 function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
@@ -740,6 +739,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
+}
 
 /**
  * Initialize our pusher subscriptions to listen for new report comments and pin toggles
