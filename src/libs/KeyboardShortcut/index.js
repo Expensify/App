@@ -138,7 +138,7 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
- * @param {boolean} [shouldPreventDefault] should we call event.preventDefault after callback ?
+ * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
