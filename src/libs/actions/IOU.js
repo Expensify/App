@@ -78,7 +78,9 @@ function getIOUErrorMessage(response) {
     if (response && response.jsonCode) {
         if (response.jsonCode === 405) {
             return Localize.translateLocal('common.error.invalidAmount');
-        } if (response.jsonCode === 404) {
+        }
+
+        if (response.jsonCode === 404) {
             return Localize.translateLocal('iou.error.invalidSplit');
         }
     }
