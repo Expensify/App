@@ -254,8 +254,6 @@ function setPersonalDetails(details, shouldGrowl) {
             } else if (response.jsonCode === 401) {
                 Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
             }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
         });
 }
 
@@ -309,19 +307,16 @@ function setAvatar(file) {
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
-                const error = new Error();
-                error.jsonCode = response.jsonCode;
-                throw error;
+                setPersonalDetails({avatarUploading: false});
+                if (response.jsonCode === 405 || response.jsonCode === 502) {
+                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                } else {
+                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                }
+                return;
             }
+
             setPersonalDetails({avatar: response.s3url, avatarUploading: false});
-        })
-        .catch((error) => {
-            setPersonalDetails({avatarUploading: false});
-            if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-            } else {
-                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-            }
         });
 }
 

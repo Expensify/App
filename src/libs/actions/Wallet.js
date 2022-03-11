@@ -17,6 +17,11 @@ function fetchOnfidoToken() {
     Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
     API.Wallet_GetOnfidoSDKToken()
         .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
+                return;
+            }
+
             const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
             Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
                 applicantID: apiResult.applicantID,
@@ -24,8 +29,7 @@ function fetchOnfidoToken() {
                 loading: false,
                 hasAcceptedPrivacyPolicy: true,
             });
-        })
-        .catch(() => Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED}));
+        });
 }
 
 /**

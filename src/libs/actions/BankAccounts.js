@@ -78,22 +78,19 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
         }),
     })
         .then((response) => {
-            if (response.jsonCode === 200) {
-                PaymentMethods.getPaymentMethods()
-                    .then(() => {
-                        PaymentMethods.continueSetup();
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                    });
+            if (response.jsonCode !== 200) {
+                if (response.message === 'Incorrect Expensify password entered') {
+                    ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
+                }
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 return;
             }
 
-            if (response.message === 'Incorrect Expensify password entered') {
-                ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
-            }
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            PaymentMethods.getPaymentMethods()
+                .then(() => {
+                    PaymentMethods.continueSetup();
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                });
         });
 }
 
@@ -106,14 +103,13 @@ function deleteBankAccount(bankAccountID) {
     API.DeleteBankAccount({
         bankAccountID,
     }).then((response) => {
-        if (response.jsonCode === 200) {
-            ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
-            Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
-        } else {
+        if (response.jsonCode !== 200) {
             Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            return;
         }
-    }).catch(() => {
-        Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+
+        ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
+        Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
     });
 }
 
