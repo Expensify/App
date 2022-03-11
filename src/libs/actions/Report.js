@@ -705,7 +705,7 @@ function getReportChannelName(reportID) {
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  *
  * @param {String} eventName
- * @returns {Promise}
+ * @returns {Object}
  */
 function subscribeToPrivateUserChannelEvent(eventName) {
     let callback = () => {};
