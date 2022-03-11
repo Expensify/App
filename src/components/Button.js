@@ -128,7 +128,7 @@ class Button extends Component {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, false, this.props.enterKeyEventListenerPriority);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
 
     componentWillUnmount() {
