@@ -47,6 +47,7 @@ ErrorStory.args = {
 const ForceActiveLabel = Template.bind({});
 ForceActiveLabel.args = {
     label: 'Forced active label',
+    placeholder: 'My placeholder text',
     forceActiveLabel: true,
 };
 
@@ -57,46 +58,34 @@ Placeholder.args = {
     placeholder: 'My placeholder text',
 };
 
-const AutoGrow = Template.bind({});
-AutoGrow.storyName = 'Autogrow input';
-AutoGrow.args = {
+const AutoGrowInput = Template.bind({});
+AutoGrowInput.args = {
     label: 'Autogrow input',
     name: 'AutoGrow',
-    placeholder: 'My placeholder',
+    placeholder: 'My placeholder text',
     autoGrow: true,
     textInputContainerStyles: [{
         minWidth: 150,
     }],
 };
 
-const Prefixed = Template.bind({});
-Prefixed.storyName = 'Prefixed input';
-Prefixed.args = {
+const PrefixedInput = Template.bind({});
+PrefixedInput.args = {
     label: 'Prefixed input',
     name: 'Prefixed',
     placeholder: 'My placeholder text',
     prefixCharacter: '@',
 };
 
-const WithFixedLabel = Template.bind({});
-WithFixedLabel.storyName = 'Always active label';
-WithFixedLabel.args = {
-    label: 'Active label input',
-    name: 'activelabel',
-    placeholder: 'My placeholder text',
-    forceActiveLabel: true,
-};
-
-const MaxLength = Template.bind({});
-MaxLength.storyName = 'Input with maxLength';
-MaxLength.args = {
-    label: 'Label',
-    name: 'inputmaxlength',
+const MaxLengthInput = Template.bind({});
+MaxLengthInput.args = {
+    label: 'MaxLength Input',
+    name: 'MaxLengthInput',
     placeholder: 'My placeholder text',
     maxLength: 50,
 };
 
-const HintErrorInput = (args) => {
+const HintAndErrorInput = (args) => {
     const [error, setError] = useState('');
     return (
         <TextInput
@@ -113,10 +102,9 @@ const HintErrorInput = (args) => {
         />
     );
 };
-HintErrorInput.storyName = 'Input with hint & error';
-HintErrorInput.args = {
-    label: 'Label',
-    name: 'inputhint&error',
+HintAndErrorInput.args = {
+    label: 'Input with hint & error',
+    name: 'HintAndErrorInput',
     placeholder: 'My placeholder text',
     hint: 'Type "Oops!" to see the error.',
 };
@@ -129,9 +117,8 @@ export {
     ErrorStory,
     ForceActiveLabel,
     Placeholder,
-    AutoGrow,
-    Prefixed,
-    WithFixedLabel,
-    MaxLength,
-    HintErrorInput,
+    AutoGrowInput,
+    PrefixedInput,
+    MaxLengthInput,
+    HintAndErrorInput,
 };
