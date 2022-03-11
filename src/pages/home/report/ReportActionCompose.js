@@ -384,6 +384,9 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
+
+        // Important to reset the selection on Submit action
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
     }
 
     render() {
@@ -578,6 +581,10 @@ class ReportActionCompose extends React.Component {
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
+
+                                // Keep focus on the composer when Send message is clicked.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
