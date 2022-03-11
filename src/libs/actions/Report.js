@@ -711,10 +711,11 @@ function subscribeToPrivateUserChannelEvent(eventName) {
     let callback = () => {};
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
 
+    /**
+     * @param {Object} pushJSON
+     */
     function logPusherEvent(pushJSON) {
-        Log.info(
-            `[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID},
-        );
+        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
     }
 
     function onPusherResubscribeToPrivateUserChannel() {
@@ -733,11 +734,7 @@ function subscribeToPrivateUserChannelEvent(eventName) {
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info(
-            '[Report] Failed to subscribe to Pusher channel',
-            false,
-            {error, pusherChannelName, eventName},
-        );
+        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEvent, false, onPusherResubscribeToPrivateUserChannel)
