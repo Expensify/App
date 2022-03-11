@@ -54,6 +54,7 @@ jobs:
       number: ${{ steps.getMergedPullRequest.outputs.number }}
       labels: ${{ steps.getMergedPullRequest.outputs.labels }}
       assignees: ${{ steps.getMergedPullRequest.outputs.assignees }}
+      author: ${{ steps.getMergedPullRequest.outputs.author }}
 
     steps:
       - name: Get merged pull request
