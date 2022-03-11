@@ -79,7 +79,7 @@ PrefixedInput.args = {
 
 const MaxLengthInput = Template.bind({});
 MaxLengthInput.args = {
-    label: 'MaxLength Input',
+    label: 'MaxLength input',
     name: 'MaxLengthInput',
     placeholder: 'My placeholder text',
     maxLength: 50,
@@ -103,7 +103,7 @@ const HintAndErrorInput = (args) => {
     );
 };
 HintAndErrorInput.args = {
-    label: 'Input with hint & error',
+    label: 'HintAndError input',
     name: 'HintAndErrorInput',
     placeholder: 'My placeholder text',
     hint: 'Type "Oops!" to see the error.',
