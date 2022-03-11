@@ -759,7 +759,11 @@ function subscribeToUserEvents() {
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_CHUNK, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference), true);
+    subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_CHUNK,
+        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+        true,
+    );
 
     // Live-update a report's actions when an 'edit comment' event is received.
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
