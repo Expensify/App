@@ -21,7 +21,7 @@ const Default = Template.bind({});
 Default.args = {
     label: 'Default picker',
     name: 'Default',
-    onChange: () => {},
+    onInputChange: () => {},
     items: [
         {
             label: 'Orange',
@@ -38,7 +38,7 @@ const PickerWithValue = Template.bind({});
 PickerWithValue.args = {
     label: 'Picker with defined value',
     name: 'Picker with defined value',
-    onChange: () => {},
+    onInputChange: () => {},
     value: 'apple',
     items: [
         {
@@ -57,7 +57,7 @@ ErrorStory.args = {
     label: 'Picker with error',
     name: 'PickerWithError',
     errorText: 'This field has an error.',
-    onChange: () => {},
+    onInputChange: () => {},
     items: [
         {
             label: 'Orange',
@@ -75,7 +75,7 @@ Disabled.args = {
     label: 'Picker disabled',
     name: 'Disabled',
     isDisabled: true,
-    onChange: () => {},
+    onInputChange: () => {},
     items: [
         {
             label: 'Orange',
