@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
@@ -6,6 +6,8 @@ import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
+import CheckboxWithLabel from '../components/CheckboxWithLabel';
+import Text from '../components/Text';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -15,10 +17,17 @@ import styles from '../styles/styles';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput, AddressSearch, Picker},
+    subcomponents: {
+        TextInput,
+        AddressSearch,
+        CheckboxWithLabel,
+        Picker,
+    },
 };
 
 const Template = (args) => {
+    const [isChecked, setIsChecked] = useState(args.draftValues.checkbox);
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
@@ -90,6 +99,48 @@ const Template = (args) => {
                 ]}
                 isFormInput
             />
+            <CheckboxWithLabel
+                inputID="checkbox"
+                isChecked={isChecked}
+                defaultValue={isChecked}
+                style={[styles.mb4, styles.mt5]}
+                onPress={() => { setIsChecked(prev => !prev); }}
+                isFormInput
+                shouldSaveDraft
+                LabelComponent={() => (
+                    <Text>I accept the Expensify Terms of Service</Text>
+                )}
+            />
+        </Form>
+    );
+};
+
+/**
+ * Story to exhibit the native event handlers for TextInput in the Form Component
+ * @param {Object} args
+ * @returns {JSX}
+ */
+const WithNativeEventHandler = (args) => {
+    const [log, setLog] = useState('');
+
+    // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
+    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    FormActions.setDraftValues(args.formID, args.draftValues);
+
+    return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Form {...args}>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                onChangeText={setLog}
+                isFormInput
+                shouldSaveDraft
+            />
+            <Text>
+                {`Entered routing number: ${log}`}
+            </Text>
         </Form>
     );
 };
@@ -118,6 +169,9 @@ const defaultArgs = {
         if (!values.pickAnotherFruit) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
+        if (!values.checkbox) {
+            errors.checkbox = 'You must accept the Terms of Service to continue';
+        }
         return errors;
     },
     onSubmit: (values) => {
@@ -135,6 +189,7 @@ const defaultArgs = {
         accountNumber: '1111222233331111',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
+        checkbox: false,
     },
 };
 
@@ -144,9 +199,15 @@ ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverError
 InputError.args = {
     ...defaultArgs,
     draftValues: {
-        routingNumber: '', accountNumber: '', pickFruit: '', pickAnotherFruit: '',
+        routingNumber: '',
+        accountNumber: '',
+        pickFruit: '',
+        pickAnotherFruit: '',
+        checkbox: false,
     },
 };
+
+WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;
 export {
@@ -154,4 +215,5 @@ export {
     Loading,
     ServerError,
     InputError,
+    WithNativeEventHandler,
 };

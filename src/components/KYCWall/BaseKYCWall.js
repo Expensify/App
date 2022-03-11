@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator} from 'react-native';
+import {ActivityIndicator, Dimensions} from 'react-native';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -20,24 +20,38 @@ class KYCWall extends React.Component {
         super(props);
 
         this.continue = this.continue.bind(this);
+        this.setMenuPosition = this.setMenuPosition.bind(this);
 
         this.state = {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            transferBalanceButton: null,
         };
     }
 
     componentDidMount() {
         PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
+        if (this.props.shouldListenForResize) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
+        }
     }
 
     componentWillUnmount() {
-        if (this.props.shouldListenForResize) {
-            window.removeEventListener('resize', null);
+        if (this.props.shouldListenForResize && this.dimensionsSubscription) {
+            this.dimensionsSubscription.remove();
         }
         PaymentMethods.kycWallRef.current = null;
+    }
+
+    setMenuPosition() {
+        if (!this.state.transferBalanceButton) {
+            return;
+        }
+        const buttonPosition = getClickedElementLocation(this.state.transferBalanceButton);
+        const position = this.getAnchorPosition(buttonPosition);
+        this.setPositionAddPaymentMenu(position);
     }
 
     /**
@@ -78,22 +92,19 @@ class KYCWall extends React.Component {
      * @param {Event} event
      */
     continue(event) {
+        this.setState({
+            transferBalanceButton: event.nativeEvent,
+        });
+
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            let clickedElementLocation = getClickedElementLocation(event.nativeEvent);
-            let position = this.getAnchorPosition(clickedElementLocation);
-            if (this.props.shouldListenForResize) {
-                window.addEventListener('resize', () => {
-                    clickedElementLocation = getClickedElementLocation(event.nativeEvent);
-                    position = this.getAnchorPosition(clickedElementLocation);
-                    this.setPositionAddPaymentMenu(position);
-                });
-            }
+            const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
+            const position = this.getAnchorPosition(clickedElementLocation);
+            this.setPositionAddPaymentMenu(position);
             this.setState({
                 shouldShowAddPaymentMenu: true,
             });
-            this.setPositionAddPaymentMenu(position);
             return;
         }
 

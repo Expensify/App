@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import SectionList from '../SectionList';
 import styles from '../../styles/styles';
 import optionPropTypes from '../optionPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** option Background Color */
@@ -69,10 +71,10 @@ const propTypes = {
     showTitleTooltip: PropTypes.bool,
 
     /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(['compact', 'default']),
+    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     /** Whether to disable the interactivity of the list's option row(s) */
-    disableRowInteractivity: PropTypes.bool,
+    isDisabled: PropTypes.bool,
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
@@ -96,7 +98,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
-    disableRowInteractivity: false,
+    isDisabled: false,
     onLayout: undefined,
 };
 

@@ -8,13 +8,13 @@ const propTypes = {
     /** Text to display */
     children: PropTypes.string,
 
-    /** Customized styles applied on a single InlineErrorText component  */
-    style: PropTypes.arrayOf(PropTypes.object),
+    /** Styling for inline error text */
+    styles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     children: 'Error',
-    style: [],
+    styles: [],
 };
 
 const InlineErrorText = (props) => {
@@ -23,7 +23,7 @@ const InlineErrorText = (props) => {
     }
 
     return (
-        <Text style={[styles.formError, styles.mt1, ...props.style]}>{props.children}</Text>
+        <Text style={[...props.styles, styles.formError, styles.mt1]}>{props.children}</Text>
     );
 };
 

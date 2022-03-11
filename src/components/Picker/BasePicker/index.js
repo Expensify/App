@@ -18,7 +18,7 @@ class BasePicker extends React.Component {
     }
 
     updateSelectedValueAndExecuteOnChange(value) {
-        this.props.onChange(value);
+        this.props.onInputChange(value);
         this.setState({selectedValue: value});
     }
 

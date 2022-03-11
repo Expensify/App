@@ -158,7 +158,6 @@ class WorkspaceNewRoomPage extends React.Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <View style={styles.mb5}>
-                            <Text style={[styles.formLabel]}>{this.props.translate('newRoomPage.roomName')}</Text>
                             <RoomNameInput
                                 initialValue={this.state.roomName}
                                 policyID={this.state.policyID}

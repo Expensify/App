@@ -77,6 +77,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
         error: {
             invalidAmount: 'Monto no válido',
+            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -97,6 +98,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -348,7 +350,6 @@ export default {
             addressStreet: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
             addressCity: 'Por favor ingrese una ciudad',
-            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             genericFailureMessage: 'Se produjo un error al agregar su tarjeta. Vuelva a intentarlo',
             password: 'Por favor ingrese tu contraseña de Expensify',
         },
@@ -357,7 +358,7 @@ export default {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
-        setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
         deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
@@ -365,6 +366,12 @@ export default {
         allSet: 'Todo listo!',
         transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
+        error: {
+            notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
+            invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
+            notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
+            setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -564,6 +571,8 @@ export default {
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
+        failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
+        failedKYCTextAfter: ' si tiene alguna pregunta.',
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
@@ -572,7 +581,6 @@ export default {
         agreeToThe: 'Estoy de acuerdo con la ',
         walletAgreement: 'Acuerdo de billetera',
         enablePayments: 'Habilitar pagos',
-        termsMustBeAccepted: 'Se deben aceptar los términos',
         feeAmountZero: '$0',
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
@@ -701,7 +709,6 @@ export default {
         termsAndConditions: 'Términos y condiciones',
         certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
         error: {
-            termsAndConditions: 'Debe aceptar términos y condiciones',
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
@@ -729,6 +736,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            growlMessageOnCreate: 'El espacio de trabajo ha sido creado',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',

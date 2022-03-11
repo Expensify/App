@@ -35,7 +35,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
@@ -149,6 +149,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -307,7 +308,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.length === 0,
+            isCommentEmpty: newComment.trim().length === 0,
         });
 
         // Indicate that draft has been created.
@@ -345,8 +346,8 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed
-        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -383,6 +384,9 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
+
+        // Important to reset the selection on Submit action
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
     }
 
     render() {
@@ -577,6 +581,10 @@ class ReportActionCompose extends React.Component {
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
+
+                                // Keep focus on the composer when Send message is clicked.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
