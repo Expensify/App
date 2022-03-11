@@ -102,6 +102,14 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         }, null);
     }
 
+    handleKeyPress = (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+            return;
+        }
+
+        this.updateRateValueDebounced(this.state.rateValue);
+    }
+
     updateRateValue(value) {
         const numValue = parseFloat(value);
 
@@ -165,6 +173,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                onKeyPress={this.handleKeyPress}
                             />
                         </View>
                         <View style={[styles.unitCol]}>
