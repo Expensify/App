@@ -384,7 +384,6 @@ describe('GithubUtils', () => {
                 + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                 + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`;
 
-
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
                 .then((issueBody) => {

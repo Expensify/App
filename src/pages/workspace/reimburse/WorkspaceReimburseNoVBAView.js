@@ -43,7 +43,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-
 class WorkspaceReimburseNoVBAView extends React.Component {
     unitItems = [
         {

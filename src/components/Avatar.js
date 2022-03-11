@@ -8,7 +8,6 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 
-
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),

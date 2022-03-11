@@ -369,7 +369,6 @@ function AddBillingCard(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
-
 /**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken

@@ -9,7 +9,6 @@ import basePickerStyles from './basePickerStyles';
 class BasePicker extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             selectedValue: this.props.value || this.props.defaultValue,
         };
@@ -46,7 +45,6 @@ class BasePicker extends React.Component {
         );
     }
 }
-
 BasePicker.propTypes = basePickerPropTypes.propTypes;
 BasePicker.defaultProps = basePickerPropTypes.defaultProps;
 
