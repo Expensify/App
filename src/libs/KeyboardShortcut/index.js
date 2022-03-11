@@ -83,7 +83,9 @@ function bindHandlerToKeydownEvent(event) {
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
-        event.preventDefault();
+        if (callback.shouldPreventDefault) {
+            event.preventDefault();
+        }
 
         // If the event should not bubble, short-circuit the loop
         let shouldBubble = callback.shouldBubble || false;
@@ -134,11 +136,12 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {String} descriptionKey Translation key for shortcut description
  * @param {String|Array<String>} [modifiers] Can either be shift or control
  * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
+ * @param {boolean} [shouldPreventDefault] should we call event.preventDefault after callback ?
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldPreventDefault = true, shouldBubble = false, priority = 0) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
@@ -150,6 +153,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         id: callbackID,
         callback,
         captureOnInputs,
+        shouldPreventDefault,
         shouldBubble,
     });
 

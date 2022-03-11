@@ -123,12 +123,12 @@ class Button extends Component {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
 
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.props.isDisabled || this.props.isLoading) {
+        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
+            if (this.props.isDisabled || this.props.isLoading || !e || e.target.nodeName === 'textarea') {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, false, this.props.enterKeyEventListenerPriority);
     }
 
     componentWillUnmount() {
