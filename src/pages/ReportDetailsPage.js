@@ -80,31 +80,26 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        // Chat rooms will allow you to more things than typical chats so they have extra options
-        if (!ReportUtils.isChatRoom(this.props.report)) {
-            return;
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+            });
         }
 
-        this.menuItems.push({
-            translationKey: 'common.settings',
-            icon: Expensicons.Gear,
-            action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-        });
-
-        if (ReportUtils.isDefaultRoom(this.props.report)) {
-            return;
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.invite',
+                icon: Expensicons.Plus,
+                action: () => { /* Placeholder for when inviting other users is built in */ },
+            },
+            {
+                translationKey: 'common.leaveRoom',
+                icon: Expensicons.Exit,
+                action: () => { /* Placeholder for when leaving rooms is built in */ },
+            });
         }
-
-        this.menuItems.push({
-            translationKey: 'common.invite',
-            icon: Expensicons.Plus,
-            action: () => { /* Placeholder for when inviting other users is built in */ },
-        },
-        {
-            translationKey: 'common.leaveRoom',
-            icon: Expensicons.Exit,
-            action: () => { /* Placeholder for when leaving rooms is built in */ },
-        });
     }
 
     render() {
@@ -151,7 +146,7 @@ class ReportDetailsPage extends Component {
                                         tooltipEnabled
                                         numberOfLines={1}
                                         textStyles={[styles.headerText, styles.mb2, styles.textAlignCenter]}
-                                        shouldUseFullTitle={isChatRoom}
+                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                     />
                                 </View>
                                 <Text

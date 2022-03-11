@@ -24,7 +24,6 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
     return (
@@ -39,7 +38,7 @@ const ReportActionItemCreated = (props) => {
                     avatarIcons={avatarIcons}
                     shouldShowLargeAvatars={isPolicyExpenseChat}
                 />
-                <ReportWelcomeText report={props.report} shouldIncludeParticipants={!isChatRoom} />
+                <ReportWelcomeText report={props.report} />
             </View>
         </View>
     );
