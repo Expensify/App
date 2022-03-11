@@ -13,9 +13,11 @@ class BasePicker extends React.Component {
         this.state = {
             selectedValue: this.props.value || this.props.defaultValue,
         };
+
+        this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
     }
 
-    handleChange = (value) => {
+    updateSelectedValueAndExecuteOnChange(value) {
         this.props.onChange(value);
         this.setState({selectedValue: value});
     }
@@ -24,7 +26,7 @@ class BasePicker extends React.Component {
         const hasError = !_.isEmpty(this.props.errorText);
         return (
             <RNPickerSelect
-                onValueChange={this.handleChange}
+                onValueChange={this.updateSelectedValueAndExecuteOnChange}
                 items={this.props.items}
                 style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
@@ -47,6 +49,5 @@ class BasePicker extends React.Component {
 
 BasePicker.propTypes = basePickerPropTypes.propTypes;
 BasePicker.defaultProps = basePickerPropTypes.defaultProps;
-BasePicker.displayName = 'BasePicker';
 
 export default BasePicker;

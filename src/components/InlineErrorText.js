@@ -7,6 +7,8 @@ import Text from './Text';
 const propTypes = {
     /** Text to display */
     children: PropTypes.string,
+
+    /** Customized styles applied on a single InlineErrorText component  */
     style: PropTypes.arrayOf(PropTypes.object),
 };
 

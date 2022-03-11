@@ -84,7 +84,7 @@ class Picker extends PureComponent {
                     />
                 </View>
                 {!_.isEmpty(this.props.errorText) && (
-                    <InlineErrorText style={[styles.ml3]}>
+                    <InlineErrorText style={[styles.mh3]}>
                         {this.props.errorText}
                     </InlineErrorText>
                 )}
