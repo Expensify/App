@@ -43,8 +43,6 @@ jobs:
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
           poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
