@@ -216,12 +216,19 @@ jobs:
       IS_EXPENSIFY_EMPLOYEE: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
 
     steps:
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check whether the actor is member of Expensify/expensify team
         id: checkActor
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          username: ${{ github.actor }}
+          username: ${{ steps.getMergedPullRequest.outputs.author }}
           team: Expensify/expensify
 
   newContributorWelcomeMessage:
