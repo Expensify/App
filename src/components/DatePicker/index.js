@@ -29,6 +29,13 @@ class Datepicker extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        if (this.props.value === undefined || this.value === this.props.value) {
+            return;
+        }
+        this.textInput.setNativeProps({text: moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    }
+
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text

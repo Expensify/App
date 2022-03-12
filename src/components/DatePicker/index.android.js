@@ -16,6 +16,13 @@ class DatePicker extends React.Component {
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }
 
+    componentDidUpdate() {
+        if (this.props.value === undefined || this.value === this.props.value) {
+            return;
+        }
+        this.textInput.setNativeProps({text: this.value});
+    }
+
     /**
      * @param {Event} event
      */
