@@ -25,7 +25,7 @@ const propTypes = {
 const GenericErrorPage = props => (
     <View style={[styles.flex1, styles.pv10, styles.ph5, styles.errorPageContainer]}>
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <View style={styles.alignItemsStart}>
+            <View>
                 <View style={styles.mb5}>
                     <Icon
                         src={Expensicons.Bug}
@@ -48,7 +48,7 @@ const GenericErrorPage = props => (
                         </TextLink>
                     </Text>
                 </View>
-                <View style={[styles.dFlex, styles.flexRow, styles.w100]}>
+                <View style={[styles.dFlex, styles.flexRow]}>
                     <View style={[styles.flex1, styles.flexRow]}>
                         <Button
                             success
