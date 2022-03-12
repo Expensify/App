@@ -1,6 +1,7 @@
 import React from 'react';
 import SubscriptAvatar from '../components/SubscriptAvatar';
 import * as Expensicons from '../components/Icon/Expensicons';
+import CONST from '../CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -13,6 +14,12 @@ export default {
     args: {
         mainAvatar: Expensicons.Profile,
         secondaryAvatar: Expensicons.Workspace,
+        size: CONST.AVATAR_SIZE.DEFAULT,
+    },
+    argTypes: {
+        size: {
+            options: [CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.DEFAULT], // SubscriptAvatar only supports these two sizes
+        },
     },
 };
 
