@@ -565,7 +565,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {canUseTouchScreen() && !this.props.isSmallScreenWidth ? null : (
+                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                             onModalHide={() => this.focus(true)}
