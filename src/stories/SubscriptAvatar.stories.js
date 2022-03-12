@@ -30,6 +30,13 @@ const Template = args => <SubscriptAvatar {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 
+const AvatarURLStory = Template.bind({});
+AvatarURLStory.args = {
+    mainAvatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png',
+    secondaryAvatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+};
+
 export {
     Default,
+    AvatarURLStory,
 };
