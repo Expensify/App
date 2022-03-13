@@ -9,7 +9,9 @@ import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
+import
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import DateUtils from '../../libs/DateUtils';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -19,14 +21,12 @@ const datepickerPropTypes = {
 class Datepicker extends React.Component {
     constructor(props) {
         super(props);
-
+        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || '';
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value ? moment(props.value).toDate() : new Date(),
+            value
         };
-        this.defaultValue = props.defaultValue
-            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : CONST.DATE.MOMENT_FORMAT_STRING;
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
         this.selectDate = this.selectDate.bind(this);
@@ -34,10 +34,13 @@ class Datepicker extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.value === undefined || this.value === this.props.value) {
+        const dateValue = DateUtils.getDateAsText(this.props.value);
+        if (this.props.value === undefined || this.state.value === dateValue) {
             return;
         }
-        this.textInput.setNativeProps({text: this.value});
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({value: dateValue});
+        this.textInput.setNativeProps({text: dateValue});
     }
 
     /**
@@ -65,7 +68,7 @@ class Datepicker extends React.Component {
         this.props.onChange(this.state.selectedDate);
 
         // Updates the value of TextInput on Date Change
-        this.textInput.setNativeProps({text: moment(this.state.selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)});
+        this.textInput.setNativeProps({text: DateUtils.getDateAsText(this.state.selectedDate)});
     }
 
     /**
@@ -92,7 +95,7 @@ class Datepicker extends React.Component {
                     editable={false}
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
-                    defaultValue={this.defaultValue}
+                    defaultValue={this.state.value}
                     shouldSaveDraft={this.props.shouldSaveDraft}
                     isFormInput={this.props.isFormInput}
                     inputID={this.props.inputID}
