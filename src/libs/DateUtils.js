@@ -127,8 +127,8 @@ function updateTimezone() {
 }
 
 function getDateAsText(date) {
-    if (date === undefined) {
-        return date;
+    if (date === undefined || date === '') {
+        return undefined;
     }
     return moment(date).format(CONST.DATE.MOMENT_FORMAT_STRING);
 }
