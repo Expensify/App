@@ -127,6 +127,7 @@ function create(name = '') {
                 Growl.error(errorMessage, 5000);
                 return;
             }
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
             res = response;
 
             // Fetch the default reports on the policy
@@ -182,8 +183,7 @@ function deletePolicy(policyID) {
         })
         .then(() => Report.fetchAllReports(false, true))
         .then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.goBack();
             return Promise.resolve();
         });
 }

@@ -147,7 +147,6 @@ const InitialSettingsPage = (props) => {
         .value();
     menuItems.push(...defaultMenuItems);
 
-
     const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 
     return (
@@ -161,7 +160,7 @@ const InitialSettingsPage = (props) => {
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
-                                size="large"
+                                size={CONST.AVATAR_SIZE.LARGE}
                                 source={props.myPersonalDetails.avatar}
                                 isActive={props.network.isOffline === false}
                                 tooltipText={props.myPersonalDetails.displayName}

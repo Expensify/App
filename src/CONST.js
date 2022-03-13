@@ -134,7 +134,7 @@ const CONST = {
         WEB: 'web',
         DESKTOP: 'desktop',
     },
-    KEYBOARD_SHORTCUT_MODIFIERS: {
+    PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
@@ -176,8 +176,9 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
-        CONTROL: 'Ctrl',
-        META: 'Cmd',
+        CONTROL: 'CTRL',
+        ESCAPE: 'ESC',
+        META: 'CMD',
         SHIFT: 'Shift',
     },
     CURRENCY: {
@@ -304,6 +305,7 @@ const CONST = {
         },
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
+        MAX_PENDING_TIME_MS: 10 * 1000,
     },
     HTTP_STATUS_CODE: {
         SUCCESS: 200,
@@ -430,6 +432,12 @@ const CONST = {
             UNEXPECTED: 'Unexpected error',
             MISSING_FIELD: 'Missing required additional details fields',
             UNABLE_TO_VERIFY: 'Unable to verify identity',
+            NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
+            INVALID_WALLET: '405 Invalid wallet account',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
+            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
+            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
+            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
         STEP: {
             ONFIDO: 'OnfidoStep',
@@ -551,8 +559,14 @@ const CONST = {
     AVATAR_SIZE: {
         LARGE: 'large',
         DEFAULT: 'default',
+        SMALL: 'small',
+        SUBSCRIPT: 'subscript',
+        SMALL_SUBSCRIPT: 'small-subscript',
     },
-
+    OPTION_MODE: {
+        COMPACT: 'compact',
+        DEFAULT: 'default',
+    },
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {

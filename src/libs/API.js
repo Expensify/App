@@ -369,7 +369,6 @@ function AddBillingCard(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
-
 /**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
@@ -1234,6 +1233,17 @@ function TransferWalletBalance(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * Fetches the filename of the user's statement
+ * @param {Object} parameters
+ * @param {String} [parameters.period]
+ * @return {Promise}
+ */
+function GetStatementPDF(parameters) {
+    const commandName = 'GetStatementPDF';
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1253,6 +1263,7 @@ export {
     Get,
     GetAccountStatus,
     GetShortLivedAuthToken,
+    GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
     GetPolicySummaryList,

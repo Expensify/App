@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ELECTRON_ENV=${1:-development}
+export ELECTRON_ENV=${1:-development}
 
 if [[ "$ELECTRON_ENV" == "staging" ]]; then
   ENV_FILE=".env.staging"
@@ -24,4 +24,4 @@ info ""
 title "Building Desktop App Archive Using Electron"
 info ""
 shift 1
-"$LOCAL_PACKAGES/electron-builder" --config config/electronBuilder/electronBuilder.config.js "$@"
+"$LOCAL_PACKAGES/electron-builder" --config config/electronBuilder.config.js "$@"
