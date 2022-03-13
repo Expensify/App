@@ -235,6 +235,7 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
         isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
+        lastMessageHtml: lastActionMessage,
     };
 }
 
@@ -628,7 +629,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(messageText, lodashGet(reportAction, ['message', 0, 'html'], '')),
         loading: false,
     };
 
