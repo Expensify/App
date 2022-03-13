@@ -48,7 +48,7 @@ const GenericErrorPage = props => (
                         </TextLink>
                     </Text>
                 </View>
-                <View style={[styles.dFlex, styles.flexRow]}>
+                <View style={[styles.flexRow]}>
                     <View style={[styles.flex1, styles.flexRow]}>
                         <Button
                             success
