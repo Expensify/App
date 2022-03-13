@@ -6,10 +6,8 @@ import moment from 'moment';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import DateUtils from '../../libs/DateUtils';
 
