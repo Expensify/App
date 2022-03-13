@@ -121,9 +121,19 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
+    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
+        return emailArray;
+    }
+    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
+        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
+        return [ownerEmail, ...emailArray];
+    }
+
+    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
+    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
+    return _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -144,8 +154,8 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
+    // For a basic policy room or a Policy Expense chat, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
         return fullReport.reportName;
     }
 
@@ -182,7 +192,7 @@ function getSimplifiedReportObject(report) {
         // We convert the line-breaks in html to space ' ' before striping the tags
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+            .replace(/(<([^>]+)>)/gi, '');
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -224,6 +234,7 @@ function getSimplifiedReportObject(report) {
         statusNum: report.status,
         oldPolicyName,
         visibility,
+        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
     };
 }
 
@@ -546,21 +557,15 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // Don't do anything for messages that aren't deleted.
-        if (message.html) {
-            return;
+        // If the message is deleted, update the last read message and the unread counter
+        if (!message.html) {
+            setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         }
 
-        // If the message is deleted, update the last read in case the deleted message is being counted in the unreadActionCount
-        setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-    });
-
-    // If this is the most recent message, update the lastMessageText in the report object as well
-    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportUtils.formatReportLastMessageText(message.text) || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
         });
-    }
+    });
 }
 
 /**
@@ -1504,7 +1509,6 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    Navigation.closeDrawer();
 }
 
 /**

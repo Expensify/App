@@ -9,6 +9,7 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import HapticFeedback from '../libs/HapticFeedback';
 
 const propTypes = {
     /** The text for the button label */
@@ -47,6 +48,9 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
+    /** The priority to assign the enter key event listener. 0 is the highest priority. */
+    enterKeyEventListenerPriority: PropTypes.number,
+
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
@@ -73,6 +77,9 @@ const propTypes = {
 
     /** Should we remove the left border radius top + bottom? */
     shouldRemoveLeftBorderRadius: PropTypes.bool,
+
+    /** Should enable the haptic feedback? */
+    shouldEnableHapticFeedback: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -88,6 +95,7 @@ const defaultProps = {
     onPressIn: () => {},
     onPressOut: () => {},
     pressOnEnter: false,
+    enterKeyEventListenerPriority: 0,
     style: [],
     innerStyles: [],
     textStyles: [],
@@ -96,6 +104,7 @@ const defaultProps = {
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
+    shouldEnableHapticFeedback: false,
 };
 
 class Button extends Component {
@@ -114,12 +123,12 @@ class Button extends Component {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
 
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.props.isDisabled || this.props.isLoading) {
+        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
+            if (this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
 
     componentWillUnmount() {
@@ -179,8 +188,18 @@ class Button extends Component {
     render() {
         return (
             <Pressable
-                onPress={this.props.onPress}
-                onLongPress={this.props.onLongPress}
+                onPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onPress(e);
+                }}
+                onLongPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onLongPress(e);
+                }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}

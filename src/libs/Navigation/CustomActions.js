@@ -7,39 +7,27 @@ import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
 /**
+ * @returns {Object}
+ */
+function getActiveState() {
+    // We use our RootState as the dispatch's state is relative to the active navigator and might not contain our active screen.
+    return navigationRef.current.getRootState();
+}
+
+/**
  * Go back to the Main Drawer
  * @param {Object} navigationRef
  */
 function navigateBackToRootDrawer() {
-    let isLeavingNestedDrawerNavigator = false;
+    const activeState = getActiveState();
 
-    // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch((state) => {
-        // If this is a nested drawer navigator then we pop the screen and
-        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
-        if (state.type === 'drawer') {
-            isLeavingNestedDrawerNavigator = true;
-            return StackActions.pop();
-        }
-
-        // If there are multiple routes then we can pop back to the first route
-        if (state.routes.length > 1) {
-            return StackActions.popToTop();
-        }
-
-        // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
-        // back to the screen we were on before we opened the modal.
-        return StackActions.pop(0);
+    // To navigate to the main drawer Route, pop to the first route on the Root Stack Navigator as the main drawer is always the first route that is activated.
+    // It will pop all fullscreen and RHN modals that are over the main drawer.
+    // It won't work when the main drawer is not the first route of the Root Stack Navigator which is not the case ATM.
+    navigationRef.current.dispatch({
+        ...StackActions.popToTop(),
+        target: activeState.key,
     });
-
-    if (isLeavingNestedDrawerNavigator) {
-        return;
-    }
-
-    // Navigate back to where we were before we launched the modal
-    if (navigationRef.current.canGoBack()) {
-        navigationRef.current.goBack();
-    }
 }
 
 /**
@@ -67,14 +55,6 @@ function getParamsFromState(state) {
  */
 function getScreenNameFromState(state) {
     return getRouteFromState(state).name || '';
-}
-
-/**
- * @returns {Object}
- */
-function getActiveState() {
-    // We use our RootState as the dispatch's state is relative to the active navigator and might not contain our active screen.
-    return navigationRef.current.getRootState();
 }
 
 /**
@@ -120,11 +100,17 @@ function pushDrawerRoute(route) {
         const screenRoute = {type: 'route', name: newScreenName};
         const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
-        // Force drawer to close and show
-        history.push({
-            type: 'drawer',
-            status: 'closed',
-        });
+        // Force drawer to close
+        // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
+        const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
+        if (!hasDrawerhistory || currentState.type !== 'drawer') {
+            history.push({
+                type: 'drawer',
+
+                // If current state is not from drawer navigator then always use closed status to close the drawer
+                status: currentState.type !== 'drawer' || currentState.default === 'open' ? 'closed' : 'open',
+            });
+        }
 
         return CommonActions.reset({
             ...state,

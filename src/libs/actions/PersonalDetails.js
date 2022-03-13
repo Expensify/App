@@ -75,7 +75,6 @@ function getMaxCharacterError(isError) {
     return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
-
 /**
  * Format personal details
  *
@@ -185,12 +184,12 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report)) {
                     return;
                 }
 
                 const avatars = OptionsListUtils.getReportIcons(report, details);
-                const reportName = ReportUtils.isChatRoom(report)
+                const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
@@ -326,15 +325,15 @@ function setAvatar(file) {
 }
 
 /**
- * Deletes the user's avatar image
+ * Replaces the user's avatar image with a default avatar
  *
- * @param {String} login
+ * @param {String} defaultAvatarURL
  */
-function deleteAvatar(login) {
+function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 
 // When the app reconnects from being offline, fetch all of the personal details

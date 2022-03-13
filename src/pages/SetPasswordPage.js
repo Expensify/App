@@ -107,7 +107,6 @@ class SetPasswordPage extends Component {
         Session.setOrChangePassword(accountID, validateCode, this.state.password, this.props.userSignUp.authToken);
     }
 
-
     render() {
         const buttonText = this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);

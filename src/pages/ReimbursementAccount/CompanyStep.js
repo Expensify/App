@@ -321,7 +321,6 @@ class CompanyStep extends React.Component {
                         )}
                         style={[styles.mt4]}
                         errorText={this.getErrorText('hasNoConnectionToCannabis')}
-                        hasError={this.getErrors().hasNoConnectionToCannabis}
                     />
                 </ReimbursementAccountForm>
             </>
