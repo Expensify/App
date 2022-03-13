@@ -5,6 +5,7 @@ import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import DateUtils from '../../libs/DateUtils';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -18,7 +19,8 @@ class Datepicker extends React.Component {
 
         this.raiseDateChange = this.raiseDateChange.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
-        this.defaultValue = this.props.defaultValue !== undefined ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || '';
+        this.state = {value};
     }
 
     componentDidMount() {
@@ -31,10 +33,13 @@ class Datepicker extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.value === undefined || this.value === this.props.value) {
+        const dateValue = DateUtils.getDateAsText(this.props.value);
+        if (this.props.value === undefined || this.state.value === dateValue) {
             return;
         }
-        this.textInput.setNativeProps({text: moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({value: dateValue});
+        this.textInput.setNativeProps({text: dateValue});
     }
 
     /**
@@ -81,7 +86,7 @@ class Datepicker extends React.Component {
                 label={this.props.label}
                 onChangeText={this.raiseDateChange}
                 onBlur={this.props.onBlur}
-                defaultValue={this.defaultValue}
+                defaultValue={this.state.value}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}

@@ -126,6 +126,13 @@ function updateTimezone() {
     }
 }
 
+function getDateAsText(date) {
+    if (date === undefined) {
+        return date;
+    }
+    return moment(date).format(CONST.DATE.MOMENT_FORMAT_STRING);
+}
+
 /*
  * Returns a version of updateTimezone function throttled by 5 minutes
  */
@@ -135,6 +142,7 @@ const throttledUpdateTimezone = _.throttle(() => updateTimezone(), 1000 * 60 * 5
  * @namespace DateUtils
  */
 const DateUtils = {
+    getDateAsText,
     timestampToRelative,
     timestampToDateTime,
     startCurrentDateUpdater,
