@@ -3,6 +3,7 @@ import React from 'react';
 import {Button, View} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import {CONST} from 'expensify-common/lib/CONST';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
@@ -19,11 +20,11 @@ const datepickerPropTypes = {
 class Datepicker extends React.Component {
     constructor(props) {
         super(props);
-        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || '';
+        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || CONST.DATE.MOMENT_FORMAT_STRING;
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value ? moment(props.value).toDate() : new Date(),
-            value
+            value,
         };
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
