@@ -28,6 +28,8 @@ export default {
         lastName: 'Apellido',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
+        phonePlaceholder: '(prefijo) + (número)',
+        errorMessageInvalidPhone: 'Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
@@ -555,7 +557,6 @@ export default {
         callMeByMyName: 'Llámame por mi nombre',
     },
     messages: {
-        errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
@@ -668,7 +669,6 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '(prefijo) + (número)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',

@@ -250,6 +250,7 @@ class AdditionalDetailsStep extends React.Component {
                                 <PhoneTextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                                    placeholder={this.props.translate('common.phonePlaceholder')}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                     value={this.state.phoneNumber}
                                     errorText={this.getErrorText('phoneNumber')}

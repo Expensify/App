@@ -28,6 +28,8 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        phonePlaceholder: '(xxx)xxx-xxxx',
+        errorMessageInvalidPhone: 'If you\'re outside the US please include your country code, eg. +447782339811',
         email: 'Email',
         and: 'and',
         details: 'Details',
@@ -555,7 +557,6 @@ export default {
         callMeByMyName: 'Call me by my name',
     },
     messages: {
-        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
@@ -666,7 +667,6 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
