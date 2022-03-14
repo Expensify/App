@@ -5,150 +5,32 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 1751:
+/***/ 7115:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
-const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(7999);
+const github = __nccwpck_require__(5438);
+const GitHubUtils = __nccwpck_require__(7999);
 
-const DEFAULT_PAYLOAD = {
-    owner: GithubUtils.GITHUB_OWNER,
-    repo: GithubUtils.APP_REPO,
-};
+const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 
-const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
-const user = core.getInput('USER', {required: true});
-let titleRegex = core.getInput('TITLE_REGEX', {required: false});
+GitHubUtils.octokit.pulls.listCommits({
+    owner: GitHubUtils.GITHUB_OWNER,
+    repo: GitHubUtils.APP_REPO,
+    pull_number: PR_NUMBER,
+})
+    .then(({data}) => {
+        const unsignedCommits = _.filter(data, datum => !datum.commit.verification.verified);
 
-if (pullRequestNumber) {
-    console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
-}
-
-if (user) {
-    console.log(`Looking for pull request w/ user: ${user}`);
-}
-
-if (titleRegex) {
-    titleRegex = new RegExp(titleRegex);
-    console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
-}
-
-/**
- * Process a pull request and outputs it's merge commit hash.
- *
- * @param {Object} PR
- */
-function outputMergeCommitHash(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-/**
- * Process a pull request and outputs it's merge actor
- *
- * @param {Object} PR
- */
-function outputMergeActor(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-
-        if (user === 'OSBotify') {
-            core.setOutput('MERGE_ACTOR', PR.merged_by.login);
+        if (!_.isEmpty(unsignedCommits)) {
+            const errorMessage = `Error: the following commits are unsigned: ${JSON.stringify(_.map(unsignedCommits, commitObj => commitObj.sha))}`;
+            console.error(errorMessage);
+            core.setFailed(errorMessage);
         } else {
-            core.setOutput('MERGE_ACTOR', user);
+            console.log('All commits signed! 🎉');
         }
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-/**
- * Handle an unknown API error.
- *
- * @param {Error} err
- */
-function handleUnknownError(err) {
-    console.log(`An unknown error occurred with the GitHub API: ${err}`);
-    core.setFailed(err);
-}
-
-if (pullRequestNumber) {
-    GithubUtils.octokit.pulls.get({
-        ...DEFAULT_PAYLOAD,
-        pull_number: pullRequestNumber,
-    })
-        .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
-        })
-        .catch(handleUnknownError);
-} else {
-    GithubUtils.octokit.pulls.list({
-        ...DEFAULT_PAYLOAD,
-        state: 'all',
-    })
-        .then(({data}) => {
-            const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
-            outputMergeCommitHash(matchingPR);
-            outputMergeActor(matchingPR);
-        });
-}
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
+    });
 
 
 /***/ }),
@@ -1041,6 +923,49 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options) {
+    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -12177,6 +12102,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(1751);
+/******/ 	return __nccwpck_require__(7115);
 /******/ })()
 ;

@@ -49,7 +49,7 @@ const defaultProps = {
     },
 };
 
-class TextInputFocusable extends React.Component {
+class Composer extends React.Component {
     componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -88,10 +88,10 @@ class TextInputFocusable extends React.Component {
     }
 }
 
-TextInputFocusable.propTypes = propTypes;
-TextInputFocusable.defaultProps = defaultProps;
+Composer.propTypes = propTypes;
+Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInputFocusable {...props} forwardedRef={ref} />
+    <Composer {...props} forwardedRef={ref} />
 ));
