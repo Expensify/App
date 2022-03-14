@@ -201,7 +201,7 @@ class DebitCardPage extends Component {
         // Expiry Date(MM)is added so append a slash(/)
         if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             expiryDate = `${inputExpiryDate}/`;
-        } else if (inputExpiryDate.length > 3 && _.indexOf(inputExpiryDate, '/') === -1) {
+        } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             // Expiry Date with MM and YY without slash, hence adding slash(/)
             expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
         }
