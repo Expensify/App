@@ -61,7 +61,7 @@ export default function fileDownload(fileUrl, fileName) {
         }
 
         fileDownloadPromise.then((attachment) => {
-            if (!attachment || !attachment.info()) {
+            if (!attachment) {
                 return;
             }
 
