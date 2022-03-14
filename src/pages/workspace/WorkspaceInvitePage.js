@@ -244,6 +244,7 @@ class WorkspaceInvitePage extends React.Component {
             this.state.searchValue,
         );
         const policyName = lodashGet(this.props.policy, 'name');
+
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
