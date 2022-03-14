@@ -5,7 +5,7 @@ import * as FileUtils from './FileUtils';
 import CONST from '../../CONST';
 
 /**
- * Handling the download
+ * Downloads the file to Documents section in iOS
  * @param {String} fileUrl
  * @param {String} fileName
  * @returns {Promise}
@@ -29,14 +29,29 @@ function downloadFile(fileUrl, fileName) {
     return fetchedAttachment;
 }
 
+/**
+ * Downloads the image to photo lib in iOS
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {String}
+ */
 function downloadImage(fileUrl) {
     return CameraRoll.save(fileUrl);
 }
 
+/**
+ * Downloads the video to photo lib in iOS
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {String}
+ */
 function downloadVideo(fileUrl, fileName) {
     return new Promise((resolve) => {
         let documentPathUri = null;
         let cameraRollUri = null;
+
+        // Because CameraRoll doesn't allow remote URIs to save the video,
+        // we first download to documents, then copy to photo lib and unlink the original file,
         downloadFile(fileUrl, fileName).then((attachment) => {
             documentPathUri = lodashGet(attachment, 'data');
             return CameraRoll.save(documentPathUri);
@@ -48,7 +63,7 @@ function downloadVideo(fileUrl, fileName) {
 }
 
 /**
- * File type based download for iOS
+ * Download the file based on type(image, video, other file types)for iOS
  * @param {String} fileUrl
  * @param {String} fileName
  * @returns {Promise}
