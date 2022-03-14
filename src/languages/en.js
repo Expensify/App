@@ -112,7 +112,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
-    textInputFocusable: {
+    composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
@@ -175,6 +175,9 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
         beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -739,6 +742,7 @@ export default {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
+            unavailable: 'Unavailable workspace',
         },
         new: {
             newWorkspace: 'New workspace',
