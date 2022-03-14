@@ -99,9 +99,10 @@ const IMAGE_EXTENSIONS = {
 };
 
 /**
+ * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
-class TextInputFocusable extends React.Component {
+class Composer extends React.Component {
     constructor(props) {
         super(props);
 
@@ -197,7 +198,6 @@ class TextInputFocusable extends React.Component {
      * Handles all types of drag-N-drop events on the composer
      *
      * @param {Object} e native Event
-     * @memberof TextInputFocusable
      */
     dragNDropListener(e) {
         let isOriginComposer = false;
@@ -237,7 +237,6 @@ class TextInputFocusable extends React.Component {
      * Manually place the pasted HTML into Composer
      *
      * @param {String} html - pasted HTML
-     * @memberof TextInputFocusable
      */
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
@@ -285,14 +284,14 @@ class TextInputFocusable extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('textInputFocusable.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
                     .catch(() => {
-                        const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
+                        const errorDesc = this.props.translate('composer.problemGettingImageYouPasted');
                         Growl.error(errorDesc);
 
                         /*
@@ -366,10 +365,10 @@ class TextInputFocusable extends React.Component {
     }
 }
 
-TextInputFocusable.propTypes = propTypes;
-TextInputFocusable.defaultProps = defaultProps;
+Composer.propTypes = propTypes;
+Composer.defaultProps = defaultProps;
 
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInputFocusable {...props} forwardedRef={ref} />
+    <Composer {...props} forwardedRef={ref} />
 )));
