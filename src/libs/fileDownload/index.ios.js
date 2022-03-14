@@ -1,3 +1,4 @@
+import {Linking} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import CameraRoll from '@react-native-community/cameraroll';
 import lodashGet from 'lodash/get';
@@ -87,17 +88,35 @@ export default function fileDownload(fileUrl, fileName) {
                 ],
             });
             return resolve();
-        }).catch(() => {
-            FileUtils.showAlert({
-                title: 'Attachment Error',
-                message: 'Attachment cannot be downloaded',
-                options: [
-                    {
-                        text: 'Cancel',
-                        style: 'cancel',
-                    },
-                ],
-            });
+        }).catch((err) => {
+            if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
+                FileUtils.showAlert({
+                    title: 'Access Needed',
+                    // eslint-disable-next-line max-len
+                    message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+                    options: [
+                        {
+                            text: 'Cancel',
+                            style: 'cancel',
+                        },
+                        {
+                            text: 'Settings',
+                            onPress: () => Linking.openSettings(),
+                        },
+                    ],
+                });
+            } else {
+                FileUtils.showAlert({
+                    title: 'Attachment Error',
+                    message: 'Attachment cannot be downloaded',
+                    options: [
+                        {
+                            text: 'Cancel',
+                            style: 'cancel',
+                        },
+                    ],
+                });
+            }
             return resolve();
         });
     });

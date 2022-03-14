@@ -372,6 +372,8 @@ const CONST = {
         VIDEO: 'video',
     },
 
+    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
+
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
