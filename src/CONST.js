@@ -428,11 +428,11 @@ const CONST = {
         },
         ERROR: {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
-            IDENTITY_NOT_FOUND: 'Identity not found',
-            INVALID_SSN: 'Invalid SSN',
-            UNEXPECTED: 'Unexpected error',
             MISSING_FIELD: 'Missing required additional details fields',
-            UNABLE_TO_VERIFY: 'Unable to verify identity',
+            WRONG_ANSWERS: 'Wrong answers',
+
+            // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
+            KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
             NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
@@ -441,6 +441,7 @@ const CONST = {
             INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
         STEP: {
+            // In the order they appear in the Wallet flow
             ONFIDO: 'OnfidoStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
             TERMS: 'TermsStep',

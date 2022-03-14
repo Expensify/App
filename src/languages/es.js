@@ -98,6 +98,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
     },
     attachmentPicker: {
@@ -570,10 +571,15 @@ export default {
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
         helpText: 'Necesitamos confirmar la siguiente información antes de que podamos procesar este pago.',
+        helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas mas para terminar de verificar tu identidad',
         helpLink: 'Obtenga más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
+        selectAnswer: 'Selecciona una respuesta.',
+        needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
+        weCouldNotVerify: 'No pudimos verificar',
+        pleaseFixIt: 'Corrije esta información antes de continuar.',
         failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
         failedKYCTextAfter: ' si tiene alguna pregunta.',
     },

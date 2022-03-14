@@ -98,6 +98,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
     },
     attachmentPicker: {
@@ -570,10 +571,15 @@ export default {
     additionalDetailsStep: {
         headerTitle: 'Additional details',
         helpText: 'We need to confirm the following information before we can process this payment.',
+        helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
+        selectAnswer: 'You need to select a response to proceed.',
+        needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        weCouldNotVerify: 'We could not verify',
+        pleaseFixIt: 'Please fix this information before continuing.',
         failedKYCTextBefore: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to ',
         failedKYCTextAfter: ' if you have any questions.',
     },

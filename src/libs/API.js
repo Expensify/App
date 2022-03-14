@@ -921,6 +921,7 @@ function Plaid_GetLinkToken() {
  * @param {String} parameters.currentStep
  * @param {String} [parameters.onfidoData] - JSON string
  * @param {String} [parameters.personalDetails] - JSON string
+ * @param {String} [parameters.idologyAnswers] - JSON string
  * @param {Boolean} [parameters.hasAcceptedTerms]
  * @returns {Promise}
  */
