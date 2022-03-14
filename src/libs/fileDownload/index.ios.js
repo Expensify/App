@@ -1,5 +1,5 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import RNCameraRoll from 'react-native-cameraroll';
+import RNCameraRoll from '@react-native-community/cameraroll';
 import * as FileUtils from './FileUtils';
 
 /**
