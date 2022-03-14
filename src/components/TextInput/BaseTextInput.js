@@ -261,6 +261,7 @@ class BaseTextInput extends Component {
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.pr2,
+                                            hasLabel && this.props.multiline && styles.textInputScrollPadding,
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}

@@ -698,6 +698,10 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
+    textInputScrollPadding: {
+        scrollPadding: '23px 0 0 0',
+    },
+
     textInputAndIconContainer: {
         flex: 1,
         height: '100%',
