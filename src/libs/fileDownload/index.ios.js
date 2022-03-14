@@ -1,33 +1,63 @@
 import RNFetchBlob from 'rn-fetch-blob';
+import RNCameraRoll from 'react-native-cameraroll';
 import * as FileUtils from './FileUtils';
 
 /**
  * Handling the download
- * @param {String} url
+ * @param {String} fileUrl
  * @param {String} fileName
  * @returns {Promise}
  */
-function handleDownload(url, fileName) {
+function downloadDocument(fileUrl, fileName) {
+    const dirs = RNFetchBlob.fs.dirs;
+
+    // ios files will download to documents directory
+    const path = dirs.DocumentDir;
+
+    // fetching the attachment
+    const fetchedAttachment = RNFetchBlob.config({
+        fileCache: true,
+        path: `${path}/${fileName}`,
+        addAndroidDownloads: {
+            useDownloadManager: true,
+            notification: true,
+            path: `${path}/Expensify/${fileName}`,
+        },
+    }).fetch('GET', fileUrl);
+    return fetchedAttachment;
+}
+
+function downloadImage(fileUrl) {
+    return RNCameraRoll.CameraRoll.save(fileUrl);
+}
+
+function downloadVideo(fileUrl) {
+    return RNCameraRoll.CameraRoll.save(fileUrl);
+}
+
+/**
+ * File type based download for iOS
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {Promise}
+ */
+export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
-        const dirs = RNFetchBlob.fs.dirs;
+        let fileDownloadPromise = null;
+        const fileType = 'image'; // getFileType(fileUrl);
+        switch (fileType) {
+            case 'image':
+                fileDownloadPromise = downloadImage(fileUrl, fileName);
+                break;
+            case 'video':
+                fileDownloadPromise = downloadVideo(fileUrl, fileName);
+                break;
+            default:
+                fileDownloadPromise = downloadDocument(fileUrl, fileName);
+                break;
+        }
 
-        // ios files will download to documents directory
-        const path = dirs.DocumentDir;
-        const attachmentName = fileName || FileUtils.getAttachmentName(url);
-
-        // fetching the attachment
-        const fetchedAttachment = RNFetchBlob.config({
-            fileCache: true,
-            path: `${path}/${attachmentName}`,
-            addAndroidDownloads: {
-                useDownloadManager: true,
-                notification: true,
-                path: `${path}/Expensify/${attachmentName}`,
-            },
-        }).fetch('GET', url);
-
-        // resolving the fetched attachment
-        fetchedAttachment.then((attachment) => {
+        fileDownloadPromise.then((attachment) => {
             if (!attachment || !attachment.info()) {
                 return;
             }
@@ -57,14 +87,4 @@ function handleDownload(url, fileName) {
             return resolve();
         });
     });
-}
-
-/**
- * Platform specifically check download
- * @param {String} url
- * @param {String} fileName
- * @returns {Promise} fileName
- */
-export default function fileDownload(url, fileName) {
-    return handleDownload(url, fileName);
 }
