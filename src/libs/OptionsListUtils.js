@@ -275,6 +275,7 @@ function createOption(personalDetailList, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(getParticipants(report));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    let icons = getAvatarSources(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -290,11 +291,15 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        if (!report) {
+            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
+            icons = [personalDetail.avatar];
+        }
     }
     return {
         text,
         alternateText,
-        icons: getAvatarSources(report),
+        icons,
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
