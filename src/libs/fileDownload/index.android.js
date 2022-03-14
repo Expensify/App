@@ -1,4 +1,4 @@
-import {Linking, PermissionsAndroid} from 'react-native';
+import {PermissionsAndroid} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as FileUtils from './FileUtils';
 
@@ -64,28 +64,10 @@ function handleDownload(url, fileName) {
                 return;
             }
 
-            FileUtils.showAlert({
-                title: 'Downloaded!',
-                message: 'Attachment successfully downloaded',
-                options: [
-                    {
-                        text: 'OK',
-                        style: 'cancel',
-                    },
-                ],
-            });
+            FileUtils.showAlert(FileUtils.ALERT_TYPES.SUCCESS);
             return resolve();
         }).catch(() => {
-            FileUtils.showAlert({
-                title: 'Attachment Error',
-                message: 'Attachment cannot be downloaded',
-                options: [
-                    {
-                        text: 'Cancel',
-                        style: 'cancel',
-                    },
-                ],
-            });
+            FileUtils.showAlert(FileUtils.ALERT_TYPES.GENERAL_ERROR);
             return resolve();
         });
     });
@@ -99,31 +81,15 @@ function handleDownload(url, fileName) {
  */
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
-        const permissionError = {
-            title: 'Access Needed',
-            // eslint-disable-next-line max-len
-            message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
-            options: [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Settings',
-                    onPress: () => Linking.openSettings(),
-                },
-            ],
-        };
-
         hasAndroidPermission().then((hasPermission) => {
             if (hasPermission) {
                 handleDownload(url, fileName).then(() => resolve());
             } else {
-                FileUtils.showAlert(permissionError);
+                FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
             }
             return resolve();
         }).catch(() => {
-            FileUtils.showAlert(permissionError);
+            FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
             return resolve();
         });
     });

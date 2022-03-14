@@ -1,4 +1,3 @@
-import {Linking} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import CameraRoll from '@react-native-community/cameraroll';
 import lodashGet from 'lodash/get';
@@ -77,45 +76,13 @@ export default function fileDownload(fileUrl, fileName) {
                 return;
             }
 
-            FileUtils.showAlert({
-                title: 'Downloaded!',
-                message: 'Attachment successfully downloaded',
-                options: [
-                    {
-                        text: 'OK',
-                        style: 'cancel',
-                    },
-                ],
-            });
+            FileUtils.showAlert(FileUtils.ALERT_TYPES.SUCCESS);
             return resolve();
         }).catch((err) => {
             if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
-                FileUtils.showAlert({
-                    title: 'Access Needed',
-                    // eslint-disable-next-line max-len
-                    message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
-                    options: [
-                        {
-                            text: 'Cancel',
-                            style: 'cancel',
-                        },
-                        {
-                            text: 'Settings',
-                            onPress: () => Linking.openSettings(),
-                        },
-                    ],
-                });
+                FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
             } else {
-                FileUtils.showAlert({
-                    title: 'Attachment Error',
-                    message: 'Attachment cannot be downloaded',
-                    options: [
-                        {
-                            text: 'Cancel',
-                            style: 'cancel',
-                        },
-                    ],
-                });
+                FileUtils.showAlert(FileUtils.ALERT_TYPES.GENERAL_ERROR);
             }
             return resolve();
         });

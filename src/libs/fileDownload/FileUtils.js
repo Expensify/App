@@ -1,4 +1,4 @@
-import {Alert} from 'react-native';
+import {Alert, Linking} from 'react-native';
 import moment from 'moment';
 import * as mime from 'react-native-mime-types';
 import CONST from '../../CONST';
@@ -49,8 +49,47 @@ function getFileType(fileUrl) {
     return CONST.ATTACHMENT_FILE_TYPE.FILE;
 }
 
+const ALERT_TYPES = {
+    SUCCESS: {
+        title: 'Downloaded!',
+        message: 'Attachment successfully downloaded',
+        options: [
+            {
+                text: 'OK',
+                style: 'cancel',
+            },
+        ],
+    },
+    GENERAL_ERROR: {
+        title: 'Attachment Error',
+        message: 'Attachment cannot be downloaded',
+        options: [
+            {
+                text: 'Cancel',
+                style: 'cancel',
+            },
+        ],
+    },
+    PERMISSION_ERROR: {
+        title: 'Access Needed',
+        // eslint-disable-next-line max-len
+        message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+        options: [
+            {
+                text: 'Cancel',
+                style: 'cancel',
+            },
+            {
+                text: 'Settings',
+                onPress: () => Linking.openSettings(),
+            },
+        ],
+    },
+};
+
 export {
     showAlert,
     getAttachmentName,
     getFileType,
+    ALERT_TYPES,
 };
