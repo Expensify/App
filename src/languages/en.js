@@ -482,7 +482,7 @@ export default {
         confirmPassword: 'Confirm Password',
         confirmPasswordInvalidMessage: 'Please make sure the confirm password is match',
         newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        passwordFormTitle: 'Please set a password below to sign into your account',
+        passwordFormTitle: 'Please set a password below to sign into your account.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         verifyingAccount: 'Verifying account',
@@ -490,7 +490,6 @@ export default {
     welcomeProfilePage: {
         formTitle: 'Welcome to Expensify! Tell us a little bit about yourself before getting started.',
         requestTimeoutErrorMessage: 'Request taking too long than expected, some network request could be failed. Please try again.',
-
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {

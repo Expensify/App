@@ -85,13 +85,8 @@ class SetPasswordPage extends Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.isFormValid = this.isFormValid.bind(this);
-        this.validatePassword = this.validatePassword.bind(this);
-        this.validateConfirmPassword = this.validateConfirmPassword.bind(this);
-        this.handlePasswordChange = this.handlePasswordChange.bind(this);
-        this.handleConfirmPasswordChange = this.handleConfirmPasswordChange.bind(this);
-        this.displayFormError = this.displayFormError.bind(this);
-        this.hideFormError = this.hideFormError.bind(this);
+        this.setPasswordAndHideFormErrorMessage = this.setPasswordAndHideFormErrorMessage.bind(this);
+        this.setConfirmPasswordAndHideFormErrorMessage = this.setConfirmPasswordAndHideFormErrorMessage.bind(this);
 
         this.password = '';
         this.confirmPassword = '';
@@ -114,19 +109,23 @@ class SetPasswordPage extends Component {
         Session.validateEmail(accountID, validateCode);
     }
 
-    handlePasswordChange(text) {
+    setPasswordAndHideFormErrorMessage(text) {
         // Don't disturb user when typing
         this.hideFormError();
         this.password = text;
     }
 
-    handleConfirmPasswordChange(text) {
+    setConfirmPasswordAndHideFormErrorMessage(text) {
         // Don't disturb user when typing
         this.hideFormError();
         this.confirmPassword = text;
     }
 
-    // Display error message for invalid text input value
+    /**
+    * Display error message for invalid text input value
+    *
+    * @Returns {undefined}
+    */
     displayFormError() {
         // Prevent unncessary render
         if (this.state.showFormError) {
@@ -135,7 +134,11 @@ class SetPasswordPage extends Component {
         this.setState({showFormError: true});
     }
 
-    // Hide error message for invalid text input value
+    /**
+    * Hide error message for invalid text input value
+    *
+    * @return {undefined}
+    */
     hideFormError() {
         // Prevent unncessary render
         if (!this.state.showFormError) {
@@ -144,10 +147,14 @@ class SetPasswordPage extends Component {
         this.setState({showFormError: false});
     }
 
-    // Check whether password and confirm pasword is valid
-    isFormValid() {
+    /**
+    * Check whether password and confirm pasword is valid
+    *
+    * @Returns {Boolean}
+    */
+    validateForm() {
         this.isPasswordValid = this.validatePassword(this.password);
-        this.isConfirmPasswordValid = this.validateConfirmPassword(this.confirmPassword);
+        this.isConfirmPasswordValid = this.validateConfirmPassword(this.password, this.confirmPassword);
         return this.isPasswordValid && this.isConfirmPasswordValid;
     }
 
@@ -155,8 +162,8 @@ class SetPasswordPage extends Component {
         return text.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
-    validateConfirmPassword(text) {
-        return text === this.password;
+    validateConfirmPassword(password, confirmPassword) {
+        return password === confirmPassword;
     }
 
     validateAndSubmitForm() {
@@ -164,7 +171,7 @@ class SetPasswordPage extends Component {
             return;
         }
 
-        if (!this.isFormValid()) {
+        if (!this.validateForm()) {
             this.displayFormError();
             return;
         }
@@ -172,7 +179,7 @@ class SetPasswordPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         Session.setOrChangePassword(accountID, validateCode, this.password, this.props.userSignUp.authToken);
-        LoginUtil.storePassword(this.password);
+        LoginUtil.setPassword(this.password);
     }
 
     render() {
@@ -208,21 +215,21 @@ class SetPasswordPage extends Component {
                                     containerStyles={[styles.mt5]}
                                     label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                                     secureTextEntry
-                                    disableEyeButtonTabNavigation
+                                    disableShowPasswordButtonTabNavigation
                                     autoCompleteType="password"
                                     textContentType="password"
-                                    onChangeText={this.handlePasswordChange}
+                                    onChangeText={this.setPasswordAndHideFormErrorMessage}
                                     hasError={this.state.showFormError && !this.isPasswordValid}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt3]}
                                     label={this.props.translate('setPasswordPage.confirmPassword')}
                                     secureTextEntry
-                                    disableEyeButtonTabNavigation
+                                    disableShowPasswordButtonTabNavigation
                                     autoCompleteType="password"
                                     textContentType="password"
                                     value={this.props.password}
-                                    onChangeText={this.handleConfirmPasswordChange}
+                                    onChangeText={this.setConfirmPasswordAndHideFormErrorMessage}
                                     hasError={this.state.showFormError && this.isPasswordValid && !this.isConfirmPasswordValid}
                                     onSubmitEditing={this.validateAndSubmitForm}
                                 />

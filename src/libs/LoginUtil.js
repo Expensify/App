@@ -1,6 +1,6 @@
 import CONST from '../CONST';
 
-let secret = null;
+let password;
 
 /**
  * Remove the special chars from the phone number
@@ -12,11 +12,11 @@ function getPhoneNumberWithoutSpecialChars(phone) {
 }
 
 /**
- * Store password value
+ * Set password value
  * @param {String} value
  */
-function storePassword(value) {
-    secret = value;
+function setPassword(value) {
+    password = value;
 }
 
 /**
@@ -24,13 +24,13 @@ function storePassword(value) {
  * @return {String}
  */
 function getAndDestroyPassword() {
-    const password = secret;
-    secret = null;
-    return password;
+    const currentPassword = password;
+    password = null;
+    return currentPassword;
 }
 
 export default {
     getPhoneNumberWithoutSpecialChars,
-    storePassword,
+    setPassword,
     getAndDestroyPassword,
 };

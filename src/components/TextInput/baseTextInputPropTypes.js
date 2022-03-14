@@ -61,8 +61,8 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
-    /** Disable focus of eye button on tab key navigation in secureTextEntry */
-    disableEyeButtonTabNavigation: PropTypes.bool,
+    /** Disable focus of show password button on tab key navigation in secureTextEntry */
+    disableShowPasswordButtonTabNavigation: PropTypes.bool,
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
@@ -96,7 +96,7 @@ const defaultProps = {
     innerRef: () => {},
     shouldSaveDraft: false,
     maxLength: null,
-    disableEyeButtonTabNavigation: false,
+    disableShowPasswordButtonTabNavigation: false,
     hint: '',
 };
 

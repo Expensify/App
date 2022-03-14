@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -23,9 +23,7 @@ import AvatarWithImagePicker from '../components/AvatarWithImagePicker';
 import * as User from '../libs/actions/User';
 import currentUserPersonalDetailsPropsTypes from './settings/Profile/currentUserPersonalDetailsPropsTypes';
 import LoginUtil from '../libs/LoginUtil';
-import NameValuePair from '../libs/actions/NameValuePair';
 import * as WelcomeAction from '../libs/actions/WelcomeActions';
-import promiseAllSettled from '../libs/promiseAllSettled';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +37,12 @@ const propTypes = {
         error: PropTypes.string,
     }),
 
+    /** The details about the user account */
+    account: PropTypes.shape({
+        /** Whether a secondary login request has been requested and not yet completed */
+        loading: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -47,6 +51,9 @@ const defaultProps = {
     user: {
         loginList: [],
     },
+    account: {
+        loading: false,
+    },
 };
 
 class ProfilePage extends Component {
@@ -54,17 +61,9 @@ class ProfilePage extends Component {
         super(props);
 
         this.submitForm = this.submitForm.bind(this);
-        this.submitPersonalDetails = this.submitPersonalDetails.bind(this);
-        this.submitSecondaryLogin = this.submitSecondaryLogin.bind(this);
-        this.handleScreenWillUnmount = this.handleScreenWillUnmount.bind(this);
-        this.handleFirstNameChange = this.handleFirstNameChange.bind(this);
-        this.handleLastNameChange = this.handleLastNameChange.bind(this);
-        this.handleSecondaryLoginChange = this.handleSecondaryLoginChange.bind(this);
-        this.displayFormErrorMessage = this.displayFormErrorMessage.bind(this);
-        this.hideErrorMessage = this.hideErrorMessage.bind(this);
-        this.didNameValid = this.didNameValid.bind(this);
-        this.didSecondaryLoginValid = this.didSecondaryLoginValid.bind(this);
-        this.didFormValid = this.didFormValid.bind(this);
+        this.setFirstName = this.setFirstName.bind(this);
+        this.setLastName = this.setLastName.bind(this);
+        this.setSecondaryLogin = this.setSecondaryLogin.bind(this);
 
         this.firstName = '';
         this.isFirstNameValid = true;
@@ -72,22 +71,73 @@ class ProfilePage extends Component {
         this.isLastNameValid = true;
         this.secondaryLogin = '';
         this.secondaryLoginError = '';
-        this.isLoginValid = true;
+        this.isSecondayLoginValid = true;
 
         this.password = LoginUtil.getAndDestroyPassword();
 
         this.state = {
             showFormError: false,
-            waitForResponse: false,
             formType: '',
-            requestTimeoutError: false,
         };
+
+        User.clearUserErrorMessage();
+        User.clearAccountLoadingState();
     }
 
     componentDidMount() {
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const formType = isSMSLogin ? CONST.LOGIN_TYPE.EMAIL : CONST.LOGIN_TYPE.PHONE;
         this.setState({formType});
+    }
+
+    componentDidUpdate(prevProps) {
+        const isSetSecondaryLoginResponseReady = prevProps.account.loading && !this.props.account.loading;
+        if (!isSetSecondaryLoginResponseReady) {
+            return;
+        }
+
+        this.secondaryLoginError = lodashGet(this.props.user, 'error', '');
+        if (this.secondaryLoginError) {
+            this.displayFormErrorMessage();
+            return;
+        }
+        this.closeModal();
+    }
+
+    setFirstName(text) {
+        this.hideErrorMessage();
+        this.firstName = text;
+        this.isFirstNameValid = this.didNameValid(text);
+    }
+
+    setLastName(text) {
+        this.hideErrorMessage();
+        this.lastName = text;
+        this.isLastNameValid = this.didNameValid(text);
+    }
+
+    setSecondaryLogin(text) {
+        this.hideErrorMessage();
+        this.secondaryLoginError = '';
+        this.secondaryLogin = text;
+        this.isSecondaryLoginValid = text.length === 0 || this.didSecondaryLoginValid(text);
+    }
+
+    /**
+     * Handle screen unmount
+     */
+    setNextWelcomeActionStep() {
+        // Reset error message
+        User.clearUserErrorMessage();
+        User.clearAccountLoadingState();
+
+        // Don't set current welcome step if current step isn't equal to welcome profile. Could be direct access to the page by url.
+        if (WelcomeAction.getCurrentWelcomeStep() !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
+            return;
+        }
+
+        // Finish current welcome step and move to next step
+        WelcomeAction.setOnyxWelcomeStep(CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU);
     }
 
     didNameValid(name) {
@@ -108,25 +158,6 @@ class ProfilePage extends Component {
         return (this.password ? nameValid && this.didSecondaryLoginValid(this.secondaryLogin) : nameValid);
     }
 
-    handleFirstNameChange(text) {
-        this.hideErrorMessage();
-        this.firstName = text;
-        this.isFirstNameValid = this.didNameValid(text);
-    }
-
-    handleLastNameChange(text) {
-        this.hideErrorMessage();
-        this.lastName = text;
-        this.isLastNameValid = this.didNameValid(text);
-    }
-
-    handleSecondaryLoginChange(text) {
-        this.hideErrorMessage();
-        this.secondaryLoginError = '';
-        this.secondaryLogin = text;
-        this.isLoginValid = text.length === 0 || this.didSecondaryLoginValid(text);
-    }
-
     displayFormErrorMessage() {
         if (this.state.showFormError) {
             return;
@@ -135,105 +166,39 @@ class ProfilePage extends Component {
     }
 
     hideErrorMessage() {
-        if (!this.state.showFormError && !this.state.requestTimeoutError) {
+        if (!this.state.showFormError) {
             return;
         }
-        this.setState({showFormError: false, requestTimeoutError: false});
-    }
-
-    /**
-     * Handle screen unmount
-     */
-    handleScreenWillUnmount() {
-        // Reset error message
-        User.clearUserErrorMessage();
-
-        // Don't set current welcome step if current step isn't equal to welcome profile. Could be direct access to the page by url.
-        if (WelcomeAction.getCurrentWelcomeStep() !== CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
-            return;
-        }
-
-        // Finish current welcome step and move to next step
-        NameValuePair.set(
-            CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
-            CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU,
-            ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
-        );
-    }
-
-    /**
-     * Returns promise of setPersonalDetails request
-     * @return {Promise}
-     */
-    submitPersonalDetails() {
-        return PersonalDetails.setPersonalDetails({
-            firstName: this.firstName.trim(),
-            lastName: this.lastName.trim(),
-        }, false);
-    }
-
-    /**
-     * Returns promise of setSecondaryLogin request
-     * @return {Promise}
-     */
-    submitSecondaryLogin() {
-        const login = this.state.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.secondaryLogin)
-            : this.secondaryLogin;
-
-        return User.setSecondaryLogin(login, this.password);
+        this.setState({showFormError: false});
     }
 
     /**
      * Submit form to update personal details
      */
     submitForm() {
+        if (this.props.account.loading) {
+            return;
+        }
+
         if (!this.didFormValid()) {
             this.displayFormErrorMessage();
             return;
         }
-        if (this.state.waitForResponse) {
+
+        if (this.firstName.trim().length + this.lastName.trim().length > 0) {
+            PersonalDetails.setPersonalDetails({firstName: this.firstName.trim(), lastName: this.lastName.trim()}, false);
+        }
+
+        if (!this.password || this.secondaryLogin.trim().length === 0) {
+            this.closeModal();
             return;
         }
 
-        // Set loading state of submit button
-        this.setState({waitForResponse: true, requestTimeoutError: false});
+        const login = this.state.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.secondaryLogin)
+            : this.secondaryLogin;
 
-        let submitPersonalDetailsPromise;
-        let submitSecondaryLoginPromise;
-        if (this.firstName.trim().length + this.lastName.trim().length > 0) {
-            submitPersonalDetailsPromise = this.submitPersonalDetails();
-        }
-
-        if (this.secondaryLogin.trim().length > 0) {
-            submitSecondaryLoginPromise = this.submitSecondaryLogin();
-        }
-
-        // Reject promise request after soome ms
-        const rejectAfterDelay = ms => new Promise((resolve, reject) => {
-            setTimeout(reject, ms, 'timeout');
-        });
-
-        const allpromiseWithTimeout = _.map([submitPersonalDetailsPromise, submitSecondaryLoginPromise], promise => Promise.race([promise, rejectAfterDelay(8000)]));
-        promiseAllSettled(allpromiseWithTimeout)
-            .then((result) => {
-                if (_.some(result, r => r.status === 'rejected' && r.reason === 'timeout')) {
-                    this.setState({
-                        requestTimeoutError: this.props.translate('welcomeProfilePage.requestTimeoutErrorMessage'),
-                        waitForResponse: false,
-                    });
-                    return;
-                }
-
-                this.setState({waitForResponse: false});
-                this.secondaryLoginError = submitSecondaryLoginPromise ? lodashGet(this.props.user, 'error', '') : '';
-                if (this.secondaryLoginError) {
-                    this.displayFormErrorMessage();
-                    return;
-                }
-
-                this.closeModal();
-            });
+        User.setSecondaryLogin(login, this.password);
     }
 
     closeModal() {
@@ -242,10 +207,10 @@ class ProfilePage extends Component {
 
     render() {
         let secondaryLoginErrorMessage = '';
-        if (this.state.showFormError && !this.state.requestTimeoutError) {
+        if (this.state.showFormError) {
             if (this.secondaryLoginError) {
                 secondaryLoginErrorMessage = this.secondaryLoginError;
-            } else if (!this.isLoginValid) {
+            } else if (!this.isSecondaryLoginValid) {
                 secondaryLoginErrorMessage = this.props.translate(this.state.formType === CONST.LOGIN_TYPE.PHONE
                     ? 'messages.errorMessageInvalidPhone'
                     : 'loginForm.error.invalidFormatEmailLogin');
@@ -254,7 +219,7 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper
-                onWillUnmount={this.handleScreenWillUnmount}
+                onWillUnmount={this.setNextWelcomeActionStep}
             >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
@@ -279,18 +244,16 @@ class ProfilePage extends Component {
                         <TextInput
                             containerStyles={[styles.mt6]}
                             label={this.props.translate('common.firstName')}
-                            onChangeText={this.handleFirstNameChange}
+                            onChangeText={this.setFirstName}
                             errorText={(this.state.showFormError
-                                && !this.state.requestTimeoutError
                                 && !this.isFirstNameValid
                                 ? this.props.translate('personalDetails.error.firstNameLength') : '')}
                         />
                         <TextInput
                             containerStyles={[styles.mt6]}
                             label={this.props.translate('common.lastName')}
-                            onChangeText={this.handleLastNameChange}
+                            onChangeText={this.setLastName}
                             errorText={(this.state.showFormError
-                                && !this.state.requestTimeoutError
                                 && !this.isLastNameValid
                                 ? this.props.translate('personalDetails.error.lastNameLength') : '')}
                             onSubmitEditing={!this.password && this.submitForm}
@@ -301,7 +264,7 @@ class ProfilePage extends Component {
                                 label={this.props.translate(this.state.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'common.phoneNumber'
                                     : 'profilePage.emailAddress')}
-                                onChangeText={this.handleSecondaryLoginChange}
+                                onChangeText={this.setSecondaryLogin}
                                 keyboardType={this.state.formType === CONST.LOGIN_TYPE.PHONE
                                     ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 errorText={secondaryLoginErrorMessage}
@@ -309,18 +272,11 @@ class ProfilePage extends Component {
                                 returnKeyType="done"
                             />
                         )}
-                        {this.state.requestTimeoutError && (
-                            <View style={[styles.mt4]}>
-                                <Text style={[styles.formError]}>
-                                    {this.state.requestTimeoutError}
-                                </Text>
-                            </View>
-                        )}
                     </ScrollView>
                     <FixedFooter>
                         <Button
                             success
-                            isLoading={this.state.waitForResponse}
+                            isLoading={this.props.account.loading}
                             onPress={this.submitForm}
                             style={[styles.w100]}
                             text={this.props.translate('common.getStarted')}
@@ -345,6 +301,9 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
         user: {
             key: ONYXKEYS.USER,

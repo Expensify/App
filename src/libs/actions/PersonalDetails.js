@@ -235,10 +235,9 @@ function mergeLocalPersonalDetails(details) {
  *
  * @param {Object} details
  * @param {boolean} shouldGrowl
- * @returns {Promise}
  */
 function setPersonalDetails(details, shouldGrowl) {
-    return API.PersonalDetails_Update({details: JSON.stringify(details)})
+    API.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {

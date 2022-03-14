@@ -448,12 +448,11 @@ function setOrChangePassword(accountID, validateCode, password, authToken) {
  * @param {String} validateCode
  * @param {String} login
  * @param {String} authToken
- * @return {Promise}
  */
 function validateEmail(accountID, validateCode) {
     Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
-    return API.ValidateEmail({
+    API.ValidateEmail({
         accountID,
         validateCode,
     })
@@ -465,14 +464,15 @@ function validateEmail(accountID, validateCode) {
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: responseValidate.message});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
         })
-        .finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false});
+        });
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to

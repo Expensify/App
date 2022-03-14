@@ -203,7 +203,6 @@ function setSecondaryLoginAndNavigate(login, password) {
  */
 function setSecondaryLogin(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
     return API.User_SecondaryLogin_Send({
         email: login,
         password,
@@ -414,6 +413,13 @@ function clearUserErrorMessage() {
 }
 
 /**
+ * Clear the data loading state of Onyx Account data.
+ */
+function clearAccountLoadingState() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+}
+
+/**
  * Clear the data about a screen share request from Onyx.
  */
 function clearScreenShareRequest() {
@@ -446,6 +452,7 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    clearAccountLoadingState,
     subscribeToExpensifyCardUpdates,
     setFrequentlyUsedEmojis,
     joinScreenShare,

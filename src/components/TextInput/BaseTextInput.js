@@ -36,9 +36,10 @@ class BaseTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.setShowPasswordButtonRef = this.setShowPasswordButtonRef.bind(this);
         this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
-        this.eyeButton = React.createRef();
+        this.showPasswordButton = null;
     }
 
     componentDidMount() {
@@ -49,8 +50,10 @@ class BaseTextInput extends Component {
             );
         }
 
-        if (this.props.disableEyeButtonTabNavigation && this.eyeButton.current) {
-            this.eyeButton.current.setNativeProps({tabIndex: undefined});
+        // Tab navigation depends on tabindex attribute of html component, to disable focus of showPasswordButton we set native properties of the compoenent to be undefined
+        // This will remove tabindex attribute set by pressable/taouchableopacity component
+        if (this.props.disableShowPasswordButtonTabNavigation && this.showPasswordButton) {
+            this.showPasswordButton.setNativeProps({tabIndex: undefined});
         }
 
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
@@ -130,6 +133,15 @@ class BaseTextInput extends Component {
         this.value = value;
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
+    }
+
+    /**
+     * Set the showPasswordButton Ref
+     *
+     * @param {Element} el
+     */
+    setShowPasswordButtonRef(el) {
+        this.showPasswordButton = el;
     }
 
     activateLabel() {
@@ -249,9 +261,9 @@ class BaseTextInput extends Component {
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
-                                            ref={this.eyeButton}
+                                            ref={this.setShowPasswordButtonRef}
                                             accessibilityRole="button"
-                                            style={styles.secureInputEyeButton}
+                                            style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
                                             <Icon

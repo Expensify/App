@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 
 let toggleCreateMenuFunc;
 let isWelcomeActionValid;
-let firstTimeNewExpensifyUserStep = CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH;
+let firstTimeNewExpensifyUserStep;
 
 const allReports = {};
 Onyx.connect({
@@ -47,15 +47,16 @@ function handleFirstTimeExpensifyUserStepChange(val) {
     if (!isWelcomeActionValid) {
         return;
     }
+
     if (val === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.WELCOME_PROFILE_SETTING) {
-        Navigation.navigate(ROUTES.WELCOME_PROFILE_SETTING, 1500);
+        Navigation.navigate(ROUTES.WELCOME_PROFILE_SETTING);
     } else if (val === CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.GLOBAL_CREATE_MENU) {
+        toggleCreateMenuFunc();
         NameValuePair.set(
             CONST.NVP.FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
             CONST.FIRST_TIME_NEW_EXPENSIFY_USER_STEP.FINISH,
             ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP,
         );
-        toggleCreateMenuFunc();
     }
 }
 
@@ -74,7 +75,6 @@ Onyx.connect({
 function show({routes, toggleCreateMenu}) {
     toggleCreateMenuFunc = toggleCreateMenu;
 
-    // isWelcomeActionValid = stepCheck();
     // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
     // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
     setTimeout(() => {
@@ -118,8 +118,18 @@ function getCurrentWelcomeStep() {
     return firstTimeNewExpensifyUserStep;
 }
 
+/**
+ * Set local onyx welcome step value
+ *
+ * @param {Number} welcomeStep
+ */
+function setOnyxWelcomeStep(welcomeStep) {
+    Onyx.merge(ONYXKEYS.NVP_FIRST_TIME_NEW_EXPENSIFY_USER_STEP, welcomeStep);
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     show,
     getCurrentWelcomeStep,
+    setOnyxWelcomeStep,
 };
