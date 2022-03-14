@@ -64,10 +64,10 @@ function handleDownload(url, fileName) {
                 return;
             }
 
-            FileUtils.showAlert(FileUtils.ALERT_TYPES.SUCCESS);
+            FileUtils.showSuccessAlert();
             return resolve();
         }).catch(() => {
-            FileUtils.showAlert(FileUtils.ALERT_TYPES.GENERAL_ERROR);
+            FileUtils.showGeneralErrorAlert();
             return resolve();
         });
     });
@@ -85,11 +85,11 @@ export default function fileDownload(url, fileName) {
             if (hasPermission) {
                 handleDownload(url, fileName).then(() => resolve());
             } else {
-                FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
+                FileUtils.showPermissionErrorAlert();
             }
             return resolve();
         }).catch(() => {
-            FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
+            FileUtils.showPermissionErrorAlert();
             return resolve();
         });
     });

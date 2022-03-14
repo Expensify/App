@@ -91,13 +91,13 @@ export default function fileDownload(fileUrl, fileName) {
                 return;
             }
 
-            FileUtils.showAlert(FileUtils.ALERT_TYPES.SUCCESS);
+            FileUtils.showSuccessAlert();
             return resolve();
         }).catch((err) => {
             if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
-                FileUtils.showAlert(FileUtils.ALERT_TYPES.PERMISSION_ERROR);
+                FileUtils.showPermissionErrorAlert();
             } else {
-                FileUtils.showAlert(FileUtils.ALERT_TYPES.GENERAL_ERROR);
+                FileUtils.showGeneralErrorAlert();
             }
             return resolve();
         });

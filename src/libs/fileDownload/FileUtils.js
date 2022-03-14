@@ -5,15 +5,55 @@ import CONST from '../../CONST';
 import * as Localize from '../Localize';
 
 /**
- * Re useable alert function
- * @param {Object} content
+ * Show alert on successful attachment download
  */
-function showAlert(content) {
+function showSuccessAlert() {
     Alert.alert(
-        content.title || '',
-        content.message || '',
-        content.options || [],
+        Localize.translateLocal('fileDownload.success.title'),
+        Localize.translateLocal('fileDownload.success.message'),
+        [
+            {
+                text: Localize.translateLocal('fileDownload.success.buttons.ok.text'),
+                style: 'cancel',
+            },
+        ],
         {cancelable: false},
+    );
+}
+
+/**
+ * Show alert on attachment download error
+ */
+function showGeneralErrorAlert() {
+    Alert.alert(
+        Localize.translateLocal('fileDownload.generalError.title'),
+        Localize.translateLocal('fileDownload.generalError.message'),
+        [
+            {
+                text: Localize.translateLocal('fileDownload.generalError.buttons.cancel.text'),
+                style: 'cancel',
+            },
+        ],
+    );
+}
+
+/**
+ * Show alert on attachment download permissions error
+ */
+function showPermissionErrorAlert() {
+    Alert.alert(
+        Localize.translateLocal('fileDownload.permissionError.title'),
+        Localize.translateLocal('fileDownload.permissionError.message'),
+        [
+            {
+                text: Localize.translateLocal('fileDownload.permissionError.buttons.cancel.text'),
+                style: 'cancel',
+            },
+            {
+                text: Localize.translateLocal('fileDownload.permissionError.buttons.settings.text'),
+                onPress: () => Linking.openSettings(),
+            },
+        ],
     );
 }
 
@@ -50,46 +90,10 @@ function getFileType(fileUrl) {
     return CONST.ATTACHMENT_FILE_TYPE.FILE;
 }
 
-const ALERT_TYPES = {
-    SUCCESS: {
-        title: Localize.translateLocal('fileDownload.success.title'),
-        message: Localize.translateLocal('fileDownload.success.message'),
-        options: [
-            {
-                text: Localize.translateLocal('fileDownload.success.buttons.ok.text'),
-                style: 'cancel',
-            },
-        ],
-    },
-    GENERAL_ERROR: {
-        title: Localize.translateLocal('fileDownload.generalError.title'),
-        message: Localize.translateLocal('fileDownload.generalError.message'),
-        options: [
-            {
-                text: Localize.translateLocal('fileDownload.generalError.buttons.cancel.text'),
-                style: 'cancel',
-            },
-        ],
-    },
-    PERMISSION_ERROR: {
-        title: Localize.translateLocal('fileDownload.permissionError.title'),
-        message: Localize.translateLocal('fileDownload.permissionError.message'),
-        options: [
-            {
-                text: Localize.translateLocal('fileDownload.permissionError.buttons.cancel.text'),
-                style: 'cancel',
-            },
-            {
-                text: Localize.translateLocal('fileDownload.permissionError.buttons.settings.text'),
-                onPress: () => Linking.openSettings(),
-            },
-        ],
-    },
-};
-
 export {
-    showAlert,
+    showGeneralErrorAlert,
+    showSuccessAlert,
+    showPermissionErrorAlert,
     getAttachmentName,
     getFileType,
-    ALERT_TYPES,
 };
