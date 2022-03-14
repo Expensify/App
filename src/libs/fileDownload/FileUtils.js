@@ -29,15 +29,16 @@ function getAttachmentName(url) {
 }
 
 /**
- * Returns file type based on the filename/uri
- * @param {String} fileName
+ * Returns file type based on the uri
+ * @param {String} fileUri
  * @returns {String}
  */
 
-function getFileType(fileName) {
-    if (!fileName) {
+function getFileType(fileUrl) {
+    if (!fileUrl) {
         return;
     }
+    const fileName = fileUrl.split('/').pop().split('?')[0].split('#')[0];
     const contentType = mime.contentType(fileName);
     if (contentType.startsWith('image')) {
         return CONST.ATTACHMENT_FILE_TYPE.IMAGE;
