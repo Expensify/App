@@ -366,6 +366,12 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ATTACHMENT_FILE_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+        VIDEO: 'video',
+    },
+
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
