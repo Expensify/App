@@ -151,11 +151,9 @@ class ReportActionsView extends React.Component {
         Report.fetchActions(this.props.reportID);
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
-
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
             this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
+        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {

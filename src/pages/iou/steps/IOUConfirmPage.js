@@ -66,7 +66,6 @@ const IOUConfirmPage = props => (
     />
 );
 
-
 IOUConfirmPage.displayName = 'IOUConfirmPage';
 IOUConfirmPage.propTypes = propTypes;
 IOUConfirmPage.defaultProps = defaultProps;

@@ -227,7 +227,6 @@ class RequestorStep extends React.Component {
                                 </View>
                             )}
                             style={[styles.mt4]}
-                            hasError={Boolean(this.getErrors().isControllingOfficer)}
                             errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>

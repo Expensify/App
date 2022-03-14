@@ -121,9 +121,19 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return (ReportUtils.isChatRoom(reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) ? emailArray : _.without(emailArray, currentUserEmail);
+    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
+        return emailArray;
+    }
+    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
+        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
+        return [ownerEmail, ...emailArray];
+    }
+
+    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
+    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
+    return _.without(emailArray, currentUserEmail);
 }
 
 /**

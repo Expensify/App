@@ -480,6 +480,10 @@ const styles = {
         height: 0,
     },
 
+    visibilityHidden: {
+        ...visibility('hidden'),
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -1947,12 +1951,23 @@ const styles = {
         backgroundColor: colors.white,
     },
 
+    radioButtonContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 10,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.icon,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 2,
         height: 20,
         width: 20,
-        borderColor: themeColors.border,
+        borderColor: themeColors.icon,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -2447,7 +2462,7 @@ const styles = {
     },
 
     closeAccountMessageInput: {
-        minHeight: 140,
+        height: 153,
     },
 };
 
