@@ -1,5 +1,6 @@
 import RNFetchBlob from 'rn-fetch-blob';
 import CameraRoll from '@react-native-community/cameraroll';
+import lodashGet from 'lodash/get';
 import * as FileUtils from './FileUtils';
 import CONST from '../../CONST';
 
@@ -32,8 +33,18 @@ function downloadImage(fileUrl) {
     return CameraRoll.save(fileUrl);
 }
 
-function downloadVideo(fileUrl) {
-    return CameraRoll.save(fileUrl);
+function downloadVideo(fileUrl, fileName) {
+    return new Promise((resolve) => {
+        let documentPathUri = null;
+        let cameraRollUri = null;
+        downloadFile(fileUrl, fileName).then((attachment) => {
+            documentPathUri = lodashGet(attachment, 'data');
+            return CameraRoll.save(documentPathUri);
+        }).then((attachment) => {
+            cameraRollUri = attachment;
+            return RNFetchBlob.fs.unlink(documentPathUri);
+        }).then(() => resolve(cameraRollUri));
+    });
 }
 
 /**
