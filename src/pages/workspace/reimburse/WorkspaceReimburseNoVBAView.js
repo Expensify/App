@@ -69,6 +69,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             },
         ];
 
+        this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
     }
 
@@ -102,7 +103,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         }, null);
     }
 
-    handleKeyPress = (event) => {
+    debounceUpdateOnCursorMove(event) {
         if (!_.contains(['ArrowLeft', 'ArrowRight'], event.key)) {
             return;
         }
@@ -173,7 +174,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                onKeyPress={this.handleKeyPress}
+                                onKeyPress={this.debounceUpdateOnCursorMove}
                             />
                         </View>
                         <View style={[styles.unitCol]}>
