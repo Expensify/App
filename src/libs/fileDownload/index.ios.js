@@ -8,7 +8,7 @@ import * as FileUtils from './FileUtils';
  * @param {String} fileName
  * @returns {Promise}
  */
-function downloadDocument(fileUrl, fileName) {
+function downloadFile(fileUrl, fileName) {
     const dirs = RNFetchBlob.fs.dirs;
 
     // ios files will download to documents directory
@@ -44,16 +44,18 @@ function downloadVideo(fileUrl) {
 export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
         let fileDownloadPromise = null;
-        const fileType = 'image'; // getFileType(fileUrl);
+        const fileType = FileUtils.getFileType(fileUrl);
+        const attachmentName = fileName || FileUtils.getAttachmentName(fileUrl);
+
         switch (fileType) {
             case 'image':
-                fileDownloadPromise = downloadImage(fileUrl, fileName);
+                fileDownloadPromise = downloadImage(fileUrl, attachmentName);
                 break;
             case 'video':
-                fileDownloadPromise = downloadVideo(fileUrl, fileName);
+                fileDownloadPromise = downloadVideo(fileUrl, attachmentName);
                 break;
             default:
-                fileDownloadPromise = downloadDocument(fileUrl, fileName);
+                fileDownloadPromise = downloadFile(fileUrl, attachmentName);
                 break;
         }
 
