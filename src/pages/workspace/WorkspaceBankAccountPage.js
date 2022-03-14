@@ -50,6 +50,10 @@ class WorkspaceBankAccountPage extends React.Component {
 
     componentDidMount() {
         this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
+
+        if (!this.getShouldShowPage()) {
+            this.navigateToBankAccountRoute();
+        }
     }
 
     componentWillUnmount() {
@@ -89,10 +93,6 @@ class WorkspaceBankAccountPage extends React.Component {
     }
 
     render() {
-        if (!this.getShouldShowPage()) {
-            this.navigateToBankAccountRoute();
-            return null;
-        }
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
