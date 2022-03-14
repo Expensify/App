@@ -1,6 +1,7 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import RNCameraRoll from '@react-native-community/cameraroll';
+import CameraRoll from '@react-native-community/cameraroll';
 import * as FileUtils from './FileUtils';
+import CONST from '../../CONST';
 
 /**
  * Handling the download
@@ -28,11 +29,11 @@ function downloadFile(fileUrl, fileName) {
 }
 
 function downloadImage(fileUrl) {
-    return RNCameraRoll.CameraRoll.save(fileUrl);
+    return CameraRoll.save(fileUrl);
 }
 
 function downloadVideo(fileUrl) {
-    return RNCameraRoll.CameraRoll.save(fileUrl);
+    return CameraRoll.save(fileUrl);
 }
 
 /**
@@ -48,10 +49,10 @@ export default function fileDownload(fileUrl, fileName) {
         const attachmentName = fileName || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
-            case 'image':
+            case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
                 fileDownloadPromise = downloadImage(fileUrl, attachmentName);
                 break;
-            case 'video':
+            case CONST.ATTACHMENT_FILE_TYPE.VIDEO:
                 fileDownloadPromise = downloadVideo(fileUrl, attachmentName);
                 break;
             default:
