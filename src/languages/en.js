@@ -967,7 +967,7 @@ export default {
         permissionError: {
             title: 'Access Needed',
             message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
-            options: {
+            buttons: {
                 cancel: {
                     text: 'Cancel',
                 },
