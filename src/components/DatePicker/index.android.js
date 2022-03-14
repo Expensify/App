@@ -4,23 +4,29 @@ import moment from 'moment';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import DateUtils from '../../libs/DateUtils';
 
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
+        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || CONST.DATE.MOMENT_FORMAT_STRING;
         this.state = {
             isPickerVisible: false,
+            value,
+            selectedDate: props.value ? moment(props.value).toDate() : new Date(),
         };
-        this.defaultValue = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : CONST.DATE.MOMENT_FORMAT_STRING;
         this.showPicker = this.showPicker.bind(this);
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }
 
     componentDidUpdate() {
-        if (this.props.value === undefined || this.value === this.props.value) {
+        const dateValue = DateUtils.getDateAsText(this.props.value);
+        if (this.props.value === undefined || this.state.value === dateValue) {
             return;
         }
-        this.textInput.setNativeProps({text: this.value});
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({value: dateValue});
+        this.textInput.setNativeProps({text: dateValue});
     }
 
     /**
@@ -40,9 +46,10 @@ class DatePicker extends React.Component {
         if (event.type === 'set') {
             this.props.onChange(selectedDate);
         }
+        this.setState({selectedDate});
 
         // Updates the value of TextInput on Date Change
-        this.textInput.setNativeProps({text: moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)});
+        this.textInput.setNativeProps({text: DateUtils.getDateAsText(selectedDate)});
     }
 
     render() {
@@ -54,7 +61,7 @@ class DatePicker extends React.Component {
                         this.textInput = el;
                         if (this.props.forwardedRef) { this.props.forwardedRef(el); }
                     }}
-                    defaultValue={this.defaultValue}
+                    defaultValue={this.state.value}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
@@ -68,7 +75,7 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                 <RNDatePicker
-                    value={this.props.defaultValue ? moment(this.props.defaultValue).toDate() : new Date()}
+                    value={this.state.selectedDate}
                     mode="date"
                     onChange={this.raiseDateChange}
                     maximumDate={this.props.maximumDate}
