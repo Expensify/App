@@ -11,7 +11,7 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import InlineErrorText from '../InlineErrorText'
+import InlineErrorText from '../InlineErrorText';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
