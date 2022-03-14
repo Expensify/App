@@ -2,6 +2,7 @@ import {Alert, Linking} from 'react-native';
 import moment from 'moment';
 import * as mime from 'react-native-mime-types';
 import CONST from '../../CONST';
+import * as Localize from '../Localize';
 
 /**
  * Re useable alert function
@@ -51,36 +52,35 @@ function getFileType(fileUrl) {
 
 const ALERT_TYPES = {
     SUCCESS: {
-        title: 'Downloaded!',
-        message: 'Attachment successfully downloaded',
+        title: Localize.translateLocal('fileDownload.success.title'),
+        message: Localize.translateLocal('fileDownload.success.message'),
         options: [
             {
-                text: 'OK',
+                text: Localize.translateLocal('fileDownload.success.buttons.ok.text'),
                 style: 'cancel',
             },
         ],
     },
     GENERAL_ERROR: {
-        title: 'Attachment Error',
-        message: 'Attachment cannot be downloaded',
+        title: Localize.translateLocal('fileDownload.generalError.title'),
+        message: Localize.translateLocal('fileDownload.generalError.message'),
         options: [
             {
-                text: 'Cancel',
+                text: Localize.translateLocal('fileDownload.generalError.buttons.cancel.text'),
                 style: 'cancel',
             },
         ],
     },
     PERMISSION_ERROR: {
-        title: 'Access Needed',
-        // eslint-disable-next-line max-len
-        message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+        title: Localize.translateLocal('fileDownload.permissionError.title'),
+        message: Localize.translateLocal('fileDownload.permissionError.message'),
         options: [
             {
-                text: 'Cancel',
+                text: Localize.translateLocal('fileDownload.permissionError.buttons.cancel.text'),
                 style: 'cancel',
             },
             {
-                text: 'Settings',
+                text: Localize.translateLocal('fileDownload.permissionError.buttons.settings.text'),
                 onPress: () => Linking.openSettings(),
             },
         ],

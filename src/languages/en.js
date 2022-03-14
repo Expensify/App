@@ -945,4 +945,36 @@ export default {
         },
         refresh: 'Refresh',
     },
+    fileDownload: {
+        success: {
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded',
+            buttons: {
+                ok: {
+                    text: 'OK',
+                },
+            },
+        },
+        generalError: {
+            title: 'Attachment Error',
+            message: 'Attachment cannot be downloaded',
+            buttons: {
+                cancel: {
+                    text: 'Cancel',
+                },
+            },
+        },
+        permissionError: {
+            title: 'Access Needed',
+            message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+            options: {
+                cancel: {
+                    text: 'Cancel',
+                },
+                settings: {
+                    text: 'Settings',
+                },
+            },
+        },
+    },
 };
