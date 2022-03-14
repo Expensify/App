@@ -111,9 +111,20 @@ function getLastVisibleMessageText(reportID) {
     );
 }
 
+/**
+ * Returns check result wheter optimisticActionId exist in reportActions
+ * @param {Number|String} reportID
+ * @param {Number|String} optimisticActionId
+ * @returns {Boolean}
+ */
+function isOptimisticReportActionExist(reportID, optimisticActionId) {
+    return _.has(reportActions[reportID], optimisticActionId);
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
+    isOptimisticReportActionExist,
 };
