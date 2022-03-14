@@ -153,7 +153,7 @@ class AttachmentModal extends PureComponent {
     /**
      * Checks whether file type is acceptable
      * @param {String} type
-     * @returns {boolean}
+     * @returns {Boolean}
      */
     isValidFileType(type) {
         return !_.includes(CONST.UNSUPPORTED_FILE_TYPES, type);
