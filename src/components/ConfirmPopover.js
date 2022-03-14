@@ -1,12 +1,8 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
 import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import Text from './Text';
+import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */
@@ -33,13 +29,17 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
+    /** Modal content text/element */
+    prompt: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+
     /** Where the popover should be positioned */
     anchorPosition: PropTypes.shape({
         top: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
 
-    ...withLocalizePropTypes,
+    /** Styles for view */
+    contentStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...windowDimensionsPropTypes,
 };
@@ -50,6 +50,8 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
+    prompt: '',
+    contentStyles: [],
 };
 
 const ConfirmPopover = props => (
@@ -59,58 +61,22 @@ const ConfirmPopover = props => (
         isVisible={props.isVisible}
         anchorPosition={props.anchorPosition}
     >
-        <View
-            style={[
-                styles.m5,
-                styles.alignItemsCenter,
-                !props.isSmallScreenWidth ? styles.sidebarPopover : '',
-            ]}
-        >
-            <Text
-                style={[
-                    styles.mb5,
-                ]}
-            >
-                {props.title}
-            </Text>
-            <TouchableOpacity
-                style={[
-                    styles.button,
-                    styles.mt2,
-                    styles.w100,
-                    props.danger ? styles.buttonDanger : styles.buttonSuccess,
-                    styles.alignSelfCenter,
-                ]}
-                onPress={props.onConfirm}
-            >
-                <Text style={[styles.buttonText, props.danger && styles.textWhite]}>
-                    {props.confirmText || props.translate('common.yes')}
-                </Text>
-            </TouchableOpacity>
-            {props.shouldShowCancelButton
-            && (
-                <TouchableOpacity
-                    style={[
-                        styles.button,
-                        styles.mt4,
-                        styles.w100,
-                        styles.alignSelfCenter,
-                    ]}
-                    onPress={props.onCancel}
-                >
-                    <Text style={[styles.buttonText]}>
-                        {props.cancelText || props.translate('common.no')}
-                    </Text>
-                </TouchableOpacity>
-            )}
-        </View>
+        <ConfirmContent
+            contentStyles={props.contentStyles}
+            title={props.title}
+            prompt={props.prompt}
+            confirmText={props.confirmText}
+            cancelText={props.cancelText}
+            danger={props.danger}
+            shouldShowCancelButton={props.shouldShowCancelButton}
+            onConfirm={props.onConfirm}
+            onCancel={props.onCancel}
+            onClose={props.onCancel}
+        />
     </Popover>
 );
 
 ConfirmPopover.propTypes = propTypes;
 ConfirmPopover.defaultProps = defaultProps;
 ConfirmPopover.displayName = 'ConfirmPopover';
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(ConfirmPopover);
+export default withWindowDimensions(ConfirmPopover);
