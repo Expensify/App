@@ -1,5 +1,5 @@
 import {Linking} from 'react-native';
-import getAttachmentName from './getAttachmentName';
+import * as FileUtils from './FileUtils';
 
 /**
  * Downloading attachment in web, desktop
@@ -25,7 +25,7 @@ export default function fileDownload(url, fileName) {
                 link.style.display = 'none';
                 link.setAttribute(
                     'download',
-                    fileName || getAttachmentName(url), // generating the file name
+                    fileName || FileUtils.getAttachmentName(url), // generating the file name
                 );
 
                 // Append to html link element page

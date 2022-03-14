@@ -1,5 +1,4 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import getAttachmentName from './getAttachmentName';
 import * as FileUtils from './FileUtils';
 
 /**
@@ -14,7 +13,7 @@ function handleDownload(url, fileName) {
 
         // ios files will download to documents directory
         const path = dirs.DocumentDir;
-        const attachmentName = fileName || getAttachmentName(url);
+        const attachmentName = fileName || FileUtils.getAttachmentName(url);
 
         // fetching the attachment
         const fetchedAttachment = RNFetchBlob.config({

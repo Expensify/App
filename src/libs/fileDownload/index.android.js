@@ -1,6 +1,5 @@
 import {Linking, PermissionsAndroid} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import getAttachmentName from './getAttachmentName';
 import * as FileUtils from './FileUtils';
 
 /**
@@ -46,7 +45,7 @@ function handleDownload(url, fileName) {
 
         // android files will download to Download directory
         const path = dirs.DownloadDir;
-        const attachmentName = fileName || getAttachmentName(url);
+        const attachmentName = fileName || FileUtils.getAttachmentName(url);
 
         // fetching the attachment
         const fetchedAttachment = RNFetchBlob.config({
