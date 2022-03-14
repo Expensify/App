@@ -32,8 +32,8 @@ const Default = Template.bind({});
 
 const AvatarURLStory = Template.bind({});
 AvatarURLStory.args = {
-    mainAvatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png',
-    secondaryAvatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    mainAvatar: `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_1.png`,
+    secondaryAvatar: `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_3.png`,
 };
 
 export {
