@@ -2,12 +2,15 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
+import _ from 'underscore';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import styles from '../../styles/styles';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import ROUTES from '../../ROUTES';
+import Navigation from '../../libs/Navigation/Navigation';
 
 class WalletStatementModal extends React.Component {
     constructor(props) {
@@ -16,6 +19,17 @@ class WalletStatementModal extends React.Component {
         this.state = {
             isLoading: true,
         };
+    }
+
+    navigate(url) {
+        if (!url) {
+            return;
+        }
+        const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
+        const navigateToIOURoute = _.find(iouRoutes, iouRoute => url.includes(iouRoute));
+        if (navigateToIOURoute) {
+            Navigation.navigate(navigateToIOURoute);
+        }
     }
 
     render() {
@@ -33,7 +47,10 @@ class WalletStatementModal extends React.Component {
                         width="100%"
                         seamless="seamless"
                         frameBorder="0"
-                        onLoad={() => this.setState({isLoading: false})}
+                        onLoad={() => {
+                            this.setState({isLoading: false});
+                            window.onmessage = e => this.navigate(e.data);
+                        }}
                     />
                 </View>
             </>
