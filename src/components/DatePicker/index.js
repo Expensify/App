@@ -46,7 +46,7 @@ class Datepicker extends React.Component {
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text
      */
-    raiseDateChange(text) {
+    setDate(text) {
         if (!text) {
             this.props.onChange(null);
             return;
@@ -82,7 +82,7 @@ class Datepicker extends React.Component {
                 }}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
-                onChangeText={this.raiseDateChange}
+                onChangeText={this.setDate}
                 onBlur={this.props.onBlur}
                 defaultValue={this.state.value}
                 placeholder={this.props.placeholder}
