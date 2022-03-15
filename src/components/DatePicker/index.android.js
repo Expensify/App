@@ -29,14 +29,6 @@ class DatePicker extends React.Component {
 
     /**
      * @param {Event} event
-     */
-    showPicker(event) {
-        this.setState({isPickerVisible: true});
-        event.preventDefault();
-    }
-
-    /**
-     * @param {Event} event
      * @param {Date} selectedDate
      */
     setDate(event, selectedDate) {
@@ -48,6 +40,14 @@ class DatePicker extends React.Component {
 
         // Updates the value of TextInput on Date Change
         this.textInput.setNativeProps({text: DateUtils.getDateAsText(selectedDate)});
+    }
+
+    /**
+     * @param {Event} event
+     */
+    showPicker(event) {
+        this.setState({isPickerVisible: true});
+        event.preventDefault();
     }
 
     render() {
