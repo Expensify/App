@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, TouchableOpacity, Dimensions} from 'react-native';
+import {
+    View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
@@ -197,6 +199,9 @@ class BasePaymentsPage extends React.Component {
 
     hidePasswordPrompt() {
         this.setState({shouldShowPasswordPrompt: false});
+
+        // Fixes iOS Freeze issue
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
     makeDefaultPaymentMethod(password) {
@@ -316,9 +321,13 @@ class BasePaymentsPage extends React.Component {
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
-                                            shouldShowPasswordPrompt: true,
                                             shouldShowDefaultDeleteMenu: false,
-                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                        });
+                                        InteractionManager.runAfterInteractions(() => {
+                                            this.setState({
+                                                shouldShowPasswordPrompt: true,
+                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                            });
                                         });
                                     }}
                                     style={[styles.button, styles.alignSelfCenter, styles.w100]}
@@ -332,7 +341,11 @@ class BasePaymentsPage extends React.Component {
                                 onPress={() => {
                                     this.setState({
                                         shouldShowDefaultDeleteMenu: false,
-                                        shouldShowConfirmPopover: true,
+                                    });
+                                    InteractionManager.runAfterInteractions(() => {
+                                        this.setState({
+                                            shouldShowConfirmPopover: true,
+                                        });
                                     });
                                 }}
                                 style={[
