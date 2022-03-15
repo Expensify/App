@@ -23,7 +23,7 @@ class DatePicker extends React.Component {
             return;
         }
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: dateValue});
+        this.setState({selectedDate: this.props.value});
         this.textInput.setNativeProps({text: dateValue});
     }
 
