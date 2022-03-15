@@ -8,22 +8,29 @@ import compose from '../../libs/compose';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
-const WalletStatementModal = (props) => {
-    const authToken = lodashGet(props, 'session.authToken', null);
-    return (
-        <WebView
-            originWhitelist={['https://*']}
-            source={{
-                uri: props.statementPageURL,
-                headers: {
-                    Cookie: `authToken=${authToken}`,
-                },
-            }}
-            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-            startInLoadingState
-            renderLoading={() => <FullScreenLoadingIndicator />}
-        />
-    );
+class WalletStatementModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.authToken = lodashGet(props, 'session.authToken', null);
+    }
+
+    render() {
+        return (
+            <WebView
+                originWhitelist={['https://*']}
+                source={{
+                    uri: this.props.statementPageURL,
+                    headers: {
+                        Cookie: `authToken=${this.authToken}`,
+                    },
+                }}
+                incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                startInLoadingState
+                renderLoading={() => <FullScreenLoadingIndicator />}
+            />
+        );
+    }
 };
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
