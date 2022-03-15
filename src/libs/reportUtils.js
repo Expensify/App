@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -161,7 +160,7 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -211,23 +210,19 @@ function hasExpensifyEmails(emails) {
 /**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
- * @param {Object} myPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
-    const currentUserTimezone = lodashGet(myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasExpensifyEmails(reportParticipants)
         && !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
-        && currentUserTimezone.selected
-        && reportRecipientTimezone.selected
-        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        && reportRecipientTimezone.selected;
 }
 
 /**
