@@ -66,6 +66,10 @@ function getDisplayName(key, modifiers) {
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
+    if (!(event instanceof KeyboardEvent)) {
+        return;
+    }
+
     const eventModifiers = getKeyEventModifiers(event);
     const displayName = getDisplayName(event.key, eventModifiers);
 
@@ -83,7 +87,9 @@ function bindHandlerToKeydownEvent(event) {
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
-        event.preventDefault();
+        if (callback.shouldPreventDefault) {
+            event.preventDefault();
+        }
 
         // If the event should not bubble, short-circuit the loop
         let shouldBubble = callback.shouldBubble || false;
@@ -136,9 +142,10 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
+ * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
@@ -150,6 +157,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         id: callbackID,
         callback,
         captureOnInputs,
+        shouldPreventDefault,
         shouldBubble,
     });
 

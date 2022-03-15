@@ -369,7 +369,6 @@ function AddBillingCard(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
-
 /**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
@@ -922,6 +921,7 @@ function Plaid_GetLinkToken() {
  * @param {String} parameters.currentStep
  * @param {String} [parameters.onfidoData] - JSON string
  * @param {String} [parameters.personalDetails] - JSON string
+ * @param {String} [parameters.idologyAnswers] - JSON string
  * @param {Boolean} [parameters.hasAcceptedTerms]
  * @returns {Promise}
  */

@@ -98,6 +98,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
     },
     attachmentPicker: {
@@ -112,7 +113,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
-    textInputFocusable: {
+    composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
@@ -175,6 +176,9 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
         beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -567,10 +571,15 @@ export default {
     additionalDetailsStep: {
         headerTitle: 'Additional details',
         helpText: 'We need to confirm the following information before we can process this payment.',
+        helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
+        selectAnswer: 'You need to select a response to proceed.',
+        needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        weCouldNotVerify: 'We could not verify',
+        pleaseFixIt: 'Please fix this information before continuing.',
         failedKYCTextBefore: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to ',
         failedKYCTextAfter: ' if you have any questions.',
     },
@@ -739,6 +748,7 @@ export default {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
+            unavailable: 'Unavailable workspace',
         },
         new: {
             newWorkspace: 'New workspace',

@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
+import * as Localize from '../Localize';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -37,6 +39,14 @@ function setAdditionalDetailsLoading(loading) {
 }
 
 /**
+ * @param {Array} questions
+ * @param {String} [idNumber]
+ */
+function setAdditionalDetailsQuestions(questions, idNumber) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
+}
+
+/**
  * @param {Object} errorFields
  */
 function setAdditionalDetailsErrors(errorFields) {
@@ -59,6 +69,84 @@ function setAdditionalDetailsShouldAskForFullSSN(shouldAskForFullSSN) {
 }
 
 /**
+ * @param {Boolean} shouldShowFailedKYC
+ */
+function setAdditionalDetailsShouldShowFailedKYC(shouldShowFailedKYC) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {shouldShowFailedKYC});
+}
+
+/**
+ * Transforms a list of Idology errors to a translated displayable error string.
+ * @param {Array} idologyErrors
+ * @return {String}
+ */
+function buildIdologyError(idologyErrors) {
+    if (_.isEmpty(idologyErrors)) {
+        return '';
+    }
+    const addressErrors = [
+        'resultcode.address.does.not.match',
+        'resultcode.street.name.does.not.match',
+        'resultcode.street.number.does.not.match',
+        'resultcode.zip.does.not.match',
+        'resultcode.alternate.address.alert',
+        'resultcode.state.does.not.match',
+        'resultcode.input.address.is.po.box',
+        'resultcode.located.address.is.po.box',
+        'resultcode.warm.address.alert',
+    ];
+    const dobErrors = [
+        'resultcode.coppa.alert',
+        'resultcode.age.below.minimum',
+        'resultcode.dob.does.not.match',
+        'resultcode.yob.does.not.match',
+        'resultcode.yob.within.one.year',
+        'resultcode.mob.does.not.match',
+        'resultcode.no.mob.available',
+        'resultcode.no.dob.available',
+        'resultcode.ssn.issued.prior.to.dob',
+    ];
+    const ssnErrors = [
+        'resultcode.ssn.does.not.match',
+        'resultcode.ssn.within.one.digit',
+        'resultcode.ssn.not.valid',
+        'resultcode.ssn.issued.prior.to.dob',
+        'resultcode.input.ssn.is.itin',
+        'resultcode.located.itin',
+    ];
+    const nameErrors = [
+        'resultcode.last.name.does.not.match',
+    ];
+
+    // List of translated errors
+    const errorsTranslated = _.uniq(_.reduce(idologyErrors, (memo, error) => {
+        const your = Localize.translateLocal('common.your');
+        if (_.contains(addressErrors, error)) {
+            memo.push(`${your} ${Localize.translateLocal('common.personalAddress').toLowerCase()}`);
+        }
+        if (_.contains(dobErrors, error)) {
+            memo.push(`${your} ${Localize.translateLocal('common.dob').toLowerCase()}`);
+        }
+        if (_.contains(ssnErrors, error)) {
+            memo.push(`${your} SSN`);
+        }
+        if (_.contains(nameErrors, error)) {
+            memo.push(`${your} ${Localize.translateLocal('additionalDetailsStep.legalLastNameLabel').toLowerCase()}`);
+        }
+
+        return memo;
+    }, []));
+
+    if (_.isEmpty(errorsTranslated)) {
+        return '';
+    }
+
+    const errorStart = Localize.translateLocal('additionalDetailsStep.weCouldNotVerify');
+    const errorEnd = Localize.translateLocal('additionalDetailsStep.pleaseFixIt');
+    return `${errorStart} ${Localize.arrayToString(errorsTranslated)}. ${errorEnd}`;
+}
+
+/**
  * This action can be called repeatedly with different steps until an Expensify Wallet has been activated.
  *
  * Possible steps:
@@ -73,11 +161,13 @@ function setAdditionalDetailsShouldAskForFullSSN(shouldAskForFullSSN) {
  * @param {String} currentStep
  * @param {Object} parameters
  * @param {String} [parameters.onfidoData] - JSON string
- * @param {Object} [parameters.personalDetails] - JSON string
+ * @param {Object} [parameters.personalDetails]
+ * @param {Object} [parameters.idologyAnswers]
  * @param {Boolean} [parameters.hasAcceptedTerms]
  */
 function activateWallet(currentStep, parameters) {
     let personalDetails;
+    let idologyAnswers;
     let onfidoData;
     let hasAcceptedTerms;
 
@@ -89,10 +179,16 @@ function activateWallet(currentStep, parameters) {
         onfidoData = parameters.onfidoData;
         Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-        setAdditionalDetailsLoading(true);
-        setAdditionalDetailsErrors(null);
-        setAdditionalDetailsErrorMessage('');
-        personalDetails = JSON.stringify(parameters.personalDetails);
+        if (parameters.personalDetails) {
+            setAdditionalDetailsLoading(true);
+            setAdditionalDetailsErrors(null);
+            setAdditionalDetailsErrorMessage('');
+            setAdditionalDetailsShouldShowFailedKYC(false);
+            personalDetails = JSON.stringify(parameters.personalDetails);
+        }
+        if (parameters.idologyAnswers) {
+            idologyAnswers = JSON.stringify(parameters.idologyAnswers);
+        }
     } else if (currentStep === CONST.WALLET.STEP.TERMS) {
         hasAcceptedTerms = parameters.hasAcceptedTerms;
         Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: true});
@@ -101,10 +197,19 @@ function activateWallet(currentStep, parameters) {
     API.Wallet_Activate({
         currentStep,
         personalDetails,
+        idologyAnswers,
         onfidoData,
         hasAcceptedTerms,
     })
         .then((response) => {
+            if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
+                // Hide the loader
+                setAdditionalDetailsLoading(false);
+
+                // Make sure we remove any questions from Onyx once we've answered them
+                setAdditionalDetailsQuestions(null);
+            }
+
             if (response.jsonCode !== 200) {
                 if (currentStep === CONST.WALLET.STEP.ONFIDO) {
                     Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: response.message, loading: false});
@@ -112,8 +217,9 @@ function activateWallet(currentStep, parameters) {
                 }
 
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
-                    // Hide the loader
-                    setAdditionalDetailsLoading(false);
+                    if (response.title === CONST.WALLET.ERROR.KBA_NEEDED) {
+                        setAdditionalDetailsQuestions(response.data.questions, response.data.idNumber);
+                    }
 
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
                         // Convert array of strings to object with field names as keys and boolean for values (true if error, false if not)
@@ -126,17 +232,48 @@ function activateWallet(currentStep, parameters) {
 
                     if (response.title === CONST.WALLET.ERROR.FULL_SSN_NOT_FOUND) {
                         setAdditionalDetailsShouldAskForFullSSN(true);
+                        setAdditionalDetailsErrorMessage(Localize.translateLocal('additionalDetailsStep.needSSNFull9'));
+                        return;
                     }
 
-                    const errorTitles = [
-                        CONST.WALLET.ERROR.FULL_SSN_NOT_FOUND,
-                        CONST.WALLET.ERROR.IDENTITY_NOT_FOUND,
-                        CONST.WALLET.ERROR.INVALID_SSN,
-                        CONST.WALLET.ERROR.UNEXPECTED,
-                        CONST.WALLET.ERROR.UNABLE_TO_VERIFY,
-                    ];
+                    let qualifiers = lodashGet(response, 'data.requestorIdentityID.apiResult.qualifiers.qualifier', []);
 
-                    if (_.contains(errorTitles, response.title)) {
+                    // ExpectID sometimes returns qualifier as an object when there is only one, or as an array if there are several
+                    if (qualifiers.key) {
+                        qualifiers = [qualifiers];
+                    }
+                    const idologyErrors = _.map(qualifiers, error => error.key);
+
+                    if (!_.isEmpty(idologyErrors)) {
+                        // These errors should redirect to the KYC failure page
+                        const hardFailures = [
+                            'resultcode.newer.record.found',
+                            'resultcode.high.risk.address.alert',
+                            'resultcode.ssn.not.available',
+                            'resultcode.subject.deceased',
+                            'resultcode.thin.file',
+                            'resultcode.pa.dob.match',
+                            'resultcode.pa.dob.not.available',
+                            'resultcode.pa.dob.does.not.match',
+                        ];
+                        if (_.some(hardFailures, hardFailure => _.contains(idologyErrors, hardFailure))) {
+                            setAdditionalDetailsShouldShowFailedKYC(true);
+                            return;
+                        }
+
+                        const identityError = buildIdologyError(idologyErrors);
+                        if (identityError) {
+                            setAdditionalDetailsErrorMessage(identityError);
+                            return;
+                        }
+                    }
+
+                    if (lodashGet(response, 'data.requestorIdentityID.apiResult.results.key') === 'result.no.match'
+                        || response.title === CONST.WALLET.ERROR.WRONG_ANSWERS) {
+                        setAdditionalDetailsShouldShowFailedKYC(true);
+                        return;
+                    }
+                    if (Str.endsWith(response.type, 'AutoVerifyFailure')) {
                         setAdditionalDetailsErrorMessage(response.message);
                     }
 
@@ -199,4 +336,6 @@ export {
     setAdditionalDetailsErrors,
     updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
+    setAdditionalDetailsQuestions,
+    buildIdologyError,
 };
