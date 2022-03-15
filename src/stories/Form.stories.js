@@ -127,11 +127,11 @@ const defaultArgs = {
         }
         if (!values.dob) {
             errors.dob = 'Please enter DOB';
-            if (!values.checkbox) {
-                errors.checkbox = 'You must accept the Terms of Service to continue';
-            }
-            return errors;
         }
+        if (!values.checkbox) {
+            errors.checkbox = 'You must accept the Terms of Service to continue';
+        }
+        return errors;
     },
     onSubmit: (values) => {
         setTimeout(() => {

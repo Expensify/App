@@ -9,11 +9,10 @@ import DateUtils from '../../libs/DateUtils';
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
-        const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || CONST.DATE.MOMENT_FORMAT_STRING;
+        this.defaultValue = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || CONST.DATE.MOMENT_FORMAT_STRING;
         this.state = {
             isPickerVisible: false,
-            value,
-            selectedDate: props.value ? moment(props.value).toDate() : new Date(),
+            selectedDate: props.value || props.defaultValue,
         };
         this.showPicker = this.showPicker.bind(this);
         this.raiseDateChange = this.raiseDateChange.bind(this);
@@ -21,7 +20,7 @@ class DatePicker extends React.Component {
 
     componentDidUpdate() {
         const dateValue = DateUtils.getDateAsText(this.props.value);
-        if (this.props.value === undefined || this.state.value === dateValue) {
+        if (this.props.value === undefined || DateUtils.getDateAsText(this.state.value) === dateValue) {
             return;
         }
         // eslint-disable-next-line react/no-did-update-set-state
@@ -59,9 +58,9 @@ class DatePicker extends React.Component {
                     label={this.props.label}
                     ref={(el) => {
                         this.textInput = el;
-                        if (this.props.forwardedRef) { this.props.forwardedRef(el); }
+                        if (typeof this.props.forwardRef === 'function') { this.props.forwardedRef(el); }
                     }}
-                    defaultValue={this.state.value}
+                    defaultValue={DateUtils.getDateAsText(this.state.selectedDate) || CONST.DATE.MOMENT_FORMAT_STRING}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
@@ -75,7 +74,7 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                 <RNDatePicker
-                    value={this.state.selectedDate}
+                    value={this.state.selectedDate ? moment(this.state.selectedDate).toDate() : new Date()}
                     mode="date"
                     onChange={this.raiseDateChange}
                     maximumDate={this.props.maximumDate}

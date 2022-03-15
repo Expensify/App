@@ -22,6 +22,7 @@ const propTypes = {
 
 const defaultProps = {
     ...defaultFieldPropTypes,
+    value: undefined,
     maximumDate: undefined,
 };
 

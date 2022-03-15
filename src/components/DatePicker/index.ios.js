@@ -85,7 +85,7 @@ class Datepicker extends React.Component {
                     label={this.props.label}
                     ref={(el) => {
                         this.textInput = el;
-                        if (this.props.forwardedRef) { this.props.forwardedRef(el); }
+                        if (typeof this.props.forwardRef === 'function') { this.props.forwardedRef(el); }
                     }}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
