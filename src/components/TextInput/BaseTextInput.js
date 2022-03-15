@@ -286,11 +286,9 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    {!_.isEmpty(this.props.errorText) && (
-                        <InlineErrorText styles={[styles.ph3]}>
-                            {this.props.errorText}
-                        </InlineErrorText>
-                    )}
+                    <InlineErrorText styles={[styles.ph3]}>
+                        {this.props.errorText}
+                    </InlineErrorText>
                 </View>
                 {/*
                     Text input component doesn't support auto grow by default.
