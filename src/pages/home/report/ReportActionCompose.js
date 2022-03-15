@@ -12,7 +12,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import TextInputFocusable from '../../../components/TextInputFocusable';
+import Composer from '../../../components/Composer';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -514,7 +514,7 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <TextInputFocusable
+                                <Composer
                                     autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
@@ -565,7 +565,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {canUseTouchScreen() && !this.props.isSmallScreenWidth ? null : (
+                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                             onModalHide={() => this.focus(true)}

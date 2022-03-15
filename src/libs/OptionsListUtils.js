@@ -263,6 +263,7 @@ function createOption(personalDetailList, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    let icons = getAvatarSources(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -278,11 +279,15 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        if (!report) {
+            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
+            icons = [personalDetail.avatar];
+        }
     }
     return {
         text,
         alternateText,
-        icons: getAvatarSources(report),
+        icons,
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
@@ -461,8 +466,9 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later.
-        if (logins.length <= 1) {
+        // personal detail option later. Individuals should not be associated with single participant
+        // policyExpenseChats or chatRooms since those are not people.
+        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';

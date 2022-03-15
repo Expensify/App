@@ -42,7 +42,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
 - [ ] I wrote testing steps that cover success & fail scenarios (if applicable)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
-- [ ] I ran the tests & veryfy they passed on:
+- [ ] I ran the tests & verified they passed on:
     - [ ] iOS / native
     - [ ] Android / native
     - [ ] iOS / Safari
