@@ -9,7 +9,6 @@ import DateUtils from '../../libs/DateUtils';
 class DatePicker extends React.Component {
     constructor(props) {
         super(props);
-        this.defaultValue = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || CONST.DATE.MOMENT_FORMAT_STRING;
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value || props.defaultValue,
