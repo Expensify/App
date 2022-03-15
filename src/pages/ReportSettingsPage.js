@@ -153,6 +153,7 @@ class ReportSettingsPage extends Component {
         const shouldShowRename = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report);
+        console.log(shouldDisableRename);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
         return (
@@ -199,17 +200,19 @@ class ReportSettingsPage extends Component {
                                         disabled={shouldDisableRename}
                                     />
                                 </View>
-                                <Button
-                                    large
-                                    success={!shouldDisableRename}
-                                    text={this.props.translate('common.save')}
-                                    onPress={this.validateAndRenameReport}
-                                    style={[styles.ml2, styles.flex1]}
-                                    textStyles={[styles.label]}
-                                    innerStyles={[styles.ph5]}
-                                    isLoading={this.props.isLoadingRenamePolicyRoom}
-                                    isDisabled={shouldDisableRename}
-                                />
+                                {!shouldDisableRename && (
+                                    <Button
+                                        large
+                                        success={!shouldDisableRename}
+                                        text={this.props.translate('common.save')}
+                                        onPress={this.validateAndRenameReport}
+                                        style={[styles.ml2, styles.flex1]}
+                                        textStyles={[styles.label]}
+                                        innerStyles={[styles.ph5]}
+                                        isLoading={this.props.isLoadingRenamePolicyRoom}
+                                        isDisabled={shouldDisableRename}
+                                    />
+                                )}
                             </View>
                         </View>
                     )}
