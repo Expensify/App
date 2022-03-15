@@ -20,6 +20,7 @@ import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Growl from '../libs/Growl';
+import TextInput from '../components/TextInput';
 
 const propTypes = {
     /** Route params */
@@ -212,12 +213,15 @@ class ReportSettingsPage extends Component {
                     )}
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
-                            <Text style={[styles.label]} numberOfLines={1}>
-                                {this.props.translate('workspace.common.workspace')}
-                            </Text>
-                            <Text numberOfLines={1}>
-                                {linkedWorkspace.name}
-                            </Text>
+                            <View style={[styles.flex3]}>
+                                <TextInput
+                                    disabled
+                                    label={this.props.translate('workspace.common.workspace')}
+                                    placeholder={this.props.translate('newRoomPage.social')}
+                                    value={linkedWorkspace.name}
+                                    autoCapitalize="none"
+                                />
+                            </View>
                         </View>
                     )}
                     {this.props.report.visibility && (
