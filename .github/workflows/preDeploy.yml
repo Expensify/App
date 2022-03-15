@@ -59,7 +59,6 @@ jobs:
     steps:
       - name: Get merged pull request
         id: getMergedPullRequest
-        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
         uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
