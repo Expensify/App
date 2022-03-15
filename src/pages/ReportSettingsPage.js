@@ -197,7 +197,7 @@ class ReportSettingsPage extends Component {
                                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                     {this.props.translate('newRoomPage.roomName')}
                                                 </Text>
-                                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText, styles.optionAlternateText]}>
+                                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
                                                     {this.state.newRoomName}
                                                 </Text>
                                             </View>
@@ -221,14 +221,12 @@ class ReportSettingsPage extends Component {
                     )}
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
-                            <View style={[styles.flex3]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                    {this.props.translate('workspace.common.workspace')}
-                                </Text>
-                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText, styles.optionAlternateText]}>
-                                    {linkedWorkspace.name}
-                                </Text>
-                            </View>
+                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                {this.props.translate('workspace.common.workspace')}
+                            </Text>
+                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                {linkedWorkspace.name}
+                            </Text>
                         </View>
                     )}
                     {this.props.report.visibility && (
