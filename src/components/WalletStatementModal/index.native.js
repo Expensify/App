@@ -2,6 +2,7 @@ import React from 'react';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -15,6 +16,19 @@ class WalletStatementModal extends React.Component {
         super(props);
 
         this.authToken = lodashGet(props, 'session.authToken', null);
+        this.navigate = this.navigate.bind(this);
+    }
+
+    navigate({url}) {
+        if (!this.webview || !url) {
+            return;
+        }
+        const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
+        const navigateToIOURoute = _.find(iouRoutes, iouRoute => url.includes(iouRoute));
+        if (navigateToIOURoute) {
+            this.webview.stopLoading();
+            Navigation.navigate(navigateToIOURoute);
+        }
     }
 
     render() {
@@ -31,23 +45,7 @@ class WalletStatementModal extends React.Component {
                 incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
                 startInLoadingState
                 renderLoading={() => <FullScreenLoadingIndicator />}
-                onNavigationStateChange={({url}) => {
-                    if (!this.webview || !url) {
-                        return;
-                    }
-                    if (url.includes(ROUTES.IOU_REQUEST)) {
-                        this.webview.stopLoading();
-                        Navigation.navigate(ROUTES.IOU_REQUEST);
-                    }
-                    if (url.includes(ROUTES.IOU_SEND)) {
-                        this.webview.stopLoading();
-                        Navigation.navigate(ROUTES.IOU_SEND);
-                    }
-                    if (url.includes(ROUTES.IOU_BILL)) {
-                        this.webview.stopLoading();
-                        Navigation.navigate(ROUTES.IOU_BILL);
-                    }
-                }}
+                onNavigationStateChange={this.navigate}
             />
         );
     }
