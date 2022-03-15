@@ -49,6 +49,9 @@ class WalletStatementModal extends React.Component {
                         frameBorder="0"
                         onLoad={() => {
                             this.setState({isLoading: false});
+
+                            // We listen to a message sent from the iframe to the parent component when a link is clicked.
+                            // This lets us handle navigation in the app, outside of the iframe.
                             window.onmessage = e => this.navigate(e.data);
                         }}
                     />
