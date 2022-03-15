@@ -55,7 +55,7 @@ class WalletStatementModal extends React.Component {
             />
         );
     }
-};
+}
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
