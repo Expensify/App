@@ -21,6 +21,11 @@ class WalletStatementModal extends React.Component {
         };
     }
 
+    /**
+     * Handles in-app navigation for iframe links
+     *
+     * @param {String} url
+     */
     navigate(url) {
         if (!url) {
             return;

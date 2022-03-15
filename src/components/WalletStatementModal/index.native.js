@@ -19,6 +19,12 @@ class WalletStatementModal extends React.Component {
         this.navigate = this.navigate.bind(this);
     }
 
+    /**
+     * Handles in-app navigation for webview links
+     *
+     * @param {Object} params
+     * @param {String} params.url
+     */
     navigate({url}) {
         if (!this.webview || !url) {
             return;
