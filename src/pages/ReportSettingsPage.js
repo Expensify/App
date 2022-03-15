@@ -20,7 +20,6 @@ import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Growl from '../libs/Growl';
-import TextInput from '../components/TextInput';
 
 const propTypes = {
     /** Route params */
@@ -192,13 +191,13 @@ class ReportSettingsPage extends Component {
                                             onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
                                             disabled={isDefaultOrArchivedRoom}
                                         />
-                                        )
+                                    )
                                         : (
                                             <View>
-                                                <Text style={[styles.textLabelSupporting]} numberOfLines={1}>
+                                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                     {this.props.translate('newRoomPage.roomName')}
                                                 </Text>
-                                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>
+                                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText, styles.optionAlternateText]}>
                                                     {this.state.newRoomName}
                                                 </Text>
                                             </View>
@@ -223,17 +222,10 @@ class ReportSettingsPage extends Component {
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
                             <View style={[styles.flex3]}>
-                                {/*<TextInput*/}
-                                {/*    disabled*/}
-                                {/*    label={this.props.translate('workspace.common.workspace')}*/}
-                                {/*    placeholder={this.props.translate('newRoomPage.social')}*/}
-                                {/*    value={linkedWorkspace.name}*/}
-                                {/*    autoCapitalize="none"*/}
-                                {/*/>*/}
-                                <Text style={[styles.textLabelSupporting]} numberOfLines={1}>
+                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]} autoCapitalize="none">
+                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText, styles.optionAlternateText]}>
                                     {linkedWorkspace.name}
                                 </Text>
                             </View>

@@ -293,10 +293,6 @@ const styles = {
         textTransform: 'uppercase',
     },
 
-    textLowercase: {
-        textTransform: 'lowercase',
-    },
-
     textNoWrap: {
         ...whiteSpace.noWrap,
     },
@@ -811,6 +807,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    lh16: {
+        lineHeight: 16,
     },
 
     formLabel: {
