@@ -79,7 +79,6 @@ class BigNumberPad extends React.Component {
     }
 }
 
-
 BigNumberPad.propTypes = propTypes;
 
 export default withLocalize(BigNumberPad);
