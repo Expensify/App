@@ -167,9 +167,6 @@ class ReportSettingsPage extends Component {
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
                         <View>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('common.notifications')}
-                            </Text>
                         </View>
                         <View style={[styles.mb5, styles.mt2]}>
                             <Picker
@@ -187,9 +184,6 @@ class ReportSettingsPage extends Component {
                     </View>
                     {shouldShowRename && (
                         <View style={styles.mt4}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('newRoomPage.roomName')}
-                            </Text>
                             <View style={[styles.flexRow, styles.mb1]}>
                                 <View style={[styles.flex3]}>
                                     <RoomNameInput
@@ -218,7 +212,7 @@ class ReportSettingsPage extends Component {
                     )}
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <Text style={[styles.label]} numberOfLines={1}>
                                 {this.props.translate('workspace.common.workspace')}
                             </Text>
                             <Text numberOfLines={1}>
