@@ -293,6 +293,10 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    textLowercase: {
+        textTransform: 'lowercase',
+    },
+
     textNoWrap: {
         ...whiteSpace.noWrap,
     },

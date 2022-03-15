@@ -152,7 +152,7 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRename = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
+        const isDefaultOrArchivedRoom = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
@@ -184,25 +184,37 @@ class ReportSettingsPage extends Component {
                         <View style={styles.mt4}>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex3]}>
-                                    <RoomNameInput
-                                        initialValue={this.state.newRoomName}
-                                        policyID={linkedWorkspace && linkedWorkspace.id}
-                                        errorText={this.state.errors.newRoomName}
-                                        onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                        disabled={shouldDisableRename}
-                                    />
+                                    {!isDefaultOrArchivedRoom ? (
+                                        <RoomNameInput
+                                            initialValue={this.state.newRoomName}
+                                            policyID={linkedWorkspace && linkedWorkspace.id}
+                                            errorText={this.state.errors.newRoomName}
+                                            onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                            disabled={isDefaultOrArchivedRoom}
+                                        />
+                                        )
+                                        : (
+                                            <View>
+                                                <Text style={[styles.textLabelSupporting]} numberOfLines={1}>
+                                                    {this.props.translate('newRoomPage.roomName')}
+                                                </Text>
+                                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>
+                                                    {this.state.newRoomName}
+                                                </Text>
+                                            </View>
+                                        )}
                                 </View>
-                                {!shouldDisableRename && (
+                                {!isDefaultOrArchivedRoom && (
                                     <Button
                                         large
-                                        success={!shouldDisableRename}
+                                        success={!isDefaultOrArchivedRoom}
                                         text={this.props.translate('common.save')}
                                         onPress={this.validateAndRenameReport}
                                         style={[styles.ml2, styles.flex1]}
                                         textStyles={[styles.label]}
                                         innerStyles={[styles.ph5]}
                                         isLoading={this.props.isLoadingRenamePolicyRoom}
-                                        isDisabled={shouldDisableRename}
+                                        isDisabled={isDefaultOrArchivedRoom}
                                     />
                                 )}
                             </View>
@@ -211,13 +223,19 @@ class ReportSettingsPage extends Component {
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
                             <View style={[styles.flex3]}>
-                                <TextInput
-                                    disabled
-                                    label={this.props.translate('workspace.common.workspace')}
-                                    placeholder={this.props.translate('newRoomPage.social')}
-                                    value={linkedWorkspace.name}
-                                    autoCapitalize="none"
-                                />
+                                {/*<TextInput*/}
+                                {/*    disabled*/}
+                                {/*    label={this.props.translate('workspace.common.workspace')}*/}
+                                {/*    placeholder={this.props.translate('newRoomPage.social')}*/}
+                                {/*    value={linkedWorkspace.name}*/}
+                                {/*    autoCapitalize="none"*/}
+                                {/*/>*/}
+                                <Text style={[styles.textLabelSupporting]} numberOfLines={1}>
+                                    {this.props.translate('workspace.common.workspace')}
+                                </Text>
+                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]} autoCapitalize="none">
+                                    {linkedWorkspace.name}
+                                </Text>
                             </View>
                         </View>
                     )}
