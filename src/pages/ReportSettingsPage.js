@@ -166,7 +166,7 @@ class ReportSettingsPage extends Component {
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
-                        <View style={[styles.mb1, styles.mt2]}>
+                        <View style={[styles.mt2]}>
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
                                 onChange={(notificationPreference) => {
@@ -181,8 +181,8 @@ class ReportSettingsPage extends Component {
                         </View>
                     </View>
                     {shouldShowRename && (
-                        <View style={styles.mt2}>
-                            <View style={[styles.flexRow, styles.mb1]}>
+                        <View style={styles.mt4}>
+                            <View style={[styles.flexRow]}>
                                 <View style={[styles.flex3]}>
                                     <RoomNameInput
                                         initialValue={this.state.newRoomName}
