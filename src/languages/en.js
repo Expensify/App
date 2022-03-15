@@ -77,6 +77,7 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
+            acceptedTerms: 'You must accept the Terms of Service to continue',
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -97,6 +98,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        conciergeHelp: 'Please reach out to Concierge for help.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -348,7 +350,6 @@ export default {
             addressStreet: 'Please enter a valid billing address that is not a PO Box',
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
             password: 'Please enter your Expensify password',
         },
@@ -357,7 +358,7 @@ export default {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        setDefaultFailure: 'Failed to set default payment method.',
+        deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
@@ -365,6 +366,12 @@ export default {
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
+        error: {
+            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
+            invalidBankAccount: 'This bank account is temporarily suspended.',
+            notOwnerOfFund: 'There was an error setting this card as your default payment method.',
+            setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -564,6 +571,8 @@ export default {
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
+        failedKYCTextBefore: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to ',
+        failedKYCTextAfter: ' if you have any questions.',
     },
     termsStep: {
         headerTitle: 'Terms and fees',
@@ -572,7 +581,6 @@ export default {
         agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet agreement',
         enablePayments: 'Enable payments',
-        termsMustBeAccepted: 'Terms must be accepted',
         feeAmountZero: '$0',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
@@ -699,7 +707,6 @@ export default {
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         error: {
-            termsAndConditions: 'Must accept terms and conditions',
             certify: 'Must certify information is true and accurate',
         },
     },
@@ -727,6 +734,7 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            growlMessageOnCreate: 'Workspace created',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',

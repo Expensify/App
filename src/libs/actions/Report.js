@@ -123,7 +123,7 @@ function getUnreadActionCount(report) {
  */
 function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return ReportUtils.isChatRoom(reportNameValuePairs) ? emailArray : _.without(emailArray, currentUserEmail);
+    return (ReportUtils.isChatRoom(reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) ? emailArray : _.without(emailArray, currentUserEmail);
 }
 
 /**
