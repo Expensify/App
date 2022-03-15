@@ -4,7 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
-import '../libs/TestingUtils';
+import * as TestingUtils from '../libs/TestingUtils';
 
 export default function () {
     /*
@@ -44,4 +44,5 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
+    TestingUtils.setup();
 }

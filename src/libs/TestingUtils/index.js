@@ -7,3 +7,7 @@ if (!CONFIG.IS_IN_PRODUCTION) {
         invalidateCredentials: Test.invalidateCredentials,
     };
 }
+
+export default {
+    setup() {},
+};
