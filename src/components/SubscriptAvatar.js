@@ -23,31 +23,31 @@ const propTypes = {
     secondaryTooltip: PropTypes.string,
 
     /** Set the size of avatars */
-    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 };
 
 const defaultProps = {
     mainTooltip: '',
     secondaryTooltip: '',
-    mode: CONST.OPTION_MODE.DEFAULT,
+    size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
 const SubscriptAvatar = props => (
-    <View style={props.mode === CONST.OPTION_MODE.COMPACT ? styles.emptyAvatarSmall : styles.emptyAvatar}>
+    <View style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}>
         <Tooltip text={props.mainTooltip}>
             <Avatar
                 source={props.mainAvatar}
-                size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
             />
         </Tooltip>
         <View style={[
-            props.mode === CONST.OPTION_MODE.COMPACT ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
+            props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
             StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}
         >
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar}
-                    size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                     fill={themeColors.iconSuccessFill}
                 />
             </Tooltip>
