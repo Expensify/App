@@ -10,14 +10,27 @@ jobs:
   getMergedPullRequest:
     runs-on: ubuntu-latest
 
+    outputs:
+      title: ${{ steps.getMergedPullRequest.outputs.title }}
+      body: ${{ steps.getMergedPullRequest.outputs.body }}
+      number: ${{ steps.getMergedPullRequest.outputs.number }}
+      labels: ${{ steps.getMergedPullRequest.outputs.labels }}
+      assignees: ${{ steps.getMergedPullRequest.outputs.assignees }}
+      author: ${{ steps.getMergedPullRequest.outputs.author }}
+
     steps:
       - name: Get merged pull request
         id: getMergedPullRequest
         uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+  debugGetMergedPullRequest:
+    runs-on: ubuntu-latest
+    needs: getMergedPullRequest
+
+    steps:
       - name: Debug
-        run: echo "This PR Title - ${{ steps.getMergedPullRequest.outputs.title }}, Body - ${{ steps.getMergedPullRequest.outputs.body }}, number - ${{ steps.getMergedPullRequest.outputs.number }}, labels - ${{ steps.getMergedPullRequest.outputs.labels }}, assignees - ${{ steps.getMergedPullRequest.outputs.assignees }}, author - ${{ steps.getMergedPullRequest.outputs.author }}"
+        run: echo "This PR Title - ${{ fromJSON(needs.getMergedPullRequest.outputs.title) }}, Body - ${{ needs.getMergedPullRequest.outputs.body) }}, number - ${{ needs.getMergedPullRequest.outputs.number) }}, labels - ${{ needs.getMergedPullRequest.outputs.labels) }}, assignees - ${{ needs.getMergedPullRequest.outputs.assignees) }}, author - ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}"
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
