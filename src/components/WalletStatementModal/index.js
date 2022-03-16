@@ -27,7 +27,7 @@ class WalletStatementModal extends React.Component {
      * @param {MessageEvent} e
      */
     navigate(e) {
-        if (!e.data || e.data.type !== 'STATEMENT_NAVIGATE' || !e.data.url ) {
+        if (!e.data || e.data.type !== 'STATEMENT_NAVIGATE' || !e.data.url) {
             return;
         }
         const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
