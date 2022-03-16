@@ -7,6 +7,17 @@ on:
     branches-ignore: [staging, production]
 
 jobs:
+  getMergedPullRequest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Debug
+        run: echo "This PR Title - ${{ steps.getMergedPullRequest.outputs.title }}, Body - ${{ steps.getMergedPullRequest.outputs.body }}, number - ${{ steps.getMergedPullRequest.outputs.number }}, labels - ${{ steps.getMergedPullRequest.outputs.labels }}, assignees - ${{ steps.getMergedPullRequest.outputs.assignees }}, author - ${{ steps.getMergedPullRequest.outputs.author }}"
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
