@@ -150,8 +150,8 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldShowRename = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const isDefaultOrArchivedRoom = ReportUtils.isDefaultRoom(this.props.report)
+        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
 
@@ -179,41 +179,41 @@ class ReportSettingsPage extends Component {
                             />
                         </View>
                     </View>
-                    {shouldShowRename && (
+                    {shouldShowRoomName && (
                         <View style={styles.mt4}>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex3]}>
-                                    {!isDefaultOrArchivedRoom ? (
-                                        <RoomNameInput
-                                            initialValue={this.state.newRoomName}
-                                            policyID={linkedWorkspace && linkedWorkspace.id}
-                                            errorText={this.state.errors.newRoomName}
-                                            onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                            disabled={isDefaultOrArchivedRoom}
-                                        />
+                                    {shouldDisableRename ? (
+                                        <View>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                {this.props.translate('newRoomPage.roomName')}
+                                            </Text>
+                                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                {this.state.newRoomName}
+                                            </Text>
+                                        </View>
                                     )
                                         : (
-                                            <View>
-                                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                    {this.props.translate('newRoomPage.roomName')}
-                                                </Text>
-                                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                    {this.state.newRoomName}
-                                                </Text>
-                                            </View>
+                                            <RoomNameInput
+                                                initialValue={this.state.newRoomName}
+                                                policyID={linkedWorkspace && linkedWorkspace.id}
+                                                errorText={this.state.errors.newRoomName}
+                                                onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                                disabled={shouldDisableRename}
+                                            />
                                         )}
                                 </View>
-                                {!isDefaultOrArchivedRoom && (
+                                {!shouldDisableRename && (
                                     <Button
                                         large
-                                        success={!isDefaultOrArchivedRoom}
+                                        success={!shouldDisableRename}
                                         text={this.props.translate('common.save')}
                                         onPress={this.validateAndRenameReport}
                                         style={[styles.ml2, styles.flex1]}
                                         textStyles={[styles.label]}
                                         innerStyles={[styles.ph5]}
                                         isLoading={this.props.isLoadingRenamePolicyRoom}
-                                        isDisabled={isDefaultOrArchivedRoom}
+                                        isDisabled={shouldDisableRename}
                                     />
                                 )}
                             </View>
