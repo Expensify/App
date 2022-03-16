@@ -700,6 +700,7 @@ const styles = {
 
     textInputMultiline: {
         scrollPadding: '23px 0 0 0',
+        overflowY: 'auto',
     },
 
     textInputAndIconContainer: {
