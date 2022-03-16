@@ -8,7 +8,6 @@ import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
-import variables from '../../../../styles/variables';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView/index';
@@ -113,7 +112,7 @@ class BasePaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        let position = getClickedElementLocation(nativeEvent);
+        const position = getClickedElementLocation(nativeEvent);
 
         this.setState({
             addPaymentMethodButton: nativeEvent,
