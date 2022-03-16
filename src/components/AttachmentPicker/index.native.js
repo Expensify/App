@@ -306,7 +306,6 @@ class AttachmentPicker extends Component {
                     isVisible={this.state.isVisible}
                     onModalHide={this.onModalHide}
                     anchorPosition={this.props.anchorPosition}
-                    fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
