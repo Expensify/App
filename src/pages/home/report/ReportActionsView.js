@@ -36,7 +36,7 @@ import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
@@ -151,11 +151,9 @@ class ReportActionsView extends React.Component {
         Report.fetchActions(this.props.reportID);
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
-
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
             this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
+        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {

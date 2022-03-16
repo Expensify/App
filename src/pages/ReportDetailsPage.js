@@ -16,7 +16,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/reportUtils';
-import {participantPropTypes} from './home/sidebar/optionPropTypes';
+import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
@@ -80,25 +80,25 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        // Chat rooms will allow you to more things than typical chats so they have extra options
-        if (ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
-                {
-                    translationKey: 'common.settings',
-                    icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-                },
-                {
-                    translationKey: 'common.invite',
-                    icon: Expensicons.Plus,
-                    action: () => { /* Placeholder for when inviting other users is built in */ },
-                },
-                {
-                    translationKey: 'common.leaveRoom',
-                    icon: Expensicons.Exit,
-                    action: () => { /* Placeholder for when leaving rooms is built in */ },
-                },
-            ]);
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+            });
+        }
+
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.invite',
+                icon: Expensicons.Plus,
+                action: () => { /* Placeholder for when inviting other users is built in */ },
+            },
+            {
+                translationKey: 'common.leaveRoom',
+                icon: Expensicons.Exit,
+                action: () => { /* Placeholder for when leaving rooms is built in */ },
+            });
         }
     }
 
@@ -146,7 +146,7 @@ class ReportDetailsPage extends Component {
                                         tooltipEnabled
                                         numberOfLines={1}
                                         textStyles={[styles.headerText, styles.mb2, styles.textAlignCenter]}
-                                        shouldUseFullTitle={isChatRoom}
+                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                     />
                                 </View>
                                 <Text
