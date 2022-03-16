@@ -80,7 +80,7 @@ const ReportWelcomeText = (props) => {
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
                 <>
-                    <Text>
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
                     </Text>
                     <Text style={[styles.textStrong]}>
@@ -100,7 +100,7 @@ const ReportWelcomeText = (props) => {
             )}
             {isChatRoom && (
                 <>
-                    <Text>
+                    <Text style={styles.textAlignCenter}>
                         {isResctrictedRoom
                             ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
                             : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
@@ -117,7 +117,7 @@ const ReportWelcomeText = (props) => {
             )}
             {isDefault && (
                 <>
-                    <Text>
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
                     {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
