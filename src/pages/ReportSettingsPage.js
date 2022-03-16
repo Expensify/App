@@ -231,7 +231,7 @@ class ReportSettingsPage extends Component {
                     )}
                     {this.props.report.visibility && (
                         <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                 {this.props.translate('newRoomPage.visibility')}
                             </Text>
                             <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>{this.props.report.visibility}</Text>
