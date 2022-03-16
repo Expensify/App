@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Debug
-        run: echo "This PR Title - ${{ fromJSON(needs.getMergedPullRequest.outputs.title) }}, Body - ${{ needs.getMergedPullRequest.outputs.body) }}, number - ${{ needs.getMergedPullRequest.outputs.number) }}, labels - ${{ needs.getMergedPullRequest.outputs.labels) }}, assignees - ${{ needs.getMergedPullRequest.outputs.assignees) }}, author - ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}"
+        run: echo "This PR Title - ${{ fromJSON(needs.getMergedPullRequest.outputs.title) }}, Body - ${{ fromJSON(needs.getMergedPullRequest.outputs.body) }}, number - ${{ fromJSON(needs.getMergedPullRequest.outputs.number) }}, labels - ${{ fromJSON(needs.getMergedPullRequest.outputs.labels) }}, assignees - ${{ fromJSON(needs.getMergedPullRequest.outputs.assignees) }}, author - ${{ fromJSON(needs.getMergedPullRequest.outputs.author) }}"
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
