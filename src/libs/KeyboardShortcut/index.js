@@ -66,6 +66,10 @@ function getDisplayName(key, modifiers) {
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
+    if (!(event instanceof KeyboardEvent)) {
+        return;
+    }
+
     const eventModifiers = getKeyEventModifiers(event);
     const displayName = getDisplayName(event.key, eventModifiers);
 

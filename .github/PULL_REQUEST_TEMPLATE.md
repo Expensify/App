@@ -36,11 +36,12 @@ For example:
 This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
 #### Contributor (PR Author) Checklist
-- [ ] I verified the PR has a small number of commits behind `main`
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
-    - [ ] I clearly indicated the environment tests should be run in (Staging vs Production)
-- [ ] I wrote testing steps that cover success & fail scenarios (if applicable)
+    - [ ] I added steps for local testing in the `Tests` section
+    - [ ] I added steps for Staging and/or Production testing in the `QA steps` section
+    - [ ] I added steps to cover failure scenarios (if applicable, i.e. verify an input displays the correct error message if the entered data is not correct)
+    - [ ] I added steps to cover offline scenarios (if applicable, i.e. verify the default avatar icon is displayed if app is offline)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests & verified they passed on:
     - [ ] iOS / native
@@ -58,15 +59,25 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I followed the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs))
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
-- [ ] I corroborated the UI performance was not affected (the performance is the same than `main` branch)
-- [ ] If I created a new component I verified that a similar component doesn't exist in the codebase
+- [ ] If a new component is created I verified that:
+    - [ ] A similar component doesn't exist in the codebase
+    - [ ] Has the `displayName` property if it’s a Functional Component
+    - [ ] Has Storybook stories (optional)
+    - [ ] Has Unit tests (optional)
+- [ ] If a new CSS style is added I verified that:
+    - [ ] A similar style doesn’t already exist
+    - [ ] The style can’t be created with a [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function
+(i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+
+
 
 #### PR Reviewer Checklist
-- [ ] I verified the PR has a small number of commits behind `main`
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
-    - [ ] I verified the testing environment is mentioned in the test steps
-- [ ] I verified testing steps cover success & fail scenarios (if applicable)
+    - [ ] I verified the steps for local testing are in the `Tests` section
+    - [ ] I verified the steps for Staging and/or Production testing are in the `QA steps` section
+    - [ ] I verified the steps cover failure scenarios (if applicable, i.e. verify an input displays the correct error message if the entered data is not correct)
+    - [ ] I verified steps cover offline scenarios (if applicable, i.e. verify the default avatar icon is displayed if app is offline)
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
@@ -84,8 +95,15 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
-- [ ] I verified the UI performance was not affected (the performance is the same than `main` branch)
-- [ ] If a new component is created I verified that a similar component doesn't exist in the codebase
+- [ ] If a new component is created I verified that:
+    - [ ] A similar component doesn't exist in the codebase
+    - [ ] Has the `displayName` property if it’s a Functional Component
+    - [ ] Has Storybook stories (optional)
+    - [ ] Has Unit tests (optional)
+- [ ] If a new CSS style is added I verified that:
+    - [ ] A similar style doesn’t already exist
+    - [ ] The style can’t be created with a [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function
+(i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 
 ### QA Steps
 <!---
