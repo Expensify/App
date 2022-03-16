@@ -3,10 +3,10 @@
  *
  * @returns {Object}
  */
-function getClickedElementLocation() {
+function getClickedElementLocation(nativeEvent) {
     return {
-        bottom: 0,
-        left: 0,
+        bottom: nativeEvent.nativeEvent.pageY -  nativeEvent.nativeEvent.locationY,
+        left:  nativeEvent.nativeEvent.pageX - nativeEvent.nativeEvent.locationX,
     };
 }
 
