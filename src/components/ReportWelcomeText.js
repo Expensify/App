@@ -80,7 +80,7 @@ const ReportWelcomeText = (props) => {
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
                 <>
-                    {/* We should add the align center styles to Text individually because of limited style inheritance in React Native - https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
                     </Text>
@@ -101,7 +101,7 @@ const ReportWelcomeText = (props) => {
             )}
             {isChatRoom && (
                 <>
-                    {/* We should add the align center styles to Text individually because of limited style inheritance in React Native - https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                     <Text style={styles.textAlignCenter}>
                         {isResctrictedRoom
                             ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
@@ -119,7 +119,7 @@ const ReportWelcomeText = (props) => {
             )}
             {isDefault && (
                 <>
-                    {/* We should add the align center styles to Text individually because of limited style inheritance in React Native - https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
