@@ -698,7 +698,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    textInputLabelMultilineScrollPadding: {
+    textInputMultiline: {
         scrollPadding: '23px 0 0 0',
     },
 
