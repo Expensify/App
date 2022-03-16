@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      title: ${{ steps.getMergedPullRequest.outputs.title }}
-      body: ${{ steps.getMergedPullRequest.outputs.body }}
-      number: ${{ steps.getMergedPullRequest.outputs.number }}
-      labels: ${{ steps.getMergedPullRequest.outputs.labels }}
-      assignees: ${{ steps.getMergedPullRequest.outputs.assignees }}
-      author: ${{ steps.getMergedPullRequest.outputs.author }}
+      title: ${{ fromJSON(steps.getMergedPullRequest.outputs.title) }}
+      body: ${{ fromJSON(steps.getMergedPullRequest.outputs.body) }}
+      number: ${{ fromJSON(steps.getMergedPullRequest.outputs.number) }}
+      labels: ${{ fromJSON(steps.getMergedPullRequest.outputs.labels) }}
+      assignees: ${{ fromJSON(steps.getMergedPullRequest.outputs.assignees) }}
+      author: ${{ fromJSON(steps.getMergedPullRequest.outputs.author) }}
 
     steps:
       - name: Get merged pull request
