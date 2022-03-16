@@ -26,7 +26,7 @@ class WalletStatementModal extends React.Component {
      * @param {String} params.url
      */
     navigate({url}) {
-        if (!this.webview || !url) {
+        if (!this.webview || !url || typeof url !== 'string') {
             return;
         }
         const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
