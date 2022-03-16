@@ -1052,10 +1052,6 @@ const styles = {
         paddingVertical: 12,
     },
 
-    createPaymentMethodMenuContainer: {
-        top: 380,
-    },
-
     createMenuHeaderText: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
