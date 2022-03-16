@@ -10,6 +10,7 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import styles from '../../../styles/styles';
+import Str from 'expensify-common/lib/str';
 
 /*
  * This is a default anchor component for regular links.
