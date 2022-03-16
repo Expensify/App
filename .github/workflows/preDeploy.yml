@@ -226,7 +226,7 @@ jobs:
     needs: getMergedPullRequest
 
     outputs:
-      IS_EXPENSIFY_EMPLOYEE: ${{ steps.checkActor.outputs.isTeamMember }}
+      IS_EXPENSIFY_EMPLOYEE: ${{ fromJSON(steps.checkActor.outputs.isTeamMember) }}
 
     steps:
       - name: Check whether the actor is member of Expensify/expensify team

@@ -150,7 +150,7 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldShowRename = !ReportUtils.isPolicyExpenseChat(this.props.report);
+        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
@@ -165,12 +165,7 @@ class ReportSettingsPage extends Component {
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
-                        <View>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('common.notifications')}
-                            </Text>
-                        </View>
-                        <View style={[styles.mb5, styles.mt2]}>
+                        <View style={[styles.mt2]}>
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
                                 onChange={(notificationPreference) => {
@@ -184,48 +179,59 @@ class ReportSettingsPage extends Component {
                             />
                         </View>
                     </View>
-                    {shouldShowRename && (
+                    {shouldShowRoomName && (
                         <View style={styles.mt4}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('newRoomPage.roomName')}
-                            </Text>
-                            <View style={[styles.flexRow, styles.mb1]}>
+                            <View style={[styles.flexRow]}>
                                 <View style={[styles.flex3]}>
-                                    <RoomNameInput
-                                        initialValue={this.state.newRoomName}
-                                        policyID={linkedWorkspace && linkedWorkspace.id}
-                                        errorText={this.state.errors.newRoomName}
-                                        onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                        disabled={shouldDisableRename}
-                                    />
+                                    {shouldDisableRename ? (
+                                        <View>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                {this.props.translate('newRoomPage.roomName')}
+                                            </Text>
+                                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                {this.state.newRoomName}
+                                            </Text>
+                                        </View>
+                                    )
+                                        : (
+                                            <RoomNameInput
+                                                initialValue={this.state.newRoomName}
+                                                policyID={linkedWorkspace && linkedWorkspace.id}
+                                                errorText={this.state.errors.newRoomName}
+                                                onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                                disabled={shouldDisableRename}
+                                            />
+                                        )}
                                 </View>
-                                <Button
-                                    large
-                                    success={!shouldDisableRename}
-                                    text={this.props.translate('common.save')}
-                                    onPress={this.validateAndRenameReport}
-                                    style={[styles.ml2, styles.flex1]}
-                                    textStyles={[styles.label]}
-                                    innerStyles={[styles.ph5]}
-                                    isLoading={this.props.isLoadingRenamePolicyRoom}
-                                    isDisabled={shouldDisableRename}
-                                />
+                                {!shouldDisableRename && (
+                                    <Button
+                                        large
+                                        success={!shouldDisableRename}
+                                        text={this.props.translate('common.save')}
+                                        onPress={this.validateAndRenameReport}
+                                        style={[styles.ml2, styles.flex1]}
+                                        textStyles={[styles.label]}
+                                        innerStyles={[styles.ph5]}
+                                        isLoading={this.props.isLoadingRenamePolicyRoom}
+                                        isDisabled={shouldDisableRename}
+                                    />
+                                )}
                             </View>
                         </View>
                     )}
                     {linkedWorkspace && (
                         <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                 {this.props.translate('workspace.common.workspace')}
                             </Text>
-                            <Text numberOfLines={1}>
+                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
                                 {linkedWorkspace.name}
                             </Text>
                         </View>
                     )}
                     {this.props.report.visibility && (
                         <View style={[styles.mt4]}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                 {this.props.translate('newRoomPage.visibility')}
                             </Text>
                             <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>{this.props.report.visibility}</Text>
