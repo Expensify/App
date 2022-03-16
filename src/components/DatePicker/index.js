@@ -17,7 +17,7 @@ class Datepicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.setDate = this.setDate.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
         const value = DateUtils.getDateAsText(props.value) || DateUtils.getDateAsText(props.defaultValue) || '';
         this.state = {value};
