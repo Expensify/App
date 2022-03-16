@@ -4,6 +4,7 @@ import {propTypes as popoverPropTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     ...(_.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes))),
@@ -17,8 +18,8 @@ const Popover = (props) => {
     const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition', 'disableAnimation']);
     return (
         <Modal
-            type={props.fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            popoverAnchorPosition={props.fromSidebarMediumScreen ? props.anchorPosition : undefined}
+            type={!props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            popoverAnchorPosition={!props.isSmallScreenWidth ? props.anchorPosition : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
 
@@ -33,4 +34,4 @@ Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
-export default Popover;
+export default withWindowDimensions(Popover);
