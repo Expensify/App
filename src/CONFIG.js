@@ -50,6 +50,7 @@ export default {
         EXPENSIFY_CASH_REFERER: 'ecash',
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
+    IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
         CLUSTER: 'mt1',

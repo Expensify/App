@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
-import TextInputWithPrefix from './TextInputWithPrefix';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -103,12 +102,11 @@ class RoomNameInput extends Component {
 
     render() {
         return (
-            <TextInputWithPrefix
+            <TextInput
                 disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
-                prefixCharacter="#"
+                prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
-                containerStyles={[styles.mb5]}
                 onChange={this.setModifiedRoomName}
                 value={this.state.roomName.substring(1)}
                 errorText={this.props.errorText}
