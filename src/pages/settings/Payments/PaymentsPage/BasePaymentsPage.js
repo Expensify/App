@@ -113,11 +113,9 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
         const position = getClickedElementLocation(nativeEvent);
-
         this.setState({
             addPaymentMethodButton: nativeEvent,
         });
-
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
