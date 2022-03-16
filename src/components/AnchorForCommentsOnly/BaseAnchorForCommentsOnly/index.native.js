@@ -64,7 +64,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(this.props.fileName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
                                 this.props.href,
                                 lodashGet(linkRef, 'current'),

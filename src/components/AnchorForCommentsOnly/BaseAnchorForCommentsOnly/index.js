@@ -9,6 +9,7 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
+import Str from 'expensify-common/lib/str';
 
 /*
  * This is a default anchor component for regular links.
@@ -61,7 +62,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(this.props.fileName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
                                 this.props.href,
                                 lodashGet(linkRef, 'current'),
