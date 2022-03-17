@@ -374,6 +374,7 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
+    if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
       - uses: actions/checkout@v2
