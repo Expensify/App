@@ -25,7 +25,6 @@ const BasePicker = props => (
     />
 );
 
-
 BasePicker.propTypes = basePickerPropTypes.propTypes;
 BasePicker.defaultProps = basePickerPropTypes.defaultProps;
 BasePicker.displayName = 'BasePicker';

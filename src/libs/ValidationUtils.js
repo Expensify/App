@@ -294,7 +294,6 @@ function isNumericWithSpecialChars(input) {
     return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
-
 /**
  * Checks the given number is a valid US Routing Number
  * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/

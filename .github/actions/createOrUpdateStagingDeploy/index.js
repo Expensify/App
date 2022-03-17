@@ -340,7 +340,6 @@ class GithubUtils {
         return this.octokitInternal;
     }
 
-
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
      *
