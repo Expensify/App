@@ -5,7 +5,6 @@ import ComposeProviders from '../src/components/ComposeProviders';
 import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../src/components/withLocalize';
-import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import ONYXKEYS from '../src/ONYXKEYS';
 
 Onyx.init({
