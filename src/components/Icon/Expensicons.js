@@ -72,12 +72,12 @@ import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
-import AdminsRoomAvatar from '../../../assets/images/avatars/admins-room.svg';
+import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 
 export {
     ActiveRoomAvatar,
-    AdminsRoomAvatar,
+    AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,
     Apple,
