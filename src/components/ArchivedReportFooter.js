@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -11,16 +12,29 @@ import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    /** The reason this report was archived. */
+    /** The reason this report was archived */
     archiveReason: PropTypes.string,
 
     /** The archived report */
     report: PropTypes.shape({
         /** Participants associated with the report */
         participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** The policy this report is attached to */
+        policyID: PropTypes.string,
     }).isRequired,
 
+    /** Personal details of all users */
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+
+    /** The list of policies the user has access to. */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+
+        /** The name of the policy */
+        name: PropTypes.string,
+    })).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -30,8 +44,7 @@ const defaultProps = {
 };
 
 const ArchivedReportFooter = (props) => {
-    // TODO: move https://github.com/Expensify/Web-Expensify/pull/33104/files logic to front-end so we can get the policy name here.
-
+    const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
     // TODO: account for manually archived policy rooms
     const archiveReason = ReportUtils.isPolicyExpenseChat(props.report)
         ? props.archiveReason
@@ -45,7 +58,7 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName,
                 oldDisplayName: props.oldDisplayName,
-                policyName: props.policyName,
+                policyName,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
         />
@@ -61,6 +74,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ArchivedReportFooter);
