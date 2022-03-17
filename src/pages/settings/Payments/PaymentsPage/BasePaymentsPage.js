@@ -107,14 +107,14 @@ class BasePaymentsPage extends React.Component {
     /**
      * Display the delete/default menu, or the add payment method menu
      *
-     * @param {Object} nativeEvent
+     * @param {Object} event
      * @param {String} accountType
      * @param {String} account
      */
-    paymentMethodPressed(nativeEvent, accountType, account) {
-        const position = getClickedElementLocation(nativeEvent);
+    paymentMethodPressed(event, accountType, account) {
+        const position = getClickedElementLocation(event.nativeEvent);
         this.setState({
-            addPaymentMethodButton: nativeEvent,
+            addPaymentMethodButton: event.nativeEvent,
         });
         if (accountType) {
             let formattedSelectedPaymentMethod;
