@@ -28,11 +28,11 @@ class BaseAnchorForCommentsOnly extends React.Component {
      * Initiate file downloading and update downloading flags
      *
      * @param {String} href
-     * @param {String} fileName
+     * @param {String} displayName
      */
-    processDownload(href, fileName) {
+    processDownload(href, displayName) {
         this.setState({isDownloading: true});
-        fileDownload(href, fileName).then(() => this.setState({isDownloading: false}));
+        fileDownload(href, displayName).then(() => this.setState({isDownloading: false}));
     }
 
     render() {
@@ -45,12 +45,12 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         if (this.state.isDownloading) {
                             return;
                         }
-                        this.processDownload(this.props.href, this.props.fileName);
+                        this.processDownload(this.props.href, this.props.displayName);
                     }}
                     >
                         <AttachmentView
                             sourceURL={this.props.href}
-                            file={{name: this.props.fileName}}
+                            file={{name: this.props.displayName}}
                             shouldShowDownloadIcon
                             shouldShowLoadingSpinnerIcon={this.state.isDownloading}
                         />
@@ -62,7 +62,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                Str.isValidEmail(this.props.fileName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
                                 this.props.href,
                                 lodashGet(linkRef, 'current'),
