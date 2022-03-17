@@ -78,7 +78,27 @@ function translateLocal(phrase, variables) {
     return translate(preferredLocale, phrase, variables);
 }
 
+/**
+ * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
+ *
+ * @param {Array} anArray
+ * @return {String}
+ */
+function arrayToString(anArray) {
+    const and = this.translateLocal('common.and');
+    let aString = '';
+    if (_.size(anArray) === 1) {
+        aString = anArray[0];
+    } else if (_.size(anArray) === 2) {
+        aString = anArray.join(` ${and} `);
+    } else if (_.size(anArray) > 2) {
+        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
+    }
+    return aString;
+}
+
 export {
     translate,
     translateLocal,
+    arrayToString,
 };

@@ -307,6 +307,7 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,

@@ -480,6 +480,10 @@ const styles = {
         height: 0,
     },
 
+    visibilityHidden: {
+        ...visibility('hidden'),
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
