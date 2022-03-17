@@ -93,12 +93,12 @@ function isDefaultRoom(report) {
 }
 
 /**
- * Whether the provided report is a Admins room
+ * Whether the provided report is an Admin room
  * @param {Object} report
  * @param {String} report.chatType
  * @returns {Boolean}
  */
-function isAdminsRoom(report) {
+function isAdminRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
@@ -277,7 +277,7 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
-    isAdminsRoom,
+    isAdminRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,

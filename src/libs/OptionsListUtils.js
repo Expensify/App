@@ -219,7 +219,7 @@ function getAvatarSources(report) {
         if (ReportUtils.isArchivedRoom(report)) {
             return Expensicons.DeletedRoomAvatar;
         }
-        if (ReportUtils.isAdminsRoom(report)) {
+        if (ReportUtils.isAdminRoom(report)) {
             return Expensicons.AdminRoomAvatar;
         }
         if (ReportUtils.isAnnounceRoom(report)) {
