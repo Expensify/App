@@ -376,6 +376,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [android, desktop, iOS, web]
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
