@@ -39,13 +39,13 @@ export default [
         },
     },
     {
-        textTranslateKey:'reportActionContextMenu.copyEmailToClipboard',
+        textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Clipboard,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.replace("mailto:",""));
+            Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
     },

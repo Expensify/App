@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
 import Text from '../../Text';
@@ -10,7 +11,6 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import styles from '../../../styles/styles';
-import Str from 'expensify-common/lib/str';
 
 /*
  * This is a default anchor component for regular links.
