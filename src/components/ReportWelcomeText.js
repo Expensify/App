@@ -80,7 +80,8 @@ const ReportWelcomeText = (props) => {
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
                 <>
-                    <Text>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
                     </Text>
                     <Text style={[styles.textStrong]}>
@@ -100,7 +101,8 @@ const ReportWelcomeText = (props) => {
             )}
             {isChatRoom && (
                 <>
-                    <Text>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
                         {isResctrictedRoom
                             ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
                             : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
@@ -117,7 +119,8 @@ const ReportWelcomeText = (props) => {
             )}
             {isDefault && (
                 <>
-                    <Text>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
                     {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
