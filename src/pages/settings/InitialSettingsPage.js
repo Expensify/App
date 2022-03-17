@@ -147,7 +147,6 @@ const InitialSettingsPage = (props) => {
         .value();
     menuItems.push(...defaultMenuItems);
 
-
     const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 
     return (
