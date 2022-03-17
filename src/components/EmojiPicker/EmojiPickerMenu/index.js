@@ -12,7 +12,7 @@ import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import TextInputFocusable from '../../TextInputFocusable';
+import Composer from '../../Composer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
@@ -124,7 +124,6 @@ class EmojiPickerMenu extends Component {
     onSelectionChange(event) {
         this.setState({selection: event.nativeEvent.selection});
     }
-
 
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
@@ -415,7 +414,6 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
-
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -434,7 +432,7 @@ class EmojiPickerMenu extends Component {
             >
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
-                        <TextInputFocusable
+                        <Composer
                             textAlignVertical="top"
                             placeholder={this.props.translate('common.search')}
                             placeholderTextColor={themeColors.textSupporting}

@@ -252,11 +252,13 @@ class WorkspaceMembersPage extends React.Component {
             .sortBy(person => person.displayName.toLowerCase())
             .value();
         const policyID = lodashGet(this.props.route, 'params.policyID');
+        const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.members')}
+                    subtitle={policyName}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     shouldShowGetAssistanceButton
