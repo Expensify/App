@@ -148,6 +148,42 @@ function fetchPersonalDetails() {
 }
 
 /**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ * @param {String} login
+ * @param {String} displayName
+ * @param {String} firstName
+ * @param {String} lastName
+ *
+ * @returns {Object}
+ */
+function getFirstAndLastName({
+    login,
+    displayName,
+    firstName,
+    lastName,
+}) {
+    if (firstName || lastName) {
+        return {firstName: firstName || '', lastName: lastName || ''};
+    }
+    if (Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    const firstSpaceIndex = displayName.indexOf(' ');
+    const lastSpaceIndex = displayName.lastIndexOf(' ');
+    if (firstSpaceIndex === -1) {
+        return {firstName: displayName, lastName: ''};
+    }
+
+    return {
+        firstName: displayName.substring(0, firstSpaceIndex).trim(),
+        lastName: displayName.substring(lastSpaceIndex).trim(),
+    };
+}
+
+/**
  * Get personal details from report participants.
  *
  * @param {Object} reports
@@ -350,4 +386,5 @@ export {
     fetchLocalCurrency,
     getCurrencyList,
     getMaxCharacterError,
+    getFirstAndLastName,
 };

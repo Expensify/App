@@ -1,41 +1,25 @@
 import React from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import styles from '../../styles/styles';
-import TextLink from '../../components/TextLink';
+import * as Wallet from '../../libs/actions/Wallet';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import Text from '../../components/Text';
 import Growl from '../../libs/Growl';
+import OnfidoPrivacy from './OnfidoPrivacy';
+import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
+import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
-    walletOnfidoData: PropTypes.shape({
+    walletOnfidoData: walletOnfidoDataPropTypes,
 
-        /** Unique identifier returned from fetchOnfidoToken then re-sent to ActivateWallet with Onfido response data */
-        applicantID: PropTypes.string,
-
-        /** Token used to initialize the Onfido SDK token */
-        sdkToken: PropTypes.string,
-
-        /** Loading state to provide feedback when we are waiting for a request to finish */
-        loading: PropTypes.bool,
-
-        /** Error message to inform the user of any problem that might occur */
-        error: PropTypes.string,
-
-        /** Whether the user has accepted the privacy policy of Onfido or not */
-        hasAcceptedPrivacyPolicy: PropTypes.bool,
-    }),
+    /** Stores the personal details typed by the user */
+    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -65,7 +49,7 @@ class OnfidoStep extends React.Component {
                     title={this.props.translate('onfidoStep.verifyIdentity')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
                 />
                 {
                     this.canShowOnfido() ? (
@@ -87,60 +71,7 @@ class OnfidoStep extends React.Component {
                             }}
                         />
                     ) : (
-                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentBetween]}>
-                            {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && (
-                                <>
-                                    <View style={styles.justifyContentCenter}>
-                                        <Text style={[styles.mb5]}>
-                                            {this.props.translate('onfidoStep.acceptTerms')}
-                                            <TextLink
-                                                href="https://onfido.com/facial-scan-policy-and-release/"
-                                            >
-                                                {this.props.translate('onfidoStep.facialScan')}
-                                            </TextLink>
-                                            {', '}
-                                            <TextLink
-                                                href="https://onfido.com/privacy/"
-                                            >
-                                                {this.props.translate('common.privacyPolicy')}
-                                            </TextLink>
-                                            {` ${this.props.translate('common.and')} `}
-                                            <TextLink
-                                                href="https://onfido.com/terms-of-service/"
-                                            >
-                                                {this.props.translate('common.termsOfService')}
-                                            </TextLink>
-                                            .
-                                        </Text>
-                                    </View>
-                                    <Button
-                                        success
-                                        text={this.props.translate('common.continue')}
-                                        isLoading={this.props.walletOnfidoData.loading}
-                                        onPress={() => {
-                                            BankAccounts.fetchOnfidoToken();
-                                        }}
-                                    />
-                                </>
-                            )}
-                            {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy
-                                && this.props.walletOnfidoData.loading && <FullscreenLoadingIndicator />}
-                            {!this.props.walletOnfidoData.loading && this.props.walletOnfidoData.error && (
-                                <>
-                                    <Text style={[styles.h3, styles.textStrong, styles.mb2]}>
-                                        {this.props.walletOnfidoData.error}
-                                    </Text>
-                                    <Button
-                                        success
-                                        text={this.props.translate('onfidoStep.tryAgain')}
-                                        onPress={() => {
-                                            // Restart the flow so the user can try again.
-                                            BankAccounts.fetchOnfidoToken();
-                                        }}
-                                    />
-                                </>
-                            )}
-                        </View>
+                        <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />
                     )
                 }
             </>

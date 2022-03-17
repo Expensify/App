@@ -13,11 +13,14 @@ import * as Localize from '../Localize';
  * - The sdkToken is used to initialize the Onfido SDK client
  * - The applicantID is combined with the data returned from the Onfido SDK as we need both to create an
  *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} dob
  */
-function fetchOnfidoToken() {
+function fetchOnfidoToken(firstName, lastName, dob) {
     // Use Onyx.set() since we are resetting the Onfido flow completely.
     Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
-    API.Wallet_GetOnfidoSDKToken()
+    API.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
         .then((response) => {
             const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
             Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
@@ -71,8 +74,8 @@ function setAdditionalDetailsShouldAskForFullSSN(shouldAskForFullSSN) {
 /**
  * @param {Boolean} shouldShowFailedKYC
  */
-function setAdditionalDetailsShouldShowFailedKYC(shouldShowFailedKYC) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {shouldShowFailedKYC});
+function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
+    Onyx.merge(ONYXKEYS.USER_WALLET, {shouldShowFailedKYC});
 }
 
 /**
@@ -175,6 +178,7 @@ function activateWallet(currentStep, parameters) {
         throw new Error('Invalid currentStep passed to activateWallet()');
     }
 
+    setWalletShouldShowFailedKYC(false);
     if (currentStep === CONST.WALLET.STEP.ONFIDO) {
         onfidoData = parameters.onfidoData;
         Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
@@ -183,7 +187,6 @@ function activateWallet(currentStep, parameters) {
             setAdditionalDetailsLoading(true);
             setAdditionalDetailsErrors(null);
             setAdditionalDetailsErrorMessage('');
-            setAdditionalDetailsShouldShowFailedKYC(false);
             personalDetails = JSON.stringify(parameters.personalDetails);
         }
         if (parameters.idologyAnswers) {
@@ -212,7 +215,12 @@ function activateWallet(currentStep, parameters) {
 
             if (response.jsonCode !== 200) {
                 if (currentStep === CONST.WALLET.STEP.ONFIDO) {
-                    Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: response.message, loading: false});
+                    Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {loading: false});
+                    if (response.title === CONST.WALLET.ERROR.ONFIDO_FIXABLE_ERROR) {
+                        Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {fixableErrors: lodashGet(response, 'data.fixableErrors', [])});
+                        return;
+                    }
+                    setWalletShouldShowFailedKYC(true);
                     return;
                 }
 
@@ -257,7 +265,7 @@ function activateWallet(currentStep, parameters) {
                             'resultcode.pa.dob.does.not.match',
                         ];
                         if (_.some(hardFailures, hardFailure => _.contains(idologyErrors, hardFailure))) {
-                            setAdditionalDetailsShouldShowFailedKYC(true);
+                            setWalletShouldShowFailedKYC(true);
                             return;
                         }
 
@@ -270,7 +278,7 @@ function activateWallet(currentStep, parameters) {
 
                     if (lodashGet(response, 'data.requestorIdentityID.apiResult.results.key') === 'result.no.match'
                         || response.title === CONST.WALLET.ERROR.WRONG_ANSWERS) {
-                        setAdditionalDetailsShouldShowFailedKYC(true);
+                        setWalletShouldShowFailedKYC(true);
                         return;
                     }
                     if (Str.endsWith(response.type, 'AutoVerifyFailure')) {
@@ -318,7 +326,8 @@ function fetchUserWallet() {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+            // When refreshing the wallet, we should not show the failed KYC page anymore, as we should allow them to retry.
+            Onyx.merge(ONYXKEYS.USER_WALLET, {...response.userWallet, shouldShowFailedKYC: false});
         });
 }
 
@@ -327,6 +336,13 @@ function fetchUserWallet() {
  */
 function updateAdditionalDetailsDraft(keyValuePair) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
+}
+
+/**
+ * @param {string} currentStep
+ */
+function updateCurrentStep(currentStep) {
+    Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
 export {
@@ -338,4 +354,5 @@ export {
     setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     buildIdologyError,
+    updateCurrentStep,
 };
