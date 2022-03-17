@@ -25,12 +25,11 @@ function getReportParticipantsTitle(logins) {
 /**
  * Check whether a report action is Attachment is not.
  *
- * @param {Object} reportMessageText report action's message as text
- * @param {Object} reportMessageHtml report action's message as html
+ * @param {Object} reportMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText, reportMessageHtml) {
-    return reportMessageText === '[Attachment]' && reportMessageHtml !== '[Attachment]';
+function isReportMessageAttachment(reportMessage) {
+    return lodashGet(reportMessage, 'text', '') === '[Attachment]' && lodashGet(reportMessage, 'html', '') !== '[Attachment]';
 }
 
 /**
@@ -61,7 +60,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''), lodashGet(reportAction, ['message', 0, 'html'], ''));
+        && !isReportMessageAttachment({text: lodashGet(reportAction, ['message', 0, 'text'], ''), html: lodashGet(reportAction, ['message', 0, 'html'], '')});
 }
 
 /**

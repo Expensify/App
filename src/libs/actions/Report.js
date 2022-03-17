@@ -629,7 +629,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText, lodashGet(reportAction, ['message', 0, 'html'], '')),
+        isAttachment: ReportUtils.isReportMessageAttachment({text: messageText, html: lodashGet(reportAction, ['message', 0, 'html'], '')}),
         loading: false,
     };
 

@@ -58,7 +58,7 @@ export default [
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
-                : ReportUtils.isReportMessageAttachment(text, html);
+                : ReportUtils.isReportMessageAttachment({text: lodashGet(message, 'text', ''), html});
             if (!isAttachment) {
                 Clipboard.setString(text);
             } else {
