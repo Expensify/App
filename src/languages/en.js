@@ -568,7 +568,7 @@ export default {
         cameraPermissionsNotGranted: 'Camera permissions not granted',
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
         originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
-        documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of your undamaged ID it\'s entirely visible.',
+        documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of your undamaged ID that is entirely visible.',
         imageNeedsBetterQuality: 'There\'s an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.',
         selfieIssue: 'There\'s an issue with your selfie/video. Please upload a new selfie/video in real time.',
         selfieNotMatching: 'Your selfie/video doesn\'t match your ID. Please upload a new selfie/video where your face can be clearly seen.',
