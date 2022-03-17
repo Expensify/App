@@ -385,7 +385,7 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
-        failedTransfer: 'Failed to transfer balance',
+        failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose Account',
