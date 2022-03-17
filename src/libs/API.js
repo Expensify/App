@@ -334,33 +334,6 @@ function reauthenticate(command = '') {
 }
 
 /**
- * Calls the command=Authenticate API with an accountID, validateCode, and optional 2FA code. This is used specifically
- * for sharing sessions between e.com and this app. It will return an authToken that is used for initiating a session
- * in this app. This API call doesn't have any special handling (like retries or special error handling).
- *
- * @param {Object} parameters
- * @param {String} parameters.accountID
- * @param {String} parameters.validateCode
- * @param {String} [parameters.twoFactorAuthCode]
- * @returns {Promise<unknown>}
- */
-function AuthenticateWithAccountID(parameters) {
-    const commandName = 'Authenticate';
-
-    requireParameters([
-        'accountID',
-        'validateCode',
-    ], parameters, commandName);
-
-    return Network.post(commandName, {
-        accountID: parameters.accountID,
-        validateCode: parameters.validateCode,
-        twoFactorAuthCode: parameters.twoFactorAuthCode,
-        shouldRetry: false,
-    });
-}
-
-/**
  * @param {Object} parameters
  * @returns {Promise}
  */
@@ -1247,7 +1220,6 @@ function GetStatementPDF(parameters) {
 
 export {
     Authenticate,
-    AuthenticateWithAccountID,
     AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
