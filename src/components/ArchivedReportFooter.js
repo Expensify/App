@@ -45,11 +45,9 @@ const defaultProps = {
 
 const ArchivedReportFooter = (props) => {
     const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
-    // TODO: account for manually archived policy rooms
     const archiveReason = ReportUtils.isPolicyExpenseChat(props.report)
         ? props.archiveReason
         : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    // TODO: verify this isn't a problem when used on archived rooms – owner of chat reports is __FAKE__
     const displayName = _.has(props.personalDetails, props.report.ownerEmail)
         ? props.personalDetails[props.report.ownerEmail].displayName
         : props.report.ownerEmail;
