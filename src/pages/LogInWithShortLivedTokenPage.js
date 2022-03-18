@@ -58,24 +58,12 @@ class LogInWithShortLivedTokenPage extends Component {
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
-
-        this.signOutIfNeeded(email);
-    }
-
-    componentDidUpdate() {
-        if (!lodashGet(this.props, 'session.authToken', null)) {
-            return;
-        }
-
-        const email = lodashGet(this.props.route.params, 'email', '');
-
-        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-
         if (this.signOutIfNeeded(email)) {
             return;
         }
 
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
             return;
@@ -120,11 +108,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-
-    // We need to subscribe to the betas so that componentDidUpdate will run,
-    // causing us to exit to the proper page.
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);
