@@ -200,7 +200,8 @@ class BasePaymentsPage extends React.Component {
     hidePasswordPrompt() {
         this.setState({shouldShowPasswordPrompt: false});
 
-        // Fixes iOS Freeze issue
+        // Due to iOS modal freeze issue, password modal freezes the app when closed.
+        // LayoutAnimation undoes the running animation.
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
@@ -323,6 +324,10 @@ class BasePaymentsPage extends React.Component {
                                         this.setState({
                                             shouldShowDefaultDeleteMenu: false,
                                         });
+
+                                        // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
+                                        // InteractionManager fires after the currently running animation is completed.
+                                        // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                         InteractionManager.runAfterInteractions(() => {
                                             this.setState({
                                                 shouldShowPasswordPrompt: true,
