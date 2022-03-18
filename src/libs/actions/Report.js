@@ -169,8 +169,6 @@ function getChatReportName(fullReport, chatType) {
 }
 
 /**
- * Returns the number of optimisticReportActionIDs in reportActions
- *
  * @param {Number} reportID
  * @returns {Number}
  */
