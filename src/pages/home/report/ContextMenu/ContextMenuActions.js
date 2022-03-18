@@ -48,7 +48,7 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const message = _.last(lodashGet(reportAction, 'message', null));
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
 
             const parser = new ExpensiMark();
