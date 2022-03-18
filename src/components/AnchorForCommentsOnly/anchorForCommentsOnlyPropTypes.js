@@ -21,7 +21,7 @@ const propTypes = {
     /** Any children to display */
     children: PropTypes.node,
 
-    /** Display label in case of attachments. Text to display in case of anchors */
+    /** Filename in case of attachments, anchor text in case of URLs or emails. */
     displayName: PropTypes.string,
 
     /** Any additional styles to apply */
