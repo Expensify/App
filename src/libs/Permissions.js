@@ -113,5 +113,5 @@ export default {
     canUseWallet,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
-    canUseMonthlySettlements
+    canUseMonthlySettlements,
 };
