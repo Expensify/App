@@ -276,8 +276,8 @@ class ReportActionCompose extends React.Component {
                 // Keyboard is not opened after Emoji Picker is closed
                 // SetTimeout is used as a workaround
                 // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 50ms is found enough for keyboard to open.
-                setTimeout(() => this.textInput.focus(), 50);
+                // We carefully choose a delay. 100ms is found enough for keyboard to open.
+                setTimeout(() => this.textInput.focus(), 100);
             }
         });
     }
