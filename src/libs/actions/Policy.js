@@ -130,8 +130,8 @@ function create(name = '') {
             Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
             res = response;
 
-            // Fetch the default reports on the policy
-            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce]);
+            // Fetch the default reports and the policyExpenseChat reports on the policy
+            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
