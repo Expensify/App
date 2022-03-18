@@ -58,6 +58,9 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Function to update currentlyViewedReportID (state) of parent component */
+    setCurrentlyViewedReportID: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -151,6 +154,7 @@ class ReportScreen extends React.Component {
             return;
         }
         Report.updateCurrentlyViewedReportID(reportID);
+        this.props.setCurrentlyViewedReportID(reportID);
     }
 
     render() {

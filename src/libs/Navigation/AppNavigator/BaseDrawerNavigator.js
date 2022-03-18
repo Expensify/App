@@ -15,8 +15,8 @@ const propTypes = {
         /** Name of the Screen */
         name: PropTypes.string.isRequired,
 
-        /** Component for the Screen */
-        component: PropTypes.elementType.isRequired,
+        /** Function that renders screen component */
+        children: PropTypes.func.isRequired,
 
         /** Optional params to be passed to the Screen */
         // eslint-disable-next-line react/forbid-prop-types
@@ -71,9 +71,10 @@ class BaseDrawerNavigator extends Component {
                     <Drawer.Screen
                         key={screen.name}
                         name={screen.name}
-                        component={screen.component}
                         initialParams={screen.initialParams}
-                    />
+                    >
+                        {screen.children}
+                    </Drawer.Screen>
                 ))}
             </Drawer.Navigator>
         );

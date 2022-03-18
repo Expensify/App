@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -44,31 +44,57 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
     return {reportID: String(reportID)};
 };
 
-const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
+class MainDrawerNavigator extends Component {
+    constructor(props) {
+        super(props);
 
-    // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator />;
+        this.state = {
+            currentlyViewedReportID: '',
+        };
+
+        this.setCurrentlyViewedReportID = this.setCurrentlyViewedReportID.bind(this);
     }
 
-    // After the app initializes and reports are available the home navigation is mounted
-    // This way routing information is updated (if needed) based on the initial report ID resolved.
-    // This is usually needed after login/create account and re-launches
-    return (
-        <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
-            screens={[
-                {
-                    name: SCREENS.REPORT,
-                    component: ReportScreen,
-                    initialParams,
-                },
-            ]}
-            isMainScreen
-        />
-    );
-};
+    setCurrentlyViewedReportID(reportID) {
+        this.setState({currentlyViewedReportID: reportID});
+    }
+
+    render() {
+        const initialParams = getInitialReportScreenParams(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas));
+
+        // Wait until reports are fetched and there is a reportID in initialParams
+        if (!initialParams.reportID) {
+            return <FullScreenLoadingIndicator />;
+        }
+
+        // After the app initializes and reports are available the home navigation is mounted
+        // This way routing information is updated (if needed) based on the initial report ID resolved.
+        // This is usually needed after login/create account and re-launches
+        return (
+            <BaseDrawerNavigator
+                drawerContent={() => (
+                    <SidebarScreen
+                        currentlyViewedReportID={this.state.currentlyViewedReportID}
+                    />
+                )}
+                screens={[
+                    {
+                        name: SCREENS.REPORT,
+                        children: props => (
+                            <ReportScreen
+                                setCurrentlyViewedReportID={this.setCurrentlyViewedReportID}
+                                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                                {...props}
+                            />
+                        ),
+                        initialParams,
+                    },
+                ]}
+                isMainScreen
+            />
+        );
+    }
+}
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;

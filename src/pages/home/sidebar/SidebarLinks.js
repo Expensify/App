@@ -296,9 +296,6 @@ export default compose(
         network: {
             key: ONYXKEYS.NETWORK,
         },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
         },

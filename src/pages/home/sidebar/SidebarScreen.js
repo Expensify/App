@@ -31,12 +31,16 @@ const propTypes = {
     /* Is workspace is being created by the user? */
     isCreatingWorkspace: PropTypes.bool,
 
+    /** Currently viewed reportID */
+    currentlyViewedReportID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     isCreatingWorkspace: false,
+    currentlyViewedReportID: '',
 };
 
 class SidebarScreen extends Component {
@@ -112,6 +116,7 @@ class SidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
+                                currentlyViewedReportID={this.props.currentlyViewedReportID}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
