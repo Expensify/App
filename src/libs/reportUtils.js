@@ -242,11 +242,11 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    return !hasExpensifyEmails(reportParticipants)
+    return Boolean(!hasExpensifyEmails(reportParticipants)
         && !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
-        && reportRecipientTimezone.selected;
+        && reportRecipientTimezone.selected);
 }
 
 /**
@@ -257,6 +257,36 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 function isDeletedAction(action) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     return action.message.length === 0 || action.message[0].html === '';
+}
+
+/**
+ * Updates and sorts the report actions by sequence number
+ *
+ * @param {Array<{sequenceNumber, actionName}>} reportActions
+ * @return {Array}
+ */
+function sortActionsForDisplay(reportActions) {
+    return _.chain(reportActions)
+        .sortBy('sequenceNumber')
+        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+            || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !isDeletedAction(action))
+            || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+            || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
+        .map((item, index) => ({action: item, index}))
+        .value()
+        .reverse();
+}
+
+/**
+ * @param {Array<{sequenceNumber, actionName}>} reportActions
+ * @return {Number}
+ */
+function getMostRecentIOUReportSequenceNumber(reportActions) {
+    return _.chain(reportActions)
+        .sortBy('sequenceNumber')
+        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .max(action => action.sequenceNumber)
+        .value().sequenceNumber;
 }
 
 /**
@@ -289,4 +319,6 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    sortActionsForDisplay,
+    getMostRecentIOUReportSequenceNumber,
 };

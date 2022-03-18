@@ -1,9 +1,7 @@
 import React from 'react';
 import {
-    View,
     Keyboard,
     AppState,
-    ActivityIndicator,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -13,15 +11,10 @@ import Clipboard from '../../../libs/Clipboard';
 import * as Report from '../../../libs/actions/Report';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import SelectionScraper from '../../../libs/SelectionScraper';
-import ReportActionItem from './ReportActionItem';
-import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
-import InvertedFlatList from '../../../components/InvertedFlatList';
 import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
-import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
-import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -30,15 +23,14 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
-import variables from '../../../styles/variables';
-import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import ReportActionsList from '../../../components/ReportActionsList';
+import reportPropTypes from '../../../components/reportPropTypes';
+import FloatingMessageCounter from './FloatingMessageCounter';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -47,19 +39,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -70,14 +50,8 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
-    /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool,
-
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -92,85 +66,69 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
-    isLoadingReportActions: false,
     isLoadingReportData: false,
-    personalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.renderItem = this.renderItem.bind(this);
-        this.renderCell = this.renderCell.bind(this);
-        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
-        this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.sortedReportActions = [];
-        this.appStateChangeListener = null;
+        // Scroll offset is tracked so that we can update the FloatingMessageCounter
+        this.currentScrollOffset = 0;
 
-        this.didLayout = false;
+        // Report actions + most recent IOU sequence number are stored on the instance sorted on init and on update
+        this.sortedReportActions = ReportUtils.sortActionsForDisplay(props.reportActions);
+        this.mostRecentIOUReportSequenceNumber = ReportUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
+
+        // Bind methods
+        this.updateOffsetAndToggleMessageCounter = this.updateOffsetAndToggleMessageCounter.bind(this);
+        this.onVisibilityChange = this.onVisibilityChange.bind(this);
+        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
+
+        // Floating message counter methods
+        this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
+        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+        this.updateAllIndicators = this.updateAllIndicators.bind(this);
+
+        // New line indicator methods
+        this.updateNewLineIndicatorAndMarkReadOnce = _.once(this.updateNewLineIndicatorAndMarkRead.bind(this));
+        this.updateNewLineIndicatorPosition = this.updateNewLineIndicatorPosition.bind(this);
 
         this.state = {
-            isMarkerActive: false,
-            localUnreadActionCount: this.props.report.unreadActionCount,
-        };
+            shouldFloatingMessageCounterShow: false,
 
-        this.currentScrollOffset = 0;
-        this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
-        this.keyExtractor = this.keyExtractor.bind(this);
-        this.trackScroll = this.trackScroll.bind(this);
-        this.showMarker = this.showMarker.bind(this);
-        this.hideMarker = this.hideMarker.bind(this);
-        this.toggleMarker = this.toggleMarker.bind(this);
-        this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
-        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
-        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
+            // The floating message counter badge is initialized with the report's unread action count,
+            // but later updated when the ReportActionsList is scrolled or a new comment arrives.
+            floatingBadgeCount: this.props.report.unreadActionCount,
+        };
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
-
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
             Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
-        Report.subscribeToReportTypingEvents(this.props.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
-                return;
-            }
-            ReportScrollManager.scrollToBottom();
-        });
 
+        // If we are loading report data when the component mounts then we defer the updating of the new line indicator until the component updates
         if (!this.props.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
+            this.updateNewLineIndicatorAndMarkReadOnce();
         }
 
+        // Always fetch the latest report actions for this report
         Report.fetchActions(this.props.reportID);
-
-        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
-            this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
+        this.unsubscribeFromEvents = this.subcribeToEvents();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            this.sortedReportActions = ReportUtils.sortActionsForDisplay(nextProps.reportActions);
+            this.mostRecentIOUReportSequenceNumber = ReportUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
         }
 
-        // If the new marker has changed places, update the component.
+        // If the new line indicator has changed places, update the component.
         if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
-            return true;
-        }
-
-        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
             return true;
         }
 
@@ -178,11 +136,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+        if (nextState.shouldFloatingMessageCounterShow !== this.state.shouldFloatingMessageCounterShow) {
             return true;
         }
 
-        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+        if (nextState.floatingBadgeCount !== this.state.floatingBadgeCount) {
             return true;
         }
 
@@ -204,196 +162,104 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
-        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
+        if (prevProps.isLoadingReportData && !this.props.isLoadingReportData) {
+            this.updateNewLineIndicatorAndMarkReadOnce();
         }
 
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
 
-        // Record the max action when window is visible except when Drawer is open on small screen
-        const shouldRecordMaxAction = Visibility.isVisible()
-            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
-
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise
-            // leave the user positioned where they are now in the list.
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise update the floating message counter if visible
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
-            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
-                ReportScrollManager.scrollToBottom();
-            }
+            const isLastActionByCurrentUser = lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '');
 
-            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
-                // Only update the unread count when MarkerBadge is visible
-                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
-                if (this.state.isMarkerActive) {
-                    this.updateLocalUnreadActionCount(!shouldRecordMaxAction);
+            if (isLastActionByCurrentUser) {
+                ReportScrollManager.scrollToBottom();
+            } else {
+                // Only update the count when FloatingMessageCounter is visible
+                // Otherwise the counter will be shown on scrolling up from the bottom even if the user has read those messages
+                if (this.state.shouldFloatingMessageCounterShow) {
+                    this.updateAllIndicators(!this.isReportInView());
                 }
 
-                // show new MarkerBadge when there is a new message
-                this.toggleMarker();
+                this.toggleFloatingMessageCounter();
             }
 
             // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (shouldRecordMaxAction) {
+            if (this.isReportInView()) {
                 Report.updateLastReadActionID(this.props.reportID);
             }
-        } else if (shouldRecordMaxAction && (
-            prevProps.isDrawerOpen !== this.props.isDrawerOpen
-            || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
-        )) {
-            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
+            return;
+        }
+
+        // Besides a new sequence number we will want to update the new line indicator and last read when we:
+        // - Navigate to the active report via the Left Hand Nav
+        // - When the orientation changes
+        const didOrientationChange = prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
+        const didLeftHandNavClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
+        if (this.isReportInView() && (didLeftHandNavClose || didOrientationChange)) {
+            this.updateNewLineIndicatorPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
         }
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
+        if (!this.unsubscribeFromEvents) {
+            return;
         }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
-        }
-
-        Report.unsubscribeFromReportChannel(this.props.reportID);
-
-        if (this.unsubscribeCopyShortcut) {
-            this.unsubscribeCopyShortcut();
-        }
+        this.unsubscribeFromEvents();
     }
 
     /**
      * Records the max action on app visibility change event.
      */
     onVisibilityChange() {
-        if (!Visibility.isVisible() || this.props.isDrawerOpen) {
+        if (!this.isReportInView()) {
             return;
         }
 
         Report.updateLastReadActionID(this.props.reportID);
     }
 
-    copySelectionToClipboard = () => {
-        const selectionMarkdown = SelectionScraper.getAsMarkdown();
-
-        Clipboard.setString(selectionMarkdown);
-    }
-
     /**
-     * Create a unique key for Each Action in the FlatList.
-     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-     * shouldn't happen, but might be possible in some rare cases.
-     * @param {Object} item
-     * @return {String}
-     */
-    keyExtractor(item) {
-        return `${item.action.sequenceNumber}${item.action.clientID}`;
-    }
-
-    /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
-     */
-    loadMoreChats() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingReportActions) {
-            return;
-        }
-
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
-
-        if (minSequenceNumber === 0) {
-            return;
-        }
-
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
-    }
-
-    /**
-     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-     * the height of the smallest report action possible.
-     * @return {Number}
-     */
-    calculateInitialNumToRender() {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
-            + variables.fontSizeNormalHeight;
-        const availableHeight = this.props.windowHeight
-            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
-    }
-
-    /**
-     * Updates and sorts the report actions by sequence number
+     * If we are one larger screens then the report can be in view while the drawer is open. But if we are on a smaller screen then
+     * the report is not in view if the drawer (Left Hand Nav) is open.
      *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
+     * @returns {Boolean}
      */
-    updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+    isReportInView() {
+        return Visibility.isVisible() && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
     }
 
     /**
-     * Returns true when the report action immediately before the
-     * specified index is a comment made by the same actor who who
-     * is leaving a comment in the action at the specified index.
-     * Also checks to ensure that the comment is not too old to
-     * be considered part of the same comment
-     *
-     * @param {Number} actionIndex - index of the comment item in state to check
-     *
-     * @return {Boolean}
+     * @returns {Function} cleanup events when called
      */
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
-        const currentAction = this.sortedReportActions[actionIndex];
+    subcribeToEvents() {
+        Report.subscribeToReportTypingEvents(this.props.reportID);
+        const appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
+        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
+        const unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
+            const selectionMarkdown = SelectionScraper.getAsMarkdown();
+            Clipboard.setString(selectionMarkdown);
+        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
+        const keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
+            if (!ReportActionComposeFocusManager.isFocused()) {
+                return;
+            }
+            ReportScrollManager.scrollToBottom();
+        });
 
-        // It's OK for there to be no previous action, and in that case, false will be returned
-        // so that the comment isn't grouped
-        if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
-            return false;
-        }
-
-        // Do not group if previous or current action was a renamed action
-        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return false;
-        }
-
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-     * Finds and updates most recent IOU report action number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateMostRecentIOUReportActionNumber(reportActions) {
-        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-            .max(action => action.sequenceNumber)
-            .value().sequenceNumber;
+        return () => {
+            keyboardEvent.remove();
+            appStateChangeListener.remove();
+            unsubscribeCopyShortcut();
+            Report.unsubscribeFromReportChannel(this.props.reportID);
+        };
     }
 
     /**
@@ -410,7 +276,7 @@ class ReportActionsView extends React.Component {
      * Updates NEW marker position
      * @param {Number} unreadActionCount
      */
-    updateUnreadIndicatorPosition(unreadActionCount) {
+    updateNewLineIndicatorPosition(unreadActionCount) {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
@@ -419,39 +285,39 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     * Show/hide the new FloatingMessageCounter when user is scrolling back/forth in the history of messages.
      */
-    toggleMarker() {
-        // Update the unread message count before MarkerBadge is about to show
-        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
-            this.updateLocalUnreadActionCount();
-            this.showMarker();
+    toggleFloatingMessageCounter() {
+        // Update the unread message count before FloatingMessageCounter is about to show
+        if (this.currentScrollOffset < -200 && !this.state.shouldFloatingMessageCounterShow) {
+            this.updateAllIndicators();
+            this.setState({shouldFloatingMessageCounterShow: true});
         }
 
-        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
-            this.hideMarker();
+        if (this.currentScrollOffset > -200 && this.state.shouldFloatingMessageCounterShow) {
+            this.hideFloatingMessageCounter();
         }
     }
 
     /**
-     * Update the unread messages count to show in the MarkerBadge
-     * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
+     * Update the unread messages count to show in the FloatingMessageCounter
+     * @param {Boolean} [shouldResetFloatingMessageCounterCount=false] Whether count should increment or reset
      */
-    updateLocalUnreadActionCount(shouldResetLocalCount = false) {
+    updateAllIndicators(shouldResetFloatingMessageCounterCount = false) {
         this.setState((prevState) => {
-            const localUnreadActionCount = shouldResetLocalCount
+            const floatingMessageCounterCount = shouldResetFloatingMessageCounterCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
-            this.updateUnreadIndicatorPosition(localUnreadActionCount);
-            return {localUnreadActionCount};
+                : prevState.floatingMessageCounterCount + this.props.report.unreadActionCount;
+            this.updateNewLineIndicatorPosition(floatingMessageCounterCount);
+            return {floatingMessageCounterCount};
         });
     }
 
     /**
      * Update NEW marker and mark report as read
      */
-    updateNewMarkerAndMarkRead() {
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+    updateNewLineIndicatorAndMarkRead() {
+        this.updateNewLineIndicatorPosition(this.props.report.unreadActionCount);
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
@@ -460,99 +326,22 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show the new MarkerBadge
+     * Hide the FloatingMessageCounter
      */
-    showMarker() {
-        this.setState({isMarkerActive: true});
-    }
-
-    /**
-     * Hide the new MarkerBadge
-     */
-    hideMarker() {
-        this.setState({isMarkerActive: false}, () => {
-            this.setState({localUnreadActionCount: 0});
+    hideFloatingMessageCounter() {
+        this.setState({shouldFloatingMessageCounterShow: false}, () => {
+            this.setState({floatingMessageCounterCount: 0});
         });
     }
 
     /**
-     * keeps track of the Scroll offset of the main messages list
+     * Keeps track of the Scroll offset of the main messages list
      *
      * @param {Object} {nativeEvent}
      */
-    trackScroll({nativeEvent}) {
+    updateOffsetAndToggleMessageCounter({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleMarker();
-    }
-
-    /**
-     * Runs when the FlatList finishes laying out
-     */
-    recordTimeToMeasureItemLayout() {
-        if (this.didLayout) {
-            return;
-        }
-
-        this.didLayout = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-
-        // Capture the init measurement only once not per each chat switch as the value gets overwritten
-        if (!ReportActionsView.initMeasured) {
-            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            ReportActionsView.initMeasured = true;
-        } else {
-            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
-        }
-    }
-
-    /**
-     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     * rows is hidden beneath other rows.
-     *
-     * @param {Object} index - The ReportAction item in the FlatList.
-     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
-     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {React.Component}
-     */
-    renderCell({item, style, ...props}) {
-        const cellStyle = [
-            style,
-            {zIndex: item.action.sequenceNumber},
-        ];
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View style={cellStyle} {...props} />;
-    }
-
-    /**
-     * Do not move this or make it an anonymous function it is a method
-     * so it will not be recreated each time we render an item
-     *
-     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-     *
-     * @param {Object} args
-     * @param {Object} args.item
-     * @param {Number} args.index
-     *
-     * @returns {React.Component}
-     */
-    renderItem({
-        item,
-        index,
-    }) {
-        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
-        return (
-            <ReportActionItem
-                reportID={this.props.reportID}
-                action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
-                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
-                index={index}
-            />
-        );
+        this.toggleFloatingMessageCounter();
     }
 
     render() {
@@ -561,40 +350,20 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
-        // Native mobile does not render updates flatlist the changes even though component did update called.
-        // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
-
         return (
             <>
-                <MarkerBadge
-                    active={this.state.isMarkerActive}
-                    count={this.state.localUnreadActionCount}
+                <FloatingMessageCounter
+                    active={this.state.shouldFloatingMessageCounterShow}
+                    count={this.state.floatingMessageCounterCount}
                     onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideMarker}
+                    onClose={this.hideFloatingMessageCounter}
                 />
-                <InvertedFlatList
-                    ref={ReportScrollManager.flatListRef}
-                    data={this.sortedReportActions}
-                    renderItem={this.renderItem}
-                    CellRendererComponent={this.renderCell}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt0,
-                    ]}
-                    keyExtractor={this.keyExtractor}
-                    initialRowHeight={32}
-                    initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.loadMoreChats}
-                    onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingReportActions
-                        ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                        : null}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    onScroll={this.trackScroll}
-                    extraData={extraData}
+                <ReportActionsList
+                    report={this.props.report}
+                    reportID={this.props.reportID}
+                    sortedReportActions={this.sortedReportActions}
+                    extraData={this.isReportInView() ? this.props.report.newMarkerSequenceNumber : undefined}
+                    onScroll={this.updateOffsetAndToggleMessageCounter}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
@@ -611,14 +380,9 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
-    withPersonalDetails(),
     withOnyx({
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        isLoadingReportActions: {
-            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
-            initWithStoredValues: false,
         },
     }),
 )(ReportActionsView);
