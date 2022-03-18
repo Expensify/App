@@ -47,9 +47,7 @@ const propTypes = {
 const ArchivedReportFooter = (props) => {
     const archiveReason = lodashGet(props.reportClosedAction, 'message.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
-    let displayName = _.has(props.personalDetails, props.report.ownerEmail)
-        ? props.personalDetails[props.report.ownerEmail].displayName
-        : props.report.ownerEmail;
+    let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
@@ -72,7 +70,6 @@ const ArchivedReportFooter = (props) => {
 };
 
 ArchivedReportFooter.propTypes = propTypes;
-ArchivedReportFooter.defaultProps = defaultProps;
 ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
 export default compose(
