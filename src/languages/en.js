@@ -78,6 +78,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
+            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
         },
         please: 'Please',
         contactUs: 'contact us',
