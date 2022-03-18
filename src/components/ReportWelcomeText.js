@@ -80,6 +80,35 @@ const ReportWelcomeText = (props) => {
     const owner = lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail;
     const policyName = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'));
 
+    // eslint-disable-next-line no-nested-ternary
+    const chatRoomWelcomeText = () => (ReportUtils.isArchivedRoom(props.report)
+        ? (
+            <RenderHTML
+                defaultTextProps={{
+                    style: styles.textAlignCenter,
+                }}
+                source={{html: props.translate('reportActionsView.beginningOfChatHistoryDeleted', {reportName: props.report.reportName})}}
+            />
+        ) : (
+            isResctrictedRoom
+                ? (
+                    <RenderHTML
+                        defaultTextProps={{
+                            style: styles.textAlignCenter,
+                        }}
+                        source={{html: props.translate('reportActionsView.beginningOfChatHistoryRestricted', {reportName: props.report.reportName})}}
+                    />
+                ) : (
+                    <RenderHTML
+                        defaultTextProps={{
+                            style: styles.textAlignCenter,
+                        }}
+                        source={{html: props.translate('reportActionsView.beginningOfChatHistoryPrivate', {reportName: props.report.reportName})}}
+                    />
+                )
+        )
+    );
+
     return (
         <View style={[styles.mt3, styles.mw100]}>
             {isPolicyExpenseChat && (
@@ -92,28 +121,7 @@ const ReportWelcomeText = (props) => {
                 }}
             />
             )}
-            {isChatRoom
-            && (
-                <>
-                    {isResctrictedRoom
-                        ? (
-                            <RenderHTML
-                                defaultTextProps={{
-                                    style: styles.textAlignCenter,
-                                }}
-                                source={{html: props.translate('reportActionsView.beginningOfChatHistoryRestricted', {reportName: props.report.reportName})}}
-                            />
-                        )
-                        : (
-                            <RenderHTML
-                                defaultTextProps={{
-                                    style: styles.textAlignCenter,
-                                }}
-                                source={{html: props.translate('reportActionsView.beginningOfChatHistoryPrivate', {reportName: props.report.reportName})}}
-                            />
-                        )}
-                </>
-            )}
+            {isChatRoom && chatRoomWelcomeText() }
             {isDefault && (
                 <Text style={styles.textAlignCenter}>
                     <Text>

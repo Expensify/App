@@ -175,6 +175,7 @@ export default {
         beginningOfChatHistoryPrivate: ({reportName}) => `Este es el principio de la sala privada <strong>${reportName}</strong>, invita a otros @mencionándolos.`,
         beginningOfChatHistoryRestricted: ({reportName}) => `Este es el principio de <strong>${reportName}</strong>, invita a otros @mencionándolos.`,
         beginningOfChatHistoryPolicyExpenseChat: ({owner, policyName}) => `¡La colaboración entre <strong>${owner}</strong> y <strong>${policyName}</strong> empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.`,
+        beginningOfChatHistoryDeleted: ({reportName}) => `Este es el principio de <strong>${reportName}</strong>, no hay nada que ver aquí.`,
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
