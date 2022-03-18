@@ -112,7 +112,7 @@ function getLastVisibleMessageText(reportID) {
 }
 
 /**
- * Returns check result wheter optimisticActionId exist in reportActions
+ * Whether optimistic action exists in report actions.
  * @param {Number|String} reportID
  * @param {Number|String} optimisticActionId
  * @returns {Boolean}
