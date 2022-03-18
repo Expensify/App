@@ -204,7 +204,7 @@ function checkAndUpdateSimplifiedReport(simplifiedReport) {
 
     // Update some fields that are set by updateReportWithNewAction, the handler of pusher new comment event.
     const updatedSimplifiedReport = _.clone(simplifiedReport);
-    updatedSimplifiedReport.maxSequenceNumber = currentReport.MaxSeqNumber;
+    updatedSimplifiedReport.maxSequenceNumber = currentReport.maxSequenceNumber;
     updatedSimplifiedReport.unreadActionCount = unreadActionCount;
     updatedSimplifiedReport.lastMessageTimestamp = currentReport.lastMessageTimestamp;
     updatedSimplifiedReport.lastMessageText = currentReport.lastMessageText;
