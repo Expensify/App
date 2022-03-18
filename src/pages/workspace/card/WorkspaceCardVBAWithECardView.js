@@ -31,7 +31,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
             iconRight: Expensicons.NewWindow,
         },
     ];
-    if (Permissions.canUseWallet(props.betas)) {
+    if (Permissions.canUseMonthlySettlements(props.betas)) {
         menuItems.push({
             title: props.translate('workspace.common.settlementFrequency'),
             onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"configureSettings"}')),

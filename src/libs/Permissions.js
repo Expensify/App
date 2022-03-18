@@ -76,6 +76,14 @@ function canUseWallet(betas) {
 }
 
 /**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseMonthlySettlements(betas) {
+    return _.contains(betas, CONST.BETAS.MONTHLY_SETTLEMENTS) || canUseAllBetas(betas);
+}
+
+/**
  * We're requiring you to be added to the policy rooms beta on dev,
  * since contributors have been reporting a number of false issues related to the feature being under development.
  * See https://expensify.slack.com/archives/C01GTK53T8Q/p1641921996319400?thread_ts=1641598356.166900&cid=C01GTK53T8Q
