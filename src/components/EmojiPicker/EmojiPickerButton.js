@@ -1,7 +1,7 @@
 import React from 'react';
 import {Keyboard, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import {compose} from 'underscore';
+import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
