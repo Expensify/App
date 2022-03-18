@@ -13,9 +13,15 @@ import ONYXKEYS from '../ONYXKEYS';
 const propTypes = {
     /** The reason this report was archived */
     reportClosedAction: PropTypes.shape({
+        /** Message attached to the report closed action */
         message: PropTypes.shape({
+            /** The reason the report was closed */
             reason: PropTypes.string.isRequired,
+
+            /** (For accountMerged reason only), the email of the previous owner of this report. */
             oldLogin: PropTypes.string,
+
+            /** (For accountMerged reason only), the email of the account the previous owner was merged into */
             newLogin: PropTypes.string,
         }).isRequired,
     }).isRequired,
