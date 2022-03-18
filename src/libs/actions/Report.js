@@ -185,7 +185,7 @@ function getNumberOfOptimisticActions(reportID) {
  * @returns {Object}
  */
 function checkAndUpdateSimplifiedReport(simplifiedReport) {
-    const currentReport = lodashGet(allReports, simplifiedReport.reportID, 0);
+    const currentReport = lodashGet(allReports, simplifiedReport.reportID, null);
     if (!currentReport) {
         return simplifiedReport;
     }
