@@ -57,8 +57,7 @@ function changePasswordAndNavigate(oldPassword, password) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
                 return;
             }
-
-            Navigation.goBack();
+            Navigation.navigate(ROUTES.SETTINGS_PASSWORD_SUCCESS);
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

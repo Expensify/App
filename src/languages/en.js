@@ -325,6 +325,11 @@ export default {
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
+    successPasswordPage: {
+        passwordUpdated: 'Password updated',
+        passwordPrompt: 'For additional security, click here to set up two-factor authentication.',
+        gotIt: 'Got it',
+    },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',

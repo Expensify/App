@@ -17,6 +17,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
+import PasswordPageSuccess from '../../../pages/settings/PasswordPageSuccess';
 import SettingsSecurityPage from '../../../pages/settings/Security/SecuritySettingsPage';
 import SettingsCloseAccountPage from '../../../pages/settings/Security/CloseAccountPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
@@ -194,6 +195,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsPasswordPage,
         name: 'Settings_Password',
+    },
+    {
+        Component: PasswordPageSuccess,
+        name: 'Settings_Password_Success',
     },
     {
         Component: SettingsCloseAccountPage,

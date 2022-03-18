@@ -48,6 +48,10 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
+                    Settings_Password_Success: {
+                        path: ROUTES.SETTINGS_PASSWORD_SUCCESS,
+                        exact: true,
+                    },
                     Settings_Security: {
                         path: ROUTES.SETTINGS_SECURITY,
                         exact: true,
