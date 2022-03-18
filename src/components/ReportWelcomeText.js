@@ -4,6 +4,8 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import RenderHTML from 'react-native-render-html';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -75,52 +77,46 @@ const ReportWelcomeText = (props) => {
         },
     );
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
+    const owner = lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail;
+    const policyName = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'));
 
     return (
-        <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
+        <View style={[styles.mt3, styles.mw100]}>
             {isPolicyExpenseChat && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                        {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
-                    </Text>
-                </>
+            <RenderHTML
+                defaultTextProps={{
+                    style: styles.textAlignCenter,
+                }}
+                source={{
+                    html: props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {owner, policyName}),
+                }}
+            />
             )}
-            {isChatRoom && (
+            {isChatRoom
+            && (
                 <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {props.report.reportName}
-                    </Text>
-                    <Text>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
-                    </Text>
+                    {isResctrictedRoom
+                        ? (
+                            <RenderHTML
+                                defaultTextProps={{
+                                    style: styles.textAlignCenter,
+                                }}
+                                source={{html: props.translate('reportActionsView.beginningOfChatHistoryRestricted', {reportName: props.report.reportName})}}
+                            />
+                        )
+                        : (
+                            <RenderHTML
+                                defaultTextProps={{
+                                    style: styles.textAlignCenter,
+                                }}
+                                source={{html: props.translate('reportActionsView.beginningOfChatHistoryPrivate', {reportName: props.report.reportName})}}
+                            />
+                        )}
                 </>
             )}
             {isDefault && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
+                <Text style={styles.textAlignCenter}>
+                    <Text>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
                     {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
@@ -134,9 +130,9 @@ const ReportWelcomeText = (props) => {
                             {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                         </Text>
                     ))}
-                </>
+                </Text>
             )}
-        </Text>
+        </View>
     );
 };
 

@@ -172,13 +172,9 @@ export default {
     },
     reportActionsView: {
         beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
-        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada ',
-        beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
-        beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
-        beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistoryPrivate: ({reportName}) => `Este es el principio de la sala privada <strong>${reportName}</strong>, invita a otros @mencionándolos.`,
+        beginningOfChatHistoryRestricted: ({reportName}) => `Este es el principio de <strong>${reportName}</strong>, invita a otros @mencionándolos.`,
+        beginningOfChatHistoryPolicyExpenseChat: ({owner, policyName}) => `¡La colaboración entre <strong>${owner}</strong> y <strong>${policyName}</strong> empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.`,
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,

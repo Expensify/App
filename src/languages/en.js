@@ -172,13 +172,10 @@ export default {
     },
     reportActionsView: {
         beginningOfChatHistory: 'This is the beginning of your chat history with ',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
-        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
-        beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
-        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        beginningOfChatHistoryPrivate: ({reportName}) => `This is the beginning of the private <strong>${reportName}</strong> room, invite others by @mentioning them.`,
+        beginningOfChatHistoryRestricted: ({reportName}) => `This is the beginning of <strong>${reportName}</strong>, invite others by @mentioning them.`,
+        beginningOfChatHistoryPolicyExpenseChat: ({owner, policyName}) => `Collaboration between <strong>${owner}</strong> and <strong>${policyName}</strong> starts here! 🎉 This is the place to chat, request money and settle up.`,
+
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
