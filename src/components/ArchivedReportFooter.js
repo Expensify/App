@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
