@@ -168,10 +168,10 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
 
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let archiveReason;
+        let reportClosedAction;
         if (isArchivedRoom) {
-            archiveReason = lodashFindLast(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-            if (!archiveReason) {
+            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.type === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            if (!reportClosedAction) {
                 Log.alert(`No closed action found for archived room w/ reportID ${this.props.route.params.reportID}`);
             }
         }
@@ -202,7 +202,7 @@ class ReportScreen extends React.Component {
                                 isArchivedRoom
                                     ? (
                                         <ArchivedReportFooter
-                                            archiveReason={archiveReason}
+                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
                                         />
                                     ) : (

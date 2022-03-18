@@ -7,13 +7,18 @@ import CONST from '../CONST';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import * as ReportUtils from '../libs/reportUtils';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The reason this report was archived */
-    archiveReason: PropTypes.string,
+    reportClosedAction: PropTypes.shape({
+        message: PropTypes.shape({
+            reason: PropTypes.string.isRequired,
+            oldLogin: PropTypes.string,
+            newLogin: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
 
     /** The archived report */
     report: PropTypes.shape({
@@ -39,23 +44,26 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    archiveReason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
-};
-
 const ArchivedReportFooter = (props) => {
+    const archiveReason = lodashGet(props.reportClosedAction, 'message.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
-    const archiveReason = ReportUtils.isPolicyExpenseChat(props.report)
-        ? props.archiveReason
-        : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    const displayName = _.has(props.personalDetails, props.report.ownerEmail)
+    let displayName = _.has(props.personalDetails, props.report.ownerEmail)
         ? props.personalDetails[props.report.ownerEmail].displayName
         : props.report.ownerEmail;
+
+    let oldDisplayName;
+    if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
+        const newLogin = props.reportClosedAction.message.newLogin;
+        const oldLogin = props.reportClosedAction.message.oldLogin;
+        displayName = lodashGet(props.personalDetails, `${newLogin}.displayName`, newLogin);
+        oldDisplayName = lodashGet(props.personalDetails, `${oldLogin}.displayName`, oldLogin);
+    }
+
     return (
         <Banner
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName,
-                oldDisplayName: props.oldDisplayName,
+                oldDisplayName,
                 policyName,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
