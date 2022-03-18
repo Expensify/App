@@ -28,11 +28,11 @@ class BaseAnchorForCommentsOnly extends React.Component {
      * Initiate file downloading and update downloading flags
      *
      * @param {String} href
-     * @param {String} displayName
+     * @param {String} fileName
      */
-    processDownload(href, displayName) {
+    processDownload(href, fileName) {
         this.setState({isDownloading: true});
-        fileDownload(href, displayName).then(() => this.setState({isDownloading: false}));
+        fileDownload(href, fileName).then(() => this.setState({isDownloading: false}));
     }
 
     render() {
