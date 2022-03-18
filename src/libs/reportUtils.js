@@ -23,7 +23,8 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Check whether a report action is Attachment is not.
+ * Check whether a report action is Attachment or not.
+ * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
  * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
