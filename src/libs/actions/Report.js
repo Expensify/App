@@ -169,19 +169,19 @@ function getChatReportName(fullReport, chatType) {
 }
 
 /**
- * Returns number of optimisticReportActionIDs exist in reportActions
+ * Returns the number of optimisticReportActionIDs in reportActions
  *
- * @param {String} reportID
+ * @param {Number} reportID
  * @returns {Number}
  */
 function getNumberOfOptimisticActions(reportID) {
     const optimisticActionIds = lodashGet(allReports, [reportID, 'optimisticReportActionIDs'], []);
-    return _.filter(optimisticActionIds, actionId => ReportActions.isOptimisticReportActionExist(reportID, actionId)).length;
+    return _.filter(optimisticActionIds, actionId => ReportActions.doesOptimisticReportActionExist(reportID, actionId)).length;
 }
 
 /**
  * If onyx local report data is newer than fetched report then return updated version of simplifiedReport
- * Local report data could be newer than fetched report because pusher new comment event coming while fetch report request isn't completed yet
+ * Local report data could be newer than the fetched report because of a pusher new comment event coming while the fetching report request hasn't been completed yet
  *
  * @param {Object} simplifiedReport, simplifiedReport of Report Data
  * @returns {Object}
@@ -651,11 +651,10 @@ function updateReportWithNewAction(
 
         // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
         // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
-        // If lastReadSequenceNumbers[reportID] is undefined (fetchAllReports isn't completed yet), fallback to local unreadActionCount
+        // If lastReadSequenceNumbers[reportID] is undefined (fetchAllReports isn't completed yet),
+        // fallback to local unreadActionCount and increment it by one each time a pusher event with a new comment arrives.
         unreadActionCount: lastReadSequenceNumbers[reportID]
             ? newMaxSequenceNumber - lastReadSequenceNumbers[reportID] - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID])
-
-            // If lastReadSequenceNumbers[reportID] isn't ready, use local/onyx unreadActionCount and increment it by one each time pusher new comment event arrived
             : lodashGet(allReports, [reportID, 'unreadActionCount'], 0) + 1,
         maxSequenceNumber: reportAction.sequenceNumber,
     };
