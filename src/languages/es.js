@@ -385,7 +385,7 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
-        failedTransfer: 'No se pudo transferir el saldo',
+        failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
