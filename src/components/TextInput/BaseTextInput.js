@@ -11,7 +11,6 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import InlineErrorText from '../InlineErrorText';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -188,6 +187,8 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        const inputHelpText = this.props.errorText || this.props.hint;
+        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
@@ -286,9 +287,11 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    <InlineErrorText styles={[styles.ph3]}>
-                        {this.props.errorText}
-                    </InlineErrorText>
+                    {(!_.isEmpty(inputHelpText)) && (
+                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
+                            {inputHelpText}
+                        </Text>
+                    )}
                 </View>
                 {/*
                     Text input component doesn't support auto grow by default.
