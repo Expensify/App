@@ -1,6 +1,8 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, PanResponder} from 'react-native';
+import {
+    View, InteractionManager, PanResponder, ActivityIndicator, StyleSheet,
+} from 'react-native';
 import Image from 'react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
@@ -9,6 +11,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import themeColors from '../../styles/themes/default';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -25,6 +28,7 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
+            isLoading: false,
             thumbnailWidth: 100,
             thumbnailHeight: 100,
             imageWidth: undefined,
@@ -43,6 +47,9 @@ class ImageView extends PureComponent {
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
+
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
     }
 
     componentDidMount() {
@@ -100,6 +107,14 @@ class ImageView extends PureComponent {
         return false;
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
@@ -122,6 +137,13 @@ class ImageView extends PureComponent {
                         style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
                         resizeMode={Image.resizeMode.contain}
                     />
+                    <View style={{...StyleSheet.absoluteFillObject}}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.spinner}
+                            style={[styles.flex1]}
+                        />
+                    </View>
                 </View>
             );
         }
@@ -178,6 +200,8 @@ class ImageView extends PureComponent {
                         ]}
                         source={{uri: this.props.url}}
                         resizeMode={Image.resizeMode.contain}
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
@@ -194,6 +218,15 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
+                {this.state.isLoading && (
+                    <View style={{...StyleSheet.absoluteFillObject}}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.spinner}
+                            style={[styles.flex1]}
+                        />
+                    </View>
+                )}
             </View>
         );
     }

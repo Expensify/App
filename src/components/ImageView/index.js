@@ -1,12 +1,13 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Pressable,
+    View, Image, Pressable, ActivityIndicator, StyleSheet,
 } from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -23,7 +24,10 @@ class ImageView extends PureComponent {
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
         this.onContainerPressOut = this.onContainerPressOut.bind(this);
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.state = {
+            isLoading: false,
             containerHeight: 0,
             containerWidth: 0,
             isZoomed: false,
@@ -227,6 +231,14 @@ class ImageView extends PureComponent {
         this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         if (this.canUseTouchScreen) {
             return (
@@ -240,7 +252,18 @@ class ImageView extends PureComponent {
                             styles.h100,
                         ]}
                         resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
+                    {this.state.isLoading && (
+                        <View style={{...StyleSheet.absoluteFillObject}}>
+                            <ActivityIndicator
+                                size="large"
+                                color={themeColors.spinner}
+                                style={[styles.flex1]}
+                            />
+                        </View>
+                    )}
                 </View>
             );
         }
@@ -274,8 +297,20 @@ class ImageView extends PureComponent {
                             styles.w100,
                         ]}
                         resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                 </Pressable>
+
+                {this.state.isLoading && (
+                    <View style={{...StyleSheet.absoluteFillObject}}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.spinner}
+                            style={[styles.flex1]}
+                        />
+                    </View>
+                )}
             </View>
         );
     }
