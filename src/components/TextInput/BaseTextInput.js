@@ -287,7 +287,7 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    {(!_.isEmpty(inputHelpText)) && (
+                    {!_.isEmpty(inputHelpText) && (
                         <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
                             {inputHelpText}
                         </Text>
