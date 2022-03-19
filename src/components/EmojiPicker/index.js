@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dimensions} from 'react-native';
+import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
@@ -31,6 +31,14 @@ class EmojiPicker extends React.Component {
 
     componentDidMount() {
         this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    componentDidUpdate(prevProps, prevState) {
+        /** Dismiss the Keyboard and focus to prevent emoji press twice when selecting an emoji */
+        if (prevState.isEmojiPickerVisible !== this.state.isEmojiPickerVisible) {
+            Keyboard.dismiss();
+        }
     }
 
     componentWillUnmount() {
