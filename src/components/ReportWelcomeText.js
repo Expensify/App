@@ -77,9 +77,14 @@ const ReportWelcomeText = (props) => {
         },
     );
     const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
+
+    // Use the policyExpenseChat owner's first name or fall back to their email if it's unavailable.
     const owner = lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail;
+
+    // Use the policyName or fallback to default text if it's unavailable.
     const policyName = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'));
 
+    // Show different welcome messages depending on if the room is archived or not and its visiblity.
     // eslint-disable-next-line no-nested-ternary
     const chatRoomWelcomeText = () => (ReportUtils.isArchivedRoom(props.report)
         ? (
