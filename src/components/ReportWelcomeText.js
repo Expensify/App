@@ -85,34 +85,35 @@ const ReportWelcomeText = (props) => {
     const policyName = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'));
 
     // Show different welcome messages depending on if the room is archived or not and its visiblity.
-    // eslint-disable-next-line no-nested-ternary
-    const chatRoomWelcomeText = () => (ReportUtils.isArchivedRoom(props.report)
-        ? (
-            <RenderHTML
-                defaultTextProps={{
-                    style: styles.textAlignCenter,
-                }}
-                source={{html: props.translate('reportActionsView.beginningOfChatHistoryDeleted', {reportName: props.report.reportName})}}
-            />
-        ) : (
-            isResctrictedRoom
-                ? (
-                    <RenderHTML
-                        defaultTextProps={{
-                            style: styles.textAlignCenter,
-                        }}
-                        source={{html: props.translate('reportActionsView.beginningOfChatHistoryRestricted', {reportName: props.report.reportName})}}
-                    />
-                ) : (
-                    <RenderHTML
-                        defaultTextProps={{
-                            style: styles.textAlignCenter,
-                        }}
-                        source={{html: props.translate('reportActionsView.beginningOfChatHistoryPrivate', {reportName: props.report.reportName})}}
-                    />
-                )
-        )
-    );
+    function chatRoomWelcomeText() {
+        // eslint-disable-next-line no-nested-ternary
+        return ReportUtils.isArchivedRoom(props.report)
+            ? (
+                <RenderHTML
+                    defaultTextProps={{
+                        style: styles.textAlignCenter,
+                    }}
+                    source={{html: props.translate('reportActionsView.beginningOfChatHistoryDeleted', {reportName: props.report.reportName})}}
+                />
+            ) : (
+                isResctrictedRoom
+                    ? (
+                        <RenderHTML
+                            defaultTextProps={{
+                                style: styles.textAlignCenter,
+                            }}
+                            source={{html: props.translate('reportActionsView.beginningOfChatHistoryRestricted', {reportName: props.report.reportName})}}
+                        />
+                    ) : (
+                        <RenderHTML
+                            defaultTextProps={{
+                                style: styles.textAlignCenter,
+                            }}
+                            source={{html: props.translate('reportActionsView.beginningOfChatHistoryPrivate', {reportName: props.report.reportName})}}
+                        />
+                    )
+            );
+    }
 
     return (
         <View style={[styles.mt3, styles.mw100]}>
