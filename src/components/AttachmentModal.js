@@ -213,10 +213,10 @@ class AttachmentModal extends PureComponent {
                                 isModalOpen: true, sourceURL: source, file, modalType,
                             });
                         } else {
-                            const fileUri = decodeURIComponent(file.uri);
-                            const modalType = this.getModalType(fileUri, file);
+                            const decodedFileUri = decodeURIComponent(file.uri);
+                            const modalType = this.getModalType(decodedFileUri, file);
                             this.setState({
-                                isModalOpen: true, sourceURL: fileUri, file, modalType,
+                                isModalOpen: true, sourceURL: decodedFileUri, file, modalType,
                             });
                         }
                     },
