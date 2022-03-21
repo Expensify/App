@@ -41,6 +41,7 @@ const defaultProps = {
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
+    onFocus: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
@@ -54,12 +55,71 @@ const MenuItem = (props) => {
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.mt1, styles.breakAll], props.style);
 
-    return (
-        <Pressable
-            onPress={(e) => {
-                if (props.disabled) {
-                    return;
-                }
+            props.onPress(e);
+        }}
+        onFocus={(e) => {
+            props.onFocus(e);
+        }}
+        style={({hovered, pressed}) => ([
+            styles.popoverMenuItem,
+            StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+            ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
+        ])}
+        disabled={props.disabled}
+    >
+        {({hovered, pressed}) => (
+            <>
+                <View style={[styles.flexRow, styles.pointerEventsNone]}>
+                    {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
+                        <View
+                            style={[
+                                styles.popoverMenuIcon,
+                                ...props.iconStyles,
+                            ]}
+                        >
+                            <Icon
+                                src={props.icon}
+                                width={props.iconWidth}
+                                height={props.iconHeight}
+                                fill={props.iconFill || StyleUtils.getIconFillColor(
+                                    getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                )}
+                            />
+                        </View>
+                    )}
+                    {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
+                        <View
+                            style={[
+                                styles.popoverMenuIcon,
+                                ...props.iconStyles,
+                            ]}
+                        >
+                            <Avatar
+                                imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                source={props.icon}
+                            />
+                        </View>
+                    )}
+                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
+                        <Text
+                            style={[
+                                styles.popoverMenuText,
+                                styles.ml3,
+                                (props.interactive && props.disabled ? styles.disabledText : undefined),
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {props.title}
+                        </Text>
+                        {props.description && (
+                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                                {props.description}
+                            </Text>
+                        )}
+                    </View>
+                </View>
+                <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                    {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
 
                 if (e && e.type === 'click') {
                     e.currentTarget.blur();
