@@ -377,6 +377,11 @@ jobs:
     if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
+      - uses: actions/checkout@v2
+
+      - name: Set version
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
         with:

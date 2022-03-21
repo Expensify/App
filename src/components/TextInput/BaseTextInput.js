@@ -11,6 +11,7 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
+import InlineErrorText from '../InlineErrorText';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -19,8 +20,8 @@ class BaseTextInput extends Component {
     constructor(props) {
         super(props);
 
-        this.value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || this.value.length > 0 || props.prefixCharacter;
+        const value = props.value || props.defaultValue || '';
+        const activeLabel = props.forceActiveLabel || value.length > 0 || props.prefixCharacter;
 
         this.state = {
             isFocused: false,
@@ -29,6 +30,7 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+            value,
         };
 
         this.input = null;
@@ -61,12 +63,13 @@ class BaseTextInput extends Component {
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
         // Only update when value prop is provided
-        if (this.props.value === undefined || this.value === this.props.value) {
+        if (this.props.value === undefined || this.state.value === this.props.value) {
             return;
         }
 
-        this.value = this.props.value;
-        this.input.setNativeProps({text: this.value});
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({value: this.props.value});
+        this.input.setNativeProps({text: this.props.value});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (this.props.value === '') {
@@ -87,7 +90,6 @@ class BaseTextInput extends Component {
 
         this.appStateSubscription.remove();
     }
-
 
     onPress(event) {
         if (this.props.disabled) {
@@ -125,13 +127,13 @@ class BaseTextInput extends Component {
         if (this.props.onInputChange) {
             this.props.onInputChange(value);
         }
-        this.value = value;
+        this.setState({value});
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
     }
 
     activateLabel() {
-        if (this.value.length < 0 || this.isLabelActive) {
+        if (this.state.value.length < 0 || this.isLabelActive) {
             return;
         }
 
@@ -143,7 +145,7 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.value.length !== 0 || this.props.prefixCharacter) {
+        if (this.props.forceActiveLabel || this.state.value.length !== 0 || this.props.prefixCharacter) {
             return;
         }
 
@@ -186,8 +188,14 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
-        const inputHelpText = this.props.errorText || this.props.hint;
-        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
+        const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
+        const textInputContainerStyles = _.reduce([
+            styles.textInputContainer,
+            ...this.props.textInputContainerStyles,
+            this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+            !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
+            (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+        ], (finalStyles, s) => ({...finalStyles, ...s}), {});
 
         return (
             <>
@@ -201,11 +209,10 @@ class BaseTextInput extends Component {
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
                                 style={[
-                                    styles.textInputContainer,
-                                    ...this.props.textInputContainerStyles,
-                                    this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
-                                    !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
-                                    (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+                                    textInputContainerStyles,
+
+                                    // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
+                                    this.props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
                                 ]}
                             >
                                 {hasLabel ? (
@@ -242,8 +249,8 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        defaultValue={this.value}
-                                        placeholder={(this.props.prefixCharacter || this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                        defaultValue={this.state.value}
+                                        placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
                                         style={[
@@ -279,27 +286,9 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    {(!_.isEmpty(inputHelpText) || !_.isNull(this.props.maxLength)) && (
-                        <View
-                            style={[
-                                styles.mt1,
-                                styles.flexRow,
-                                styles.justifyContentBetween,
-                                styles.ph3,
-                            ]}
-                        >
-                            {!_.isEmpty(inputHelpText) && (
-                                <Text style={[formHelpStyles]}>{inputHelpText}</Text>
-                            )}
-                            {!_.isNull(this.props.maxLength) && (
-                                <Text style={[formHelpStyles, styles.flex1, styles.textAlignRight]}>
-                                    {this.value.length}
-                                    /
-                                    {this.props.maxLength}
-                                </Text>
-                            )}
-                        </View>
-                    )}
+                    <InlineErrorText styles={[styles.ph3]}>
+                        {this.props.errorText}
+                    </InlineErrorText>
                 </View>
                 {/*
                     Text input component doesn't support auto grow by default.
@@ -309,10 +298,10 @@ class BaseTextInput extends Component {
                 */}
                 {this.props.autoGrow && (
                     <Text
-                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow]}
+                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                     >
-                        {this.props.value || this.props.placeholder}
+                        {this.state.value || this.props.placeholder}
                     </Text>
                 )}
             </>

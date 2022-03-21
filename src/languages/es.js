@@ -78,6 +78,7 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
+            phoneNumber: 'Ingresa un teléfono válido, incluyendo el código de país (p. ej. +1234567890)',
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -98,6 +99,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
     },
     attachmentPicker: {
@@ -112,7 +114,7 @@ export default {
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
     },
-    textInputFocusable: {
+    composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
@@ -175,6 +177,9 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
         beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
         beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
@@ -499,7 +504,7 @@ export default {
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
-        toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo sitio.',
+        toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor revisa tu correo electrónico para validar tu cuenta y regresa aquí para continuar.',
@@ -567,10 +572,15 @@ export default {
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
         helpText: 'Necesitamos confirmar la siguiente información antes de que podamos procesar este pago.',
+        helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas mas para terminar de verificar tu identidad',
         helpLink: 'Obtenga más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
+        selectAnswer: 'Selecciona una respuesta.',
+        needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
+        weCouldNotVerify: 'No pudimos verificar',
+        pleaseFixIt: 'Corrije esta información antes de continuar.',
         failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
         failedKYCTextAfter: ' si tiene alguna pregunta.',
     },
@@ -736,11 +746,13 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            settlementFrequency: 'Frecuencia de liquidación',
             growlMessageOnCreate: 'El espacio de trabajo ha sido creado',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
+            unavailable: 'Espacio de trabajo no disponible',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -817,7 +829,7 @@ export default {
         invite: {
             invitePeople: 'Invitar nuevos miembros',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
-            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
+            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },

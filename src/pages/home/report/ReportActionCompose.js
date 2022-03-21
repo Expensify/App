@@ -12,7 +12,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import TextInputFocusable from '../../../components/TextInputFocusable';
+import Composer from '../../../components/Composer';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -384,6 +384,9 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
+
+        // Important to reset the selection on Submit action
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
     }
 
     render() {
@@ -511,7 +514,7 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <TextInputFocusable
+                                <Composer
                                     autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
@@ -562,7 +565,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {canUseTouchScreen() && !this.props.isSmallScreenWidth ? null : (
+                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
                             onModalHide={() => this.focus(true)}
@@ -578,6 +581,10 @@ class ReportActionCompose extends React.Component {
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
+
+                                // Keep focus on the composer when Send message is clicked.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,

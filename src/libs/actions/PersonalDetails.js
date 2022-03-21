@@ -75,7 +75,6 @@ function getMaxCharacterError(isError) {
     return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
-
 /**
  * Format personal details
  *

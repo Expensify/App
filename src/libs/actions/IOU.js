@@ -83,6 +83,8 @@ function getIOUErrorMessage(response) {
 
         if (response.jsonCode === 404) {
             return Localize.translateLocal('iou.error.invalidSplit');
+        } if (error.jsonCode === 402) {
+            return Localize.translateLocal('common.error.phoneNumber');
         }
     }
     return Localize.translateLocal('iou.error.other');

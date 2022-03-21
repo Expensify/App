@@ -27,7 +27,6 @@ const propTypes = {
     /** Component to display for label */
     LabelComponent: PropTypes.func,
 
-
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -103,11 +102,9 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            {!_.isEmpty(props.errorText) && (
-                <InlineErrorText styles={[styles.ml8]}>
-                    {props.errorText}
-                </InlineErrorText>
-            )}
+            <InlineErrorText styles={[styles.ml8]}>
+                {props.errorText}
+            </InlineErrorText>
         </>
     );
 });

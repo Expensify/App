@@ -480,6 +480,10 @@ const styles = {
         height: 0,
     },
 
+    visibilityHidden: {
+        ...visibility('hidden'),
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -803,6 +807,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    lh16: {
+        lineHeight: 16,
     },
 
     formLabel: {
