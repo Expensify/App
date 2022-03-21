@@ -12,36 +12,6 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 
 /**
- * @param {Array} reports
- * @param {Array} requestParams
- * @returns {Object}
- */
-function prepareChatAndIOUReports(reports, requestParams) {
-    const chatReportsToUpdate = {};
-    const iouReportsToUpdate = {};
-
-    _.each(reports, (reportData) => {
-        // First, the existing chat report needs to be updated with the details about the new IOU
-        const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
-        if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
-            const chatReportID = paramsForIOUReport.chatReportID;
-            const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-            chatReportsToUpdate[chatReportKey] = {
-                iouReportID: reportData.reportID,
-                total: reportData.total,
-                stateNum: reportData.stateNum,
-                hasOutstandingIOU: true,
-            };
-
-            // Second, the IOU report needs to be updated with the new IOU details too
-            const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-            iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
-        }
-    });
-    return {chatReportsToUpdate, iouReportsToUpdate};
-}
-
-/**
  * Gets the IOU Reports for new transaction
  *
  * @param {Object[]} requestParams
