@@ -1,9 +1,12 @@
 import React, {PureComponent} from 'react';
-import {Image} from 'react-native';
+import {
+    StyleSheet, View, Image, ActivityIndicator,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Url for image to display */
@@ -29,6 +32,17 @@ const defaultProps = {
  * it can be appropriately resized.
  */
 class ImageWithSizeCalculation extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isLoading: false,
+        };
+
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
+    }
+
     componentDidMount() {
         this.calculateImageSize();
     }
@@ -83,17 +97,43 @@ class ImageWithSizeCalculation extends PureComponent {
             });
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         return (
-            <Image
+            <View
                 style={[
                     styles.w100,
                     styles.h100,
                     this.props.style,
                 ]}
-                source={{uri: this.props.url}}
-                resizeMode="contain"
-            />
+            >
+                <Image
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                    ]}
+                    source={{uri: this.props.url}}
+                    resizeMode="contain"
+                    onLoadStart={this.imageLoadingStart}
+                    onLoadEnd={this.imageLoadingEnd}
+                />
+                {this.state.isLoading && (
+                    <View style={{...StyleSheet.absoluteFillObject}}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.spinner}
+                            style={[styles.flex1]}
+                        />
+                    </View>
+                )}
+            </View>
         );
     }
 }
