@@ -13,6 +13,9 @@ const propTypes = {
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
+    /** Function to fire when component is focused */
+    onFocus: PropTypes.func,
+
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 

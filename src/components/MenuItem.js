@@ -38,6 +38,7 @@ const defaultProps = {
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
+    onFocus: () => {},
     interactive: true,
 };
 
@@ -49,6 +50,9 @@ const MenuItem = props => (
             }
 
             props.onPress(e);
+        }}
+        onFocus={(e) => {
+            props.onFocus(e);
         }}
         style={({hovered, pressed}) => ([
             styles.popoverMenuItem,
