@@ -156,6 +156,9 @@ function setExpensifyNewsStatus(subscribed) {
             }
 
             Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
         });
 }
 

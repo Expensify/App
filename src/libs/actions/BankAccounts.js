@@ -91,6 +91,9 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
                 ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }
 
@@ -106,9 +109,10 @@ function deleteBankAccount(bankAccountID) {
         if (response.jsonCode === 200) {
             ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
             Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
-            return;
+        } else {
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         }
-
+    }).catch(() => {
         Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
     });
 }

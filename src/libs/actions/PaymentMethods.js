@@ -25,9 +25,11 @@ function deleteDebitCard(fundID) {
             if (response.jsonCode === 200) {
                 Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
                 Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
-                return;
+            } else {
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
             }
-
+        })
+        .catch(() => {
             Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         });
 }
@@ -109,9 +111,10 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
                 return;
             }
-
+            Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+        }).catch((error) => {
             // Make sure to show user more specific errors which will help support identify the problem faster.
-            switch (response.message) {
+            switch (error.message) {
                 case CONST.WALLET.ERROR.INVALID_WALLET:
                 case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
                     Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
@@ -209,14 +212,14 @@ function transferWalletBalance(paymentMethod) {
     API.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
-                Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
-                return;
+                throw new Error(response.message);
             }
-
             Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        }).catch(() => {
+            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
         });
 }
 

@@ -374,18 +374,19 @@ function update(policyID, values, shouldGrowl = false) {
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
-                updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
-
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
+                throw new Error();
             }
 
             updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             if (shouldGrowl) {
                 Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             }
+        }).catch(() => {
+            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
+
+            // Show the user feedback
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
         });
 }
 
@@ -440,8 +441,7 @@ function setCustomUnit(policyID, values) {
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-                return;
+                throw new Error();
             }
 
             updateLocalPolicyValues(policyID, {
@@ -451,6 +451,9 @@ function setCustomUnit(policyID, values) {
                     value: values.attributes.unit,
                 },
             });
+        }).catch(() => {
+            // Show the user feedback
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
         });
 }
 
@@ -468,8 +471,7 @@ function setCustomUnitRate(policyID, customUnitID, values) {
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-                return;
+                throw new Error();
             }
 
             updateLocalPolicyValues(policyID, {
@@ -481,6 +483,9 @@ function setCustomUnitRate(policyID, customUnitID, values) {
                     },
                 },
             });
+        }).catch(() => {
+            // Show the user feedback
+            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
         });
 }
 
