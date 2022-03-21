@@ -19,6 +19,7 @@ import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -114,6 +115,7 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
+        toggleReportActionComposeView(true, true);
     }
 
     /**
