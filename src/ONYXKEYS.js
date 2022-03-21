@@ -71,6 +71,9 @@ export default {
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
 
+    // Contains user login list
+    USER_LOGIN_LIST: 'userLoginList',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     BETAS: 'betas',

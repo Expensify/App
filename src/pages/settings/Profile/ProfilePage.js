@@ -37,29 +37,23 @@ const propTypes = {
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
+    loginList: PropTypes.arrayOf(PropTypes.shape({
 
-            /** Value of partner name */
-            partnerName: PropTypes.string,
+        /** Value of partner name */
+        partnerName: PropTypes.string,
 
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
 
-            /** Date of when login was validated */
-            validatedDate: PropTypes.string,
-        })),
-    }),
-
+        /** Date of when login was validated */
+        validatedDate: PropTypes.string,
+    })),
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
-    user: {
-        loginList: [],
-    },
+    loginList: [],
 };
 
 const timezones = _.map(moment.tz.names(), timezone => ({
@@ -83,7 +77,7 @@ class ProfilePage extends Component {
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            logins: this.getLogins(props.user.loginList),
+            logins: this.getLogins(props.loginList),
             avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
             isAvatarChanged: false,
         };
@@ -99,8 +93,8 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (this.props.user.loginList !== prevProps.user.loginList) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
+        if (this.props.loginList !== prevProps.loginList) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -332,8 +326,8 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
-        user: {
-            key: ONYXKEYS.USER,
+        loginList: {
+            key: ONYXKEYS.USER_LOGIN_LIST,
         },
     }),
 )(ProfilePage);
