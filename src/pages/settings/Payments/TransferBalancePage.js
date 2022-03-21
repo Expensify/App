@@ -191,28 +191,30 @@ class TransferBalancePage extends React.Component {
                     <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                         <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
                     </View>
-                    <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.p5}>
-                        {_.map(this.paymentTypes, paymentType => (
-                            <MenuItem
-                                key={paymentType.key}
-                                title={paymentType.title}
-                                description={paymentType.description}
-                                iconWidth={variables.iconSizeXLarge}
-                                iconHeight={variables.iconSizeXLarge}
-                                icon={paymentType.icon}
-                                success={selectedPaymentType === paymentType.key}
-                                wrapperStyle={{
-                                    ...styles.mt3,
-                                    ...styles.pv4,
-                                    ...styles.transferBalancePayment,
-                                    ...(selectedPaymentType === paymentType.key
-                                        && styles.transferBalanceSelectedPayment),
-                                }}
-                                onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
-                            />
-                        ))}
+                    <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
+                        <View style={styles.ph5}>
+                            {_.map(this.paymentTypes, paymentType => (
+                                <MenuItem
+                                    key={paymentType.key}
+                                    title={paymentType.title}
+                                    description={paymentType.description}
+                                    iconWidth={variables.iconSizeXLarge}
+                                    iconHeight={variables.iconSizeXLarge}
+                                    icon={paymentType.icon}
+                                    success={selectedPaymentType === paymentType.key}
+                                    wrapperStyle={{
+                                        ...styles.mt3,
+                                        ...styles.pv4,
+                                        ...styles.transferBalancePayment,
+                                        ...(selectedPaymentType === paymentType.key
+                                            && styles.transferBalanceSelectedPayment),
+                                    }}
+                                    onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
+                                />
+                            ))}
+                        </View>
                         <Text
-                            style={[styles.pv5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
+                            style={[styles.p5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
                         </Text>
@@ -225,32 +227,30 @@ class TransferBalancePage extends React.Component {
                                     iconWidth={selectedAccount.iconSize}
                                     iconHeight={selectedAccount.iconSize}
                                     icon={selectedAccount.icon}
-                                    wrapperStyle={{
-                                        ...styles.mrn5,
-                                        ...styles.ph0,
-                                    }}
                                     onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
                                 />
                             )}
-                        <Text
-                            style={[
-                                styles.mt5,
-                                styles.mb3,
-                                styles.textStrong,
-                                styles.textLabel,
-                                styles.justifyContentStart,
-                            ]}
-                        >
-                            {this.props.translate('transferAmountPage.fee')}
-                        </Text>
-                        <Text
-                            style={[styles.justifyContentStart]}
-                        >
-                            {this.props.numberFormat(
-                                calculatedFee / 100,
-                                {style: 'currency', currency: 'USD'},
-                            )}
-                        </Text>
+                        <View style={styles.ph5}>
+                            <Text
+                                style={[
+                                    styles.mt5,
+                                    styles.mb3,
+                                    styles.textStrong,
+                                    styles.textLabel,
+                                    styles.justifyContentStart,
+                                ]}
+                            >
+                                {this.props.translate('transferAmountPage.fee')}
+                            </Text>
+                            <Text
+                                style={[styles.justifyContentStart]}
+                            >
+                                {this.props.numberFormat(
+                                    calculatedFee / 100,
+                                    {style: 'currency', currency: 'USD'},
+                                )}
+                            </Text>
+                        </View>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button

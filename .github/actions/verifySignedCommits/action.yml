@@ -1,0 +1,13 @@
+name: 'Verify signed commits'
+description: 'This action verifies that all commits in a given pull request are signed.'
+inputs:
+  GITHUB_TOKEN:
+    description: 'Auth token for New Expensify Github; necessary for accessing Octokit.'
+    required: true
+  PR_NUMBER:
+    description: 'The pull request to verify commits on. Defaults to github.event.number .'
+    required: false
+
+runs:
+  using: 'node12'
+  main: './index.js'

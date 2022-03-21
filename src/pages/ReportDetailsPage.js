@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
-import Avatar from '../components/Avatar';
+import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -16,7 +16,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/reportUtils';
-import {participantPropTypes} from './home/sidebar/optionPropTypes';
+import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
@@ -80,29 +80,30 @@ class ReportDetailsPage extends Component {
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
-        // Chat rooms will allow you to more things than typical chats so they have extra options
-        if (ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems = this.menuItems.concat([
-                {
-                    translationKey: 'common.settings',
-                    icon: Expensicons.Gear,
-                    action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-                },
-                {
-                    translationKey: 'common.invite',
-                    icon: Expensicons.Plus,
-                    action: () => { /* Placeholder for when inviting other users is built in */ },
-                },
-                {
-                    translationKey: 'common.leaveRoom',
-                    icon: Expensicons.Exit,
-                    action: () => { /* Placeholder for when leaving rooms is built in */ },
-                },
-            ]);
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+            });
+        }
+
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+            this.menuItems.push({
+                translationKey: 'common.invite',
+                icon: Expensicons.Plus,
+                action: () => { /* Placeholder for when inviting other users is built in */ },
+            },
+            {
+                translationKey: 'common.leaveRoom',
+                icon: Expensicons.Exit,
+                action: () => { /* Placeholder for when leaving rooms is built in */ },
+            });
         }
     }
 
     render() {
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
@@ -131,13 +132,12 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <Avatar
-                                isChatRoom={isChatRoom}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
-                                imageStyles={[styles.singleAvatarLarge]}
-                                source={this.props.report.icons[0]}
-                            />
+                            <View style={styles.mb4}>
+                                <RoomHeaderAvatars
+                                    avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
+                                    shouldShowLargeAvatars={isPolicyExpenseChat}
+                                />
+                            </View>
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
@@ -146,7 +146,7 @@ class ReportDetailsPage extends Component {
                                         tooltipEnabled
                                         numberOfLines={1}
                                         textStyles={[styles.headerText, styles.mb2, styles.textAlignCenter]}
-                                        shouldUseFullTitle={isChatRoom}
+                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                     />
                                 </View>
                                 <Text

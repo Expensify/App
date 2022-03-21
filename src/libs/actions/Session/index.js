@@ -136,7 +136,6 @@ function fetchAccountDetails(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
@@ -250,6 +249,10 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
+            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                return;
+            }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
@@ -335,31 +338,6 @@ function setPassword(password, validateCode, accountID) {
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
-}
-
-/**
- * This is used when a user clicks on a link from e.com that goes to this application. We want the user to be able to
- * be automatically logged into this app. If the user is not already logged into this app, then this method is called
- * in order to retrieve an authToken from e.com and be signed in.
- *
- * @param {String} accountID
- * @param {String} validateCode
- * @param {String} [twoFactorAuthCode]
- */
-function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
-    API.AuthenticateWithAccountID({
-        accountID,
-        validateCode,
-        twoFactorAuthCode,
-    }).then((data) => {
-        // If something failed, it doesn't really matter what, send the user to the sign in form to log in normally
-        if (data.jsonCode !== 200) {
-            Navigation.navigate(ROUTES.HOME);
-            return;
-        }
-
-        setSuccessfulSignInData(data);
-    });
 }
 
 /**
@@ -508,6 +486,11 @@ function authenticatePusher(socketID, channelName, callback) {
                 return;
             }
 
+            if (data.jsonCode !== 200) {
+                Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
+                return;
+            }
+
             Log.info(
                 '[PusherConnectionManager] Pusher authenticated successfully',
                 false,
@@ -529,7 +512,6 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 }
 
 export {
-    continueSessionFromECom,
     fetchAccountDetails,
     setOrChangePassword,
     setPassword,

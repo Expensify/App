@@ -138,14 +138,19 @@ class WorkspaceInvitePage extends React.Component {
             indexOffset: 0,
         });
 
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
+
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite) {
+        if (hasUnselectedUserToInvite) {
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
@@ -191,8 +196,8 @@ class WorkspaceInvitePage extends React.Component {
                 [],
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
-                newSelectedOptions,
+                prevState.searchValue,
+                [],
                 this.getExcludedUsers(),
             );
 
@@ -200,7 +205,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -238,12 +243,15 @@ class WorkspaceInvitePage extends React.Component {
             Boolean(this.state.userToInvite),
             this.state.searchValue,
         );
+        const policyName = lodashGet(this.props.policy, 'name');
+
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <HeaderWithCloseButton
                             title={this.props.translate('workspace.invite.invitePeople')}
+                            subtitle={policyName}
                             onCloseButtonPress={() => {
                                 this.clearErrors();
                                 Navigation.dismissModal();
@@ -257,6 +265,7 @@ class WorkspaceInvitePage extends React.Component {
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
+                                    autoFocus={false}
                                     canSelectMultipleOptions
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
@@ -285,6 +294,7 @@ class WorkspaceInvitePage extends React.Component {
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
+                                    shouldFocusOnSelectRow
                                 />
                             )}
                         </View>

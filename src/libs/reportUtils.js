@@ -2,9 +2,9 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 let sessionEmail;
 Onyx.connect({
@@ -93,6 +93,26 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAdminRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+}
+
+/**
+ * Whether the provided report is a Announce room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAnnounceRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
  * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
@@ -161,7 +181,7 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -171,10 +191,13 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
+    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+        return Localize.translateLocal('workspace.common.workspace');
+    }
     return lodashGet(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        'Unknown Policy',
+        Localize.translateLocal('workspace.common.unavailable'),
     );
 }
 
@@ -211,23 +234,19 @@ function hasExpensifyEmails(emails) {
 /**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
- * @param {Object} myPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
-    const currentUserTimezone = lodashGet(myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasExpensifyEmails(reportParticipants)
         && !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
-        && currentUserTimezone.selected
-        && reportRecipientTimezone.selected
-        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        && reportRecipientTimezone.selected;
 }
 
 /**
@@ -258,6 +277,8 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    isAdminRoom,
+    isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
