@@ -90,7 +90,7 @@ function getReportID(route) {
     return Number.parseInt(params.reportID, 10);
 }
 
-class ReportScreen extends React.Component {
+class ReportScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
