@@ -52,18 +52,18 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] MacOS / Desktop
 - [ ] I verified there are no console errors (if there’s a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. “toggleReport” and not “onIconClick”)
+    - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory
-    - [ ] I verified that any new or modified comments were clear, correct english, and explained “why” the code was doing something instead of only explaining “what” the code was doing.
+    - [ ] I verified that any new or modified comments were clear, correct English, and explained “why” the code was doing something instead of only explaining “what” the code was doing.
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
-    - [ ] I verified any copy / text that was added to the app is correct english and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named “index.js”. All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
-- [ ] I verified all code is DRY
-- [ ] I verified any variables that can be defined as constants (ie. in CONST.js) are defined as such
+- [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
+- [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -71,14 +71,13 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
-    - [ ] Any internal methods are bound to “this” properly so there are no scoping issues
-    - [ ] Any internal methods bound to “this” are necessary to be bound
+    - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
+    - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
     - [ ] The component has the minimum amount of code necessary for its purpose and it is
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn’t already exist
-    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function
-(i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 
 
 
@@ -99,18 +98,18 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] MacOS / Desktop
 - [ ] I verified there are no console errors (if there’s a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. “toggleReport” and not “onIconClick”).
+    - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
     - [ ] I verified that comments were added to code that is not self explanatory
-    - [ ] I verified that any new or modified comments were clear, correct english, and explained “why” the code was doing something instead of only explaining “what” the code was doing.
+    - [ ] I verified that any new or modified comments were clear, correct English, and explained “why” the code was doing something instead of only explaining “what” the code was doing.
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
-    - [ ] I verified any copy / text that was added to the app is correct english and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named “index.js”. All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
-- [ ] I verified all code is DRY
-- [ ] I verified any variables that can be defined as constants (ie. in CONST.js) are defined as such
+- [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
+- [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -118,14 +117,13 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
-    - [ ] Any internal methods are bound to “this” properly so there are no scoping issues
-    - [ ] Any internal methods bound to “this” are necessary to be bound
+    - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
+    - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
     - [ ] The component has the minimum amount of code necessary for its purpose and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn’t already exist
-    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function
-(i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 
 ### QA Steps
 <!---
