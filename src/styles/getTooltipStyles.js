@@ -109,6 +109,7 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
+            maxWidth: 300,
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
@@ -144,6 +145,11 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
+            overflowWrap: 'normal',
+            // whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'inline',
         },
         pointerWrapperStyle: {
             position: 'fixed',

@@ -51,39 +51,63 @@ const propTypes = {
 
 const defaultProps = {};
 
-const TooltipRenderedOnPageBody = (props) => {
-    const {
-        animationStyle,
-        tooltipWrapperStyle,
-        tooltipTextStyle,
-        pointerWrapperStyle,
-        pointerStyle,
-    } = getTooltipStyles(
-        props.animation,
-        props.windowWidth,
-        props.xOffset,
-        props.yOffset,
-        props.wrapperWidth,
-        props.wrapperHeight,
-        props.tooltipWidth,
-        props.tooltipHeight,
-        props.shiftHorizontal,
-        props.shiftVertical,
-    );
-    return ReactDOM.createPortal(
-        <Animated.View
-            ref={props.setTooltipRef}
-            onLayout={props.measureTooltip}
-            style={[tooltipWrapperStyle, animationStyle]}
-        >
-            <Text style={tooltipTextStyle} numberOfLines={1}>{props.text}</Text>
-            <View style={pointerWrapperStyle}>
-                <View style={pointerStyle} />
-            </View>
-        </Animated.View>,
-        document.querySelector('body'),
-    );
-};
+// ! 1
+//  {wordsToShow.map(word => <Text style={tooltipTextStyle}>{word + " "}</Text>)}
+// ! 2
+//                  <Text style={tooltipTextStyle}>{wordsToShow.join(' ')}</Text>
+
+class TooltipRenderedOnPageBody extends React.Component {
+
+        constructor(props) {
+            super(props);
+        }
+        state = {
+            tooltipTextWidth: 300,
+        }
+
+        resizeTooltip(el) {
+            console.log(el);
+        }
+
+        render() {
+            const {
+                animationStyle,
+                tooltipWrapperStyle,
+                tooltipTextStyle,
+                pointerWrapperStyle,
+                pointerStyle,
+            } = getTooltipStyles(
+                this.props.animation,
+                this.props.windowWidth,
+                this.props.xOffset,
+                this.props.yOffset,
+                this.props.wrapperWidth,
+                this.props.wrapperHeight,
+                this.props.tooltipWidth,
+                this.props.tooltipHeight,
+                this.props.shiftHorizontal,
+                this.props.shiftVertical,
+            );
+            const maximumWords = 4;
+            const wordsToShow = this.props.text.split(' ').slice(0, maximumWords);
+
+            return ReactDOM.createPortal(
+                <Animated.View
+                    ref={this.props.setTooltipRef}
+                    onLayout={this.props.measureTooltip}
+                    style={[tooltipWrapperStyle, animationStyle]}
+                >
+                    <Text numberOfLines={3} style={tooltipTextStyle} ref={ref => this.resizeTooltip(ref)}>
+                        {wordsToShow.join(' ')}
+                    </Text>
+                    <View style={pointerWrapperStyle}>
+                        <View style={pointerStyle} />
+                    </View>
+                </Animated.View>,
+                document.querySelector('body'),
+            );
+        }
+}
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;
