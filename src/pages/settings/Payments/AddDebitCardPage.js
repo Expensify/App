@@ -194,11 +194,13 @@ class DebitCardPage extends Component {
         let expiryDate = inputExpiryDate;
 
         // Backspace was hit/character removed
+        // Remove extra digit when there's a / involved
         if (inputExpiryDate.length < this.state.expirationDate.length
           && (((inputExpiryDate.length === 3 && lodashEndsWith(inputExpiryDate, '/'))
           || (inputExpiryDate.length === 2 && lodashEndsWith(this.state.expirationDate, '/'))))) {
             expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
-        } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) { // Expiry Date(MM)is added so append a slash(/)
+        } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+            // Expiry Date(MM)is added so append a slash(/)
             expiryDate = `${inputExpiryDate}/`;
         } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             // Expiry Date with MM and YY without slash, hence adding slash(/)
