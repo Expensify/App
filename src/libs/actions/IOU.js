@@ -12,12 +12,11 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 
 /**
- * @param {Object} response
- * @param {Object[]} requestParams
+ * @param {Array} reports
+ * @param {Array} requestParams
  * @returns {Object}
  */
-function prepareChatAndIOUReports(response, requestParams) {
-    const reports = response.response;
+function prepareChatAndIOUReports(reports, requestParams) {
     const chatReportsToUpdate = {};
     const iouReportsToUpdate = {};
 
@@ -62,7 +61,7 @@ function getIOUReportsForNewTransaction(requestParams) {
                 return;
             }
 
-            const {chatReportsToUpdate, iouReportsToUpdate} = prepareChatAndIOUReports(response, requestParams);
+            const {chatReportsToUpdate, iouReportsToUpdate} = prepareChatAndIOUReports(response.reports, requestParams);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
