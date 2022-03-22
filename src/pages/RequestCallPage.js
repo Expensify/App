@@ -31,6 +31,7 @@ import LoginUtil from '../libs/LoginUtil';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
+import withActions from '../components/withActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -65,11 +66,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Used to track state for the request call form */
-    requestCallForm: PropTypes.shape({
-        loading: PropTypes.bool,
-    }),
-
     /** The number of minutes the user has to wait for an inbox call */
     inboxCallUserWaitTime: PropTypes.number,
 
@@ -84,9 +80,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    requestCallForm: {
-        loading: false,
-    },
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
@@ -146,7 +139,7 @@ class RequestCallPage extends Component {
             return policy.type === CONST.POLICY.TYPE.PERSONAL;
         });
 
-        Inbox.requestInboxCall({
+        this.props.requestInboxCall.run({
             taskID: this.props.route.params.taskID,
             policyID: policyForCall.id,
             firstName: this.state.firstName,
@@ -353,7 +346,7 @@ class RequestCallPage extends Component {
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
-                            isLoading={this.props.requestCallForm.loading}
+                            isLoading={this.props.requestInboxCall.loading}
                             isDisabled={isBlockedFromConcierge}
                         />
                     </FixedFooter>
@@ -367,6 +360,9 @@ RequestCallPage.propTypes = propTypes;
 RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
+    withActions({
+        requestInboxCall: Inbox.REQUEST_INBOX_CALL,
+    }),
     withLocalize,
     withOnyx({
         myPersonalDetails: {
@@ -377,10 +373,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        requestCallForm: {
-            key: ONYXKEYS.REQUEST_CALL_FORM,
-            initWithStoredValues: false,
         },
         inboxCallUserWaitTime: {
             key: ONYXKEYS.INBOX_CALL_USER_WAIT_TIME,
