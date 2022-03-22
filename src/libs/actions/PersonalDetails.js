@@ -151,14 +151,15 @@ function fetchPersonalDetails() {
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
- * @param {String} login
- * @param {String} displayName
- * @param {String} firstName
- * @param {String} lastName
+ * @param {Object} personalDetail
+ * @param {String} personalDetail.login
+ * @param {String} personalDetail.displayName
+ * @param {String} personalDetail.firstName
+ * @param {String} personalDetail.lastName
  *
  * @returns {Object}
  */
-function getFirstAndLastName({
+function extractFirstAndLastNameFromAvailableDetails({
     login,
     displayName,
     firstName,
@@ -386,5 +387,5 @@ export {
     fetchLocalCurrency,
     getCurrencyList,
     getMaxCharacterError,
-    getFirstAndLastName,
+    extractFirstAndLastNameFromAvailableDetails,
 };

@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {KeyboardAvoidingView} from 'react-native';
@@ -8,7 +7,6 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
-import * as Wallet from '../../libs/actions/Wallet';
 import userWalletPropTypes from './userWalletPropTypes';
 
 // Steps
@@ -34,18 +32,6 @@ const defaultProps = {
 class EnablePaymentsPage extends React.Component {
     componentDidMount() {
         BankAccounts.fetchUserWallet();
-
-        // Once in Onfido step, if we somehow don't have the personal info, go back to previous step, as we need them for Onfido
-        if (this.props.userWallet.currentStep === CONST.WALLET.STEP.ONFIDO) {
-            const firstName = lodashGet(this.props, 'walletAdditionalDetailsDraft.legalFirstName');
-            const lastName = lodashGet(this.props, 'walletAdditionalDetailsDraft.legalLastName');
-            const dob = lodashGet(this.props, 'walletAdditionalDetailsDraft.dob');
-
-            if (!firstName || !lastName || !dob) {
-                Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
-                this.currentStep = CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-            }
-        }
     }
 
     render() {

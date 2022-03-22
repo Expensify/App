@@ -95,7 +95,7 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = PersonalDetails.getFirstAndLastName(props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.myPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,

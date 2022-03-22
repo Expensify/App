@@ -339,7 +339,7 @@ function updateAdditionalDetailsDraft(keyValuePair) {
 }
 
 /**
- * @param {string} currentStep
+ * @param {String} currentStep
  */
 function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
