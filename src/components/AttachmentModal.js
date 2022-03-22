@@ -18,6 +18,7 @@ import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
+import getLocalFileUri from '../libs/getLocalFileUri';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -213,10 +214,10 @@ class AttachmentModal extends PureComponent {
                                 isModalOpen: true, sourceURL: source, file, modalType,
                             });
                         } else {
-                            const decodedFileUri = decodeURIComponent(file.uri);
-                            const modalType = this.getModalType(decodedFileUri, file);
+                            const fileUri = getLocalFileUri(file.uri);
+                            const modalType = this.getModalType(fileUri, file);
                             this.setState({
-                                isModalOpen: true, sourceURL: decodedFileUri, file, modalType,
+                                isModalOpen: true, sourceURL: fileUri, file, modalType,
                             });
                         }
                     },
