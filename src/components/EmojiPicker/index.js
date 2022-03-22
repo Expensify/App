@@ -33,12 +33,13 @@ class EmojiPicker extends React.Component {
         this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps, prevState) {
-        /** Dismiss the Keyboard and focus to prevent emoji press twice when selecting an emoji */
-        if (prevState.isEmojiPickerVisible !== this.state.isEmojiPickerVisible) {
-            Keyboard.dismiss();
+        if (prevState.isEmojiPickerVisible === this.state.isEmojiPickerVisible || !this.state.isEmojiPickerVisible) {
+            return;
         }
+
+        // Dismiss the Keyboard and focus to prevent emoji press twice when selecting an emoji
+        Keyboard.dismiss();
     }
 
     componentWillUnmount() {
