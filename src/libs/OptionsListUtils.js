@@ -24,10 +24,10 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-let currentUserLoginList;
+let loginList;
 Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => currentUserLoginList = val,
+    key: ONYXKEYS.USER_LOGIN_LIST,
+    callback: val => loginList = _.isEmpty(val) ? [] : val,
 });
 
 let countryCodeByIP;
@@ -361,7 +361,6 @@ function isCurrentUser(userDetails) {
 
     // Initial check with currentUserLogin
     let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const loginList = _.isEmpty(currentUserLoginList) ? [] : currentUserLoginList;
     let index = 0;
 
     // Checking userDetailsLogin against to current user login options.
