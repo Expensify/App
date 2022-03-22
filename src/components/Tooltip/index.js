@@ -207,6 +207,7 @@ class Tooltip extends PureComponent {
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         measureTooltip={this.measureTooltip}
                         text={this.props.text}
+                        maximumWords={this.props.maximumWords}
                     />
                 )}
                 <Hoverable

@@ -4,6 +4,8 @@ import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
+import variables from '../../styles/variables';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Window width */
@@ -47,66 +49,92 @@ const propTypes = {
 
     /** Callback to be used to calulate the width and height of tooltip */
     measureTooltip: PropTypes.func.isRequired,
+
+    /** Maximun amount of words the tooltip should show */
+    maximumWords: PropTypes.number.isRequired,
 };
 
 const defaultProps = {};
 
-// ! 1
-//  {wordsToShow.map(word => <Text style={tooltipTextStyle}>{word + " "}</Text>)}
-// ! 2
-//                  <Text style={tooltipTextStyle}>{wordsToShow.join(' ')}</Text>
-
 class TooltipRenderedOnPageBody extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            tooltipTextWidth: variables.sideBarWidth,
+        };
 
-        constructor(props) {
-            super(props);
-        }
-        state = {
-            tooltipTextWidth: 300,
-        }
+        this.textRef = null;
+        this.getCorrectWidth = this.getCorrectWidth.bind(this);
+    }
 
-        resizeTooltip(el) {
-            console.log(el);
-        }
+    componentDidMount() {
+        this.setState({
+            tooltipTextWidth: this.getCorrectWidth(this.textRef.offsetWidth),
+        });
+    }
 
-        render() {
-            const {
-                animationStyle,
-                tooltipWrapperStyle,
-                tooltipTextStyle,
-                pointerWrapperStyle,
-                pointerStyle,
-            } = getTooltipStyles(
-                this.props.animation,
-                this.props.windowWidth,
-                this.props.xOffset,
-                this.props.yOffset,
-                this.props.wrapperWidth,
-                this.props.wrapperHeight,
-                this.props.tooltipWidth,
-                this.props.tooltipHeight,
-                this.props.shiftHorizontal,
-                this.props.shiftVertical,
-            );
-            const maximumWords = 4;
-            const wordsToShow = this.props.text.split(' ').slice(0, maximumWords);
-
-            return ReactDOM.createPortal(
-                <Animated.View
-                    ref={this.props.setTooltipRef}
-                    onLayout={this.props.measureTooltip}
-                    style={[tooltipWrapperStyle, animationStyle]}
-                >
-                    <Text numberOfLines={3} style={tooltipTextStyle} ref={ref => this.resizeTooltip(ref)}>
-                        {wordsToShow.join(' ')}
-                    </Text>
-                    <View style={pointerWrapperStyle}>
-                        <View style={pointerStyle} />
-                    </View>
-                </Animated.View>,
-                document.querySelector('body'),
-            );
+    getCorrectWidth(textWidth) {
+        const maxWidth = variables.sideBarWidth;
+        if (textWidth >= maxWidth) {
+            return maxWidth;
         }
+        const maxWidthDiffTextWidth = maxWidth - textWidth;
+
+        // This operation will serve us to avoid adding more width than maxwidth
+        // Get padding of tooltipWrapper and sum the right and left
+        const leftRighPadding = styles.p2.padding * 2;
+        if (leftRighPadding > maxWidthDiffTextWidth) {
+            return textWidth + maxWidthDiffTextWidth;
+        }
+        return textWidth + leftRighPadding;
+    }
+
+    render() {
+        const {
+            animationStyle,
+            tooltipWrapperStyle,
+            tooltipTextStyle,
+            pointerWrapperStyle,
+            pointerStyle,
+        } = getTooltipStyles(
+            this.props.animation,
+            this.props.windowWidth,
+            this.props.xOffset,
+            this.props.yOffset,
+            this.props.wrapperWidth,
+            this.props.wrapperHeight,
+            this.props.tooltipWidth,
+            this.props.tooltipHeight,
+            this.props.shiftHorizontal,
+            this.props.shiftVertical,
+            this.state.tooltipTextWidth,
+        );
+        const maximumWords = this.props.maximumWords;
+        const wordsProvided = this.props.text.split(' ');
+
+        // Only show the amount words we want to see no matter the amount of lines needed to fit them
+        // This will give us an accurate width of visible text using ref.offsetWidth
+        // offsetWidth is accurate to visible text width if there no height overflow,
+        // otherwise will give us a longer width if there's longer line hidden in overflow
+        const wordsToShow = wordsProvided.slice(0, maximumWords);
+
+        return ReactDOM.createPortal(
+            <Animated.View
+                ref={this.props.setTooltipRef}
+                onLayout={this.props.measureTooltip}
+                style={[tooltipWrapperStyle, animationStyle]}
+            >
+                <Text style={tooltipTextStyle}>
+                    <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{wordsToShow.join(' ')}</Text>
+                    {maximumWords < wordsProvided.length ? <Text style={tooltipTextStyle}>...</Text> : '' }
+                </Text>
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>,
+            document.querySelector('body'),
+        );
+    }
 }
 
 TooltipRenderedOnPageBody.propTypes = propTypes;

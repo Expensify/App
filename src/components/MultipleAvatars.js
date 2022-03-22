@@ -80,7 +80,7 @@ const MultipleAvatars = (props) => {
                             />
                         </Tooltip>
                     ) : (
-                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
+                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute maximumWords={3}>
                             <View
                                 style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
