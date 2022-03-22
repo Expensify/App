@@ -131,7 +131,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 
 </details>
 
-
 ### QA Steps
 <!---
 Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
