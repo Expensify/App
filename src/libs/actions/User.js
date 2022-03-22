@@ -86,12 +86,14 @@ function closeAccount(message) {
 }
 
 function getBetas() {
+    Onyx.set(ONYXKEYS.IS_LOADING_BETAS, true);
     API.User_GetBetas().then((response) => {
         if (response.jsonCode !== 200) {
             return;
         }
 
         Onyx.set(ONYXKEYS.BETAS, response.betas);
+        Onyx.set(ONYXKEYS.IS_LOADING_BETAS, false);
     });
 }
 

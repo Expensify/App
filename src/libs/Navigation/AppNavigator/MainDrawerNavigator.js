@@ -22,11 +22,15 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Are the betas currently loading from the api? */
+    isLoadingBetas: PropTypes.bool,
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
+    isLoadingBetas: true,
 };
 
 /**
@@ -48,7 +52,7 @@ const MainDrawerNavigator = (props) => {
     const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
 
     // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID) {
+    if (!initialParams.reportID || props.isLoadingBetas) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -80,6 +84,9 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isLoadingBetas: {
+        key: ONYXKEYS.IS_LOADING_BETAS,
     },
 })(MainDrawerNavigator);
 export {getInitialReportScreenParams};
