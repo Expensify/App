@@ -84,6 +84,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 
 <details>
 <summary><h4>PR Reviewer Checklist</h4></summary>
+
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
     - [ ] I verified the steps for local testing are in the `Tests` section
@@ -127,6 +128,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+
 </details>
 
 
