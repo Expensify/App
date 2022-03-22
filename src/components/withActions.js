@@ -18,7 +18,7 @@ export default function withActions(actionMap) {
             const passProps = _.reduce(
                 actionMap,
                 (finalProps, action, propName) => {
-                    const actionMetaData = props[`internalWithActions_${action.name}`] || {loading: false};
+                    const actionMetaData = props[`internalWithActions_${action.name}`] || {loading: false, error: ''};
                     const actionProp = {
                         run: action.run,
                         ...actionMetaData,

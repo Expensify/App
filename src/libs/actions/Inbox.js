@@ -38,10 +38,6 @@ const REQUEST_INBOX_CALL = new PessimisticAction({
             // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
             User.getUserDetails();
         },
-        default: (response) => {
-            // Phone number validation is handled by the API
-            Growl.error(response.message, 3000);
-        },
     },
 });
 

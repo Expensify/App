@@ -283,7 +283,7 @@ class RequestCallPage extends Component {
 
     render() {
         const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
-
+        const errorMessage = isBlockedFromConcierge ? this.props.translate('requestCallPage.blockedFromConcierge') : this.props.requestInboxCall.error;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -335,10 +335,10 @@ class RequestCallPage extends Component {
                         </Section>
                     </ScrollView>
                     <FixedFooter>
-                        {isBlockedFromConcierge && (
+                        {errorMessage && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                                 <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
-                                <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
+                                <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{errorMessage}</Text>
                             </View>
                         )}
                         <Button

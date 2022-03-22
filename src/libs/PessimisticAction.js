@@ -30,8 +30,12 @@ class PessimisticAction {
     }
 
     handleJsonCode(response) {
-        if (this.handle[response.jsonCode] && _.isFunction(this.handle[response.jsonCode])) {
-            this.handle[response.jsonCode](response);
+        const error = response.jsonCode === 200 ? '' : response.message;
+        Onyx.merge(this.onyxKey, {error});
+
+        const handler = this.handle[response.jsonCode];
+        if (handler && _.isFunction(handler)) {
+            handler(response);
             return;
         }
 
