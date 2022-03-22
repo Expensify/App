@@ -459,9 +459,6 @@ export default compose(
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
-        iousReport: {
-            key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-        },
         iou: {
             key: ONYXKEYS.IOU,
         },
