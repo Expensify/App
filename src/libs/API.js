@@ -179,13 +179,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
-    if (response.jsonCode === 405 || response.jsonCode === 404 || response.jsonCode === 402) {
-        // IOU Split & Request money transactions failed, due to invalid amount(405), unable to split(404), invalid phone number(402)
-        // It's a failure, so reject the queued request
-        queuedRequest.reject(response);
-        return;
-    }
-
+    // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
 });
 
