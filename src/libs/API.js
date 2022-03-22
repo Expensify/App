@@ -865,14 +865,20 @@ function CreateIOUSplit(parameters) {
 }
 
 /**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} dob
  * @returns {Promise}
  */
-function Wallet_GetOnfidoSDKToken() {
+function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
     return Network.post('Wallet_GetOnfidoSDKToken', {
         // We need to pass this so we can request a token with the correct referrer
         // This value comes from a cross-platform module which returns true for native
         // platforms and false for non-native platforms.
         isViaExpensifyCashNative,
+        firstName,
+        lastName,
+        dob,
     }, CONST.NETWORK.METHOD.POST, true);
 }
 

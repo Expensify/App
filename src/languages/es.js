@@ -568,6 +568,12 @@ export default {
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
         cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
+        originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
+        documentNeedsBetterQuality: 'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
+        imageNeedsBetterQuality: 'Hay un problema con la calidad de la imagen de tu identificación. Por favor, sube una nueva imagen donde el identificación se vea con claridad.',
+        selfieIssue: 'Hay un problema con tu selfie/video. Por favor, sube un nuevo selfie/video grabado en el momento',
+        selfieNotMatching: 'Tu selfie/video no concuerda con tu identificación. Por favor, sube un nuevo selfie/video donde se vea tu cara con claridad.',
+        selfieNotLive: 'Tu selfie/video no parece ser un selfie/video en vivo. Por favor, sube un selfie/video a tiempo real.',
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',

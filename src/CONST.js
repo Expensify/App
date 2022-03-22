@@ -431,6 +431,7 @@ const CONST = {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
+            ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
@@ -443,8 +444,8 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
-            ONFIDO: 'OnfidoStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
