@@ -78,10 +78,16 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn’t already exist
     - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
+     - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 
 
+<details>
 
-#### PR Reviewer Checklist
+
+<summary><h4>PR Reviewer Checklist</h4></summary>
+
+
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
     - [ ] I verified the steps for local testing are in the `Tests` section
@@ -107,7 +113,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/PR_REVIEW_GUIDELINES.md)
-- [ ] I verified other components are not impacted by changes in this PR (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
 - [ ] If a new component is created I verified that:
@@ -124,6 +129,11 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn’t already exist
     - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+- [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
+- [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+
+</details>
+
 
 ### QA Steps
 <!---
