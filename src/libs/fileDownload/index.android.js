@@ -4,32 +4,24 @@ import * as FileUtils from './FileUtils';
 
 /**
  * Android permission check to store images
- * @returns{Promise}
+ * @returns {Promise<Boolean>}
  */
 function hasAndroidPermission() {
-    return new Promise((resolve, reject) => {
-        // read and write permission
-        const readPermission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-        const writePermission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+    // read and write permission
+    const writePromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+    const readPromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
 
-        const writePromise = PermissionsAndroid.check(writePermission);
-        const readPromise = PermissionsAndroid.check(readPermission);
+    return Promise.all([writePromise, readPromise]).then(([hasWritePermission, hasReadPermission]) => {
+        if (hasWritePermission && hasReadPermission) {
+            return true; // return true if permission is already given
+        }
 
-        Promise.all([writePromise, readPromise]).then(([hasWritePermission, hasReadPermission]) => {
-            if (hasWritePermission && hasReadPermission) {
-                resolve(true); // return true if permission is already given
-                return;
-            }
-
-            // ask for permission if not given
-            PermissionsAndroid.requestMultiple([
-                readPermission,
-                writePermission,
-            ]).then((status) => {
-                resolve(status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
+        // ask for permission if not given
+        return PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        ]).then(status => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
                     && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted');
-            });
-        }).catch(error => reject(error));
     });
 }
 
@@ -37,7 +29,7 @@ function hasAndroidPermission() {
  * Handling the download
  * @param {String} url
  * @param {String} fileName
- * @returns {Promise}
+ * @returns {Promise<Void>}
  */
 function handleDownload(url, fileName) {
     return new Promise((resolve) => {
