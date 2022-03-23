@@ -23,7 +23,7 @@ const propTypes = {
             /** (For accountMerged reason only), the email of the account the previous owner was merged into */
             newLogin: PropTypes.string,
         }).isRequired,
-    }).isRequired,
+    }),
 
     /** The archived report */
     report: PropTypes.shape({
@@ -47,6 +47,12 @@ const propTypes = {
     })).isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reportClosedAction: {
+        originalMessage: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+    },
 };
 
 const ArchivedReportFooter = (props) => {
@@ -75,6 +81,7 @@ const ArchivedReportFooter = (props) => {
 };
 
 ArchivedReportFooter.propTypes = propTypes;
+ArchivedReportFooter.defaultProps = defaultProps;
 ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
 export default compose(
