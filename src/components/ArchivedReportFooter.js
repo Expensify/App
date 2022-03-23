@@ -27,9 +27,6 @@ const propTypes = {
 
     /** The archived report */
     report: PropTypes.shape({
-        /** Participants associated with the report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
         /** The policy this report is attached to */
         policyID: PropTypes.string,
     }).isRequired,
@@ -39,9 +36,6 @@ const propTypes = {
 
     /** The list of policies the user has access to. */
     policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        ID: PropTypes.string,
-
         /** The name of the policy */
         name: PropTypes.string,
     })).isRequired,
