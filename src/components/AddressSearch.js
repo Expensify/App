@@ -91,8 +91,10 @@ const AddressSearch = (props) => {
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
-        const values = {};
-        if (street && props.value && street.length > props.value.trim().length) {
+        const values = {
+            street: props.value ? props.value.trim() : '',
+        };
+        if (street && street.length >= values.street.length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
             // like Apt # and this is the best way we have to tell that the new value it's giving us is less
@@ -158,6 +160,7 @@ const AddressSearch = (props) => {
                 inputID: props.inputID,
                 shouldSaveDraft: props.shouldSaveDraft,
                 onBlur: props.onBlur,
+                autoComplete: 'off',
                 onChangeText: (text) => {
                     if (skippedFirstOnChangeTextRef.current) {
                         props.onChange({street: text});
