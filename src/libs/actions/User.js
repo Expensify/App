@@ -401,18 +401,18 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
- * @returns {Object} PDF download link and file name
  */
 function generateStatementPDF(period) {
-    return API.GetStatementPDF({period})
+    Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {isGenerating: true});
+    API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
                 return;
             }
 
-            const downloadFileName = `Expensify_Statement_${response.period}.pdf`;
-            const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
-            return {pdfURL, downloadFileName};
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {[period]: response.filename});
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {isGenerating: false});
         });
 }
 

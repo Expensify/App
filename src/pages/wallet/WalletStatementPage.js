@@ -29,6 +29,12 @@ const propTypes = {
         }).isRequired,
     }).isRequired,
 
+    walletStatement: PropTypes.shape({
+        /** Whether the PDF file available for download or not */
+        isGenerating: PropTypes.bool.isRequired,
+
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -40,6 +46,11 @@ class WalletStatementPage extends React.Component {
             isDownloading: false,
         };
         this.processDownload = this.processDownload.bind(this);
+        this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
+    }
+
+    componentDidMount() {
+        User.generateStatementPDF(this.yearMonth);
     }
 
     processDownload(yearMonth) {
@@ -51,15 +62,15 @@ class WalletStatementPage extends React.Component {
             isDownloading: true,
         });
 
-        const {fileURL, fileName} = User.generateStatementPDF(yearMonth);
-
-        if (!fileURL) {
+        if (!this.props.walletStatement[yearMonth] || this.props.walletStatement.isGenerating) {
             Growl.show(this.props.translate('common.genericErrorMessage'), CONST.GROWL.ERROR, 5000);
             this.setState({
                 isDownloading: false,
             });
         } else {
-            fileDownload(fileURL, fileName).then(() => {
+            const fileName = `Expensify_Statement_${yearMonth}.pdf`;
+            const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${this.props.walletStatement[yearMonth]}&downloadName=${fileName}`;
+            fileDownload(pdfURL, fileName).then(() => {
                 this.setState({
                     isDownloading: false,
                 });
@@ -69,12 +80,11 @@ class WalletStatementPage extends React.Component {
 
     render() {
         moment.locale(lodashGet(this.props, 'preferredLocale', 'en'));
-        const yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
-        const year = yearMonth.substring(0, 4) || moment().year();
-        const month = yearMonth.substring(4) || moment().month();
+        const year = this.yearMonth.substring(0, 4) || moment().year();
+        const month = this.yearMonth.substring(4) || moment().month();
         const monthName = moment(month, 'M').format('MMMM');
         const title = `${monthName} ${year} statement`;
-        const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
+        const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${this.yearMonth}`;
 
         return (
             <ScreenWrapper>
@@ -82,7 +92,7 @@ class WalletStatementPage extends React.Component {
                     title={Str.recapitalize(title)}
                     shouldShowDownloadButton
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    onDownloadButtonPress={() => this.processDownload(yearMonth)}
+                    onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
                 <WalletStatementModal
                     statementPageURL={url}
@@ -99,6 +109,9 @@ export default compose(
     withOnyx({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        walletStatement: {
+            key: ONYXKEYS.WALLET_STATEMENTS,
         },
     }),
 )(WalletStatementPage);
