@@ -52,7 +52,7 @@ const MainDrawerNavigator = (props) => {
     const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
 
     // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID || props.isLoadingBetas) {
+    if (!initialParams.reportID) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -84,9 +84,6 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isLoadingBetas: {
-        key: ONYXKEYS.IS_LOADING_BETAS,
     },
 })(MainDrawerNavigator);
 export {getInitialReportScreenParams};

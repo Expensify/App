@@ -74,7 +74,6 @@ export default {
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     BETAS: 'betas',
-    IS_LOADING_BETAS: 'isLoadingBetas',
 
     // NVP keys
     // Contains the user's payPalMe address
