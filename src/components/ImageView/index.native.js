@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, InteractionManager, PanResponder, ActivityIndicator, StyleSheet,
+    View, InteractionManager, PanResponder,
 } from 'react-native';
 import Image from 'react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
@@ -11,7 +11,6 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import themeColors from '../../styles/themes/default';
 import LoadingSpinnerOverlay from '../LoadingSpinnerOverlay';
 
 /**
