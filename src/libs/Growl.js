@@ -3,7 +3,7 @@ import CONST from '../CONST';
 import createOnReadyTask from './createOnReadyTask';
 
 const growlRef = React.createRef();
-const [isGrowlReady, setIsGrowlReady] = createOnReadyTask();
+const [isGrowlReady, setIsReady] = createOnReadyTask();
 
 /**
  * Show the growl notification
@@ -44,5 +44,5 @@ export default {
 
 export {
     growlRef,
-    setIsGrowlReady,
+    setIsReady,
 };

@@ -14,5 +14,5 @@ export default function createOnReadyTask() {
     const isReadyPromise = (new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     }));
-    return [isReadyPromise, resolveIsReadyPromise];
+    return [() => isReadyPromise, resolveIsReadyPromise];
 }

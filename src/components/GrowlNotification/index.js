@@ -46,7 +46,7 @@ class GrowlNotification extends Component {
     }
 
     componentDidMount() {
-        Growl.setIsGrowlReady();
+        Growl.setIsReady();
     }
 
     /**
