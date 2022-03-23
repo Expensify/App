@@ -67,9 +67,9 @@ const ArchivedReportFooter = (props) => {
     return (
         <Banner
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName,
-                oldDisplayName,
-                policyName,
+                displayName: `<strong>${displayName}</strong>`,
+                oldDisplayName: `<strong>${oldDisplayName}</strong>`,
+                policyName: `<strong>${policyName}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
         />
