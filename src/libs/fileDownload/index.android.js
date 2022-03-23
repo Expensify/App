@@ -65,11 +65,9 @@ function handleDownload(url, fileName) {
             }
 
             FileUtils.showSuccessAlert();
-            return resolve();
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();
-            return resolve();
-        });
+        }).finally(() => resolve());
     });
 }
 
@@ -83,14 +81,11 @@ export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
         hasAndroidPermission().then((hasPermission) => {
             if (hasPermission) {
-                handleDownload(url, fileName).then(() => resolve());
-            } else {
-                FileUtils.showPermissionErrorAlert();
+                return handleDownload(url, fileName);
             }
-            return resolve();
+            FileUtils.showPermissionErrorAlert();
         }).catch(() => {
             FileUtils.showPermissionErrorAlert();
-            return resolve();
-        });
+        }).finally(() => resolve());
     });
 }

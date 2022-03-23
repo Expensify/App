@@ -92,14 +92,12 @@ export default function fileDownload(fileUrl, fileName) {
             }
 
             FileUtils.showSuccessAlert();
-            return resolve();
         }).catch((err) => {
             if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
                 FileUtils.showPermissionErrorAlert();
             } else {
                 FileUtils.showGeneralErrorAlert();
             }
-            return resolve();
-        });
+        }).finally(() => resolve());
     });
 }
