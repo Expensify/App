@@ -49,28 +49,18 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
         const isUserSignedIn = this.props.session && this.props.session.authToken;
         if (!isUserSignedIn) {
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
-
-        this.signOutIfNeeded(email);
-    }
-
-    componentDidUpdate() {
-        if (!lodashGet(this.props, 'session.authToken', null)) {
-            return;
-        }
-
-        const email = lodashGet(this.props.route.params, 'email', '');
-
-        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
         if (this.signOutIfNeeded(email)) {
             return;
@@ -97,6 +87,7 @@ class LogInWithShortLivedTokenPage extends Component {
      * and cancel all network requests. This component will mount again from
      * PublicScreens and since they are no longer signed in, a request will be
      * made to sign them in with their new account.
+     *
      * @param {String} email The user's email passed as a route param.
      * @returns {Boolean}
      */
@@ -120,11 +111,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-
-    // We need to subscribe to the betas so that componentDidUpdate will run,
-    // causing us to exit to the proper page.
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);
