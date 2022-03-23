@@ -374,6 +374,10 @@ const CONST = {
         VIDEO: 'video',
     },
 
+    FILE_TYPE_REGEX: {
+        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
+        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+    },
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,

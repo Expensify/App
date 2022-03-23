@@ -1,6 +1,5 @@
 import {Alert, Linking} from 'react-native';
 import moment from 'moment';
-import * as mime from 'react-native-mime-types';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 
@@ -70,6 +69,22 @@ function getAttachmentName(url) {
 }
 
 /**
+ * @param {String} fileName
+ * @returns {Boolean}
+ */
+function isImage(fileName) {
+    return CONST.FILE_TYPE_REGEX.IMAGE.test(fileName);
+}
+
+/**
+ * @param {String} fileName
+ * @returns {Boolean}
+ */
+function isVideo(fileName) {
+    return CONST.FILE_TYPE_REGEX.VIDEO.test(fileName);
+}
+
+/**
  * Returns file type based on the uri
  * @param {String} fileUrl
  * @returns {String}
@@ -79,11 +94,10 @@ function getFileType(fileUrl) {
         return;
     }
     const fileName = fileUrl.split('/').pop().split('?')[0].split('#')[0];
-    const contentType = mime.contentType(fileName);
-    if (contentType.startsWith('image')) {
+    if (isImage(fileName)) {
         return CONST.ATTACHMENT_FILE_TYPE.IMAGE;
     }
-    if (contentType.startsWith('video')) {
+    if (isVideo(fileName)) {
         return CONST.ATTACHMENT_FILE_TYPE.VIDEO;
     }
     return CONST.ATTACHMENT_FILE_TYPE.FILE;
