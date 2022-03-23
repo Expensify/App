@@ -58,7 +58,7 @@ function showPermissionErrorAlert() {
 }
 
 /**
- * Generating a random file name with timestamp and file extention
+ * Generate a random file name with timestamp and file extension
  * @param {String} url
  * @returns {String}
  */

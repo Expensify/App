@@ -30,7 +30,7 @@ function downloadFile(fileUrl, fileName) {
 }
 
 /**
- * Downloads the image to photo lib in iOS
+ * Downloads the image to photo lib in iOS and returns the uri
  * @param {String} fileUrl
  * @param {String} fileName
  * @returns {String}
@@ -40,7 +40,7 @@ function downloadImage(fileUrl) {
 }
 
 /**
- * Downloads the video to photo lib in iOS
+ * Downloads the video to photo lib in iOS and returns the uri
  * @param {String} fileUrl
  * @param {String} fileName
  * @returns {String}
