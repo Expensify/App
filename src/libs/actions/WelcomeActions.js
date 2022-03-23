@@ -1,4 +1,3 @@
-import {Dimensions} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -9,7 +8,6 @@ import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
-import variables from '../../styles/variables';
 
 /* Flag for new users used to show welcome actions on first load */
 let isFirstTimeNewExpensifyUser = false;
@@ -72,9 +70,7 @@ function show({routes, toggleCreateMenu}) {
         const topRouteName = lodashGet(_.last(routes), 'name', '');
         const loginWithShortLivedTokenRoute = _.find(routes, route => route.name === 'LogInWithShortLivedToken');
         const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
-        const initialDimensions = Dimensions.get('window');
-        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || (exitingToWorkspaceRoute && isSmallScreenWidth);
+        const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
         // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case
         // since the user does not need to create a workspace.
