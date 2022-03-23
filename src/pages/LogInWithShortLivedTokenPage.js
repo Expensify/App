@@ -121,4 +121,10 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
+
+    // We need to subscribe to the betas so that componentDidUpdate will run,
+    // causing us to exit to the proper page.
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
 })(LogInWithShortLivedTokenPage);
