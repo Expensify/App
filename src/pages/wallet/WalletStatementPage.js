@@ -13,6 +13,9 @@ import compose from '../../libs/compose';
 import CONFIG from '../../CONFIG';
 import WalletStatementModal from '../../components/WalletStatementModal';
 import * as User from '../../libs/actions/User';
+import fileDownload from '../../libs/fileDownload';
+import Growl from '../../libs/Growl';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -29,28 +32,65 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WalletStatementPage = (props) => {
-    moment.locale(lodashGet(props, 'preferredLocale', 'en'));
-    const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
-    const year = yearMonth.substring(0, 4) || moment().year();
-    const month = yearMonth.substring(4) || moment().month();
-    const monthName = moment(month, 'M').format('MMMM');
-    const title = `${monthName} ${year} statement`;
-    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={Str.recapitalize(title)}
-                shouldShowDownloadButton
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                onDownloadButtonPress={() => User.downloadStatementPDF(yearMonth)}
-            />
-            <WalletStatementModal
-                statementPageURL={url}
-            />
-        </ScreenWrapper>
-    );
-};
+class WalletStatementPage extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isDownloading: false,
+        };
+        this.processDownload = this.processDownload.bind(this);
+    }
+
+    processDownload(yearMonth) {
+        if (this.state.isDownloading) {
+            return;
+        }
+
+        this.setState({
+            isDownloading: true,
+        });
+
+        const {fileURL, fileName} = User.generateStatementPDF(yearMonth);
+
+        if (!fileURL) {
+            Growl.show(this.props.translate('common.genericErrorMessage'), CONST.GROWL.ERROR, 5000);
+            this.setState({
+                isDownloading: false,
+            });
+        } else {
+            fileDownload(fileURL, fileName).then(() => {
+                this.setState({
+                    isDownloading: false,
+                });
+            });
+        }
+    }
+
+    render() {
+        moment.locale(lodashGet(this.props, 'preferredLocale', 'en'));
+        const yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
+        const year = yearMonth.substring(0, 4) || moment().year();
+        const month = yearMonth.substring(4) || moment().month();
+        const monthName = moment(month, 'M').format('MMMM');
+        const title = `${monthName} ${year} statement`;
+        const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
+
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={Str.recapitalize(title)}
+                    shouldShowDownloadButton
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onDownloadButtonPress={() => this.processDownload(yearMonth)}
+                />
+                <WalletStatementModal
+                    statementPageURL={url}
+                />
+            </ScreenWrapper>
+        );
+    }
+}
 
 WalletStatementPage.propTypes = propTypes;
 WalletStatementPage.displayName = 'WalletStatementPage';
