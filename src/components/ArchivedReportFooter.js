@@ -45,7 +45,9 @@ const propTypes = {
 
 const defaultProps = {
     reportClosedAction: {
-        originalMessage: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+        originalMessage: {
+            reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+        },
     },
 };
 
