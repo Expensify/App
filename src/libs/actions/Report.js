@@ -20,6 +20,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
+import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
@@ -156,7 +157,7 @@ function getChatReportName(fullReport, chatType) {
 
     // For a basic policy room or a Policy Expense chat, return its original name
     if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
-        return fullReport.reportName;
+        return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
     }
 
     const {sharedReportList} = fullReport;
@@ -214,7 +215,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName,
         chatType,
-        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
+        ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),

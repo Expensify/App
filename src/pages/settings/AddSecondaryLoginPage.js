@@ -20,7 +20,7 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
-import LoginUtil from '../../libs/LoginUtil';
+import * as LoginUtils from '../../libs/LoginUtils';
 
 const propTypes = {
     /* Onyx Props */
