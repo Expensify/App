@@ -13,7 +13,7 @@ const propTypes = {
     /** The reason this report was archived */
     reportClosedAction: PropTypes.shape({
         /** Message attached to the report closed action */
-        message: PropTypes.shape({
+        originalMessage: PropTypes.shape({
             /** The reason the report was closed */
             reason: PropTypes.string.isRequired,
 
@@ -50,7 +50,7 @@ const propTypes = {
 };
 
 const ArchivedReportFooter = (props) => {
-    const archiveReason = lodashGet(props.reportClosedAction, 'message.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+    const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
     let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
