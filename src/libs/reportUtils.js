@@ -172,7 +172,7 @@ function isArchivedRoom(report) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**

@@ -253,6 +253,13 @@ const CONST = {
             PROCESSING: 1,
             SUBMITTED: 2,
         },
+        STATUS: {
+            OPEN: 0,
+            SUBMITTED: 1,
+            CLOSED: 2,
+            APPROVED: 3,
+            REIMBURSED: 4,
+        },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
             DAILY: 'daily',
