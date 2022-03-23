@@ -150,7 +150,7 @@ class RequestCallPage extends Component {
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -172,7 +172,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }

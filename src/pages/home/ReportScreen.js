@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
-import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
