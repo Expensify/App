@@ -31,11 +31,17 @@ const propTypes = {
 
     walletStatement: PropTypes.shape({
         /** Whether the PDF file available for download or not */
-        isGenerating: PropTypes.bool.isRequired,
+        isGenerating: PropTypes.bool,
 
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    walletStatement: {
+        isGenerating: false,
+    },
 };
 
 class WalletStatementPage extends React.Component {
@@ -103,6 +109,7 @@ class WalletStatementPage extends React.Component {
 }
 
 WalletStatementPage.propTypes = propTypes;
+WalletStatementPage.defaultProps = defaultProps;
 WalletStatementPage.displayName = 'WalletStatementPage';
 export default compose(
     withLocalize,
