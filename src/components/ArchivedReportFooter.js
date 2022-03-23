@@ -53,7 +53,7 @@ const defaultProps = {
 
 const ArchivedReportFooter = (props) => {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    const policyName = lodashGet(props.policies, `policy_${props.report.policyID}.name`);
+    const policyName = lodashGet(props.policies, `${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}.name`);
     let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
     let oldDisplayName;
