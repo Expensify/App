@@ -114,7 +114,7 @@ function getUserDetails() {
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
-            Onyx.set(ONYXKEYS.USER_LOGIN_LIST, loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -179,7 +179,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.set(ONYXKEYS.USER_LOGIN_LIST, loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }

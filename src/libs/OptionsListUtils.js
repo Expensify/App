@@ -26,7 +26,7 @@ Onyx.connect({
 
 let loginList;
 Onyx.connect({
-    key: ONYXKEYS.USER_LOGIN_LIST,
+    key: ONYXKEYS.LOGIN_LIST,
     callback: val => loginList = _.isEmpty(val) ? [] : val,
 });
 

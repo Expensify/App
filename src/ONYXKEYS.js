@@ -72,7 +72,7 @@ export default {
     USER: 'user',
 
     // Contains user login list
-    USER_LOGIN_LIST: 'userLoginList',
+    LOGIN_LIST: 'loginList',
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',

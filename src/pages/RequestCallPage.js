@@ -371,7 +371,7 @@ export default compose(
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         loginList: {
-            key: ONYXKEYS.USER_LOGIN_LIST,
+            key: ONYXKEYS.LOGIN_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
