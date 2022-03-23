@@ -6,7 +6,7 @@ const growlRef = React.createRef();
 const [isGrowlReady, setIsReady] = createOnReadyTask();
 
 /**
- * Show the growl notification. If the ref is not available, retry until it is.
+ * Show the growl notification
  *
  * @param {String} bodyText
  * @param {String} type

@@ -65,7 +65,7 @@ class LogInWithShortLivedTokenPage extends Component {
             return;
         }
 
-        Log.info('[LoginWithShortLivedTokenPage] User signed in');
+        Log.info('[LoginWithShortLivedTokenPage] User is signed in');
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
