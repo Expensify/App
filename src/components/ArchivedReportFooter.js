@@ -56,8 +56,8 @@ const ArchivedReportFooter = (props) => {
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-        const newLogin = props.reportClosedAction.message.newLogin;
-        const oldLogin = props.reportClosedAction.message.oldLogin;
+        const newLogin = props.reportClosedAction.originalMessage.newLogin;
+        const oldLogin = props.reportClosedAction.originalMessage.oldLogin;
         displayName = lodashGet(props.personalDetails, `${newLogin}.displayName`, newLogin);
         oldDisplayName = lodashGet(props.personalDetails, `${oldLogin}.displayName`, oldLogin);
     }
