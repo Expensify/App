@@ -38,7 +38,7 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: personalDetailsPropType.isRequired,
 
-    /** The details about the user that is signed in */
+    /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
 
         /** Phone/Email associated with user */

@@ -36,7 +36,7 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
-    /** The details about the user that is signed in */
+    /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
 
         /** Value of partner name */
