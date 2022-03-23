@@ -191,26 +191,34 @@ class DebitCardPage extends Component {
      * @param {String} inputExpiryDate
      */
     addOrRemoveSlashToExpiryDate(inputExpiryDate) {
-        let expiryDate = inputExpiryDate;
+        this.setState((prevState) => {
+            let expiryDate = inputExpiryDate;
+            const inputKey = 'expirationDate';
 
-        // Backspace was hit/character removed
-        // Remove extra digit when there's a / involved
-        if (inputExpiryDate.length < this.state.expirationDate.length
-          && (((inputExpiryDate.length === 3 && lodashEndsWith(inputExpiryDate, '/'))
-          || (inputExpiryDate.length === 2 && lodashEndsWith(this.state.expirationDate, '/'))))) {
-            expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
-        } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+            // Backspace was hit/character removed
+            // Remove extra digit when there's a / involved
+            if (inputExpiryDate.length < prevState.expirationDate.length
+                && (((inputExpiryDate.length === 3 && lodashEndsWith(inputExpiryDate, '/'))
+                  || (inputExpiryDate.length === 2 && lodashEndsWith(prevState.expirationDate, '/'))))) {
+                expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
+            } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             // Expiry Date(MM)is added so append a slash(/)
-            expiryDate = `${inputExpiryDate}/`;
-        } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+                expiryDate = `${inputExpiryDate}/`;
+            } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
             // Expiry Date with MM and YY without slash, hence adding slash(/)
-            expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
-        }
-        this.clearErrorAndSetValue('expirationDate', expiryDate);
+                expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
+            }
+            return {
+                [inputKey]: expiryDate,
+                errors: {
+                    ...prevState.errors,
+                    [inputKey]: false,
+                },
+            };
+        });
     }
 
     render() {
-        console.log('Current State', this.state.expirationDate);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
