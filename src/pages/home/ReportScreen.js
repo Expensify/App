@@ -171,9 +171,6 @@ class ReportScreen extends React.Component {
         let reportClosedAction;
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-            if (!reportClosedAction) {
-                Log.alert(`No closed action found for archived room w/ reportID ${this.props.route.params.reportID}`);
-            }
         }
 
         return (
