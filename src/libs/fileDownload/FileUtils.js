@@ -13,7 +13,7 @@ function showSuccessAlert() {
         Localize.translateLocal('fileDownload.success.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.success.buttons.ok.text'),
+                text: Localize.translateLocal('fileDownload.success.buttonOkText'),
                 style: 'cancel',
             },
         ],
@@ -30,7 +30,7 @@ function showGeneralErrorAlert() {
         Localize.translateLocal('fileDownload.generalError.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.generalError.buttons.cancel.text'),
+                text: Localize.translateLocal('fileDownload.generalError.buttonCancelText'),
                 style: 'cancel',
             },
         ],
@@ -46,11 +46,11 @@ function showPermissionErrorAlert() {
         Localize.translateLocal('fileDownload.permissionError.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.permissionError.buttons.cancel.text'),
+                text: Localize.translateLocal('fileDownload.permissionError.buttonCancelText'),
                 style: 'cancel',
             },
             {
-                text: Localize.translateLocal('fileDownload.permissionError.buttons.settings.text'),
+                text: Localize.translateLocal('fileDownload.permissionError.buttonSettingsText'),
                 onPress: () => Linking.openSettings(),
             },
         ],
@@ -71,10 +71,9 @@ function getAttachmentName(url) {
 
 /**
  * Returns file type based on the uri
- * @param {String} fileUri
+ * @param {String} fileUrl
  * @returns {String}
  */
-
 function getFileType(fileUrl) {
     if (!fileUrl) {
         return;

@@ -965,32 +965,18 @@ export default {
         success: {
             title: 'Descargado!',
             message: 'Adjunto descargado con éxito',
-            buttons: {
-                ok: {
-                    text: 'OK',
-                },
-            },
+            buttonOkText: 'OK',
         },
         generalError: {
             title: 'Error de archivo adjunto',
             message: 'No se puede descargar el archivo adjunto',
-            buttons: {
-                cancel: {
-                    text: 'Cancelar',
-                },
-            },
+            buttonCancelText: 'Cancelar',
         },
         permissionError: {
             title: 'Acceso necesario',
             message: 'NewExpensify no tiene acceso para guardar archivos adjuntos. Para habilitar el acceso, toque Configuración y permita el acceso.',
-            buttons: {
-                cancel: {
-                    text: 'Cancelar',
-                },
-                settings: {
-                    text: 'Ajustes',
-                },
-            },
+            buttonCancelText: 'Cancelar',
+            buttonSettingsText: 'Ajustes',
         },
     },
 };
