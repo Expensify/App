@@ -1,25 +1,21 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import HttpUtils from './HttpUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ActiveClientManager from './ActiveClientManager';
-import CONST from '../CONST';
-import createCallback from './createCallback';
-import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
+import HttpUtils from '../HttpUtils';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as ActiveClientManager from '../ActiveClientManager';
+import CONST from '../../CONST';
+import createCallback from '../createCallback';
+import * as NetworkRequestQueue from '../actions/NetworkRequestQueue';
+import * as NetworkStore from './NetworkStore';
+import enhanceParameters from './enhanceParameters';
 
-let isReady = false;
 let isOffline = false;
 let isQueuePaused = false;
 let persistedRequestsQueueRunning = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
-
-// This is an optional function that this lib can be configured with (via registerParameterEnhancer())
-// that accepts all request parameters and returns a new copy of them. This allows other code to inject
-// parameters such as authTokens or CSRF tokens, etc.
-let enhanceParameters;
 
 // These handlers must be registered so we can process the request, response, and errors returned from the queue.
 // The first argument passed will be the queuedRequest object and the second will be either the parameters, response, or error.
@@ -39,9 +35,7 @@ const [recheckConnectivity, registerConnectionCheckCallback] = createCallback();
  * @returns {Promise}
  */
 function processRequest(request) {
-    const finalParameters = _.isFunction(enhanceParameters)
-        ? enhanceParameters(request.command, request.data)
-        : request.data;
+    const finalParameters = enhanceParameters(request.command, request.data);
 
     // If request is still in processing after this time, we might be offline
     const timerId = setTimeout(recheckConnectivity, CONST.NETWORK.MAX_PENDING_TIME_MS);
@@ -51,6 +45,14 @@ function processRequest(request) {
         .finally(() => clearTimeout(timerId));
 }
 
+/**
+ * This method will get any persisted requests and fire them off in parallel to retry them.
+ * If we get any jsonCode besides 407 the request is a success. It doesn't make sense to
+ * continually retry things that have returned a response. However, we can retry any requests
+ * with known networking errors like "Failed to fetch".
+ *
+ * @returns {Promise}
+ */
 function processPersistedRequestsQueue() {
     const persistedRequests = NetworkRequestQueue.getPersistedRequests();
 
@@ -61,17 +63,32 @@ function processPersistedRequestsQueue() {
 
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .then((response) => {
-            if (response.jsonCode !== CONST.HTTP_STATUS_CODE.SUCCESS) {
-                throw new Error(`Persisted request failed due to jsonCode: ${response.jsonCode}`);
+            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                getLogger().info('Persisted optimistic request needs authentication');
+            } else {
+                getLogger().info('Persisted optimistic request returned a valid jsonCode. Not retrying.');
             }
-
+            onResponse(request, response);
             NetworkRequestQueue.removeRetryableRequest(request);
         })
         .catch((error) => {
-            const retryCount = NetworkRequestQueue.incrementRetries(request);
-            getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                // Request failed too many times removing from persisted storage
+            // If we are catching a known network error like "Failed to fetch" allow this request to be retried if we have retries left
+            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                const retryCount = NetworkRequestQueue.incrementRetries(request);
+                getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+                if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                    getLogger().info('Request failed too many times removing from storage', false, {retryCount, command: request.command, error: error.message});
+                    NetworkRequestQueue.removeRetryableRequest(request);
+                }
+            } else if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                getLogger().info('Persisted request was cancelled. Not retrying.');
+                onError(request);
+                NetworkRequestQueue.removeRetryableRequest(request);
+            } else {
+                getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error while retrying persisted request. Not retrying.`, {
+                    command: request.command,
+                    error: error.message,
+                });
                 NetworkRequestQueue.removeRetryableRequest(request);
             }
         }));
@@ -124,13 +141,6 @@ Onyx.connect({
 });
 
 /**
- * @param {Boolean} val
- */
-function setIsReady(val) {
-    isReady = val;
-}
-
-/**
  * Checks to see if a request can be made.
  *
  * @param {Object} request
@@ -141,7 +151,7 @@ function setIsReady(val) {
  * @return {Boolean}
  */
 function canMakeRequest(request) {
-    if (!isReady) {
+    if (!NetworkStore.isReady()) {
         onRequestSkipped({command: request.command, type: request.type});
         return false;
     }
@@ -236,27 +246,41 @@ function processNetworkRequestQueue() {
         processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
             .catch((error) => {
+                // Cancelled requests should not be retried
+                if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                    onError(queuedRequest, error);
+                    return;
+                }
+
                 recheckConnectivity();
 
-                // When the request did not reach its destination add it back the queue to be retried
-                const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-                if (shouldRetry && error.name !== CONST.ERROR.REQUEST_CANCELLED) {
-                    const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
-                    getLogger().info('A retrieable request failed', false, {
-                        retryCount,
+                // Retry and request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
+                if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                    // When the request did not reach its destination add it back the queue to be retried if we can
+                    const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+                    if (shouldRetry) {
+                        const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
+                        getLogger().info('A retryable request failed', false, {
+                            retryCount,
+                            command: queuedRequest.command,
+                            error: error.message,
+                        });
+
+                        if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                            networkRequestQueue.push(queuedRequest);
+                            return;
+                        }
+
+                        getLogger().info('Request was retried too many times with no success. No more retries left');
+                    }
+
+                    onError(queuedRequest, error);
+                } else {
+                    getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
                         command: queuedRequest.command,
                         error: error.message,
                     });
-
-                    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                        networkRequestQueue.push(queuedRequest);
-                        return;
-                    }
-
-                    getLogger().info('Request was retried too many times with no success. No more retries left');
                 }
-
-                onError(queuedRequest, error);
             });
     });
 
@@ -338,22 +362,11 @@ function unpauseRequestQueue() {
 }
 
 /**
- * Register a function that will accept all the parameters being sent in a request
- * and will return a new set of parameters to send instead. Useful for adding data to every request
- * like auth or CRSF tokens.
- *
- * @param {Function} callback
- */
-function registerParameterEnhancer(callback) {
-    enhanceParameters = callback;
-}
-
-/**
  * Clear the queue and cancels all pending requests
  * Non-cancellable requests like Log would not be cleared
  */
 function clearRequestQueue() {
-    networkRequestQueue = _.filter(networkRequestQueue, r => !r.data.canCancel);
+    networkRequestQueue = _.filter(networkRequestQueue, request => !request.data.canCancel);
     HttpUtils.cancelPendingRequests();
 }
 
@@ -361,12 +374,10 @@ export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
-    registerParameterEnhancer,
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
     registerRequestHandler,
-    setIsReady,
     registerRequestSkippedHandler,
     registerLogHandler,
     registerConnectionCheckCallback,
