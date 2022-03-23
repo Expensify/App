@@ -1,7 +1,9 @@
 import React from 'react';
 import CONST from '../CONST';
+import createOnReadyTask from './createOnReadyTask';
 
 const growlRef = React.createRef();
+const [isGrowlReady, setIsGrowlReady] = createOnReadyTask();
 
 /**
  * Show the growl notification
@@ -11,7 +13,7 @@ const growlRef = React.createRef();
  * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
-    growlRef.current.show(bodyText, type, duration);
+    isGrowlReady().then(() => growlRef.current.show(bodyText, type, duration));
 }
 
 /**
@@ -42,4 +44,5 @@ export default {
 
 export {
     growlRef,
+    setIsGrowlReady,
 };

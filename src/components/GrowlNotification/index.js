@@ -12,6 +12,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
+import * as Growl from '../../libs/Growl';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
@@ -31,8 +32,8 @@ const types = {
 const INACTIVE_POSITION_Y = -255;
 
 class GrowlNotification extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.state = {
             bodyText: '',
@@ -42,6 +43,10 @@ class GrowlNotification extends Component {
 
         this.show = this.show.bind(this);
         this.fling = this.fling.bind(this);
+    }
+
+    componentDidMount() {
+        Growl.setIsGrowlReady();
     }
 
     /**
