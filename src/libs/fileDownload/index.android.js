@@ -67,7 +67,7 @@ function handleDownload(url, fileName) {
  * Checks permission and downloads the file for Android
  * @param {String} url
  * @param {String} fileName
- * @returns {Promise}
+ * @returns {Promise<Void>}
  */
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {

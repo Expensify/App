@@ -66,7 +66,7 @@ function downloadVideo(fileUrl, fileName) {
  * Download the file based on type(image, video, other file types)for iOS
  * @param {String} fileUrl
  * @param {String} fileName
- * @returns {Promise}
+ * @returns {Promise<Void>}
  */
 export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
