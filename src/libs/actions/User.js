@@ -15,7 +15,6 @@ import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
-import CONFIG from '../../CONFIG';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
