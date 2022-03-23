@@ -1,13 +1,13 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Pressable, ActivityIndicator, StyleSheet,
+    View, Image, Pressable,
 } from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import themeColors from '../../styles/themes/default';
+import LoadingSpinnerOverlay from '../LoadingSpinnerOverlay';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -255,15 +255,7 @@ class ImageView extends PureComponent {
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
-                    {this.state.isLoading && (
-                        <View style={{...StyleSheet.absoluteFillObject}}>
-                            <ActivityIndicator
-                                size="large"
-                                color={themeColors.spinner}
-                                style={[styles.flex1]}
-                            />
-                        </View>
-                    )}
+                    {this.state.isLoading && <LoadingSpinnerOverlay />}
                 </View>
             );
         }
@@ -302,15 +294,7 @@ class ImageView extends PureComponent {
                     />
                 </Pressable>
 
-                {this.state.isLoading && (
-                    <View style={{...StyleSheet.absoluteFillObject}}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.spinner}
-                            style={[styles.flex1]}
-                        />
-                    </View>
-                )}
+                {this.state.isLoading && <LoadingSpinnerOverlay />}
             </View>
         );
     }

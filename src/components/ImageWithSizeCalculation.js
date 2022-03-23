@@ -1,12 +1,10 @@
 import React, {PureComponent} from 'react';
-import {
-    StyleSheet, View, Image, ActivityIndicator,
-} from 'react-native';
+import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
-import themeColors from '../styles/themes/default';
+import LoadingSpinnerOverlay from './LoadingSpinnerOverlay';
 
 const propTypes = {
     /** Url for image to display */
@@ -124,15 +122,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                 />
-                {this.state.isLoading && (
-                    <View style={{...StyleSheet.absoluteFillObject}}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.spinner}
-                            style={[styles.flex1]}
-                        />
-                    </View>
-                )}
+                {this.state.isLoading && <LoadingSpinnerOverlay />}
             </View>
         );
     }

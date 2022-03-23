@@ -12,6 +12,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import themeColors from '../../styles/themes/default';
+import LoadingSpinnerOverlay from '../LoadingSpinnerOverlay';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -135,15 +136,9 @@ class ImageView extends PureComponent {
                     <Image
                         source={{uri: this.props.url}}
                         style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
-                        resizeMode={Image.resizeMode.contain}
+                        resizeMode="contain"
                     />
-                    <View style={{...StyleSheet.absoluteFillObject}}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.spinner}
-                            style={[styles.flex1]}
-                        />
-                    </View>
+                    <LoadingSpinnerOverlay />
                 </View>
             );
         }
@@ -199,7 +194,7 @@ class ImageView extends PureComponent {
                             this.props.style,
                         ]}
                         source={{uri: this.props.url}}
-                        resizeMode={Image.resizeMode.contain}
+                        resizeMode="contain"
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
@@ -218,15 +213,7 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
-                {this.state.isLoading && (
-                    <View style={{...StyleSheet.absoluteFillObject}}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.spinner}
-                            style={[styles.flex1]}
-                        />
-                    </View>
-                )}
+                {this.state.isLoading && <LoadingSpinnerOverlay />}
             </View>
         );
     }
