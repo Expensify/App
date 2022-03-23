@@ -78,7 +78,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             return '';
         }
 
-        return numValue.toFixed(2);
+        return numValue.toFixed(3);
     }
 
     setRate(value) {
@@ -118,13 +118,13 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         }
 
         this.setState({
-            rateValue: numValue.toFixed(2),
+            rateValue: numValue.toFixed(3),
         });
 
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
             name: this.state.rateName,
-            rate: numValue.toFixed(2) * 100,
+            rate: numValue.toFixed(3) * 100,
         }, null);
     }
 
