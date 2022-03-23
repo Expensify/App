@@ -53,10 +53,11 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * Correct tooltipWrapper width according to visible inner text offssetWidth
  *
  * @param {Number}  textWidth - The inner text offsetWidth of Tooltip
+ * @param {Number}  tooltipHorizontalPadding - The horizontal padding set for wrapper tooltip
  *
  * @returns {Number}
  */
-function getCorrectWidth(textWidth) {
+function getCorrectWidth(textWidth, tooltipHorizontalPadding) {
     const maxWidth = variables.sideBarWidth;
     if (textWidth >= maxWidth) {
         return maxWidth;
@@ -64,8 +65,8 @@ function getCorrectWidth(textWidth) {
     const maxWidthDiffTextWidth = maxWidth - textWidth;
 
     // This operation will serve us to avoid adding more width than maxwidth
-    // Get padding of tooltipWrapper and sum the right and left
-    const leftRighPadding = styles.p2.padding * 2;
+    // Get horizontal padding of tooltipWrapper and sum the right and left
+    const leftRighPadding = tooltipHorizontalPadding * 2;
     if (leftRighPadding > maxWidthDiffTextWidth) {
         return textWidth + maxWidthDiffTextWidth;
     }
@@ -117,6 +118,7 @@ export default function getTooltipStyles(
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
+    const tooltipHorizontalPadding = spacing.ph2;
 
     return {
         animationStyle: {
@@ -132,9 +134,9 @@ export default function getTooltipStyles(
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
-            ...spacing.ph2,
+            ...tooltipHorizontalPadding,
             zIndex: variables.tooltipzIndex,
-            maxWidth: getCorrectWidth(tooltipTextWidth),
+            maxWidth: getCorrectWidth(tooltipTextWidth, tooltipHorizontalPadding.paddingHorizontal),
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
