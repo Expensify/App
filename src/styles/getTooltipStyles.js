@@ -50,6 +50,29 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
+ * Correct tooltipWrapper width according to visible inner text offssetWidth
+ *
+ * @param {Number}  textWidth - The inner text offsetWidth of Tooltip
+ *
+ * @returns {Number}
+ */
+function getCorrectWidth(textWidth) {
+    const maxWidth = variables.sideBarWidth;
+    if (textWidth >= maxWidth) {
+        return maxWidth;
+    }
+    const maxWidthDiffTextWidth = maxWidth - textWidth;
+
+    // This operation will serve us to avoid adding more width than maxwidth
+    // Get padding of tooltipWrapper and sum the right and left
+    const leftRighPadding = styles.p2.padding * 2;
+    if (leftRighPadding > maxWidthDiffTextWidth) {
+        return textWidth + maxWidthDiffTextWidth;
+    }
+    return textWidth + leftRighPadding;
+}
+
+/**
  * Generate styles for the tooltip component.
  *
  * @param {Number} currentSize - The current size of the tooltip used in the scaling animation.
@@ -111,7 +134,7 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            maxWidth: tooltipTextWidth,
+            maxWidth: getCorrectWidth(tooltipTextWidth),
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.

@@ -5,7 +5,6 @@ import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
 import variables from '../../styles/variables';
-import styles from '../../styles/styles';
 
 const propTypes = {
     /** Window width */
@@ -60,33 +59,17 @@ class TooltipRenderedOnPageBody extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            // Set maxWidth as initial so we can get width of word wrapped text
             tooltipTextWidth: variables.sideBarWidth,
         };
 
         this.textRef = null;
-        this.getCorrectWidth = this.getCorrectWidth.bind(this);
     }
 
     componentDidMount() {
         this.setState({
-            tooltipTextWidth: this.getCorrectWidth(this.textRef.offsetWidth),
+            tooltipTextWidth: this.textRef.offsetWidth,
         });
-    }
-
-    getCorrectWidth(textWidth) {
-        const maxWidth = variables.sideBarWidth;
-        if (textWidth >= maxWidth) {
-            return maxWidth;
-        }
-        const maxWidthDiffTextWidth = maxWidth - textWidth;
-
-        // This operation will serve us to avoid adding more width than maxwidth
-        // Get padding of tooltipWrapper and sum the right and left
-        const leftRighPadding = styles.p2.padding * 2;
-        if (leftRighPadding > maxWidthDiffTextWidth) {
-            return textWidth + maxWidthDiffTextWidth;
-        }
-        return textWidth + leftRighPadding;
     }
 
     render() {
