@@ -9,27 +9,33 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
+import Log from '../Log';
 
 /**
+ * Gets the IOU Reports for new transaction
+ *
  * @param {Object[]} requestParams
  * @param {Number} requestParams.reportID the ID of the IOU report
  * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
- * @returns {Promise}
- * Gets the IOU Reports for new transaction
  */
 function getIOUReportsForNewTransaction(requestParams) {
-    return API.Get({
+    API.Get({
         returnValueList: 'reportStuff',
         reportIDList: _.pluck(requestParams, 'reportID').join(','),
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then(({reports}) => {
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
+            }
+
             const chatReportsToUpdate = {};
             const iouReportsToUpdate = {};
 
-            _.each(reports, (reportData) => {
-                // First, the existing chat report needs updated with the details about the new IOU
+            _.each(response.reports, (reportData) => {
+                // First, the existing chat report needs to be updated with the details about the new IOU
                 const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
                 if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
                     const chatReportID = paramsForIOUReport.chatReportID;
@@ -41,38 +47,60 @@ function getIOUReportsForNewTransaction(requestParams) {
                         hasOutstandingIOU: true,
                     };
 
-                    // Second, the IOU report needs updated with the new IOU details too
+                    // Second, the IOU report needs to be updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
                     iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
                 }
             });
 
-            // Now, merge the updated objects into our store
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
 /**
- *  Returns IOU Transaction Error Messages
- * @param {Object} error
+ * Returns IOU Transaction Error Messages
+ *
+ * @param {Object} response
+ * @returns {String}
  */
-
-function getIOUErrorMessage(error) {
-    if (error && error.jsonCode) {
-        if (error.jsonCode === 405) {
+function getIOUErrorMessage(response) {
+    if (response && response.jsonCode) {
+        if (response.jsonCode === 405) {
             return Localize.translateLocal('common.error.invalidAmount');
-        } if (error.jsonCode === 404) {
+        }
+
+        if (response.jsonCode === 404) {
             return Localize.translateLocal('iou.error.invalidSplit');
+        }
+
+        if (response.jsonCode === 402) {
+            return Localize.translateLocal('common.error.phoneNumber');
         }
     }
     return Localize.translateLocal('iou.error.other');
 }
 
 /**
+ * @param {Object} response
+ */
+function processIOUErrorResponse(response) {
+    Onyx.merge(ONYXKEYS.IOU, {
+        loading: false,
+        creatingIOUTransaction: false,
+        error: true,
+    });
+    Growl.error(getIOUErrorMessage(response));
+}
+
+function startLoadingAndResetError() {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+}
+
+/**
  * Creates IOUSplit Transaction
+ *
  * @param {Object} params
  * @param {Number} params.amount
  * @param {String} params.comment
@@ -80,24 +108,22 @@ function getIOUErrorMessage(error) {
  * @param {String} params.debtorEmail
  */
 function createIOUTransaction(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    startLoadingAndResetError();
     API.CreateIOUTransaction(params)
-        .then((data) => {
-            getIOUReportsForNewTransaction([data]);
-            Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                loading: false,
-                creatingIOUTransaction: false,
-                error: true,
-            });
-            Growl.error(getIOUErrorMessage(error));
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                processIOUErrorResponse(response);
+                return;
+            }
+
+            getIOUReportsForNewTransaction([response]);
+            Navigation.navigate(ROUTES.getReportRoute(response.chatReportID));
         });
 }
 
 /**
  * Creates IOUSplit Transaction
+ *
  * @param {Object} params
  * @param {Array} params.splits
  * @param {String} params.comment
@@ -105,21 +131,26 @@ function createIOUTransaction(params) {
  * @param {String} params.currency
  */
 function createIOUSplit(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    startLoadingAndResetError();
 
     let chatReportID;
     API.CreateChatReport({
         emailList: _.map(params.splits, participant => participant.email).join(','),
     })
-        .then((data) => {
-            chatReportID = data.reportID;
+        .then((response) => {
+            chatReportID = response.reportID;
             return API.CreateIOUSplit({
                 ...params,
                 splits: JSON.stringify(params.splits),
-                reportID: data.reportID,
+                reportID: response.reportID,
             });
         })
-        .then((data) => {
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                processIOUErrorResponse(response);
+                return;
+            }
+
             // This data needs to go from this:
             // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
             // to this:
@@ -127,27 +158,20 @@ function createIOUSplit(params) {
             // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
             // chat reports
             const reportParams = [];
-            for (let i = 0; i < data.reportIDList.length; i++) {
+            for (let i = 0; i < response.reportIDList.length; i++) {
                 reportParams.push({
-                    reportID: data.reportIDList[i],
-                    chatReportID: data.chatReportIDList[i],
+                    reportID: response.reportIDList[i],
+                    chatReportID: response.chatReportIDList[i],
                 });
             }
             getIOUReportsForNewTransaction(reportParams);
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                loading: false,
-                creatingIOUTransaction: false,
-                error: true,
-            });
-            Growl.error(getIOUErrorMessage(error));
         });
 }
 
 /**
  * Creates IOUSplit Transaction for Group DM
+ *
  * @param {Object} params
  * @param {Array} params.splits
  * @param {String} params.comment
@@ -156,14 +180,20 @@ function createIOUSplit(params) {
  * @param {String} params.reportID
  */
 function createIOUSplitGroup(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    startLoadingAndResetError();
 
     API.CreateIOUSplit({
         ...params,
         splits: JSON.stringify(params.splits),
     })
-        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}))
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}));
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false});
+        });
 }
 
 /**
@@ -188,16 +218,16 @@ function rejectTransaction({
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(`${response.code} ${response.message}`);
+                Log.hmmm('Error rejecting transaction', {error: response.error});
+                return;
             }
 
             const chatReport = response.reports[chatReportID];
             const iouReport = response.reports[reportID];
             Report.syncChatAndIOUReports(chatReport, iouReport);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
-            // setting as null deletes the tranactionID
+            // Setting as null deletes the transactionID
             Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
                 [transactionID]: null,
             });
@@ -214,8 +244,6 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
 }
 
 /**
- * @private
- *
  * @param {Number} amount
  * @param {String} submitterPhoneNumber
  * @returns {String}
@@ -226,8 +254,6 @@ function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
 }
 
 /**
- * @private
- *
  * @param {Number} amount
  * @param {String} submitterPayPalMeAddress
  * @param {String} currency
@@ -268,8 +294,7 @@ function payIOUReport({
         ? API.PayWithWallet({reportID, newIOUReportDetails})
         : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
-    // Build the url for the user's platform of choice if they have
-    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    // Build the url for the user's platform of choice if they have selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
@@ -281,26 +306,23 @@ function payIOUReport({
     const promiseWithHandlers = payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                switch (response.message) {
+                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                        break;
+                    case 'This report doesn\'t have reimbursable expenses.':
+                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
+                        break;
+                    default:
+                        Growl.error(response.message, 5000);
+                }
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+                return;
             }
 
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
             Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .catch((error) => {
-            switch (error.message) {
-                // eslint-disable-next-line max-len
-                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                    break;
-                case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                    break;
-                default:
-                    Growl.error(error.message, 5000);
-            }
-            Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {loading: false});

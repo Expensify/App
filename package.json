@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.42-4",
+  "version": "1.1.44-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -90,7 +90,7 @@
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-mime-types": "^2.3.0",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#c5de440706469c3f13e51151b4f57c8c0f00eb03",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#2d42566779884bb445aa59dd48b5bcdff6c0a4e6",
     "react-native-pdf": "^6.2.2",
     "react-native-performance": "^2.0.0",
     "react-native-permissions": "^3.0.1",

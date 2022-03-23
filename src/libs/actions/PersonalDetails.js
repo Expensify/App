@@ -148,6 +148,43 @@ function fetchPersonalDetails() {
 }
 
 /**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ * @param {Object} personalDetail
+ * @param {String} personalDetail.login
+ * @param {String} personalDetail.displayName
+ * @param {String} personalDetail.firstName
+ * @param {String} personalDetail.lastName
+ *
+ * @returns {Object}
+ */
+function extractFirstAndLastNameFromAvailableDetails({
+    login,
+    displayName,
+    firstName,
+    lastName,
+}) {
+    if (firstName || lastName) {
+        return {firstName: firstName || '', lastName: lastName || ''};
+    }
+    if (Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    const firstSpaceIndex = displayName.indexOf(' ');
+    const lastSpaceIndex = displayName.lastIndexOf(' ');
+    if (firstSpaceIndex === -1) {
+        return {firstName: displayName, lastName: ''};
+    }
+
+    return {
+        firstName: displayName.substring(0, firstSpaceIndex).trim(),
+        lastName: displayName.substring(lastSpaceIndex).trim(),
+    };
+}
+
+/**
  * Get personal details from report participants.
  *
  * @param {Object} reports
@@ -308,19 +345,16 @@ function setAvatar(file) {
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
-                const error = new Error();
-                error.jsonCode = response.jsonCode;
-                throw error;
+                setPersonalDetails({avatarUploading: false});
+                if (response.jsonCode === 405 || response.jsonCode === 502) {
+                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                } else {
+                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                }
+                return;
             }
+
             setPersonalDetails({avatar: response.s3url, avatarUploading: false});
-        })
-        .catch((error) => {
-            setPersonalDetails({avatarUploading: false});
-            if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-            } else {
-                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-            }
         });
 }
 
@@ -350,4 +384,5 @@ export {
     fetchLocalCurrency,
     getCurrencyList,
     getMaxCharacterError,
+    extractFirstAndLastNameFromAvailableDetails,
 };

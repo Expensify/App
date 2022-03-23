@@ -111,6 +111,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -359,6 +360,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
     },
 
     ATTACHMENT_PICKER_TYPE: {
@@ -435,11 +437,12 @@ const CONST = {
         },
         ERROR: {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
-            IDENTITY_NOT_FOUND: 'Identity not found',
-            INVALID_SSN: 'Invalid SSN',
-            UNEXPECTED: 'Unexpected error',
             MISSING_FIELD: 'Missing required additional details fields',
-            UNABLE_TO_VERIFY: 'Unable to verify identity',
+            WRONG_ANSWERS: 'Wrong answers',
+            ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
+
+            // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
+            KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
             NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
@@ -448,8 +451,9 @@ const CONST = {
             INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
         STEP: {
-            ONFIDO: 'OnfidoStep',
+            // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
@@ -597,6 +601,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        RATE_VALUE: /^\d+(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
