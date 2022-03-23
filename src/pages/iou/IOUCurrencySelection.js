@@ -81,6 +81,7 @@ class IOUCurrencySelection extends Component {
         this.getSections = this.getSections.bind(this);
         this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.changeSearchValue = this.changeSearchValue.bind(this);
+        this.getlocalizedCurrencySymbol = this.getlocalizedCurrencySymbol.bind(this);
     }
 
     componentDidMount() {
@@ -113,11 +114,25 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         const currencyListKeys = _.keys(this.props.currencyList);
         const currencyOptions = _.map(currencyListKeys, currencyCode => ({
-            text: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+            text: `${currencyCode} - ${this.getlocalizedCurrencySymbol(currencyCode)}`,
             searchText: `${currencyCode} ${this.props.currencyList[currencyCode].symbol}`,
             currencyCode,
         }));
         return currencyOptions;
+    }
+
+    /**
+     * Get localized currency symbol for SO4217 Code
+     * @param {String} currencyCode
+     * @return {String}
+     */
+    getlocalizedCurrencySymbol(currencyCode) {
+        const parts = new Intl.NumberFormat(this.props.preferredLocale, {
+            style: 'currency',
+            currency: currencyCode,
+        }).formatToParts(0);
+        const currencySymbol = _.find(parts, part => part.type === 'currency').value;
+        return currencySymbol;
     }
 
     /**

@@ -31,18 +31,6 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** The currency list constant object from Onyx */
-    currencyList: PropTypes.objectOf(PropTypes.shape({
-        /** Symbol for the currency */
-        symbol: PropTypes.string,
-
-        /** Name of the currency */
-        name: PropTypes.string,
-
-        /** ISO4217 Code for the currency */
-        ISO4217: PropTypes.string,
-    })).isRequired,
-
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
@@ -75,6 +63,8 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
+        this.getlocalizedCurrencySymbol = this.getlocalizedCurrencySymbol.bind(this);
+        this.isCurrencySymbolToLeft = this.isCurrencySymbolToLeft.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -91,6 +81,37 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    /**
+     * Get localized currency symbol for SO4217 Code
+     * @param {String} currencyCode
+     * @return {String}
+     */
+    getlocalizedCurrencySymbol(currencyCode) {
+        const parts = new Intl.NumberFormat(this.props.preferredLocale, {
+            style: 'currency',
+            currency: currencyCode,
+        }).formatToParts(0);
+        const currencySymbol = _.find(parts, part => part.type === 'currency').value;
+        return currencySymbol;
+    }
+
+    /**
+     * Is currency symbol to left
+     * @return {Boolean}
+     */
+    isCurrencySymbolToLeft() {
+        const parts = new Intl.NumberFormat(this.props.preferredLocale, {
+            style: 'currency',
+            currency: this.props.iou.selectedCurrencyCode,
+        }).formatToParts(0);
+
+        // The first element of parts will be type: currency for all currency
+        // Where it starts with symbol and the other will have it at last
+        // If it is not the first, it must be at last
+        const isLeft = parts[0].type === 'currency';
+        return isLeft;
     }
 
     /**
@@ -206,6 +227,7 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
+        const currencySymbol = this.getlocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         return (
             <>
@@ -217,26 +239,49 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
-                    >
-                        <Text style={styles.iouAmountText}>
-                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
-                        </Text>
-                    </TouchableOpacity>
-                    <TextInput
-                        disableKeyboard
-                        autoGrow
-                        hideFocusedState
-                        inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                        textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                        onChangeText={this.updateAmount}
-                        ref={el => this.textInput = el}
-                        value={formattedAmount}
-                        placeholder={this.props.numberFormat(0)}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    />
+                    {this.isCurrencySymbolToLeft() ? (
+                        <>
+                            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                            >
+                                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+                            </TouchableOpacity>
+                            <TextInput
+                                disableKeyboard
+                                autoGrow
+                                hideFocusedState
+                                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                                onChangeText={this.updateAmount}
+                                ref={el => this.textInput = el}
+                                value={formattedAmount}
+                                placeholder={this.props.numberFormat(0)}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <TextInput
+                                disableKeyboard
+                                autoGrow
+                                hideFocusedState
+                                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                                onChangeText={this.updateAmount}
+                                ref={el => this.textInput = el}
+                                value={formattedAmount}
+                                placeholder={this.props.numberFormat(0)}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            />
+                            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                            >
+                                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {canUseTouchScreen()
@@ -266,7 +311,6 @@ IOUAmountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUAmountPage);
