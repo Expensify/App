@@ -5,7 +5,6 @@ import CONST from '../../CONST';
 export default {
     prefixes: [
         'new-expensify://',
-        'expensify-cash://', // DEPRECATED
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',

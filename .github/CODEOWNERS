@@ -1,2 +1,19 @@
 .github/workflows/ @AndrewGable @coleaeason @rafecolton
 * @Expensify/pullerbear
+
+# Performance sensitive and problem areas
+src/pages/home/report/ReportActionsView.js @marcaaron
+src/libs/OptionsListUtils.js @marcaaron
+src/libs/Network.js @marcaaron
+src/libs/actions/Report.js @marcaaron
+src/pages/LogInWithShortLivedTokenPage.js @marcaaron
+src/pages/home/ReportScreen.js @marcaaron
+src/components/InvertedFlatList @marcaaron
+src/components/OptionsList @marcaaron
+src/components/OptionsSelector.js @marcaaron
+src/libs/Navigation/CustomActions.js @marcaaron
+src/libs/Navigation/Navigation.js @marcaaron
+src/libs/Navigation/NavigationRoot.js @marcaaron
+src/libs/NetworkConnection.js @marcaaron
+src/libs/actions/NetworkRequestQueue.js @marcaaron
+src/libs/actions/ReportActions.js @marcaaron

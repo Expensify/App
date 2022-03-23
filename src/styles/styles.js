@@ -813,6 +813,10 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    lh16: {
+        lineHeight: 16,
+    },
+
     formLabel: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
