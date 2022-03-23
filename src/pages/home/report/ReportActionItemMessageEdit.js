@@ -213,11 +213,14 @@ class ReportActionItemMessageEdit extends React.Component {
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
-                    <EmojiPickerButton
-                        isDisabled={shouldDisableEmojiPicker}
-                        onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
-                        onEmojiSelected={this.addEmojiToTextBox}
-                    />
+                    <View style={styles.editChatItemEmojiWrapper}>
+                        <EmojiPickerButton
+                            isDisabled={shouldDisableEmojiPicker}
+                            onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
+                            onEmojiSelected={this.addEmojiToTextBox}
+                        />
+                    </View>
+
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
