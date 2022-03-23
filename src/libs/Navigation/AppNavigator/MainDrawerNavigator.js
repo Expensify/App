@@ -22,15 +22,11 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Are the betas currently loading from the api? */
-    isLoadingBetas: PropTypes.bool,
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
-    isLoadingBetas: true,
 };
 
 /**
