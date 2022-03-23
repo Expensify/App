@@ -111,7 +111,7 @@ export default compose(
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
         walletStatement: {
-            key: ONYXKEYS.WALLET_STATEMENTS,
+            key: ONYXKEYS.WALLET_STATEMENT,
         },
     }),
 )(WalletStatementPage);

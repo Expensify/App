@@ -402,16 +402,16 @@ function joinScreenShare(accessToken, roomName) {
  * @param {String} period YYYYMM format
  */
 function generateStatementPDF(period) {
-    Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {isGenerating: true});
+    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
     API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {[period]: response.filename});
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
         }).finally(() => {
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENTS, {isGenerating: false});
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
         });
 }
 
