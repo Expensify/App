@@ -332,10 +332,13 @@ function invite(logins, welcomeNote, policyID) {
         policyID,
     })
         .then((data) => {
-            // Save the personalDetails for the invited user in Onyx
+            // Save the personalDetails for the invited user in Onyx and fetch the latest policyExpenseChats
             if (data.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
                 Navigation.goBack();
+                if (!_.isEmpty(data.policyExpenseChatIDs)) {
+                    Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
+                }
                 return;
             }
 
