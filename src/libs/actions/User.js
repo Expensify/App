@@ -400,10 +400,11 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
+ * @returns {Promise<Void>}
  */
 function generateStatementPDF(period) {
     Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    API.GetStatementPDF({period})
+    return API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
                 return;

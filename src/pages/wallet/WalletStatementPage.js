@@ -16,6 +16,7 @@ import * as User from '../../libs/actions/User';
 import fileDownload from '../../libs/fileDownload';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
+import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -53,10 +54,20 @@ class WalletStatementPage extends React.Component {
         };
         this.processDownload = this.processDownload.bind(this);
         this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
+        this.generatePDFPromise = null;
     }
 
     componentDidMount() {
-        User.generateStatementPDF(this.yearMonth);
+        this.generatePDFPromise = makeCancellablePromise(User.generateStatementPDF(this.yearMonth));
+    }
+
+    componentWillUnmount() {
+        if (!this.generatePDFPromise) {
+            return;
+        }
+
+        this.generatePDFPromise.cancel();
+        this.generatePDFPromise = null;
     }
 
     processDownload(yearMonth) {
