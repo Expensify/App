@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -156,7 +158,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
@@ -166,6 +167,7 @@ export default {
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
+        copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
@@ -188,6 +190,13 @@ export default {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',

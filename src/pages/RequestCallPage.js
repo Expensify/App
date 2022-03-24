@@ -27,7 +27,7 @@ import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Expensicons from '../components/Icon/Expensicons';
-import LoginUtil from '../libs/LoginUtil';
+import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
@@ -150,7 +150,7 @@ class RequestCallPage extends Component {
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -172,7 +172,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
@@ -313,6 +313,7 @@ class RequestCallPage extends Component {
                         )}
                         <Button
                             success
+                            pressOnEnter
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}

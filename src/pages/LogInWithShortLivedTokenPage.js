@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -49,44 +50,35 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
         const isUserSignedIn = this.props.session && this.props.session.authToken;
         if (!isUserSignedIn) {
+            Log.info('[LoginWithShortLivedTokenPage] User not signed in - signing in with short lived token');
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
-
-        this.signOutIfNeeded(email);
-    }
-
-    componentDidUpdate() {
-        if (!lodashGet(this.props, 'session.authToken', null)) {
-            return;
-        }
-
-        const email = lodashGet(this.props.route.params, 'email', '');
-
-        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
         if (this.signOutIfNeeded(email)) {
             return;
         }
 
+        Log.info('[LoginWithShortLivedTokenPage] User is signed in');
+
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
+            Log.info('[LoginWithShortLivedTokenPage] exitTo is workspace/new - handling new workspace creation in AuthScreens');
             return;
         }
 
-        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-        // of the workspace modal, then they will be routed back to
-        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-        // if they cancel out of the new workspace modal.
+        // In order to navigate to a modal, we first have to dismiss the current modal. Without dismissing the current modal, if the user cancels out of the workspace modal,
+        // then they will be routed back to /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/` if they cancel out of the new workspace modal.
+        Log.info('[LoginWithShortLivedTokenPage] Dismissing LoginWithShortLivedTokenPage and navigating to exitTo');
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
     }
@@ -105,6 +97,7 @@ class LogInWithShortLivedTokenPage extends Component {
             return false;
         }
 
+        Log.info('[LoginWithShortLivedTokenPage] Different user signed in - signing out');
         Session.signOutAndRedirectToSignIn();
         return true;
     }
@@ -120,11 +113,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-
-    // We need to subscribe to the betas so that componentDidUpdate will run,
-    // causing us to exit to the proper page.
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);
