@@ -193,7 +193,6 @@ class DebitCardPage extends Component {
     addOrRemoveSlashToExpiryDate(inputExpiryDate) {
         this.setState((prevState) => {
             let expiryDate = inputExpiryDate;
-            const inputKey = 'expirationDate';
 
             // Backspace was hit/character removed
             // Remove extra digit when there's a / involved
@@ -209,10 +208,10 @@ class DebitCardPage extends Component {
                 expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
             }
             return {
-                [inputKey]: expiryDate,
+                expirationDate: expiryDate,
                 errors: {
                     ...prevState.errors,
-                    [inputKey]: false,
+                    expirationDate: false,
                 },
             };
         });
