@@ -97,10 +97,10 @@ class GrowlNotification extends Component {
                     <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
+                                <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
                                 <Text style={styles.growlNotificationText}>
                                     {this.state.bodyText}
                                 </Text>
-                                <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
                             </View>
                         </TouchableWithoutFeedback>
                     </GrowlNotificationContainer>

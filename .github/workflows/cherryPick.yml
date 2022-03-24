@@ -209,25 +209,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
-      # list of pull requests that were merged between this version tag and another.
-      # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
-      # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
-      - name: Tag staging
-        if: ${{ github.actor != 'OSBotify' }}
-        run: |
-          git checkout staging
-          git pull origin staging
-          git tag ${{ env.NEW_VERSION }}
-
-      # Note: we only run this action if the PR was manually CP'd. Otherwise, the deploy checklist is updated from preDeploy.yml
-      - name: Update StagingDeployCash
-        if: ${{ github.actor != 'OSBotify' }}
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
-
       - name: 'Announces a CP failure in the #announce Slack room'
         uses: 8398a7/action-slack@v3
         if: ${{ failure() }}
