@@ -327,7 +327,7 @@ class ReportActionsView extends React.Component {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
