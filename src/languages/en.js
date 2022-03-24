@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -156,7 +158,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
@@ -166,6 +167,7 @@ export default {
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
+        copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
@@ -188,6 +190,13 @@ export default {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',
@@ -386,7 +395,7 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
-        failedTransfer: 'Failed to transfer balance',
+        failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose Account',
@@ -568,6 +577,12 @@ export default {
         genericError: 'There was an error while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Camera permissions not granted',
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
+        originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
+        documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
+        imageNeedsBetterQuality: 'There\'s an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.',
+        selfieIssue: 'There\'s an issue with your selfie/video. Please upload a new selfie/video in real time.',
+        selfieNotMatching: 'Your selfie/video doesn\'t match your ID. Please upload a new selfie/video where your face can be clearly seen.',
+        selfieNotLive: 'Your selfie/video doesn\'t appear to be a live photo/video. Please upload a live selfie/video.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',

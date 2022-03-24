@@ -215,11 +215,19 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
+        },
+        ARCHIVE_REASON: {
+            DEFAULT: 'default',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_MERGED: 'accountMerged',
+            REMOVED_FROM_POLICY: 'removedFromPolicy',
+            POLICY_DELETED: 'policyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
@@ -244,6 +252,13 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        STATUS: {
+            OPEN: 0,
+            SUBMITTED: 1,
+            CLOSED: 2,
+            APPROVED: 3,
+            REIMBURSED: 4,
         },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
@@ -431,6 +446,7 @@ const CONST = {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
+            ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
@@ -443,8 +459,8 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
-            ONFIDO: 'OnfidoStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
