@@ -248,6 +248,10 @@ class ReportActionCompose extends React.Component {
 
         const caret = this.currentSelection.start + emoji.length;
 
+        InteractionManager.runAfterInteractions(() => {
+            this.textInput.setNativeProps({selection: {start: caret, end: caret}});
+        });
+
         if (this.textInput.setSelectionRange) {
             this.textInput.setSelectionRange(caret, caret);
         }
