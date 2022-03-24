@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
 import Text from '../../Text';
@@ -47,12 +48,12 @@ class BaseAnchorForCommentsOnly extends React.Component {
                             if (this.state.isDownloading) {
                                 return;
                             }
-                            this.processDownload(this.props.href, this.props.fileName);
+                            this.processDownload(this.props.href, this.props.displayName);
                         }}
                     >
                         <AttachmentView
                             sourceURL={this.props.href}
-                            file={{name: this.props.fileName}}
+                            file={{name: this.props.displayName}}
                             shouldShowDownloadIcon
                             shouldShowLoadingSpinnerIcon={this.state.isDownloading}
                         />
@@ -64,7 +65,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
                                 this.props.href,
                                 lodashGet(linkRef, 'current'),
