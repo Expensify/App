@@ -250,6 +250,7 @@ class ReportActionCompose extends React.Component {
 
         InteractionManager.runAfterInteractions(() => {
             this.textInput.setNativeProps({selection: {start: caret, end: caret}});
+            global.requestAnimationFrame(() => this.textInput.setNativeProps({selection: null}));
         });
 
         if (this.textInput.setSelectionRange) {
