@@ -13,10 +13,10 @@ import CONST from '../../CONST';
 function downloadFile(fileUrl, fileName) {
     const dirs = RNFetchBlob.fs.dirs;
 
-    // ios files will download to documents directory
+    // The iOS files will download to documents directory
     const path = dirs.DocumentDir;
 
-    // fetching the attachment
+    // Fetching the attachment
     const fetchedAttachment = RNFetchBlob.config({
         fileCache: true,
         path: `${path}/${fileName}`,

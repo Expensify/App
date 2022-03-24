@@ -7,7 +7,7 @@ import * as FileUtils from './FileUtils';
  * @returns {Promise<Boolean>}
  */
 function hasAndroidPermission() {
-    // read and write permission
+    // Read and write permission
     const writePromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
     const readPromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
 
@@ -16,7 +16,7 @@ function hasAndroidPermission() {
             return true; // return true if permission is already given
         }
 
-        // ask for permission if not given
+        // Ask for permission if not given
         return PermissionsAndroid.requestMultiple([
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
@@ -35,11 +35,11 @@ function handleDownload(url, fileName) {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
-        // android files will download to Download directory
+        // Android files will download to Download directory
         const path = dirs.DownloadDir;
         const attachmentName = fileName || FileUtils.getAttachmentName(url);
 
-        // fetching the attachment
+        // Fetching the attachment
         const fetchedAttachment = RNFetchBlob.config({
             fileCache: true,
             path: `${path}/${attachmentName}`,
@@ -50,7 +50,7 @@ function handleDownload(url, fileName) {
             },
         }).fetch('GET', url);
 
-        // resolving the fetched attachment
+        // Resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
             if (!attachment || !attachment.info()) {
                 return;
