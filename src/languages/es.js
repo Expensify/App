@@ -972,7 +972,7 @@ export default {
         },
         permissionError: {
             title: 'Acceso Restringido',
-            message: 'NewExpensify no tiene acceso para guardar archivos adjuntos. Para habilitar el acceso, click Configuración y permita el acceso.',
+            message: 'NewExpensify no tiene acceso para guardar archivos adjuntos. Para habilitar el acceso, pulse Configuración y permita el acceso.',
         },
     },
 };
