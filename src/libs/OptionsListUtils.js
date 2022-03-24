@@ -219,6 +219,12 @@ function getAvatarSources(report) {
         if (ReportUtils.isArchivedRoom(report)) {
             return Expensicons.DeletedRoomAvatar;
         }
+        if (ReportUtils.isAdminRoom(report)) {
+            return Expensicons.AdminRoomAvatar;
+        }
+        if (ReportUtils.isAnnounceRoom(report)) {
+            return Expensicons.AnnounceRoomAvatar;
+        }
         if (ReportUtils.isChatRoom(report)) {
             return Expensicons.ActiveRoomAvatar;
         }
