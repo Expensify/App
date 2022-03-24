@@ -2,12 +2,14 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as NetworkEvents from './NetworkEvents';
 
 let credentials;
 let authToken;
 let currentUserEmail;
 let networkReady = false;
 let authenticating = false;
+let isOffline = false;
 
 /**
  * @param {Boolean} ready
@@ -40,6 +42,31 @@ Onyx.connect({
         checkRequiredDataAndSetNetworkReady();
     },
 });
+
+// We subscribe to the online/offline status of the network to determine when we should fire off API calls
+// vs queueing them for later.
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+
+        // Client becomes online emit connectivity resumed event
+        if (isOffline && !network.isOffline) {
+            NetworkEvents.triggerConnectivityResumed();
+        }
+
+        isOffline = network.isOffline;
+    },
+});
+
+/**
+ * @returns {Boolean}
+ */
+function getIsOffline() {
+    return isOffline;
+}
 
 /**
  * @returns {String}
@@ -99,4 +126,5 @@ export {
     setIsReady,
     setIsAuthenticating,
     isAuthenticating,
+    getIsOffline,
 };

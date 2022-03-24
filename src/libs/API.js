@@ -12,7 +12,7 @@ import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
-
+import * as NetworkEvents from './Network/NetworkEvents';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -48,9 +48,9 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
-Network.registerLogHandler(() => Log);
+NetworkEvents.registerLogHandler(() => Log);
 
-Network.registerRequestHandler((queuedRequest, finalParameters) => {
+NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
     if (queuedRequest.command === 'Log') {
         return;
     }
@@ -63,11 +63,11 @@ Network.registerRequestHandler((queuedRequest, finalParameters) => {
     });
 });
 
-Network.registerRequestSkippedHandler((parameters) => {
+NetworkEvents.registerRequestSkippedHandler((parameters) => {
     Log.hmmm('Trying to make a request when Network is not ready', parameters);
 });
 
-Network.registerResponseHandler((queuedRequest, response) => {
+NetworkEvents.registerResponseHandler((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -110,7 +110,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
     queuedRequest.resolve(response);
 });
 
-Network.registerErrorHandler((queuedRequest, error) => {
+NetworkEvents.registerErrorHandler((queuedRequest, error) => {
     if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
         Log.info('[API] request canceled', false, queuedRequest);
         return;
