@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, TouchableOpacity, Dimensions} from 'react-native';
+import {
+    View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
@@ -197,6 +199,10 @@ class BasePaymentsPage extends React.Component {
 
     hidePasswordPrompt() {
         this.setState({shouldShowPasswordPrompt: false});
+
+        // Due to iOS modal freeze issue, password modal freezes the app when closed.
+        // LayoutAnimation undoes the running animation.
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
     makeDefaultPaymentMethod(password) {
@@ -308,15 +314,25 @@ class BasePaymentsPage extends React.Component {
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                    disabled
+                                    interactive={false}
                                 />
                             )}
                             {Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
-                                            shouldShowPasswordPrompt: true,
                                             shouldShowDefaultDeleteMenu: false,
-                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                        });
+
+                                        // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
+                                        // InteractionManager fires after the currently running animation is completed.
+                                        // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
+                                        InteractionManager.runAfterInteractions(() => {
+                                            this.setState({
+                                                shouldShowPasswordPrompt: true,
+                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                            });
                                         });
                                     }}
                                     style={[styles.button, styles.alignSelfCenter, styles.w100]}
@@ -330,7 +346,11 @@ class BasePaymentsPage extends React.Component {
                                 onPress={() => {
                                     this.setState({
                                         shouldShowDefaultDeleteMenu: false,
-                                        shouldShowConfirmPopover: true,
+                                    });
+                                    InteractionManager.runAfterInteractions(() => {
+                                        this.setState({
+                                            shouldShowConfirmPopover: true,
+                                        });
                                     });
                                 }}
                                 style={[
@@ -362,7 +382,7 @@ class BasePaymentsPage extends React.Component {
                         isDangerousAction
                     />
                     <ConfirmPopover
-                        contentStyles={[!this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}
+                        contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
                         isVisible={this.state.shouldShowConfirmPopover}
                         title={this.props.translate('paymentsPage.deleteAccount')}
                         prompt={this.props.translate('paymentsPage.deleteConfirmation')}

@@ -20,6 +20,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
+import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
@@ -121,9 +122,19 @@ function getUnreadActionCount(report) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs}) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
-    return (ReportUtils.isChatRoom(reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) ? emailArray : _.without(emailArray, currentUserEmail);
+    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
+        return emailArray;
+    }
+    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
+        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
+        return [ownerEmail, ...emailArray];
+    }
+
+    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
+    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
+    return _.without(emailArray, currentUserEmail);
 }
 
 /**
@@ -146,7 +157,7 @@ function getChatReportName(fullReport, chatType) {
 
     // For a basic policy room or a Policy Expense chat, return its original name
     if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
-        return fullReport.reportName;
+        return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
     }
 
     const {sharedReportList} = fullReport;
@@ -204,7 +215,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName,
         chatType,
-        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
+        ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
@@ -702,6 +713,46 @@ function getReportChannelName(reportID) {
 }
 
 /**
+ * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
+ *
+ * @param {String} eventName
+ * @param {Function} onEvent
+ * @param {Boolean} isChunked
+ */
+function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    /**
+     * @param {Object} pushJSON
+     */
+    function logPusherEvent(pushJSON) {
+        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
+    }
+
+    function onPusherResubscribeToPrivateUserChannel() {
+        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
+    }
+
+    /**
+     * @param {*} pushJSON
+     */
+    function onEventPush(pushJSON) {
+        logPusherEvent(pushJSON);
+        onEvent(pushJSON);
+    }
+
+    /**
+     * @param {*} error
+     */
+    function onSubscriptionFailed(error) {
+        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+    }
+
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+        .catch(onSubscriptionFailed);
+}
+
+/**
  * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
 function subscribeToUserEvents() {
@@ -716,100 +767,23 @@ function subscribeToUserEvents() {
     }
 
     // Live-update a report's actions when a 'report comment' event is received.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, false, {reportID: pushJSON.reportID},
-        );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
-    }, false,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
-            );
-        });
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_CHUNK, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_CHUNK} event sent by Pusher`, false, {reportID: pushJSON.reportID},
-        );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
-    }, true,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_CHUNK},
-            );
-        });
+    subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_CHUNK,
+        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+        true,
+    );
 
     // Live-update a report's actions when an 'edit comment' event is received.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, false, {
-                reportActionID: pushJSON.reportActionID,
-            },
-        );
-        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
-    }, false,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
-            );
-        });
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK} event sent by Pusher`, false, {
-                reportActionID: pushJSON.reportActionID,
-            },
-        );
-        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
-    }, true,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK},
-            );
-        });
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
-            false,
-            {reportID: pushJSON.reportID},
-        );
-        updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
-    }, false,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
-            );
-        });
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED, pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
 }
 
 /**

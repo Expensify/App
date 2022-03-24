@@ -179,13 +179,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
-    if (response.jsonCode === 405 || response.jsonCode === 404) {
-        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
-        // It's a failure, so reject the queued request
-        queuedRequest.reject(response);
-        return;
-    }
-
+    // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
 });
 
@@ -334,33 +328,6 @@ function reauthenticate(command = '') {
 }
 
 /**
- * Calls the command=Authenticate API with an accountID, validateCode, and optional 2FA code. This is used specifically
- * for sharing sessions between e.com and this app. It will return an authToken that is used for initiating a session
- * in this app. This API call doesn't have any special handling (like retries or special error handling).
- *
- * @param {Object} parameters
- * @param {String} parameters.accountID
- * @param {String} parameters.validateCode
- * @param {String} [parameters.twoFactorAuthCode]
- * @returns {Promise<unknown>}
- */
-function AuthenticateWithAccountID(parameters) {
-    const commandName = 'Authenticate';
-
-    requireParameters([
-        'accountID',
-        'validateCode',
-    ], parameters, commandName);
-
-    return Network.post(commandName, {
-        accountID: parameters.accountID,
-        validateCode: parameters.validateCode,
-        twoFactorAuthCode: parameters.twoFactorAuthCode,
-        shouldRetry: false,
-    });
-}
-
-/**
  * @param {Object} parameters
  * @returns {Promise}
  */
@@ -368,7 +335,6 @@ function AddBillingCard(parameters) {
     const commandName = 'User_AddBillingCard';
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
-
 
 /**
  * @param {{password: String, oldPassword: String}} parameters
@@ -899,14 +865,20 @@ function CreateIOUSplit(parameters) {
 }
 
 /**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} dob
  * @returns {Promise}
  */
-function Wallet_GetOnfidoSDKToken() {
+function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
     return Network.post('Wallet_GetOnfidoSDKToken', {
         // We need to pass this so we can request a token with the correct referrer
         // This value comes from a cross-platform module which returns true for native
         // platforms and false for non-native platforms.
         isViaExpensifyCashNative,
+        firstName,
+        lastName,
+        dob,
     }, CONST.NETWORK.METHOD.POST, true);
 }
 
@@ -922,6 +894,7 @@ function Plaid_GetLinkToken() {
  * @param {String} parameters.currentStep
  * @param {String} [parameters.onfidoData] - JSON string
  * @param {String} [parameters.personalDetails] - JSON string
+ * @param {String} [parameters.idologyAnswers] - JSON string
  * @param {Boolean} [parameters.hasAcceptedTerms]
  * @returns {Promise}
  */
@@ -1247,7 +1220,6 @@ function GetStatementPDF(parameters) {
 
 export {
     Authenticate,
-    AuthenticateWithAccountID,
     AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,

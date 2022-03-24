@@ -273,7 +273,6 @@ class BankAccount {
         }, this.getAdditionalData());
     }
 
-
     /**
      * Check if user hasn't upgraded their bank account yet.
      * @return {Boolean}

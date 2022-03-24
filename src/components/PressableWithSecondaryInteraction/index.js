@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
+import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import SelectionScraper from '../../libs/SelectionScraper';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
@@ -11,7 +12,7 @@ import styles from '../../styles/styles';
 class PressableWithSecondaryInteraction extends Component {
     constructor(props) {
         super(props);
-
+        this.callSecondaryInteractionWithMappedEvent = this.callSecondaryInteractionWithMappedEvent.bind(this);
         this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
     }
 
@@ -24,6 +25,27 @@ class PressableWithSecondaryInteraction extends Component {
 
     componentWillUnmount() {
         this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
+    }
+
+    /**
+     * @param {Object} e
+     */
+    callSecondaryInteractionWithMappedEvent(e) {
+        if (e.nativeEvent.state !== State.ACTIVE) {
+            return;
+        }
+
+        // Map gesture event to normal Responder event
+        const {
+            absoluteX, absoluteY, locationX, locationY,
+        } = e.nativeEvent;
+        const mapEvent = {
+            ...e,
+            nativeEvent: {
+                ...e.nativeEvent, pageX: absoluteX, pageY: absoluteY, x: locationX, y: locationY,
+            },
+        };
+        this.props.onSecondaryInteraction(mapEvent);
     }
 
     /**
@@ -44,18 +66,19 @@ class PressableWithSecondaryInteraction extends Component {
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
-            <Pressable
-                style={this.props.inline && styles.dInline}
-                onPressIn={this.props.onPressIn}
-                onLongPress={this.props.onSecondaryInteraction}
-                onPressOut={this.props.onPressOut}
-                onPress={this.props.onPress}
-                ref={el => this.pressableRef = el}
+            <LongPressGestureHandler onHandlerStateChange={this.callSecondaryInteractionWithMappedEvent}>
+                <Pressable
+                    style={this.props.inline && styles.dInline}
+                    onPressIn={this.props.onPressIn}
+                    onPressOut={this.props.onPressOut}
+                    onPress={this.props.onPress}
+                    ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultPressableProps}
-            >
-                {this.props.children}
-            </Pressable>
+                    {...defaultPressableProps}
+                >
+                    {this.props.children}
+                </Pressable>
+            </LongPressGestureHandler>
         );
     }
 }

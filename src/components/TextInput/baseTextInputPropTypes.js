@@ -57,7 +57,6 @@ const propTypes = {
     prefixCharacter: PropTypes.string,
 
     /** Form props */
-
     /** Indicates that the input is being used with the Form component */
     isFormInput: PropTypes.bool,
 

@@ -111,6 +111,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -134,7 +135,7 @@ const CONST = {
         WEB: 'web',
         DESKTOP: 'desktop',
     },
-    KEYBOARD_SHORTCUT_MODIFIERS: {
+    PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
@@ -176,8 +177,9 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
-        CONTROL: 'Ctrl',
-        META: 'Cmd',
+        CONTROL: 'CTRL',
+        ESCAPE: 'ESC',
+        META: 'CMD',
         SHIFT: 'Shift',
     },
     CURRENCY: {
@@ -213,11 +215,19 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
+        },
+        ARCHIVE_REASON: {
+            DEFAULT: 'default',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_MERGED: 'accountMerged',
+            REMOVED_FROM_POLICY: 'removedFromPolicy',
+            POLICY_DELETED: 'policyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
@@ -242,6 +252,13 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        STATUS: {
+            OPEN: 0,
+            SUBMITTED: 1,
+            CLOSED: 2,
+            APPROVED: 3,
+            REIMBURSED: 4,
         },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
@@ -358,6 +375,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
     },
 
     ATTACHMENT_PICKER_TYPE: {
@@ -427,15 +445,23 @@ const CONST = {
         },
         ERROR: {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
-            IDENTITY_NOT_FOUND: 'Identity not found',
-            INVALID_SSN: 'Invalid SSN',
-            UNEXPECTED: 'Unexpected error',
             MISSING_FIELD: 'Missing required additional details fields',
-            UNABLE_TO_VERIFY: 'Unable to verify identity',
+            WRONG_ANSWERS: 'Wrong answers',
+            ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
+
+            // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
+            KBA_NEEDED: 'KBA needed',
+            NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
+            INVALID_WALLET: '405 Invalid wallet account',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
+            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
+            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
+            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
         STEP: {
-            ONFIDO: 'OnfidoStep',
+            // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
@@ -583,6 +609,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        RATE_VALUE: /^\d+(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

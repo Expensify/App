@@ -206,18 +206,6 @@ function hasReportDraftComment(report) {
 }
 
 /**
- * @param {Object} report
- * @returns {Array<String>}
- */
-function getParticipants(report) {
-    const participants = [...lodashGet(report, ['participants'], [])];
-    if (ReportUtils.isPolicyExpenseChat(report) && !_.contains(participants, report.ownerEmail)) {
-        participants.push(report.ownerEmail);
-    }
-    return participants;
-}
-
-/**
  * Get the Avatar urls or return the icon according to the chat type
  *
  * @param {Object} report
@@ -230,6 +218,12 @@ function getAvatarSources(report) {
         }
         if (ReportUtils.isArchivedRoom(report)) {
             return Expensicons.DeletedRoomAvatar;
+        }
+        if (ReportUtils.isAdminRoom(report)) {
+            return Expensicons.AdminRoomAvatar;
+        }
+        if (ReportUtils.isAnnounceRoom(report)) {
+            return Expensicons.AnnounceRoomAvatar;
         }
         if (ReportUtils.isChatRoom(report)) {
             return Expensicons.ActiveRoomAvatar;
@@ -273,8 +267,9 @@ function createOption(personalDetailList, report, {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    const tooltipText = ReportUtils.getReportParticipantsTitle(getParticipants(report));
+    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    let icons = getAvatarSources(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -290,11 +285,15 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        if (!report) {
+            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
+            icons = [personalDetail.avatar];
+        }
     }
     return {
         text,
         alternateText,
-        icons: getAvatarSources(report),
+        icons,
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
@@ -433,7 +432,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const logins = getParticipants(report);
+        const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
@@ -473,8 +472,9 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later.
-        if (logins.length <= 1) {
+        // personal detail option later. Individuals should not be associated with single participant
+        // policyExpenseChats or chatRooms since those are not people.
+        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
