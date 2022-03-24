@@ -138,7 +138,7 @@ function processNetworkRequestQueue() {
 
                 // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
                 if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                    if (retryFailedRequest()) {
+                    if (retryFailedRequest(queuedRequest, error)) {
                         return;
                     }
 
