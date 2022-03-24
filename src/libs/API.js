@@ -13,7 +13,6 @@ import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndErr
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
 
-let isAuthenticating;
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -27,13 +26,12 @@ let isAuthenticating;
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
-    if (isAuthenticating) {
+    if (NetworkStore.isAuthenticating()) {
         return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
+    NetworkStore.setIsAuthenticating(true);
 
     // eslint-disable-next-line no-use-before-define
     return reauthenticate(originalCommand)
@@ -233,14 +231,12 @@ function reauthenticate(command = '') {
 
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
+            NetworkStore.setIsAuthenticating(false);
         })
 
         .catch((error) => {
             // If authentication fails, then the network can be unpaused
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
+            NetworkStore.setIsAuthenticating(false);
 
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will

@@ -11,7 +11,6 @@ import * as NetworkStore from './NetworkStore';
 import enhanceParameters from './enhanceParameters';
 
 let isOffline = false;
-let isQueuePaused = false;
 let persistedRequestsQueueRunning = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -161,8 +160,8 @@ function canMakeRequest(request) {
         return true;
     }
 
-    // If the queue is paused we will not make the request right now
-    return !isQueuePaused;
+    // If we are authenticating we will not make the request right now
+    return !NetworkStore.isAuthenticating();
 }
 
 /**
@@ -179,7 +178,7 @@ function canMakeRequest(request) {
  */
 function canRetryRequest(request) {
     const shouldRetry = lodashGet(request, 'data.shouldRetry');
-    const logParams = {command: request.command, shouldRetry, isQueuePaused};
+    const logParams = {command: request.command, shouldRetry, isAuthenticating: NetworkStore.isAuthenticating()};
     const returnValueList = lodashGet(request, 'data.returnValueList');
     if (returnValueList) {
         logParams.returnValueList = returnValueList;
@@ -348,20 +347,6 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
 }
 
 /**
- * Prevent the network queue from being processed
- */
-function pauseRequestQueue() {
-    isQueuePaused = true;
-}
-
-/**
- * Allow the network queue to continue to be processed
- */
-function unpauseRequestQueue() {
-    isQueuePaused = false;
-}
-
-/**
  * Clear the queue and cancels all pending requests
  * Non-cancellable requests like Log would not be cleared
  */
@@ -372,8 +357,6 @@ function clearRequestQueue() {
 
 export {
     post,
-    pauseRequestQueue,
-    unpauseRequestQueue,
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,

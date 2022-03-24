@@ -7,6 +7,7 @@ let credentials;
 let authToken;
 let currentUserEmail;
 let networkReady = false;
+let authenticating = false;
 
 /**
  * @param {Boolean} ready
@@ -75,6 +76,20 @@ function isReady() {
     return networkReady;
 }
 
+/**
+ * @param {Boolean} value
+ */
+function setIsAuthenticating(value) {
+    authenticating = value;
+}
+
+/**
+ * @returns {Boolean}
+ */
+function isAuthenticating() {
+    return authenticating;
+}
+
 export {
     getAuthToken,
     setAuthToken,
@@ -82,4 +97,6 @@ export {
     getCurrentUserEmail,
     isReady,
     setIsReady,
+    setIsAuthenticating,
+    isAuthenticating,
 };
