@@ -33,7 +33,6 @@ const propTypes = {
     walletStatement: PropTypes.shape({
         /** Whether the PDF file available for download or not */
         isGenerating: PropTypes.bool,
-
     }),
 
     ...withLocalizePropTypes,
