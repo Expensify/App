@@ -7,23 +7,23 @@ import * as NetworkEvents from './NetworkEvents';
 let credentials;
 let authToken;
 let currentUserEmail;
-let networkReady = false;
+let requiredDataAvailable = false;
 let authenticating = false;
 let isOffline = false;
 
 /**
- * @param {Boolean} ready
+ * @param {Boolean} val
  */
-function setIsReady(ready) {
-    networkReady = ready;
+function setIsRequiredDataAvailable(val) {
+    requiredDataAvailable = val;
 }
 
-function checkRequiredDataAndSetNetworkReady() {
+function checkRequiredData() {
     if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
         return;
     }
 
-    setIsReady(true);
+    setIsRequiredDataAvailable(true);
 }
 
 Onyx.connect({
@@ -31,7 +31,7 @@ Onyx.connect({
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
         currentUserEmail = lodashGet(val, 'email', null);
-        checkRequiredDataAndSetNetworkReady();
+        checkRequiredData();
     },
 });
 
@@ -39,7 +39,7 @@ Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
         credentials = val || null;
-        checkRequiredDataAndSetNetworkReady();
+        checkRequiredData();
     },
 });
 
@@ -99,8 +99,8 @@ function getCurrentUserEmail() {
 /**
  * @returns {Boolean}
  */
-function isReady() {
-    return networkReady;
+function isRequiredDataAvailable() {
+    return requiredDataAvailable;
 }
 
 /**
@@ -122,8 +122,8 @@ export {
     setAuthToken,
     getCredentials,
     getCurrentUserEmail,
-    isReady,
-    setIsReady,
+    isRequiredDataAvailable,
+    setIsRequiredDataAvailable,
     setIsAuthenticating,
     isAuthenticating,
     getIsOffline,

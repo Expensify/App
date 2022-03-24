@@ -3,7 +3,8 @@ import lodashGet from 'lodash/get';
 import HttpUtils from '../HttpUtils';
 import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
-import * as NetworkRequestQueue from '../actions/NetworkRequestQueue';
+import * as PersistedRequests from '../actions/PersistedRequests';
+import RetryCounter from './RetryCounter';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as PersistedRequestsQueue from './PersistedRequestsQueue';
@@ -11,6 +12,8 @@ import processRequest from './processRequest';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
+
+const mainQueueRetryCounter = new RetryCounter();
 
 /**
  * Checks to see if a request can be made.
@@ -23,74 +26,49 @@ let networkRequestQueue = [];
  * @return {Boolean}
  */
 function canMakeRequest(request) {
-    if (!NetworkStore.isReady()) {
-        NetworkEvents.onRequestSkipped({command: request.command, type: request.type});
+    // We must attempt to read authToken and credentials from storage before allowing any requests to happen so that any requests that
+    // require authToken or trigger reauthentication will succeed.
+    if (!NetworkStore.isRequiredDataAvailable()) {
         return false;
     }
 
-    // These requests are always made even when the queue is paused
-    if (request.data.forceNetworkRequest === true) {
-        return true;
-    }
-
-    // If we are authenticating we will not make the request right now
-    return !NetworkStore.isAuthenticating();
+    // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
+    // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
+    return request.data.forceNetworkRequest === true || !NetworkStore.isAuthenticating();
 }
 
 /**
- * Checks to see if a request should be retried when the queue is "paused" and logs the command name + returnValueList
- * to give us some limited debugging info. We don't want to log the entire request since this could lead to
- * unintentional sharing of sensitive information.
- *
- * @param {Object} request
- * @param {String} request.command
- * @param {Object} request.data
- * @param {Boolean} request.data.shouldRetry
- * @param {String} [request.data.returnValueList]
- * @return {Boolean}
+ * While we are offline any requests that can be persisted are removed from the main network request queue and moved to a separate map + saved to storage.
  */
-function canRetryRequest(request) {
-    const shouldRetry = lodashGet(request, 'data.shouldRetry');
-    const logParams = {command: request.command, shouldRetry, isAuthenticating: NetworkStore.isAuthenticating()};
-    const returnValueList = lodashGet(request, 'data.returnValueList');
-    if (returnValueList) {
-        logParams.returnValueList = returnValueList;
+function removeAllPersistableRequestsFromMainQueue() {
+    // We filter persisted requests from the normal queue so they can be processed separately
+    const [networkRequestQueueWithoutPersistedRequests, requestsToPersist] = _.partition(networkRequestQueue, (request) => {
+        const shouldRetry = lodashGet(request, 'data.shouldRetry');
+        const shouldPersist = lodashGet(request, 'data.persist');
+        return !shouldRetry || !shouldPersist;
+    });
+
+    networkRequestQueue = networkRequestQueueWithoutPersistedRequests;
+
+    if (!requestsToPersist.length) {
+        return;
     }
 
-    if (!shouldRetry) {
-        console.debug('Skipping request that should not be re-tried: ', logParams);
-    } else {
-        console.debug('Skipping request and re-queueing: ', logParams);
-    }
-
-    return shouldRetry;
+    // Remove any functions as they are not serializable and cannot be stored to disk
+    const requestsToPersistWithoutFunctions = _.map(requestsToPersist, request => _.omit(request, val => _.isFunction(val)));
+    PersistedRequests.save(requestsToPersistWithoutFunctions);
 }
 
 /**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
-    // NetInfo tells us whether the app is offline
     if (NetworkStore.getIsOffline()) {
         if (!networkRequestQueue.length) {
             return;
         }
-        const retryableRequests = [];
 
-        // If we have a request then we need to check if it can be persisted in case we close the tab while offline.
-        // We filter persisted requests from the normal Queue to remove duplicates
-        networkRequestQueue = _.reject(networkRequestQueue, (request) => {
-            const shouldRetry = lodashGet(request, 'data.shouldRetry');
-            if (shouldRetry && request.data.persist) {
-                // exclude functions as they cannot be persisted
-                const requestToPersist = _.omit(request, val => _.isFunction(val));
-                retryableRequests.push(requestToPersist);
-                return true;
-            }
-        });
-        if (retryableRequests.length) {
-            NetworkRequestQueue.saveRetryableRequests(retryableRequests);
-        }
+        removeAllPersistableRequestsFromMainQueue();
         return;
     }
 
@@ -100,17 +78,19 @@ function processNetworkRequestQueue() {
     }
 
     // Some requests should be retried and will end up here if the following conditions are met:
-    // - the queue is paused
-    // - the request does not have forceNetworkRequest === true
-    // - the request does not have shouldRetry === false
+    // - we are in the process of authenticating and the request is retryable (most are)
+    // - the request does not have forceNetworkRequest === true (this will trigger it to process immediately)
+    // - the request does not have shouldRetry === false (specified when we do not want to retry, defaults to true)
     const requestsToProcessOnNextRun = [];
 
     _.each(networkRequestQueue, (queuedRequest) => {
-        // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
-        // that pauses the network queue while authentication happens, then unpauses it when it's done.
+        // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
         if (!canMakeRequest(queuedRequest)) {
-            if (canRetryRequest(queuedRequest)) {
+            const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+            if (shouldRetry) {
                 requestsToProcessOnNextRun.push(queuedRequest);
+            } else {
+                console.debug('Skipping request that should not be re-tried: ', {command: queuedRequest.command});
             }
             return;
         }
@@ -118,12 +98,13 @@ function processNetworkRequestQueue() {
         processRequest(queuedRequest)
             .then(response => NetworkEvents.onResponse(queuedRequest, response))
             .catch((error) => {
-                // Cancelled requests should not be retried
+                // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here.
                 if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                     NetworkEvents.onError(queuedRequest, error);
                     return;
                 }
 
+                // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
 
                 // Retry and request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
@@ -131,7 +112,7 @@ function processNetworkRequestQueue() {
                     // When the request did not reach its destination add it back the queue to be retried if we can
                     const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
                     if (shouldRetry) {
-                        const retryCount = NetworkRequestQueue.incrementRetries(queuedRequest);
+                        const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
                         NetworkEvents.getLogger().info('A retryable request failed', false, {
                             retryCount,
                             command: queuedRequest.command,
@@ -156,19 +137,17 @@ function processNetworkRequestQueue() {
             });
     });
 
-    // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
+    // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some
     // requests we want to retry or an empty array
     networkRequestQueue = requestsToProcessOnNextRun;
 }
 
-function startDefaultQueue() {
-    setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-}
-
-// Post any pending request after we launch the app
+// We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
     PersistedRequestsQueue.flush();
-    startDefaultQueue();
+
+    // Start main queue and process once every n ms delay
+    setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
 
 /**

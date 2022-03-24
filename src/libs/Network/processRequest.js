@@ -1,4 +1,3 @@
-import CONST from '../../CONST';
 import HttpUtils from '../HttpUtils';
 import enhanceParameters from './enhanceParameters';
 import * as NetworkEvents from './NetworkEvents';
@@ -13,11 +12,8 @@ import * as NetworkEvents from './NetworkEvents';
  */
 export default function processRequest(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-
-    // If request is still in processing after this time, we might be offline
-    const timerId = setTimeout(() => NetworkEvents.triggerRecheckNeeded(), CONST.NETWORK.MAX_PENDING_TIME_MS);
-
+    const cancelRequestTimeoutTimer = NetworkEvents.startRequestTimeoutTimer();
     NetworkEvents.onRequest(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
-        .finally(() => clearTimeout(timerId));
+        .finally(() => cancelRequestTimeoutTimer());
 }

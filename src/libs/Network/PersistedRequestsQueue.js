@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import * as NetworkRequestQueue from '../actions/NetworkRequestQueue';
+import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import CONST from '../../CONST';
@@ -19,7 +19,7 @@ let persistedRequestsQueueRunning = false;
  * @returns {Promise}
  */
 function process() {
-    const persistedRequests = NetworkRequestQueue.getPersistedRequests();
+    const persistedRequests = PersistedRequests.getAll();
 
     // This sanity check is also a recursion exit point
     if (NetworkStore.getIsOffline() || _.isEmpty(persistedRequests)) {
@@ -34,27 +34,27 @@ function process() {
                 NetworkEvents.getLogger().info('Persisted optimistic request returned a valid jsonCode. Not retrying.');
             }
             NetworkEvents.onResponse(request, response);
-            NetworkRequestQueue.removeRetryableRequest(request);
+            PersistedRequests.remove(request);
         })
         .catch((error) => {
             // If we are catching a known network error like "Failed to fetch" allow this request to be retried if we have retries left
             if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                const retryCount = NetworkRequestQueue.incrementRetries(request);
+                const retryCount = PersistedRequests.incrementRetries(request);
                 NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
                 if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
                     NetworkEvents.getLogger().info('Request failed too many times removing from storage', false, {retryCount, command: request.command, error: error.message});
-                    NetworkRequestQueue.removeRetryableRequest(request);
+                    PersistedRequests.remove(request);
                 }
             } else if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 NetworkEvents.getLogger().info('Persisted request was cancelled. Not retrying.');
                 NetworkEvents.onError(request);
-                NetworkRequestQueue.removeRetryableRequest(request);
+                PersistedRequests.remove(request);
             } else {
                 NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error while retrying persisted request. Not retrying.`, {
                     command: request.command,
                     error: error.message,
                 });
-                NetworkRequestQueue.removeRetryableRequest(request);
+                PersistedRequests.remove(request);
             }
         }));
 
@@ -78,7 +78,7 @@ function flush() {
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionId = Onyx.connect({
-        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+        key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionId);
             process()

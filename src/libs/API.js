@@ -63,10 +63,6 @@ NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
     });
 });
 
-NetworkEvents.registerRequestSkippedHandler((parameters) => {
-    Log.hmmm('Trying to make a request when Network is not ready', parameters);
-});
-
 NetworkEvents.registerResponseHandler((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
