@@ -13,6 +13,7 @@ import processRequest from './processRequest';
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
 
+// Keep track of retries for any non-persisted requests
 const mainQueueRetryCounter = new RetryCounter();
 
 /**
@@ -35,6 +36,34 @@ function canMakeRequest(request) {
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data.forceNetworkRequest === true || !NetworkStore.isAuthenticating();
+}
+
+/**
+ * @param {Object} queuedRequest
+ * @param {*} error
+ * @returns {Boolean} true if we were able to retry
+ */
+function retryFailedRequest(queuedRequest, error) {
+    // When the request did not reach its destination add it back the queue to be retried if we can
+    const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+    if (!shouldRetry) {
+        return false;
+    }
+
+    const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
+    NetworkEvents.getLogger().info('A retryable request failed', false, {
+        retryCount,
+        command: queuedRequest.command,
+        error: error.message,
+    });
+
+    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
+        networkRequestQueue.push(queuedRequest);
+        return true;
+    }
+
+    NetworkEvents.getLogger().info('Request was retried too many times with no success. No more retries left');
+    return false;
 }
 
 /**
@@ -107,26 +136,13 @@ function processNetworkRequestQueue() {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
 
-                // Retry and request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
+                // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
                 if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                    // When the request did not reach its destination add it back the queue to be retried if we can
-                    const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-                    if (shouldRetry) {
-                        const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
-                        NetworkEvents.getLogger().info('A retryable request failed', false, {
-                            retryCount,
-                            command: queuedRequest.command,
-                            error: error.message,
-                        });
-
-                        if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                            networkRequestQueue.push(queuedRequest);
-                            return;
-                        }
-
-                        NetworkEvents.getLogger().info('Request was retried too many times with no success. No more retries left');
+                    if (retryFailedRequest()) {
+                        return;
                     }
 
+                    // We were not able to retry so pass the error to the handler in API.js
                     NetworkEvents.onError(queuedRequest, error);
                 } else {
                     NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
@@ -149,14 +165,6 @@ ActiveClientManager.isReady().then(() => {
     // Start main queue and process once every n ms delay
     setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
-
-/**
- * @param {Object} request
- * @returns {Boolean}
- */
-function canProcessRequestImmediately(request) {
-    return lodashGet(request, 'data.shouldProcessImmediately', true);
-}
 
 /**
  * Perform a queued post request
@@ -189,7 +197,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);
 
-        if (!canProcessRequestImmediately(request)) {
+        // This check is mainly used to prevent API commands from triggering calls to processNetworkRequestQueue from inside the context of a previous
+        // call to processNetworkRequestQueue() e.g. calling a Log command without this would cause the requests in networkRequestQueue to double process
+        // since we call Log inside processNetworkRequestQueue().
+        const shouldProcessImmediately = lodashGet(request, 'data.shouldProcessImmediately', true);
+        if (!shouldProcessImmediately) {
             return;
         }
 
