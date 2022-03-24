@@ -12,7 +12,7 @@ function showSuccessAlert() {
         Localize.translateLocal('fileDownload.success.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.success.buttonOkText'),
+                text: Localize.translateLocal('common.ok'),
                 style: 'cancel',
             },
         ],
@@ -29,7 +29,7 @@ function showGeneralErrorAlert() {
         Localize.translateLocal('fileDownload.generalError.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.generalError.buttonCancelText'),
+                text: Localize.translateLocal('common.cancel'),
                 style: 'cancel',
             },
         ],
@@ -45,11 +45,11 @@ function showPermissionErrorAlert() {
         Localize.translateLocal('fileDownload.permissionError.message'),
         [
             {
-                text: Localize.translateLocal('fileDownload.permissionError.buttonCancelText'),
+                text: Localize.translateLocal('common.cancel'),
                 style: 'cancel',
             },
             {
-                text: Localize.translateLocal('fileDownload.permissionError.buttonSettingsText'),
+                text: Localize.translateLocal('common.settings'),
                 onPress: () => Linking.openSettings(),
             },
         ],

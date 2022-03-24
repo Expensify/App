@@ -963,18 +963,14 @@ export default {
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded',
-            buttonOkText: 'OK',
         },
         generalError: {
             title: 'Attachment Error',
             message: 'Attachment cannot be downloaded',
-            buttonCancelText: 'Cancel',
         },
         permissionError: {
             title: 'Access Needed',
-            message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
-            buttonCancelText: 'Cancel',
-            buttonSettingsText: 'Settings',
+            message: 'NewExpensify does not have access to save attachments. To enable access, click Settings and allow access.',
         },
     },
 };
