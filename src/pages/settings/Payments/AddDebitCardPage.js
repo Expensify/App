@@ -201,10 +201,10 @@ class DebitCardPage extends Component {
                   || (inputExpiryDate.length === 2 && lodashEndsWith(prevState.expirationDate, '/'))))) {
                 expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
             } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
-            // Expiry Date(MM)is added so append a slash(/)
+                // Expiry Date(MM)is added so append a slash(/)
                 expiryDate = `${inputExpiryDate}/`;
             } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
-            // Expiry Date with MM and YY without slash, hence adding slash(/)
+                // Expiry Date with MM and YY without slash, hence adding slash(/)
                 expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
             }
             return {
