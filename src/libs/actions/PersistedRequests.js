@@ -4,7 +4,7 @@ import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
 import RetryCounter from '../RetryCounter';
 
-const persistedRequestsRetryCount = new RetryCounter();
+const persistedRequestsRetryCounter = new RetryCounter();
 let persistedRequests = [];
 
 Onyx.connect({
@@ -14,7 +14,7 @@ Onyx.connect({
 
 function clear() {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
-    persistedRequestsRetryCount.clear();
+    persistedRequestsRetryCounter.clear();
 }
 
 /**
@@ -29,7 +29,7 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequestsRetryCount.remove(requestToRemove);
+    persistedRequestsRetryCounter.remove(requestToRemove);
     persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
@@ -46,7 +46,7 @@ function getAll() {
  * @returns {Number}
  */
 function incrementRetries(request) {
-    return persistedRequestsRetryCount.incrementRetries(request);
+    return persistedRequestsRetryCounter.incrementRetries(request);
 }
 
 export {
