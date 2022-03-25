@@ -68,14 +68,7 @@ function flush() {
 // Flush the queue when the connection resumes
 NetworkEvents.onConnectivityResumed(flush);
 
-/**
- * @returns {Boolean}
- */
-function isRunning() {
-    return persistedRequestsQueueRunning;
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     flush,
-    isRunning,
 };

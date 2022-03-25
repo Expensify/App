@@ -35,8 +35,7 @@ function canMakeRequest(request) {
 
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    // Lastly if we are processing persisted requests then we will skip processing main queue until we are finished.
-    return request.data.forceNetworkRequest === true || !NetworkStore.isAuthenticating() || PersistedRequestsQueue.isRunning();
+    return request.data.forceNetworkRequest === true || !NetworkStore.isAuthenticating();
 }
 
 /**
