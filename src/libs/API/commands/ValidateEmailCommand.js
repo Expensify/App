@@ -65,4 +65,15 @@ export default class extends BaseAPICommandBlocking {
     makeRequest(accountID, validateCode) {
         super.makeRequest({accountID, validateCode});
     }
+
+    /**
+     * Handle a failed request
+     * @param {Object} response
+     */
+    requestFailed(response) {
+        super.requestFailed(response);
+
+        const error = lodashGet(response, 'message', 'Unable to validate login.');
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+    }
 }

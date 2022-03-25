@@ -47,9 +47,15 @@ export default class {
                     case 666:
                         this.jsonCode666(response);
                         break;
-                    default: break;
+                    default:
+                        this.requestFailed(response);
+                        break;
                 }
             });
+    }
+
+    requestFailed(response) {
+        console.debug('requestFailed()', this.#commandName, response);
     }
 
     jsonCode666(response) {
