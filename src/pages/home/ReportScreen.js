@@ -152,7 +152,7 @@ class ReportScreen extends React.Component {
     prepareTransition() {
         this.setState({isLoading: true});
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 100);
     }
 
     /**
