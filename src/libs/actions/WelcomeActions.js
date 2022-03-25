@@ -68,7 +68,9 @@ function show({routes, toggleCreateMenu}) {
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now.
         const topRouteName = lodashGet(_.last(routes), 'name', '');
-        const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
+        const loginWithShortLivedTokenRoute = _.find(routes, route => route.name === 'LogInWithShortLivedToken');
+        const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
+        const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
         // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case
         // since the user does not need to create a workspace.

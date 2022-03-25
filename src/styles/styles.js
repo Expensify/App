@@ -321,6 +321,10 @@ const styles = {
         color: colors.red,
     },
 
+    borderRadiusNormal: {
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -478,6 +482,10 @@ const styles = {
         overflow: 'hidden',
         width: 0,
         height: 0,
+    },
+
+    visibilityHidden: {
+        ...visibility('hidden'),
     },
 
     loadingVBAAnimation: {
@@ -694,6 +702,10 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
+    textInputMultiline: {
+        scrollPadding: '23px 0 0 0',
+    },
+
     textInputAndIconContainer: {
         flex: 1,
         height: '100%',
@@ -729,40 +741,18 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputWithPrefix: {
-        container: {
-            backgroundColor: themeColors.componentBG,
-            borderColor: themeColors.border,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusNormal,
-            color: themeColors.text,
-            display: 'flex',
-            flexDirection: 'row',
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            height: variables.inputComponentSizeNormal,
-            marginBottom: 4,
-            paddingBottom: 10,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            textAlignVertical: 'center',
-        },
-        textInput: {
-            outlineStyle: 'none',
-            color: themeColors.text,
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
-            flex: 1,
-        },
-        prefix: {
-            paddingRight: 10,
-            color: themeColors.text,
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
-        },
+    textInputPrefix: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        paddingLeft: 11,
+        paddingTop: 23,
+        paddingBottom: 8,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        textAlignVertical: 'center',
     },
 
     pickerContainer: {
@@ -825,6 +815,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    lh16: {
+        lineHeight: 16,
     },
 
     formLabel: {
@@ -1303,15 +1297,6 @@ const styles = {
         lineHeight: 20,
     },
 
-    chatItemCompose: {
-        minHeight: 65,
-        marginBottom: 5,
-        paddingLeft: 20,
-        paddingRight: 20,
-        display: 'flex',
-        backgroundColor: themeColors.appBG,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1329,6 +1314,15 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
+    },
+
+    chatFooter: {
+        minHeight: 65,
+        marginBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     textInputCompose: addOutlineWidth({
@@ -1488,19 +1482,19 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleSubscript: {
+        height: variables.iconSizeNormal,
+        width: variables.iconSizeNormal,
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+        zIndex: 1,
+    },
+
     singleAvatarSmall: {
         height: 18,
         width: 18,
         backgroundColor: themeColors.icon,
         borderRadius: 18,
-    },
-
-    singleAvatarLarge: {
-        height: 64,
-        width: 64,
-        backgroundColor: themeColors.icon,
-        borderRadius: 64,
-        overflow: 'hidden',
     },
 
     secondAvatar: {
@@ -1512,11 +1506,6 @@ const styles = {
         borderColor: 'transparent',
     },
 
-    secondAvatarHovered: {
-        backgroundColor: themeColors.sidebarHover,
-        borderColor: themeColors.sidebarHover,
-    },
-
     secondAvatarSmall: {
         position: 'absolute',
         right: -13,
@@ -1526,12 +1515,46 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarSubscript: {
+        position: 'absolute',
+        right: -4,
+        bottom: -2,
+        borderWidth: 2,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarSubscriptCompact: {
+        position: 'absolute',
+        bottom: -1,
+        right: -1,
+        borderWidth: 1,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    leftSideLargeAvatar: {
+        left: 15,
+    },
+
+    rightSideLargeAvatar: {
+        right: 15,
+        zIndex: 2,
+        borderWidth: 4,
+        borderRadius: 100,
+    },
+
     secondAvatarInline: {
         bottom: -3,
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.componentBG,
+    },
+
+    avatarLarge: {
+        width: variables.avatarSizeLarge,
+        height: variables.avatarSizeLarge,
     },
 
     avatarNormal: {
@@ -1752,7 +1775,7 @@ const styles = {
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
         ...spacing.mt4,
-        height: 150,
+        height: 170,
     },
 
     reportDetailsRoomInfo: {
@@ -1760,11 +1783,6 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-    },
-
-    reportSettingsChangeNameButton: {
-        height: 42,
-        paddingHorizontal: 20,
     },
 
     reportSettingsVisibilityText: {
@@ -1798,11 +1816,6 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-    },
-
-    avatarLarge: {
-        width: 80,
-        height: 80,
     },
 
     roomHeaderAvatar: {
@@ -1950,12 +1963,23 @@ const styles = {
         backgroundColor: colors.white,
     },
 
+    radioButtonContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 10,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.icon,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 2,
         height: 20,
         width: 20,
-        borderColor: themeColors.border,
+        borderColor: themeColors.icon,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -2120,6 +2144,7 @@ const styles = {
         width: '90%',
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
+        ...spacing.ml4,
     },
 
     blockquote: {
@@ -2450,7 +2475,7 @@ const styles = {
     },
 
     closeAccountMessageInput: {
-        minHeight: 140,
+        height: 153,
     },
 };
 

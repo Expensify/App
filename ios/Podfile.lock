@@ -443,9 +443,9 @@ PODS:
     - React-Core
   - react-native-flipper (0.117.0):
     - React-Core
-  - react-native-image-picker (4.1.2):
+  - react-native-image-picker (4.7.3):
     - React-Core
-  - react-native-netinfo (7.1.3):
+  - react-native-netinfo (8.0.0):
     - React-Core
   - react-native-pdf (6.2.2):
     - React-Core
@@ -933,8 +933,8 @@ SPEC CHECKSUMS:
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
   react-native-flipper: cd9eabd8917104c1bbdca2621717cdca3b2addef
-  react-native-image-picker: f45729c43d4f854508ab25c0d0f0f711a2a8a267
-  react-native-netinfo: 3a61a486f2329f5884753fd5bab21450a535d97c
+  react-native-image-picker: ae1202414bd5c37c00b2a701daa5b6194a06b7d9
+  react-native-netinfo: 0124c0695373fce63cea24aeebb97ab2d237947a
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
   react-native-plaid-link-sdk: 9e0ebdaed648a237b36d5f6f6292b5147af92da7
@@ -979,4 +979,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 1199d07d3ccd1ea23300ad9e27bc9287716223bf
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.2

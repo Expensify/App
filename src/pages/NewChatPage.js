@@ -105,21 +105,27 @@ class NewChatPage extends Component {
             }
         }
 
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const recentReportsWithoutSelected = _.filter(this.state.recentReports, ({login}) => !filterText.includes(login));
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
+
         sections.push({
             title: this.props.translate('common.recents'),
-            data: _.difference(this.state.recentReports, this.state.selectedOptions),
-            shouldShow: !_.isEmpty(this.state.recentReports),
+            data: recentReportsWithoutSelected,
+            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: _.difference(this.state.personalDetails, this.state.selectedOptions),
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite) {
+        if (hasUnselectedUserToInvite) {
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
@@ -180,7 +186,7 @@ class NewChatPage extends Component {
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
-                newSelectedOptions,
+                [],
                 this.excludedGroupEmails,
             );
 

@@ -84,7 +84,7 @@ class DebitCardPage extends Component {
             addressStreet: 'addDebitCardPage.error.addressStreet',
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
-            acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            acceptedTerms: 'common.error.acceptedTerms',
             password: 'addDebitCardPage.error.password',
         };
 
@@ -304,9 +304,8 @@ class DebitCardPage extends Component {
                                         </TextLink>
                                     </>
                                 )}
-                                style={[styles.mt4, styles.mb4]}
+                                style={styles.mt4}
                                 errorText={this.getErrorText('acceptedTerms')}
-                                hasError={Boolean(this.state.errors.acceptedTerms)}
                             />
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (

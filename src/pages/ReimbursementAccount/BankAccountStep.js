@@ -68,6 +68,7 @@ class BankAccountStep extends React.Component {
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
+            hasAcceptedTerms: 'common.error.acceptedTerms',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -299,7 +300,7 @@ class BankAccountStep extends React.Component {
                             errorText={this.getErrorText('accountNumber')}
                         />
                         <CheckboxWithLabel
-                            style={[styles.mb4, styles.mt5]}
+                            style={styles.mt4}
                             isChecked={this.state.hasAcceptedTerms}
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
@@ -312,7 +313,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
-                            hasError={this.getErrors().hasAcceptedTerms}
+                            errorText={this.getErrorText('hasAcceptedTerms')}
                         />
                     </ReimbursementAccountForm>
                 )}

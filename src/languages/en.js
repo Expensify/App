@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -77,6 +79,8 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
+            acceptedTerms: 'You must accept the Terms of Service to continue',
+            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -97,6 +101,8 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        your: 'your',
+        conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number of participants. (${count})`,
     },
     attachmentPicker: {
@@ -111,7 +117,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
-    textInputFocusable: {
+    composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
@@ -153,7 +159,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
@@ -163,6 +168,7 @@ export default {
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
+        copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
@@ -174,6 +180,9 @@ export default {
         beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
         beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
         beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -182,6 +191,13 @@ export default {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',
@@ -347,7 +363,6 @@ export default {
             addressStreet: 'Please enter a valid billing address that is not a PO Box',
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
             genericFailureMessage: 'An error occurred while adding your card, please try again',
             password: 'Please enter your Expensify password',
         },
@@ -356,7 +371,7 @@ export default {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        setDefaultFailure: 'Failed to set default payment method.',
+        deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
@@ -364,6 +379,12 @@ export default {
         allSet: 'All Set!',
         transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
+        error: {
+            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
+            invalidBankAccount: 'This bank account is temporarily suspended.',
+            notOwnerOfFund: 'There was an error setting this card as your default payment method.',
+            setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -373,7 +394,7 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
-        failedTransfer: 'Failed to transfer balance',
+        failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose Account',
@@ -555,14 +576,25 @@ export default {
         genericError: 'There was an error while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Camera permissions not granted',
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
+        originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
+        documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
+        imageNeedsBetterQuality: 'There\'s an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.',
+        selfieIssue: 'There\'s an issue with your selfie/video. Please upload a new selfie/video in real time.',
+        selfieNotMatching: 'Your selfie/video doesn\'t match your ID. Please upload a new selfie/video where your face can be clearly seen.',
+        selfieNotLive: 'Your selfie/video doesn\'t appear to be a live photo/video. Please upload a live selfie/video.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
         helpText: 'We need to confirm the following information before we can process this payment.',
+        helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
+        selectAnswer: 'You need to select a response to proceed.',
+        needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        weCouldNotVerify: 'We could not verify',
+        pleaseFixIt: 'Please fix this information before continuing.',
         failedKYCTextBefore: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to ',
         failedKYCTextAfter: ' if you have any questions.',
     },
@@ -573,7 +605,6 @@ export default {
         agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet agreement',
         enablePayments: 'Enable payments',
-        termsMustBeAccepted: 'Terms must be accepted',
         feeAmountZero: '$0',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
@@ -700,7 +731,6 @@ export default {
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         error: {
-            termsAndConditions: 'Must accept terms and conditions',
             certify: 'Must certify information is true and accurate',
         },
     },
@@ -728,10 +758,13 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            settlementFrequency: 'Settlement frequency',
+            growlMessageOnCreate: 'Workspace created',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
+            unavailable: 'Unavailable workspace',
         },
         new: {
             newWorkspace: 'New workspace',

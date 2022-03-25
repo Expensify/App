@@ -88,7 +88,6 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
     );
 };
 
-
 /**
  * Update the Android app versionName and versionCode.
  *

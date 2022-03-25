@@ -417,6 +417,7 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = this.state.selectedParticipants.length === 0 || this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
+        const recipient = this.state.participants[0];
         return (
             <ArrowKeyFocusManager
                 initialFocusedIndex={this.allOptions.length}
@@ -462,8 +463,8 @@ class IOUConfirmationList extends Component {
                                     isDisabled={shouldDisableButton}
                                     isLoading={this.props.iou.loading && !this.props.network.isOffline}
                                     onPress={this.confirm}
-                                    shouldShowPaypal={Boolean(this.state.currentActor.payPalMeAddress)}
-                                    recipientPhoneNumber={this.state.currentActor.phoneNumber}
+                                    shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                                    recipientPhoneNumber={recipient.phoneNumber}
                                     enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}

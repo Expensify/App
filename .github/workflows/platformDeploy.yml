@@ -347,7 +347,7 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-  postSlackMessage:
+  postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
@@ -365,6 +365,66 @@ jobs:
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
                 text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  postSlackMessageOnSuccess:
+    name: Post a Slack message when all platforms deploy successfully
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    needs: [android, desktop, iOS, web]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set version
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+      - name: 'Announces the deploy in the #announce Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: 'Announces the deploy in the #deployer Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
+        uses: 8398a7/action-slack@v3
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#expensify-open-source',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
               }]
             }
         env:
@@ -408,54 +468,3 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
-
-      - name: 'Announces the deploy in the #announce Slack room'
-        if: ${{ success() }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-      - name: 'Announces the deploy in the #deployer Slack room'
-        if: ${{ success() }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
-        uses: 8398a7/action-slack@v3
-        if: ${{ success() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#expensify-open-source',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

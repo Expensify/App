@@ -3,18 +3,16 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClients from '../actions/ActiveClients';
+import createOnReadyTask from '../createOnReadyTask';
 
 const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
-let isInitialized;
 
 // Keeps track of the ActiveClientManager's readiness in one place
 // so that multiple calls of isReady resolve the same promise
-const isInitializedPromise = new Promise((resolve) => {
-    isInitialized = resolve;
-});
+const [isReady, setIsReady] = createOnReadyTask();
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -32,11 +30,7 @@ Onyx.connect({
  */
 function init() {
     ActiveClients.addClient(clientID)
-        .then(isInitialized);
-}
-
-function isReady() {
-    return isInitializedPromise;
+        .then(setIsReady);
 }
 
 /**

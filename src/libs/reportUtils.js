@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 let sessionEmail;
 Onyx.connect({
@@ -92,6 +93,26 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAdminRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+}
+
+/**
+ * Whether the provided report is a Announce room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAnnounceRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
  * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
@@ -141,16 +162,17 @@ function findLastAccessedReport(reports, ignoreDefaultRooms) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isDefaultRoom(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -160,7 +182,7 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -170,10 +192,13 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
+    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+        return Localize.translateLocal('workspace.common.workspace');
+    }
     return lodashGet(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        'Unknown Policy',
+        Localize.translateLocal('workspace.common.unavailable'),
     );
 }
 
@@ -253,6 +278,8 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    isAdminRoom,
+    isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,

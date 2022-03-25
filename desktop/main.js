@@ -17,6 +17,8 @@ const CONFIG = require('../src/CONFIG').default;
 
 const port = process.env.PORT || 8080;
 
+app.setName('New Expensify');
+
 /**
  * Electron main process that handles wrapping the web application.
  *
@@ -201,7 +203,6 @@ const mainWindow = (() => {
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
             appMenu.submenu.insert(2, keyboardShortcutsMenu);
-
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.

@@ -8,19 +8,21 @@ import {
     StyleSheet,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import {optionPropTypes} from './optionPropTypes';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import Hoverable from '../../../components/Hoverable';
-import DisplayNames from '../../../components/DisplayNames';
-import IOUBadge from '../../../components/IOUBadge';
-import colors from '../../../styles/colors';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
-import SelectCircle from '../../../components/SelectCircle';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import optionPropTypes from './optionPropTypes';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import MultipleAvatars from './MultipleAvatars';
+import Hoverable from './Hoverable';
+import DisplayNames from './DisplayNames';
+import IOUBadge from './IOUBadge';
+import colors from '../styles/colors';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
+import SelectCircle from './SelectCircle';
+import SubscriptAvatar from './SubscriptAvatar';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -55,13 +57,10 @@ const propTypes = {
     showTitleTooltip: PropTypes.bool,
 
     /** Toggle between compact and default view */
-    mode: PropTypes.oneOf(['compact', 'default']),
+    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
-
-    /** Whether to disable the interactivity of this row */
-    disableRowInteractivity: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -75,10 +74,9 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     mode: 'default',
-    onSelectRow: null,
+    onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
-    disableRowInteractivity: false,
 };
 
 const OptionRow = (props) => {
@@ -88,16 +86,16 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = props.mode === 'compact'
+    const displayNameStyle = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle];
-    const alternateTextStyle = props.mode === 'compact'
+    const alternateTextStyle = props.mode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
-    const contentContainerStyles = props.mode === 'compact'
+    const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === 'compact' ? [
+    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === CONST.OPTION_MODE.COMPACT ? [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -141,7 +139,7 @@ const OptionRow = (props) => {
                         e.preventDefault();
                         props.onSelectRow(props.option, touchableRef);
                     }}
-                    disabled={props.disableRowInteractivity}
+                    disabled={props.isDisabled}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -165,22 +163,30 @@ const OptionRow = (props) => {
                             {
                                 !_.isEmpty(props.option.icons)
                                 && (
-                                    <MultipleAvatars
-                                        avatarImageURLs={props.option.icons}
-                                        size={props.mode === 'compact' ? 'small' : 'default'}
-                                        secondAvatarStyle={[
-                                            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                                            props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                : undefined,
-                                            hovered && !props.optionIsFocused
-                                                ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                : undefined,
-                                        ]}
-                                        isChatRoom={props.option.isChatRoom}
-                                        isArchivedRoom={props.option.isArchivedRoom}
-                                        avatarTooltips={avatarTooltips}
-                                    />
+                                    props.option.shouldShowSubscript ? (
+                                        <SubscriptAvatar
+                                            mainAvatar={props.option.icons[0]}
+                                            secondaryAvatar={props.option.icons[1]}
+                                            mainTooltip={props.option.ownerEmail}
+                                            secondaryTooltip={props.option.subtitle}
+                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                        />
+                                    ) : (
+                                        <MultipleAvatars
+                                            avatarIcons={props.option.icons}
+                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            secondAvatarStyle={[
+                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                                                props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                    : undefined,
+                                                hovered && !props.optionIsFocused
+                                                    ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                    : undefined,
+                                            ]}
+                                            avatarTooltips={props.option.isPolicyExpenseChat ? [props.option.subtitle] : avatarTooltips}
+                                        />
+                                    )
                                 )
                             }
                             <View style={contentContainerStyles}>
@@ -190,7 +196,7 @@ const OptionRow = (props) => {
                                     tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isChatRoom}
+                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
                                 />
                                 {props.option.alternateText ? (
                                     <Text
@@ -282,6 +288,22 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
 
     // Re-render when the text changes
     if (prevProps.option.text !== nextProps.option.text) {
+        return false;
+    }
+
+    if (prevProps.showSelectedState !== nextProps.showSelectedState) {
+        return false;
+    }
+
+    if (prevProps.isDisabled !== nextProps.isDisabled) {
+        return false;
+    }
+
+    if (prevProps.showTitleTooltip !== nextProps.showTitleTooltip) {
+        return false;
+    }
+
+    if (prevProps.backgroundColor !== nextProps.backgroundColor) {
         return false;
     }
 
