@@ -125,7 +125,6 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
-            .then(response => NetworkEvents.triggerResponse(queuedRequest, response))
             .catch((error) => {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
