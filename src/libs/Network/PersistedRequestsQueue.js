@@ -27,33 +27,11 @@ function process() {
     }
 
     const tasks = _.map(persistedRequests, request => processRequest(request)
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                NetworkEvents.getLogger().info('Persisted optimistic request needs authentication');
-            } else {
-                NetworkEvents.getLogger().info('Persisted optimistic request returned a valid jsonCode. Not retrying.');
-            }
-            NetworkEvents.onResponse(request, response);
-            PersistedRequests.remove(request);
-        })
         .catch((error) => {
-            // If we are catching a known network error like "Failed to fetch" allow this request to be retried if we have retries left
-            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                const retryCount = PersistedRequests.incrementRetries(request);
-                NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-                if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                    NetworkEvents.getLogger().info('Request failed too many times removing from storage', false, {retryCount, command: request.command, error: error.message});
-                    PersistedRequests.remove(request);
-                }
-            } else if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                NetworkEvents.getLogger().info('Persisted request was cancelled. Not retrying.');
-                NetworkEvents.onError(request);
-                PersistedRequests.remove(request);
-            } else {
-                NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error while retrying persisted request. Not retrying.`, {
-                    command: request.command,
-                    error: error.message,
-                });
+            const retryCount = PersistedRequests.incrementRetries(request);
+            NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                NetworkEvents.getLogger().info('Request failed too many times removing from storage', false, {retryCount, command: request.command, error: error.message});
                 PersistedRequests.remove(request);
             }
         }));

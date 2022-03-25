@@ -100,6 +100,7 @@ NetworkEvents.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
     if (!queuedRequest.resolve) {
         return;
     }
@@ -109,10 +110,6 @@ NetworkEvents.registerResponseHandler((queuedRequest, response) => {
 });
 
 NetworkEvents.registerErrorHandler((queuedRequest, error) => {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        Log.info('[API] request canceled', false, queuedRequest);
-        return;
-    }
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {
@@ -123,11 +120,7 @@ NetworkEvents.registerErrorHandler((queuedRequest, error) => {
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it
-    // Note: We are checking for the reject method as this could be a persisted request which had it's promise handling logic stripped
-    // from it when persisted to storage
-    if (queuedRequest.reject) {
-        queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
-    }
+    queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
 
 /**

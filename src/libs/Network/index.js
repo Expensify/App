@@ -125,32 +125,19 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
-            .then(response => NetworkEvents.onResponse(queuedRequest, response))
             .catch((error) => {
-                // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here.
-                if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                    NetworkEvents.onError(queuedRequest, error);
+                if (error.message !== CONST.ERROR.FAILED_TO_FETCH) {
                     return;
                 }
 
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
-
-                // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario
-                // like incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
-                if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                    if (retryFailedRequest(queuedRequest, error)) {
-                        return;
-                    }
-
-                    // We were not able to retry so pass the error to the handler in API.js
-                    NetworkEvents.onError(queuedRequest, error);
-                } else {
-                    NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
-                        command: queuedRequest.command,
-                        error: error.message,
-                    });
+                if (retryFailedRequest(queuedRequest, error)) {
+                    return;
                 }
+
+                // We were not able to retry so pass the error to the handler in API.js
+                NetworkEvents.onError(queuedRequest, error);
             });
     });
 
