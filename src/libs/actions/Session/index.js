@@ -49,11 +49,12 @@ function setSuccessfulSignInData(data) {
  *
  * @param {String} login
  * @param {String} normalizedLogin
+ * @return {Promise}
  */
 function createAccount(login, normalizedLogin) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
-    API.User_SignUp({
+    return API.User_SignUp({
         email: login,
     }).then((response) => {
         if (response.jsonCode === 200) {
@@ -141,11 +142,12 @@ function fetchAccountDetails(login) {
                     validateCodeExpired: false,
                 });
 
-                if (response.accountExists) {
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login: response.normalizedLogin});
-                } else if (!response.accountExists) {
-                    createAccount(login, response.normalizedLogin);
-                } else if (response.isClosed) {
+                if (!response.accountExists) {
+                    return createAccount(login, response.normalizedLogin);
+                }
+
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: response.normalizedLogin});
+                if (response.isClosed) {
                     reopenAccount(login);
                 } else if (!response.validated) {
                     resendValidationLink(login);
