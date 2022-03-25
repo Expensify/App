@@ -33,7 +33,7 @@ function process() {
             } else {
                 NetworkEvents.getLogger().info('Persisted optimistic request returned a valid jsonCode. Not retrying.');
             }
-            NetworkEvents.onResponse(request, response);
+            NetworkEvents.triggerResponse(request, response);
             PersistedRequests.remove(request);
         })
         .catch((error) => {
@@ -47,7 +47,7 @@ function process() {
                 }
             } else if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 NetworkEvents.getLogger().info('Persisted request was cancelled. Not retrying.');
-                NetworkEvents.onError(request);
+                NetworkEvents.triggerError(request);
                 PersistedRequests.remove(request);
             } else {
                 NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error while retrying persisted request. Not retrying.`, {

@@ -125,11 +125,11 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
-            .then(response => NetworkEvents.onResponse(queuedRequest, response))
+            .then(response => NetworkEvents.triggerResponse(queuedRequest, response))
             .catch((error) => {
                 // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here.
                 if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                    NetworkEvents.onError(queuedRequest, error);
+                    NetworkEvents.triggerError(queuedRequest, error);
                     return;
                 }
 
@@ -144,7 +144,7 @@ function processNetworkRequestQueue() {
                     }
 
                     // We were not able to retry so pass the error to the handler in API.js
-                    NetworkEvents.onError(queuedRequest, error);
+                    NetworkEvents.triggerError(queuedRequest, error);
                 } else {
                     NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
                         command: queuedRequest.command,

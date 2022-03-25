@@ -50,7 +50,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 
 NetworkEvents.registerLogHandler(() => Log);
 
-NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
+NetworkEvents.onRequestMade((queuedRequest, finalParameters) => {
     if (queuedRequest.command === 'Log') {
         return;
     }
@@ -63,7 +63,7 @@ NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
     });
 });
 
-NetworkEvents.registerResponseHandler((queuedRequest, response) => {
+NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -108,7 +108,7 @@ NetworkEvents.registerResponseHandler((queuedRequest, response) => {
     queuedRequest.resolve(response);
 });
 
-NetworkEvents.registerErrorHandler((queuedRequest, error) => {
+NetworkEvents.onError((queuedRequest, error) => {
     if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
         Log.info('[API] request canceled', false, queuedRequest);
         return;

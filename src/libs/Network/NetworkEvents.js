@@ -3,18 +3,18 @@ import createCallback from '../createCallback';
 
 const [getLogger, registerLogHandler] = createCallback();
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const [onRequest, registerRequestHandler] = createCallback();
-const [onResponse, registerResponseHandler] = createCallback();
-const [onError, registerErrorHandler] = createCallback();
-const [triggerRecheckNeeded, registerConnectionCheckCallback] = createCallback();
+const [triggerRequestMade, onRequestMade] = createCallback();
+const [triggerResponse, onResponse] = createCallback();
+const [triggerError, onError] = createCallback();
+const [triggerRecheckNeeded, onRecheckNeeded] = createCallback();
 
 /**
  * @returns {Function} cancel timer
  */
 function startRequestTimeoutTimer() {
     // If request is still in processing after this time, we might be offline
-    const timerId = setTimeout(() => triggerRecheckNeeded(), CONST.NETWORK.MAX_PENDING_TIME_MS);
-    return () => clearTimeout(timerId);
+    const timerID = setTimeout(triggerRecheckNeeded, CONST.NETWORK.MAX_PENDING_TIME_MS);
+    return () => clearTimeout(timerID);
 }
 
 export {
@@ -22,13 +22,13 @@ export {
     getLogger,
     triggerConnectivityResumed,
     onConnectivityResumed,
-    onRequest,
-    registerRequestHandler,
+    triggerRequestMade,
+    onRequestMade,
     onResponse,
-    registerResponseHandler,
+    triggerResponse,
     onError,
-    registerErrorHandler,
+    triggerError,
     triggerRecheckNeeded,
-    registerConnectionCheckCallback,
+    onRecheckNeeded,
     startRequestTimeoutTimer,
 };
