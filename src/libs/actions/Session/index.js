@@ -52,7 +52,7 @@ function setSuccessfulSignInData(data) {
  * @return {Promise}
  */
 function createAccount(login, normalizedLogin) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
 
     return API.User_SignUp({
         email: login,
@@ -66,7 +66,7 @@ function createAccount(login, normalizedLogin) {
         if (!response.message && response.jsonCode === 405) {
             errorMessage = 'Cannot create an account that is under a controlled domain';
         }
-        Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error: errorMessage});
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
     });
 }
