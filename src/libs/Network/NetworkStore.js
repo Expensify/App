@@ -7,15 +7,15 @@ import * as NetworkEvents from './NetworkEvents';
 let credentials;
 let authToken;
 let currentUserEmail;
-let requiredDataAvailable = false;
+let hasReadRequiredData = false;
 let authenticating = false;
 let isOffline = false;
 
 /**
  * @param {Boolean} val
  */
-function setIsRequiredDataAvailable(val) {
-    requiredDataAvailable = val;
+function setHasReadRequiredDataFromStorage(val) {
+    hasReadRequiredData = val;
 }
 
 /**
@@ -27,7 +27,7 @@ function checkRequiredData() {
         return;
     }
 
-    setIsRequiredDataAvailable(true);
+    setHasReadRequiredDataFromStorage(true);
 }
 
 Onyx.connect({
@@ -103,8 +103,8 @@ function getCurrentUserEmail() {
 /**
  * @returns {Boolean}
  */
-function isRequiredDataAvailable() {
-    return requiredDataAvailable;
+function hasReadRequiredDataFromStorage() {
+    return hasReadRequiredData;
 }
 
 /**
@@ -126,8 +126,8 @@ export {
     setAuthToken,
     getCredentials,
     getCurrentUserEmail,
-    isRequiredDataAvailable,
-    setIsRequiredDataAvailable,
+    hasReadRequiredDataFromStorage,
+    setHasReadRequiredDataFromStorage,
     setIsAuthenticating,
     isAuthenticating,
     getIsOffline,

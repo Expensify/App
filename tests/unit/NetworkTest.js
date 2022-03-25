@@ -39,7 +39,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    NetworkStore.setIsRequiredDataAvailable(false);
+    NetworkStore.setHasReadRequiredDataFromStorage(false);
     Onyx.addDelayToConnectCallback(0);
     jest.clearAllMocks();
 });
@@ -234,7 +234,7 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
 
 test('retry network request if auth and credentials are not read from Onyx yet', () => {
     // In order to test an scenario where the auth token and credentials hasn't been read from storage we set
-    // NetworkStore.setIsRequiredDataAvailable(false) and set the session and credentials to "ready" the Network
+    // NetworkStore.setHasReadRequiredDataFromStorage(false) and set the session and credentials to "ready" the Network
 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
@@ -244,7 +244,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
 
     // Given initial state to Network
-    NetworkStore.setIsRequiredDataAvailable(false);
+    NetworkStore.setHasReadRequiredDataFromStorage(false);
 
     // Given an initial value to trigger an update
     Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
@@ -259,7 +259,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     Session.fetchAccountDetails(TEST_USER_LOGIN);
     return waitForPromisesToResolve().then(() => {
         // Then we expect not having the Network ready and not making an http request
-        expect(NetworkStore.isRequiredDataAvailable()).toBe(false);
+        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(false);
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // When we resolve Onyx.connect callbacks
@@ -267,7 +267,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
 
         // Then we should expect call Network.setIsReady(true)
         // And We should expect not making an http request yet
-        expect(NetworkStore.isRequiredDataAvailable()).toBe(true);
+        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(true);
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // When we run processNetworkRequestQueue in the setInterval of Network.js

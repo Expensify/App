@@ -29,7 +29,7 @@ const mainQueueRetryCounter = new RetryCounter();
 function canMakeRequest(request) {
     // We must attempt to read authToken and credentials from storage before allowing any requests to happen so that any requests that
     // require authToken or trigger reauthentication will succeed.
-    if (!NetworkStore.isRequiredDataAvailable()) {
+    if (!NetworkStore.hasReadRequiredDataFromStorage()) {
         return false;
     }
 
