@@ -12,7 +12,9 @@ import * as NetworkEvents from './NetworkEvents';
  */
 export default function processRequest(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-    const cancelRequestTimeoutTimer = NetworkEvents.startRequestTimeoutTimer();
+
+    // When the request goes past a certain amount of time we trigger a re-check of the connection
+    const cancelRequestTimeoutTimer = NetworkEvents.startRecheckTimeoutTimer();
     NetworkEvents.triggerRequestMade(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
         .finally(() => cancelRequestTimeoutTimer());

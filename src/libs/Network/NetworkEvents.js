@@ -11,7 +11,7 @@ const [triggerRecheckNeeded, onRecheckNeeded] = createCallback();
 /**
  * @returns {Function} cancel timer
  */
-function startRequestTimeoutTimer() {
+function startRecheckTimeoutTimer() {
     // If request is still in processing after this time, we might be offline
     const timerID = setTimeout(triggerRecheckNeeded, CONST.NETWORK.MAX_PENDING_TIME_MS);
     return () => clearTimeout(timerID);
@@ -30,5 +30,5 @@ export {
     triggerError,
     triggerRecheckNeeded,
     onRecheckNeeded,
-    startRequestTimeoutTimer,
+    startRecheckTimeoutTimer,
 };

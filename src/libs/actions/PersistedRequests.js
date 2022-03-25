@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
-import RetryCounter from '../Network/RetryCounter';
+import RetryCounter from '../RetryCounter';
 
 const persistedRequestsRetryCount = new RetryCounter();
 let persistedRequests = [];

@@ -26,7 +26,7 @@ import * as NetworkEvents from './Network/NetworkEvents';
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
-    if (NetworkStore.isAuthenticating()) {
+    if (NetworkStore.getIsAuthenticating()) {
         return Network.post(originalCommand, originalParameters, originalType);
     }
 
