@@ -21,6 +21,7 @@ import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import fileDownload from '../fileDownload';
+import ValidateEmailCommand from '../API/commands/ValidateEmailCommand';
 
 let sessionEmail = '';
 let currentUserAccountID = '';
@@ -186,6 +187,16 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
     });
+}
+
+/**
+ * Validates a login given an accountID and validation code
+ *
+ * @param {Number} accountID
+ * @param {String} validateCode
+ */
+function validateLogin(accountID, validateCode) {
+    (new ValidateEmailCommand()).makeRequest(accountID, validateCode);
 }
 
 /**
@@ -383,6 +394,7 @@ export {
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLoginAndNavigate,
+    validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
