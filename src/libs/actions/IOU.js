@@ -138,35 +138,40 @@ function createIOUSplit(params) {
         emailList: _.map(params.splits, participant => participant.email).join(','),
     })
         .then((response) => {
-            chatReportID = response.reportID;
-            return API.CreateIOUSplit({
-                ...params,
-                splits: JSON.stringify(params.splits),
-                reportID: response.reportID,
-            });
-        })
-        .then((response) => {
             if (response.jsonCode !== 200) {
                 processIOUErrorResponse(response);
                 return;
             }
 
-            // This data needs to go from this:
-            // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
-            // to this:
-            // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
-            // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
-            // chat reports
-            const reportParams = [];
-            for (let i = 0; i < response.reportIDList.length; i++) {
-                reportParams.push({
-                    reportID: response.reportIDList[i],
-                    chatReportID: response.chatReportIDList[i],
-                });
-            }
-            getIOUReportsForNewTransaction(reportParams);
-            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        });
+            chatReportID = response.reportID;
+            return API.CreateIOUSplit({
+                ...params,
+                splits: JSON.stringify(params.splits),
+                reportID: response.reportID,
+            })
+            .then((response) => {
+                if (response.jsonCode !== 200) {
+                    processIOUErrorResponse(response);
+                    return;
+                }
+    
+                // This data needs to go from this:
+                // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
+                // to this:
+                // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
+                // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
+                // chat reports
+                const reportParams = [];
+                for (let i = 0; i < response.reportIDList.length; i++) {
+                    reportParams.push({
+                        reportID: response.reportIDList[i],
+                        chatReportID: response.chatReportIDList[i],
+                    });
+                }
+                getIOUReportsForNewTransaction(reportParams);
+                Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+            });
+        })
 }
 
 /**
