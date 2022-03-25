@@ -28,7 +28,7 @@ const defaultProps = {
     },
 };
 
-const ChangeExpensifyLoginLink = props => {
+const ChangeExpensifyLoginLink = (props) => {
     const login = lodashGet(props.credentials, 'login', '');
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
@@ -51,7 +51,8 @@ const ChangeExpensifyLoginLink = props => {
                 </Text>
             </TouchableOpacity>
         </View>
-)};
+    );
+};
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
 ChangeExpensifyLoginLink.defaultProps = defaultProps;
