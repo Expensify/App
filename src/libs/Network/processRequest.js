@@ -25,7 +25,7 @@ export default function processRequest(request) {
             if (persisted) {
                 PersistedRequests.remove(request);
             }
-            NetworkEvents.onResponse(request, response);
+            NetworkEvents.triggerResponse(request, response);
             return response;
         })
         .catch((error) => {

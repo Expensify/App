@@ -132,7 +132,8 @@ function processNetworkRequestQueue() {
                 if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
-                NetworkEvents.onError(queuedRequest, error);
+
+                NetworkEvents.triggerError(queuedRequest, error);
             });
     });
 
