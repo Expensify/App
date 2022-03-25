@@ -45,9 +45,11 @@ export default class extends BaseAPICommandBlocking {
     }
 
     processDataChanged(changedData) {
+        // @TODO This data shouldn't have anything except the email
         const {email} = changedData;
 
         if (isLoggedIn) {
+            // @TODO This data should ould be returned in the changedData payload
             User.getUserDetails();
         } else {
             // Let the user know we've successfully validated their login

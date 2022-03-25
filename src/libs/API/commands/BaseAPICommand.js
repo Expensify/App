@@ -41,6 +41,19 @@ export default class {
      */
     makeRequest(parameters) {
         requireParameters(this.#requiredParameters, parameters, this.#commandName);
-        return Network.post(this.#commandName, parameters);
+        return Network.post(this.#commandName, parameters)
+            .then((response) => {
+                switch (response.jsonCode) {
+                    case 666:
+                        this.jsonCode666(response);
+                        break;
+                    default: break;
+                }
+            });
+    }
+
+    jsonCode666(response) {
+        // @TODO handle any 666 jsonCodes in the inherited class
+        console.debug('jsonCode666()', response);
     }
 }
