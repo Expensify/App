@@ -55,10 +55,10 @@ function flush() {
     persistedRequestsQueueRunning = true;
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionId = Onyx.connect({
+    const connectionID = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
-            Onyx.disconnect(connectionId);
+            Onyx.disconnect(connectionID);
             process()
                 .finally(() => persistedRequestsQueueRunning = false);
         },
@@ -68,7 +68,14 @@ function flush() {
 // Flush the queue when the connection resumes
 NetworkEvents.onConnectivityResumed(flush);
 
+/**
+ * @returns {Boolean}
+ */
+function isRunning() {
+    return persistedRequestsQueueRunning;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     flush,
+    isRunning,
 };
