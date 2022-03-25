@@ -48,14 +48,16 @@ function setSuccessfulSignInData(data) {
  * This will send them a notification with a link to click on to validate the account and set a password
  *
  * @param {String} login
+ * @param {String} normalizedLogin
  */
-function createAccount(login) {
+function createAccount(login, normalizedLogin) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.User_SignUp({
         email: login,
     }).then((response) => {
         if (response.jsonCode === 200) {
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login: normalizedLogin});
             return;
         }
 
@@ -131,9 +133,6 @@ function fetchAccountDetails(login) {
     API.GetAccountStatus({email: login, forceNetworkRequest: true})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                    login: response.normalizedLogin,
-                });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     validated: response.validated,
@@ -142,8 +141,10 @@ function fetchAccountDetails(login) {
                     validateCodeExpired: false,
                 });
 
-                if (!response.accountExists) {
-                    createAccount(login);
+                if (response.accountExists) {
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login: response.normalizedLogin});
+                } else if (!response.accountExists) {
+                    createAccount(login, response.normalizedLogin);
                 } else if (response.isClosed) {
                     reopenAccount(login);
                 } else if (!response.validated) {
