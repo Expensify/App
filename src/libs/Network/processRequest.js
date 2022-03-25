@@ -27,28 +27,25 @@ export default function processRequest(request) {
             return response;
         })
         .catch((error) => {
+            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario like
+                // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
+                throw error;
+            }
+
             // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 NetworkEvents.getLogger().info('[Network] Request canceled', false, request);
-                if (persisted) {
-                    PersistedRequests.remove(request);
-                }
-                return;
+            } else {
+                // If we get any error that is not "Failed to fetch" create GitHub issue so we can handle it. These requests will not be retried.
+                NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
+                    command: request.command,
+                    error: error.message,
+                });
             }
 
-            // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario
-            // like incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
-            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                throw error;
-            }
-
-            // If we get any error that is not "Failed to fetch" create GitHub issue so we can handle it. These requests will not be retried.
-            NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
-                command: request.command,
-                error: error.message,
-            });
-
+            // If we did not throw and we have a persisted request that was cancelled or for an unknown error remove it so it is not retried
             if (persisted) {
                 PersistedRequests.remove(request);
             }
