@@ -30,7 +30,13 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         method,
         body,
     })
-        .then(response => response.json());
+        .then((response) => {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+
+            return response.json();
+        });
 }
 
 /**
