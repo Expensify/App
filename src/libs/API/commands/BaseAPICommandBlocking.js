@@ -1,5 +1,9 @@
 import BaseAPICommand from './BaseAPICommand';
 
+/**
+ * API Commands that need to have some kind of blocking UI while the network request is being made
+ * can extend this class.
+ */
 export default class extends BaseAPICommand {
     /**
      * An abstract method to define what should happen before the network request is made

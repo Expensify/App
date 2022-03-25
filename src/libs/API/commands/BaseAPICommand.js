@@ -1,6 +1,10 @@
 import requireParameters from '../../requireParameters';
 import * as Network from '../../Network';
 
+/**
+ * All API commands will extend from this class to get basic functionality for making a network request
+ * and handling the data-changed event.
+ */
 export default class {
     /**
      * The name of the API command (eg. command=Get)
@@ -18,11 +22,7 @@ export default class {
      */
     #requiredParameters = [];
 
-    constructor(commandName, commandParams, requiredParameters) {
-        this.#commandName = commandName;
-        this.#commandParams = commandParams;
-        this.#requiredParameters = requiredParameters;
-
+    constructor() {
         DataChanged.subscribe(this.#commandName, this.processDataChanged);
     }
 

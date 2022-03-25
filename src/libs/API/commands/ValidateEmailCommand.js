@@ -24,9 +24,11 @@ Onyx.connect({
 });
 
 export default class extends BaseAPICommandBlocking {
-    constructor() {
-        super('ValidateEmail', {}, ['accountID', 'validateCode']);
-    }
+    #commandName = 'ValidateEmail';
+
+    #commandParameters = {};
+
+    #requiredParameters = ['accountID', 'validateCode'];
 
     startBlocking() {
         super.startBlocking();
