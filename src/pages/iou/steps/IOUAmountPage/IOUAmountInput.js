@@ -59,7 +59,7 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
 };
-class IOUAmountInput extends React.Component {
+class BaseIOUAmountInput extends React.Component {
     constructor(props) {
         super(props);
         this.focusTextInput = this.focusTextInput.bind(this);
@@ -119,10 +119,10 @@ class IOUAmountInput extends React.Component {
                         textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         onChangeText={this.props.updateAmount}
                         ref={(el) => {
-                            if(this.props.forwardedRef){
+                            if (this.props.forwardedRef) {
                                 this.props.forwardedRef(el);
                             }
-                            this.textInput = el
+                            this.textInput = el;
                         }}
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
@@ -153,15 +153,16 @@ class IOUAmountInput extends React.Component {
     }
 }
 
-IOUAmountInput.propTypes = propTypes;
-IOUAmountInput.defaultProps = defaultProps;
-const BaseIOUAmountInput = React.forwardRef((props,ref)=>(
-    <IOUAmountInput forwardedRef={ref} {...props}/>)
-)
+BaseIOUAmountInput.propTypes = propTypes;
+BaseIOUAmountInput.defaultProps = defaultProps;
+const IOUAmountInput = React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseIOUAmountInput forwardedRef={ref} {...props} />));
+
 export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
-)(BaseIOUAmountInput);
+)(IOUAmountInput);
