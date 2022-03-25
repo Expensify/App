@@ -50,21 +50,19 @@ function setSuccessfulSignInData(data) {
  * @param {String} login
  */
 function createAccount(login) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
 
     API.User_SignUp({
         email: login,
     }).then((response) => {
-        if (response.jsonCode === 200) {
+        // A 405 means that the account needs to be validated. We should let the user proceed to the ResendValidationForm view.
+        if (response.jsonCode === 200 || response.jsonCode === 405) {
             return;
         }
 
         let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
-        if (!response.message && response.jsonCode === 405) {
-            errorMessage = 'Cannot create an account that is under a controlled domain';
-        }
-        Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error: errorMessage});
     });
 }
 
