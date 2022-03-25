@@ -8,7 +8,7 @@ let credentials;
 let authToken;
 let currentUserEmail;
 let hasReadRequiredData = false;
-let authenticating = false;
+let isAuthenticating = false;
 let isOffline = false;
 
 /**
@@ -111,14 +111,14 @@ function hasReadRequiredDataFromStorage() {
  * @param {Boolean} value
  */
 function setIsAuthenticating(value) {
-    authenticating = value;
+    isAuthenticating = value;
 }
 
 /**
  * @returns {Boolean}
  */
-function isAuthenticating() {
-    return authenticating;
+function getIsAuthenticating() {
+    return isAuthenticating;
 }
 
 export {
@@ -129,6 +129,6 @@ export {
     hasReadRequiredDataFromStorage,
     setHasReadRequiredDataFromStorage,
     setIsAuthenticating,
-    isAuthenticating,
+    getIsAuthenticating,
     getIsOffline,
 };

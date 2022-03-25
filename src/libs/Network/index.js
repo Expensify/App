@@ -4,7 +4,7 @@ import HttpUtils from '../HttpUtils';
 import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
 import * as PersistedRequests from '../actions/PersistedRequests';
-import RetryCounter from './RetryCounter';
+import RetryCounter from '../RetryCounter';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as PersistedRequestsQueue from './PersistedRequestsQueue';
@@ -35,7 +35,7 @@ function canMakeRequest(request) {
 
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    return request.data.forceNetworkRequest === true || !NetworkStore.isAuthenticating();
+    return request.data.forceNetworkRequest === true || !NetworkStore.getIsAuthenticating();
 }
 
 /**
@@ -125,18 +125,13 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
+            .then(response => NetworkEvents.triggerResponse(queuedRequest, response))
             .catch((error) => {
-                if (error.message !== CONST.ERROR.FAILED_TO_FETCH) {
-                    return;
-                }
-
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
                 if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
-
-                // We were not able to retry so pass the error to the handler in API.js
                 NetworkEvents.onError(queuedRequest, error);
             });
     });
@@ -160,7 +155,7 @@ ActiveClientManager.isReady().then(() => {
  * @param {String} command
  * @param {*} [data]
  * @param {String} [type]
- * @param {Boolean} shouldUseSecure - Whether we should use the secure API
+ * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
  * @returns {Promise}
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {

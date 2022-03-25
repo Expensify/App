@@ -26,7 +26,7 @@ import * as NetworkEvents from './Network/NetworkEvents';
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
-    if (NetworkStore.isAuthenticating()) {
+    if (NetworkStore.getIsAuthenticating()) {
         return Network.post(originalCommand, originalParameters, originalType);
     }
 
@@ -50,7 +50,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 
 NetworkEvents.registerLogHandler(() => Log);
 
-NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
+NetworkEvents.onRequestMade((queuedRequest, finalParameters) => {
     if (queuedRequest.command === 'Log') {
         return;
     }
@@ -63,7 +63,7 @@ NetworkEvents.registerRequestHandler((queuedRequest, finalParameters) => {
     });
 });
 
-NetworkEvents.registerResponseHandler((queuedRequest, response) => {
+NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -109,7 +109,7 @@ NetworkEvents.registerResponseHandler((queuedRequest, response) => {
     queuedRequest.resolve(response);
 });
 
-NetworkEvents.registerErrorHandler((queuedRequest, error) => {
+NetworkEvents.onError((queuedRequest, error) => {
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {

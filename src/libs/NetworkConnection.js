@@ -124,7 +124,7 @@ function recheckNetworkConnection() {
     subscribeToNetInfo();
 }
 
-NetworkEvents.registerConnectionCheckCallback(recheckNetworkConnection);
+NetworkEvents.onRecheckNeeded(recheckNetworkConnection);
 
 export default {
     setOfflineStatus,

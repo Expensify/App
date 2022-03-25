@@ -8,7 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
 
-let persistedRequestsQueueRunning = false;
+let isPersistedRequestsQueueRunning = false;
 
 /**
  * This method will get any persisted requests and fire them off in parallel to retry them.
@@ -31,7 +31,7 @@ function process() {
             const retryCount = PersistedRequests.incrementRetries(request);
             NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
             if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                NetworkEvents.getLogger().info('Request failed too many times removing from storage', false, {retryCount, command: request.command, error: error.message});
+                NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                 PersistedRequests.remove(request);
             }
         }));
@@ -42,7 +42,7 @@ function process() {
 }
 
 function flush() {
-    if (persistedRequestsQueueRunning) {
+    if (isPersistedRequestsQueueRunning) {
         return;
     }
 
@@ -52,7 +52,7 @@ function flush() {
         return;
     }
 
-    persistedRequestsQueueRunning = true;
+    isPersistedRequestsQueueRunning = true;
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -60,7 +60,7 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process()
-                .finally(() => persistedRequestsQueueRunning = false);
+                .finally(() => isPersistedRequestsQueueRunning = false);
         },
     });
 }
