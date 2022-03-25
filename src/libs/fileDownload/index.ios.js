@@ -30,28 +30,27 @@ function downloadFile(fileUrl, fileName) {
 }
 
 /**
- * Downloads the image to photo lib in iOS and returns the uri
+ * Download the image to photo lib in iOS
  * @param {String} fileUrl
  * @param {String} fileName
- * @returns {String}
+ * @returns {String} URI
  */
 function downloadImage(fileUrl) {
     return CameraRoll.save(fileUrl);
 }
 
 /**
- * Downloads the video to photo lib in iOS and returns the uri
+ * Download the video to photo lib in iOS
  * @param {String} fileUrl
  * @param {String} fileName
- * @returns {String}
+ * @returns {String} URI
  */
 function downloadVideo(fileUrl, fileName) {
     return new Promise((resolve) => {
         let documentPathUri = null;
         let cameraRollUri = null;
 
-        // Because CameraRoll doesn't allow remote URIs to save the video,
-        // we first download to documents, then copy to photo lib and unlink the original file,
+        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName).then((attachment) => {
             documentPathUri = lodashGet(attachment, 'data');
             return CameraRoll.save(documentPathUri);
