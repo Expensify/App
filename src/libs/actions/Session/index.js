@@ -60,9 +60,8 @@ function createAccount(login) {
             return;
         }
 
-        let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: errorMessage});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message || `Unknown API Error: ${response.jsonCode}`});
     });
 }
 
