@@ -86,6 +86,8 @@ NetworkEvents.registerResponseHandler((queuedRequest, response) => {
         // of the new response created by handleExpiredAuthToken.
         const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
         if (!shouldRetry || unableToReauthenticate) {
+            // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
+            // from it when persisted to storage
             if (queuedRequest.resolve) {
                 queuedRequest.resolve(response);
             }
@@ -121,6 +123,8 @@ NetworkEvents.registerErrorHandler((queuedRequest, error) => {
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it
+    // Note: We are checking for the reject method as this could be a persisted request which had it's promise handling logic stripped
+    // from it when persisted to storage
     if (queuedRequest.reject) {
         queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
     }
@@ -223,6 +227,10 @@ function reauthenticate(command = '') {
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
             updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+
+            // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
+            // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+            // enough to do the updateSessionAuthTokens() call above.
             NetworkStore.setAuthToken(response.authToken);
 
             // The authentication process is finished so the network can be unpaused to continue

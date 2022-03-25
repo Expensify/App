@@ -136,7 +136,8 @@ function processNetworkRequestQueue() {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
 
-                // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario.
+                // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario
+                // like incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                     if (retryFailedRequest(queuedRequest, error)) {
                         return;

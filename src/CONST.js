@@ -215,11 +215,19 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
+        },
+        ARCHIVE_REASON: {
+            DEFAULT: 'default',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_MERGED: 'accountMerged',
+            REMOVED_FROM_POLICY: 'removedFromPolicy',
+            POLICY_DELETED: 'policyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
@@ -244,6 +252,13 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        STATUS: {
+            OPEN: 0,
+            SUBMITTED: 1,
+            CLOSED: 2,
+            APPROVED: 3,
+            REIMBURSED: 4,
         },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
