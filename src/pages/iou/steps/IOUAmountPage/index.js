@@ -1,6 +1,6 @@
 import React from 'react';
 import {propTypes, defaultProps} from './IOUAmountPagePropTypes';
-import IOUAmountInput from './IOUAmountInput';
+import BaseIOUAmountInput from './IOUAmountInput';
 import * as IOUAmountUtils from './IOUAmountUtils';
 
 class IOUAmountPage extends React.Component {
@@ -62,11 +62,12 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <IOUAmountInput
+            <BaseIOUAmountInput
                 amount={this.state.amount}
                 updateAmount={this.updateAmount}
                 updateAmountNumberPad={this.updateAmountNumberPad}
                 onSelectionChange={this.onSelectionChange}
+                ref={el => this.textInput = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             />

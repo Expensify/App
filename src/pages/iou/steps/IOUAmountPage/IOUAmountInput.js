@@ -118,7 +118,12 @@ class IOUAmountInput extends React.Component {
                         inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         onChangeText={this.props.updateAmount}
-                        ref={el => this.textInput = el}
+                        ref={(el) => {
+                            if(this.props.forwardedRef){
+                                this.props.forwardedRef(el);
+                            }
+                            this.textInput = el
+                        }}
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
@@ -150,11 +155,13 @@ class IOUAmountInput extends React.Component {
 
 IOUAmountInput.propTypes = propTypes;
 IOUAmountInput.defaultProps = defaultProps;
-
+const BaseIOUAmountInput = React.forwardRef((props,ref)=>(
+    <IOUAmountInput forwardedRef={ref} {...props}/>)
+)
 export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountInput);
+)(BaseIOUAmountInput);

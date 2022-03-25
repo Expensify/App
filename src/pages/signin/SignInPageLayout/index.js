@@ -1,11 +1,13 @@
+import _ from 'underscore';
 import React from 'react';
-import {View} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import SignInPageContent from './SignInPageContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -37,15 +39,22 @@ const SignInPageLayout = (props) => {
         return content;
     }
 
+    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
+
     return (
         <View style={[styles.flex1, styles.signInPageInner]}>
             <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
                 {content}
-                <View style={[
-                    styles.flexGrow1,
-                    StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-                    props.isMediumScreenWidth && styles.alignItemsCenter,
-                ]}
+                <Pressable
+                    style={[
+                        styles.flexGrow1,
+                        StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
+                        props.isMediumScreenWidth && styles.alignItemsCenter,
+                    ]}
+                    onPress={() => {
+                        Link.openExternalLink(backgroundStyle.redirectUri);
+                    }}
+                    disabled={!hasRedirect}
                 >
                     <SVGImage
                         width="100%"
@@ -53,7 +62,7 @@ const SignInPageLayout = (props) => {
                         src={backgroundStyle.backgroundImageUri}
                         resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
                     />
-                </View>
+                </Pressable>
             </View>
         </View>
     );

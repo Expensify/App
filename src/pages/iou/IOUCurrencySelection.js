@@ -8,9 +8,8 @@ import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
-import OptionRow from '../home/sidebar/OptionRow';
-import themeColors from '../../styles/themes/default';
-import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles';
+import OptionRow from '../../components/OptionRow';
+import TextInput from '../../components/TextInput';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -174,14 +173,11 @@ class IOUCurrencySelection extends Component {
                     <View style={[styles.flex1, styles.w100]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.ph5, styles.pv3]}>
-                                <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputReversedFocus]}
+                                <TextInput
                                     ref={el => this.textInput = el}
-                                    style={[styles.textInput]}
                                     value={this.state.searchValue}
                                     onChangeText={this.changeSearchValue}
                                     placeholder={this.props.translate('common.search')}
-                                    placeholderTextColor={themeColors.placeholderText}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
@@ -208,9 +204,15 @@ class IOUCurrencySelection extends Component {
                                     )}
                                     renderSectionHeader={({section: {title}}) => (
                                         <View>
-                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                                                {title}
-                                            </Text>
+                                            {this.state.currencyData.length === 0 ? (
+                                                <Text style={[styles.ph5, styles.textLabel, styles.colorMuted]}>
+                                                    {this.props.translate('common.noResultsFound')}
+                                                </Text>
+                                            ) : (
+                                                <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                                    {title}
+                                                </Text>
+                                            )}
                                         </View>
                                     )}
                                 />

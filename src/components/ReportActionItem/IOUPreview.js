@@ -113,9 +113,10 @@ const IOUPreview = (props) => {
     const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
-            props.iouReport.total / 100,
+            Math.abs(props.iouReport.total) / 100,
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
+    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
@@ -138,8 +139,9 @@ const IOUPreview = (props) => {
                                 </View>
                                 <View style={styles.iouPreviewBoxAvatar}>
                                     <MultipleAvatars
-                                        avatarImageURLs={[managerAvatar, ownerAvatar]}
+                                        avatarIcons={[managerAvatar, ownerAvatar]}
                                         secondAvatarStyle={[styles.secondAvatarInline]}
+                                        avatarTooltips={avatarTooltip}
                                     />
                                 </View>
                             </View>

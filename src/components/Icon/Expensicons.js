@@ -31,6 +31,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
+import Key from '../../../assets/images/key.svg';
 import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
@@ -69,8 +70,11 @@ import Users from '../../../assets/images/users.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
+import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
+import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 
 export {
+    ActiveRoomAvatar,
     Android,
     Apple,
     ArrowRight,
@@ -91,6 +95,7 @@ export {
     ClosedSign,
     Concierge,
     CreditCard,
+    DeletedRoomAvatar,
     DownArrow,
     Download,
     Emoji,
@@ -104,6 +109,7 @@ export {
     Hashtag,
     Info,
     Invoice,
+    Key,
     Keyboard,
     Link,
     LinkCopy,
