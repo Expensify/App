@@ -56,10 +56,12 @@ class TermsStep extends React.Component {
     }
 
     clearError() {
-        if (this.state.hasAcceptedDisclosure
-            && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
-            this.setState({error: false});
+        if (!this.state.hasAcceptedDisclosure
+            || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            return;
         }
+
+        this.setState({error: false});
     }
 
     render() {
