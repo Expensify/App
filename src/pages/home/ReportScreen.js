@@ -112,6 +112,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.state.isGhostScreenVisible && this.props.isLoadingReportData === false) {
+            this.setGhostScreenVisible();
+        }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -125,25 +128,14 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * When the report data is loaded, hide the ghost screen
-     *
-     * @static
-     * @param {Object} props
-     * @param {Object} state
-     * @return {Object|null}
-     */
-    static getDerivedStateFromProps(props, state) {
-        if (state.isGhostScreenVisible && props.isLoadingReportData === false) {
-            return {isGhostScreenVisible: false};
-        }
-        return null;
-    }
-
-    /**
      * @param {String} text
      */
     onSubmitComment(text) {
         Report.addAction(getReportID(this.props.route), text);
+    }
+
+    setGhostScreenVisible() {
+        this.setState({isGhostScreenVisible: false});
     }
 
     /**
