@@ -19,7 +19,6 @@ import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ChatGhostUI from '../../components/ChatGhostUI';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
@@ -120,7 +119,7 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.state.isGhostScreenVisible && this.props.isLoadingReportData === false) {
-            this.setGhostScreenVisible();
+            this.hideGhostScreen();
         }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
@@ -152,7 +151,7 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
-    setGhostScreenVisible() {
+    hideGhostScreen() {
         this.setState({isGhostScreenVisible: false});
     }
 
@@ -212,9 +211,8 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
                     {
-                      this.state.isGhostScreenVisible && <ChatGhostUI />
+                      (this.state.isGhostScreenVisible || this.shouldShowLoader()) && <ChatGhostUI />
                     }
-                    <FullScreenLoadingIndicator visible={!this.state.isGhostScreenVisible && this.shouldShowLoader()} />
                     {!this.state.isGhostScreenVisible && !this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}
