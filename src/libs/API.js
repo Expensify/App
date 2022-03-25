@@ -760,18 +760,6 @@ function User_UploadAvatar(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {Number} parameters.accountID
- * @param {String} parameters.validateCode
- * @returns {Promise}
- */
-function ValidateEmail(parameters) {
-    const commandName = 'ValidateEmail';
-    requireParameters(['accountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Create a new IOUTransaction
  *
  * @param {Object} parameters
@@ -1217,7 +1205,6 @@ export {
     reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
-    ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,

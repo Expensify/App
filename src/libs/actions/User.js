@@ -22,22 +22,14 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import fileDownload from '../fileDownload';
 
-let sessionAuthToken = '';
 let sessionEmail = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionAuthToken = lodashGet(val, 'authToken', '');
         sessionEmail = lodashGet(val, 'email', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
-});
-
-let currentlyViewedReportID = '';
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val || '',
 });
 
 /**
@@ -193,41 +185,6 @@ function setSecondaryLoginAndNavigate(login, password) {
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-    });
-}
-
-/**
- * Validates a login given an accountID and validation code
- *
- * @param {Number} accountID
- * @param {String} validateCode
- */
-function validateLogin(accountID, validateCode) {
-    const isLoggedIn = !_.isEmpty(sessionAuthToken);
-    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
-    API.ValidateEmail({
-        accountID,
-        validateCode,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            const {email} = response;
-
-            if (isLoggedIn) {
-                getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-            }
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-        }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        Navigation.navigate(redirectRoute);
     });
 }
 
@@ -426,7 +383,6 @@ export {
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLoginAndNavigate,
-    validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,

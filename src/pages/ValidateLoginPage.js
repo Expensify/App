@@ -6,6 +6,7 @@ import {
 } from './validateLinkPropTypes';
 import * as User from '../libs/actions/User';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import ValidateEmailCommand from '../libs/API/commands/ValidateEmailCommand';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -20,7 +21,7 @@ class ValidateLoginPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        User.validateLogin(accountID, validateCode);
+        (new ValidateEmailCommand()).makeRequest(accountID, validateCode);
     }
 
     render() {
