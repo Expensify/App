@@ -29,6 +29,8 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+
+            // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
         };
 
