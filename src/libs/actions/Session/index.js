@@ -385,13 +385,13 @@ function changePasswordAndSignIn(authToken, password) {
                 signIn(password);
                 return;
             }
-            if (responsePassword.jsonCode === 407 && !credentials.login) {
+            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED && !credentials.login) {
                 // authToken has expired, and we don't have the email set to request a new magic link.
                 // send user to login page to enter email.
                 Navigation.navigate(ROUTES.HOME);
                 return;
             }
-            if (responsePassword.jsonCode === 407) {
+            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 // authToken has expired, and we have the account email, so we request a new magic link.
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
                 resetPassword();
@@ -478,7 +478,7 @@ function authenticatePusher(socketID, channelName, callback) {
         forceNetworkRequest: true,
     })
         .then((data) => {
-            if (data.jsonCode === 407) {
+            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 callback(new Error('Expensify session expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
@@ -486,7 +486,7 @@ function authenticatePusher(socketID, channelName, callback) {
                 return;
             }
 
-            if (data.jsonCode !== 200) {
+            if (data.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
                 return;
             }
