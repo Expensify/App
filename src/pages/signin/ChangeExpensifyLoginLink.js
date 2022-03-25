@@ -3,6 +3,7 @@ import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -27,28 +28,30 @@ const defaultProps = {
     },
 };
 
-const ChangeExpensifyLoginLink = props => (
-    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        <Text>
-            {props.translate('common.not')}
-            &nbsp;
-            {Str.isSMSLogin(props.credentials.login)
-                ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login))
-                : Str.removeSMSDomain(props.credentials.login)}
-            {'? '}
-        </Text>
-        <TouchableOpacity
-            style={[styles.link]}
-            onPress={Session.clearSignInData}
-            underlayColor={themeColors.componentBG}
-        >
-            <Text style={[styles.link]}>
-                {props.translate('common.goBack')}
-                {'.'}
+const ChangeExpensifyLoginLink = props => {
+    const login = lodashGet(props.credentials, 'login', '');
+    return (
+        <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
+            <Text>
+                {props.translate('common.not')}
+                &nbsp;
+                {Str.isSMSLogin(login)
+                    ? props.toLocalPhone(Str.removeSMSDomain(login))
+                    : Str.removeSMSDomain(login)}
+                {'? '}
             </Text>
-        </TouchableOpacity>
-    </View>
-);
+            <TouchableOpacity
+                style={[styles.link]}
+                onPress={Session.clearSignInData}
+                underlayColor={themeColors.componentBG}
+            >
+                <Text style={[styles.link]}>
+                    {props.translate('common.goBack')}
+                    {'.'}
+                </Text>
+            </TouchableOpacity>
+        </View>
+)};
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
 ChangeExpensifyLoginLink.defaultProps = defaultProps;
