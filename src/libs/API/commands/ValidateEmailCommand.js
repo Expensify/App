@@ -24,15 +24,15 @@ Onyx.connect({
 });
 
 export default class extends BaseAPICommandBlocking {
-    #commandName = 'ValidateEmail';
+    commandName = 'ValidateEmail';
 
-    #commandParameters = {};
+    commandParameters = {};
 
-    #requiredParameters = ['accountID', 'validateCode'];
+    requiredParameters = ['accountID', 'validateCode'];
 
     startBlocking() {
         super.startBlocking();
-        Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA});
     }
 
     finishBlocking() {
@@ -40,7 +40,6 @@ export default class extends BaseAPICommandBlocking {
 
         const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
 
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         Navigation.navigate(redirectRoute);
     }
 

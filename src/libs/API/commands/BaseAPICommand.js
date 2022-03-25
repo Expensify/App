@@ -9,21 +9,21 @@ export default class {
     /**
      * The name of the API command (eg. command=Get)
      */
-    #commandName = '';
+    commandName = '';
 
     /**
      * Any additional params for the command name (eg. rvl=chatList)
      */
-    #commandParams = {};
+    commandParams = {};
 
     /**
      * A list of parameters that are required when this command is called
      * @type {[]}
      */
-    #requiredParameters = [];
+    requiredParameters = [];
 
     constructor() {
-        DataChanged.subscribe(this.#commandName, this.processDataChanged);
+        DataChanged.subscribe(this.commandName, this.processDataChanged);
     }
 
     /**
@@ -40,8 +40,8 @@ export default class {
      * @return {Promise}
      */
     makeRequest(parameters) {
-        requireParameters(this.#requiredParameters, parameters, this.#commandName);
-        return Network.post(this.#commandName, parameters)
+        requireParameters(this.requiredParameters, parameters, this.commandName);
+        return Network.post(this.commandName, parameters)
             .then((response) => {
                 switch (response.jsonCode) {
                     case 666:
@@ -55,7 +55,7 @@ export default class {
     }
 
     requestFailed(response) {
-        console.debug('requestFailed()', this.#commandName, response);
+        console.debug('requestFailed()', this.commandName, response);
     }
 
     jsonCode666(response) {
