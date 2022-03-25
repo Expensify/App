@@ -119,6 +119,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.state.isGhostScreenVisible && this.props.isLoadingReportData === false) {
+            this.setGhostScreenVisible();
+        }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -135,21 +138,6 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * When the report data is loaded, hide the ghost screen
-     *
-     * @static
-     * @param {Object} props
-     * @param {Object} state
-     * @return {Object|null}
-     */
-    static getDerivedStateFromProps(props, state) {
-        if (state.isGhostScreenVisible && props.isLoadingReportData === false) {
-            return {isGhostScreenVisible: false};
-        }
-        return null;
-    }
-
-    /**
      * @param {String} text
      */
     onSubmitComment(text) {
@@ -162,6 +150,10 @@ class ReportScreen extends React.Component {
     updateViewportOffsetTop(e) {
         const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
         this.setState({viewportOffsetTop});
+    }
+
+    setGhostScreenVisible() {
+        this.setState({isGhostScreenVisible: false});
     }
 
     /**
