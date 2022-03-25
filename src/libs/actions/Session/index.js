@@ -341,31 +341,6 @@ function setPassword(password, validateCode, accountID) {
 }
 
 /**
- * This is used when a user clicks on a link from e.com that goes to this application. We want the user to be able to
- * be automatically logged into this app. If the user is not already logged into this app, then this method is called
- * in order to retrieve an authToken from e.com and be signed in.
- *
- * @param {String} accountID
- * @param {String} validateCode
- * @param {String} [twoFactorAuthCode]
- */
-function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
-    API.AuthenticateWithAccountID({
-        accountID,
-        validateCode,
-        twoFactorAuthCode,
-    }).then((data) => {
-        // If something failed, it doesn't really matter what, send the user to the sign in form to log in normally
-        if (data.jsonCode !== 200) {
-            Navigation.navigate(ROUTES.HOME);
-            return;
-        }
-
-        setSuccessfulSignInData(data);
-    });
-}
-
-/**
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
@@ -410,13 +385,13 @@ function changePasswordAndSignIn(authToken, password) {
                 signIn(password);
                 return;
             }
-            if (responsePassword.jsonCode === 407 && !credentials.login) {
+            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED && !credentials.login) {
                 // authToken has expired, and we don't have the email set to request a new magic link.
                 // send user to login page to enter email.
                 Navigation.navigate(ROUTES.HOME);
                 return;
             }
-            if (responsePassword.jsonCode === 407) {
+            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 // authToken has expired, and we have the account email, so we request a new magic link.
                 Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
                 resetPassword();
@@ -503,7 +478,7 @@ function authenticatePusher(socketID, channelName, callback) {
         forceNetworkRequest: true,
     })
         .then((data) => {
-            if (data.jsonCode === 407) {
+            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 callback(new Error('Expensify session expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
@@ -511,7 +486,7 @@ function authenticatePusher(socketID, channelName, callback) {
                 return;
             }
 
-            if (data.jsonCode !== 200) {
+            if (data.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
                 return;
             }
@@ -537,7 +512,6 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 }
 
 export {
-    continueSessionFromECom,
     fetchAccountDetails,
     setOrChangePassword,
     setPassword,

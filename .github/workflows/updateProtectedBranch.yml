@@ -77,19 +77,18 @@ jobs:
           git checkout -b update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
           git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
           git push --set-upstream origin update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
-          echo "SOURCE_BRANCH=update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}" >> "$GITHUB_ENV"
 
       - name: Create Pull Request
         id: createPullRequest
-        # Version: 2.4.3
-        uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
-        with:
-          source_branch: ${{ env.SOURCE_BRANCH }}
-          destination_branch: ${{ github.event.inputs.TARGET_BRANCH }}
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          pr_title: Update version to ${{ env.NEW_VERSION }} on ${{ github.event.inputs.TARGET_BRANCH }}
-          pr_body: Update version to ${{ env.NEW_VERSION }}
-          pr_label: automerge
+        run: |
+          gh pr create \
+            --title "Update version to ${{ env.NEW_VERSION }} on ${{ github.event.inputs.TARGET_BRANCH }}" \
+            --body "Update version to ${{ env.NEW_VERSION }}" \
+            --label "automerge" \
+            --base ${{ github.event.inputs.TARGET_BRANCH }}
+          echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check changed files
         if: ${{ github.event.inputs.TARGET_BRANCH == 'main' }}
@@ -98,46 +97,41 @@ jobs:
         uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-number: ${{ steps.createPullRequest.outputs.pr_number }}
+          pr-number: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
 
       - name: Validate changed files
         if: ${{ github.event.inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/NewExpensify/Info.plist ios/NewExpensifyTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
         run: exit 1
 
-      - name: Check for an auto approve
-        # Version: 2.0.0
-        uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
+      - name: Auto-approve the PR
+        run: gh pr review --approve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
         uses: Expensify/App/.github/actions/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
+          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
 
       - name: Leave comment if PR is not mergeable
         if: ${{ !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          body: |
-            :bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable.
-            If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process.
+        run: |
+          gh pr comment --body \
+          ":bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable.
+            If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process."
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Fail workflow if PR is not mergeable
         if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         run: exit 1
 
-      - name: Check for an auto merge
-        # Version: 0.12.0
-        uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
+      - name: Auto-merge the PR
+        run: gh pr merge --merge --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change

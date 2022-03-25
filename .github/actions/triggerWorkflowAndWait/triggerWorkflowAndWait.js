@@ -6,10 +6,10 @@ const {promiseWhile} = require('../../libs/promiseWhile');
 
 /**
  * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
- * It's two minutes :)
+ * It's ten minutes :)
  * @type {number}
  */
-const NEW_WORKFLOW_TIMEOUT = 120000;
+const NEW_WORKFLOW_TIMEOUT = 600000;
 
 /**
  * The maximum amount of time (in ms) we'll wait for a workflow to complete before giving up.

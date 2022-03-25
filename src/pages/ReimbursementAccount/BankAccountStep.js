@@ -314,7 +314,6 @@ class BankAccountStep extends React.Component {
                                 </View>
                             )}
                             errorText={this.getErrorText('hasAcceptedTerms')}
-                            hasError={this.getErrors().hasAcceptedTerms}
                         />
                     </ReimbursementAccountForm>
                 )}

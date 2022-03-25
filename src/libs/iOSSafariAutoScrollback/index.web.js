@@ -43,7 +43,6 @@ function scheduleScrollback() {
     }
 }
 
-
 function touchStarted() {
     isTouching = true;
 }
@@ -72,7 +71,6 @@ function startWaitingForScroll() {
 function stopWaitingForScroll() {
     isWaitingForScroll = false;
 }
-
 
 export default function () {
     if (!getBrowser() === CONST.BROWSER.SAFARI || !Str.contains(userAgent, 'iphone os 1')) {
