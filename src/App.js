@@ -11,6 +11,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import initializeiOSSafariAutoScrollback from './libs/iOSSafariAutoScrollback';
+import CONST from './CONST';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -33,7 +34,7 @@ const App = () => (
         ]}
     >
         <CustomStatusBar />
-        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+        <ErrorBoundary errorMessage={`${CONST.ERROR.ENSURE_BUGBOT} NewExpensify crash caught by error boundary`}>
             <Expensify />
         </ErrorBoundary>
     </ComposeProviders>
