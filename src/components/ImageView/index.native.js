@@ -67,9 +67,9 @@ class ImageView extends PureComponent {
             const containerWidth = Math.round(this.props.windowWidth);
             const containerHeight = Math.round(this.props.windowHeight - variables.contentHeaderHeight);
 
-            // const aspectRatio = imageHeight / imageWidth;
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
+            // resize image to fit the window if it small than screen else resize the small dimension only to avoid the resize issue on android
             if (imageHeight < containerHeight && imageWidth < containerWidth) {
                 imageHeight *= aspectRatio;
                 imageWidth *= aspectRatio;
