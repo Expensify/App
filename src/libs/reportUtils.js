@@ -203,6 +203,36 @@ function getChatRoomSubtitle(report, policiesMap) {
 }
 
 /**
+ * Get welcome message based on room type
+ * @param {Object} report
+ * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Object}
+ */
+
+function getRoomWelcomeMessage(report, policiesMap) {
+    const welcomeMessage = {};
+
+    const workspaceName = lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        Localize.translateLocal('workspace.common.unavailable'),
+    );
+
+    if (isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+
+    return welcomeMessage;
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
@@ -290,4 +320,5 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    getRoomWelcomeMessage,
 };
