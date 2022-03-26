@@ -7,6 +7,23 @@ import * as PersistedRequests from '../actions/PersistedRequests';
 
 /**
  * @param {Object} request
+ * @param {Object} parameters
+ */
+function beforeRequest(request, parameters) {
+    if (request.command === 'Log') {
+        return;
+    }
+
+    NetworkEvents.getLogger().info('Making API request', false, {
+        command: request.command,
+        type: request.type,
+        shouldUseSecure: request.shouldUseSecure,
+        rvl: parameters.returnValueList,
+    });
+}
+
+/**
+ * @param {Object} request
  * @param {String} request.command
  * @param {Object} request.data
  * @param {String} request.type
@@ -19,7 +36,7 @@ export default function processRequest(request) {
 
     // When the request goes past a certain amount of time we trigger a re-check of the connection
     const cancelRequestTimeoutTimer = NetworkEvents.startRecheckTimeoutTimer();
-    NetworkEvents.triggerRequestMade(request, finalParameters);
+    beforeRequest(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
         .then((response) => {
             if (persisted) {

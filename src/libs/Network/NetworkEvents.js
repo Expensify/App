@@ -3,9 +3,7 @@ import createCallback from '../createCallback';
 
 const [getLogger, registerLogHandler] = createCallback();
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const [triggerRequestMade, onRequestMade] = createCallback();
 const [triggerResponse, onResponse] = createCallback();
-const [triggerError, onError] = createCallback();
 const [triggerRecheckNeeded, onRecheckNeeded] = createCallback();
 
 /**
@@ -22,12 +20,8 @@ export {
     getLogger,
     triggerConnectivityResumed,
     onConnectivityResumed,
-    triggerRequestMade,
-    onRequestMade,
     onResponse,
     triggerResponse,
-    onError,
-    triggerError,
     triggerRecheckNeeded,
     onRecheckNeeded,
     startRecheckTimeoutTimer,

@@ -132,7 +132,13 @@ function processNetworkRequestQueue() {
                     return;
                 }
 
-                NetworkEvents.triggerError(queuedRequest, error);
+                if (queuedRequest.command !== 'Log') {
+                    NetworkEvents.getLogger().hmmm('[API] Handled error when making request', error);
+                } else {
+                    console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
+                }
+
+                queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
             });
     });
 
