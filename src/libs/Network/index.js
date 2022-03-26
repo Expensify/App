@@ -51,7 +51,7 @@ function retryFailedRequest(queuedRequest, error) {
     }
 
     const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
-    NetworkEvents.getLogger().info('A retryable request failed', false, {
+    NetworkEvents.getLogger().info('[Network] A retryable request failed', false, {
         retryCount,
         command: queuedRequest.command,
         error: error.message,
@@ -62,7 +62,7 @@ function retryFailedRequest(queuedRequest, error) {
         return true;
     }
 
-    NetworkEvents.getLogger().info('Request was retried too many times with no success. No more retries left');
+    NetworkEvents.getLogger().info('[Network] Request was retried too many times with no success. No more retries left');
     return false;
 }
 
@@ -133,9 +133,9 @@ function processNetworkRequestQueue() {
                 }
 
                 if (queuedRequest.command !== 'Log') {
-                    NetworkEvents.getLogger().hmmm('[API] Handled error when making request', error);
+                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
                 } else {
-                    console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
+                    console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }
 
                 queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
