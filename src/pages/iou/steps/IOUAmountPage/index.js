@@ -1,6 +1,6 @@
 import React from 'react';
 import {propTypes, defaultProps} from './IOUAmountPagePropTypes';
-import BaseIOUAmountInput from './IOUAmountInput';
+import IOUAmountInput from './IOUAmountInput';
 import * as IOUAmountUtils from './IOUAmountUtils';
 
 class IOUAmountPage extends React.Component {
@@ -62,7 +62,7 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <BaseIOUAmountInput
+            <IOUAmountInput
                 amount={this.state.amount}
                 updateAmount={this.updateAmount}
                 updateAmountNumberPad={this.updateAmountNumberPad}
