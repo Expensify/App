@@ -44,6 +44,14 @@ class TermsStep extends React.Component {
             error: false,
         };
     }
+    
+    clearError() {
+        if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            return;
+        }
+
+        this.setState({error: false});
+    }
 
     toggleDisclosure() {
         this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}), () => this.clearError());
@@ -53,15 +61,6 @@ class TermsStep extends React.Component {
         this.setState(prevState => ({
             hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
         }), () => this.clearError());
-    }
-
-    clearError() {
-        if (!this.state.hasAcceptedDisclosure
-            || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
-            return;
-        }
-
-        this.setState({error: false});
     }
 
     render() {
