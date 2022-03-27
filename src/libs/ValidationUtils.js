@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
-import LoginUtil from './LoginUtil';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -291,9 +291,8 @@ function isPositiveInteger(input) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
-
 
 /**
  * Checks the given number is a valid US Routing Number

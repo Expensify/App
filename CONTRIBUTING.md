@@ -72,7 +72,7 @@ Please follow these steps to propose a job:
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
-* In case you don't have one, here's a helpful [document](https://docs.google.com/document/d/1TD8A-SQbBN2EsnF98cEib2wiERK68fux2P0LGSkobrg/edit?usp=sharing) on how you might test all platforms on a Windows/Linux device.
+* In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
 #### Check GitHub for existing proposals from other users
 
@@ -84,7 +84,7 @@ Please follow these steps to propose a job:
 
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
-    - Note: If you post a proposed solution in an issue that has not been tagged with the `External` label, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution.
+    - Note: Issues that have not had the `External` label applied have not yet been approved for implementation. This means, if you propose a solution to an issue without the `External` label (which you are allowed to do) it is possible that the issue will be fixed internally. If the `External` label has not yet been applied, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution. This process covers the very rare instance where we need or want to fix an issue internally.
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you.

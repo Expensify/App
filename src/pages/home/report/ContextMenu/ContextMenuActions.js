@@ -22,6 +22,7 @@ function getActionText(reportAction) {
 const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
+    EMAIL: 'EMAIL',
 };
 
 // A list of all the context actions in this menu.
@@ -38,11 +39,24 @@ export default [
         },
     },
     {
+        textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
+        icon: Expensicons.Clipboard,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        successIcon: Expensicons.Checkmark,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
+        onPress: (closePopover, {selection}) => {
+            Clipboard.setString(selection.replace('mailto:', ''));
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+    },
+    {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
         icon: Expensicons.Clipboard,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU),
+        shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU
+            && !ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''))),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to

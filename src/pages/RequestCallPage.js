@@ -27,7 +27,7 @@ import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Expensicons from '../components/Icon/Expensicons';
-import LoginUtil from '../libs/LoginUtil';
+import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
@@ -95,7 +95,7 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.myPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,
@@ -112,7 +112,6 @@ class RequestCallPage extends Component {
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
         this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
-        this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
         this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
@@ -151,7 +150,7 @@ class RequestCallPage extends Component {
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -173,7 +172,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
@@ -192,42 +191,6 @@ class RequestCallPage extends Component {
             return this.props.translate('requestCallPage.error.phoneExtension');
         }
         return '';
-    }
-
-    /**
-     * Gets the first and last name from the user's personal details.
-     * If the login is the same as the displayName, then they don't exist,
-     * so we return empty strings instead.
-     * @param {String} login
-     * @param {String} displayName
-     * @param {String} firstName
-     * @param {String} lastName
-     *
-     * @returns {Object}
-     */
-    getFirstAndLastName({
-        login,
-        displayName,
-        firstName,
-        lastName,
-    }) {
-        if (firstName || lastName) {
-            return {firstName: firstName || '', lastName: lastName || ''};
-        }
-        if (Str.removeSMSDomain(login) === displayName) {
-            return {firstName: '', lastName: ''};
-        }
-
-        const firstSpaceIndex = displayName.indexOf(' ');
-        const lastSpaceIndex = displayName.lastIndexOf(' ');
-        if (firstSpaceIndex === -1) {
-            return {firstName: displayName, lastName: ''};
-        }
-
-        return {
-            firstName: displayName.substring(0, firstSpaceIndex).trim(),
-            lastName: displayName.substring(lastSpaceIndex).trim(),
-        };
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -350,6 +313,7 @@ class RequestCallPage extends Component {
                         )}
                         <Button
                             success
+                            pressOnEnter
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}

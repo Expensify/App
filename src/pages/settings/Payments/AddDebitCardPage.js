@@ -304,9 +304,8 @@ class DebitCardPage extends Component {
                                         </TextLink>
                                     </>
                                 )}
-                                style={[styles.mt4, styles.mb4]}
+                                style={styles.mt4}
                                 errorText={this.getErrorText('acceptedTerms')}
-                                hasError={Boolean(this.state.errors.acceptedTerms)}
                             />
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (

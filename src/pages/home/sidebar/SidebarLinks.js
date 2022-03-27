@@ -20,7 +20,7 @@ import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
-import {participantPropTypes} from './optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
@@ -307,6 +307,7 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,

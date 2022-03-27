@@ -84,7 +84,6 @@ class PasswordPage extends Component {
         return '';
     }
 
-
     /**
      * @param {String} field
      * @param {String} value
