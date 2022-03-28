@@ -63,7 +63,6 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.getlocalizedCurrencySymbol = this.getlocalizedCurrencySymbol.bind(this);
         this.isCurrencySymbolToLeft = this.isCurrencySymbolToLeft.bind(this);
 
         this.state = {
@@ -84,28 +83,15 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Get localized currency symbol for SO4217 Code
-     * @param {String} currencyCode
-     * @return {String}
-     */
-    getlocalizedCurrencySymbol(currencyCode) {
-        const parts = new Intl.NumberFormat(this.props.preferredLocale, {
-            style: 'currency',
-            currency: currencyCode,
-        }).formatToParts(0);
-        const currencySymbol = _.find(parts, part => part.type === 'currency').value;
-        return currencySymbol;
-    }
-
-    /**
      * Is currency symbol to left
+     * @param {String} currencyCode
      * @return {Boolean}
      */
-    isCurrencySymbolToLeft() {
-        const parts = new Intl.NumberFormat(this.props.preferredLocale, {
+    isCurrencySymbolToLeft(currencyCode) {
+        const parts = this.props.formatToParts(0, {
             style: 'currency',
-            currency: this.props.iou.selectedCurrencyCode,
-        }).formatToParts(0);
+            currency: currencyCode,
+        });
 
         // The first element of parts will be type: currency for all currency
         // Where it starts with symbol and the other will have it at last
@@ -227,8 +213,9 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
-        const currencySymbol = this.getlocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
+        const currencySymbol = this.props.toLocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
+        const isCurrencySymbolToLeft = this.isCurrencySymbolToLeft(this.props.iou.selectedCurrencyCode);
         return (
             <>
                 <View style={[
@@ -239,7 +226,7 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    {this.isCurrencySymbolToLeft() ? (
+                    {isCurrencySymbolToLeft ? (
                         <>
                             <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
                                 ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
