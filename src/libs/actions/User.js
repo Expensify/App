@@ -407,6 +407,7 @@ function generateStatementPDF(period) {
     return API.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
+                Log.info('[User] Failed to generate statement PDF', false, {response});
                 return;
             }
 
