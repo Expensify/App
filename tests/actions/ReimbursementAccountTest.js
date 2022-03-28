@@ -35,7 +35,7 @@ Onyx.connect({
 
 beforeEach(() => Onyx.clear()
     .then(() => {
-        NetworkStore.setIsReady(true);
+        NetworkStore.setHasReadRequiredDataFromStorage(true);
         TestHelper.signInWithTestUser();
         return waitForPromisesToResolve();
     }));
