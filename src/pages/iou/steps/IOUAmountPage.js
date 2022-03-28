@@ -216,6 +216,31 @@ class IOUAmountPage extends React.Component {
         const currencySymbol = this.props.getLocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         const isCurrencySymbolLTR = this.isCurrencySymbolLTR(this.props.iou.selectedCurrencyCode);
+
+        const currencySymbolElement = (
+            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+            >
+                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+            </TouchableOpacity>
+        );
+
+        const amountTextInput = (
+            <TextInput
+                disableKeyboard
+                autoGrow
+                hideFocusedState
+                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                onChangeText={this.updateAmount}
+                ref={el => this.textInput = el}
+                value={formattedAmount}
+                placeholder={this.props.numberFormat(0)}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+            />
+        );
+
         return (
             <>
                 <View style={[
@@ -226,49 +251,7 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    {isCurrencySymbolLTR ? (
-                        <>
-                            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
-                            >
-                                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
-                            </TouchableOpacity>
-                            <TextInput
-                                disableKeyboard
-                                autoGrow
-                                hideFocusedState
-                                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                                onChangeText={this.updateAmount}
-                                ref={el => this.textInput = el}
-                                value={formattedAmount}
-                                placeholder={this.props.numberFormat(0)}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <TextInput
-                                disableKeyboard
-                                autoGrow
-                                hideFocusedState
-                                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                                onChangeText={this.updateAmount}
-                                ref={el => this.textInput = el}
-                                value={formattedAmount}
-                                placeholder={this.props.numberFormat(0)}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
-                            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
-                            >
-                                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
-                            </TouchableOpacity>
-                        </>
-                    )}
+                    {isCurrencySymbolLTR ? [currencySymbolElement, amountTextInput] : [amountTextInput, currencySymbolElement]}
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {canUseTouchScreen()
