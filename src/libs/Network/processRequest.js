@@ -9,7 +9,8 @@ import * as PersistedRequests from '../actions/PersistedRequests';
  * @param {Object} request
  * @param {Object} parameters
  */
-function beforeRequest(request, parameters) {
+function logRequestDetails(request, parameters) {
+    // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
         return;
     }
@@ -36,7 +37,7 @@ export default function processRequest(request) {
 
     // When the request goes past a certain amount of time we trigger a re-check of the connection
     const cancelRequestTimeoutTimer = NetworkEvents.startRecheckTimeoutTimer();
-    beforeRequest(request, finalParameters);
+    logRequestDetails(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
         .then((response) => {
             if (persisted) {
