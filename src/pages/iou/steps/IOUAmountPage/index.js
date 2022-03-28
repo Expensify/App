@@ -53,7 +53,8 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = IOUAmountUtils.replaceAllDigits(text, this.props.fromLocaleDigit);
+            // iOS safari appends a whitespace to copy/pasted items
+            const amount = IOUAmountUtils.replaceAllDigits(text, this.props.fromLocaleDigit).replace(/ /g, '');
             return IOUAmountUtils.validateAmount(amount)
                 ? {amount: IOUAmountUtils.stripCommaFromAmount(amount)}
                 : prevState;
