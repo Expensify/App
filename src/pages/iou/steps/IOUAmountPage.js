@@ -63,7 +63,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.isCurrencySymbolToLeft = this.isCurrencySymbolToLeft.bind(this);
+        this.isCurrencySymbolLTR = this.isCurrencySymbolLTR.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -87,7 +87,7 @@ class IOUAmountPage extends React.Component {
      * @param {String} currencyCode
      * @return {Boolean}
      */
-    isCurrencySymbolToLeft(currencyCode) {
+    isCurrencySymbolLTR(currencyCode) {
         const parts = this.props.formatToParts(0, {
             style: 'currency',
             currency: currencyCode,
@@ -213,9 +213,9 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
-        const currencySymbol = this.props.toLocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
+        const currencySymbol = this.props.getLocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
-        const isCurrencySymbolToLeft = this.isCurrencySymbolToLeft(this.props.iou.selectedCurrencyCode);
+        const isCurrencySymbolLTR = this.isCurrencySymbolLTR(this.props.iou.selectedCurrencyCode);
         return (
             <>
                 <View style={[
@@ -226,7 +226,7 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    {isCurrencySymbolToLeft ? (
+                    {isCurrencySymbolLTR ? (
                         <>
                             <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
                                 ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
