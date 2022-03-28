@@ -321,6 +321,10 @@ const styles = {
         color: colors.red,
     },
 
+    borderRadiusNormal: {
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -696,6 +700,10 @@ const styles = {
         paddingHorizontal: 11,
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
+    },
+
+    textInputMultiline: {
+        scrollPadding: '23px 0 0 0',
     },
 
     textInputAndIconContainer: {
@@ -1289,15 +1297,6 @@ const styles = {
         lineHeight: 20,
     },
 
-    chatItemCompose: {
-        minHeight: 65,
-        marginBottom: 5,
-        paddingLeft: 20,
-        paddingRight: 20,
-        display: 'flex',
-        backgroundColor: themeColors.appBG,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1315,6 +1314,15 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
+    },
+
+    chatFooter: {
+        minHeight: 65,
+        marginBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     textInputCompose: addOutlineWidth({
@@ -2136,6 +2144,7 @@ const styles = {
         width: '90%',
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
+        ...spacing.ml4,
     },
 
     blockquote: {

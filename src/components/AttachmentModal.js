@@ -162,7 +162,7 @@ class AttachmentModal extends PureComponent {
                             : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={!this.props.isUploadingAttachment}
-                        onDownloadButtonPress={() => fileDownload(sourceURL)}
+                        onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(
                             <TextWithEllipsis
