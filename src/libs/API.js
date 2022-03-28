@@ -47,7 +47,10 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
+// We set the logger for Network here so that we can avoid a circular dependency
 NetworkEvents.registerLogHandler(() => Log);
+
+// Handle response event sent by the Network
 NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
