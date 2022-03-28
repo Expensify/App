@@ -72,6 +72,9 @@ export default {
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
 
+    // Contains metadata (partner, login, validation date) for all of the user's logins
+    LOGIN_LIST: 'loginList',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     BETAS: 'betas',
