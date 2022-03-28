@@ -32,6 +32,7 @@ const imagePickerOptions = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
+    includeExtra: false,
 };
 
 /**

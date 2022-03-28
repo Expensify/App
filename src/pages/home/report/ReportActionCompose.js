@@ -222,10 +222,6 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.isArchivedRoom(this.props.report)) {
-            return this.props.translate('reportActionCompose.roomIsArchived');
-        }
-
         if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
@@ -405,14 +401,8 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
-
         return (
-            <View style={[
-                styles.chatItemCompose,
-                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
-            ]}
-            >
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -447,7 +437,7 @@ class ReportActionCompose extends React.Component {
                                                         }}
                                                         style={styles.chatItemAttachButton}
                                                         underlayColor={themeColors.componentBG}
-                                                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                        disabled={isBlockedFromConcierge}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
@@ -474,8 +464,7 @@ class ReportActionCompose extends React.Component {
                                                                             ),
                                                                         );
                                                                     },
-                                                                }
-                                                                : {
+                                                                } : {
                                                                     icon: Expensicons.MoneyCircle,
                                                                     text: this.props.translate('iou.requestMoney'),
                                                                     onSelected: () => {
@@ -559,17 +548,16 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge || isArchivedChatRoom}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
-
                             </>
                         )}
                     </AttachmentModal>
                     {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
+                            isDisabled={isBlockedFromConcierge}
                             onModalHide={() => this.focus(true)}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
@@ -587,7 +575,7 @@ class ReportActionCompose extends React.Component {
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                                 onMouseDown={e => e.preventDefault()}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
