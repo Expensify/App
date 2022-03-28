@@ -11,7 +11,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import LoadingSpinnerOverlay from '../LoadingSpinnerOverlay';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -137,7 +137,7 @@ class ImageView extends PureComponent {
                         style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
                         resizeMode="contain"
                     />
-                    <LoadingSpinnerOverlay />
+                    <FullscreenLoadingIndicator />
                 </View>
             );
         }
@@ -212,7 +212,7 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
-                {this.state.isLoading && <LoadingSpinnerOverlay />}
+                {this.state.isLoading && <FullscreenLoadingIndicator />}
             </View>
         );
     }

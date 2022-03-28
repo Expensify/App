@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
-import LoadingSpinnerOverlay from './LoadingSpinnerOverlay';
+import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Url for image to display */
@@ -122,7 +122,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                 />
-                {this.state.isLoading && <LoadingSpinnerOverlay />}
+                {this.state.isLoading && <FullscreenLoadingIndicator />}
             </View>
         );
     }

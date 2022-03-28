@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import LoadingSpinnerOverlay from '../LoadingSpinnerOverlay';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -255,7 +255,7 @@ class ImageView extends PureComponent {
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
-                    {this.state.isLoading && <LoadingSpinnerOverlay />}
+                    {this.state.isLoading && <FullscreenLoadingIndicator />}
                 </View>
             );
         }
@@ -294,7 +294,7 @@ class ImageView extends PureComponent {
                     />
                 </Pressable>
 
-                {this.state.isLoading && <LoadingSpinnerOverlay />}
+                {this.state.isLoading && <FullscreenLoadingIndicator />}
             </View>
         );
     }
