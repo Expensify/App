@@ -4,6 +4,9 @@ import React from 'react';
 // to the original ref.
 const flatListRef = React.createRef();
 
+// Whether the user is scrolling the Report messages list.
+let hasScrolling = false;
+
 /**
  * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
  * we are editing a comment.
@@ -31,8 +34,25 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
+/**
+ * Toggle scrolling status.
+ */
+function toggleScrolling() {
+    hasScrolling = !hasScrolling;
+}
+
+/**
+ * Toggle scrolling status.
+ * @returns {Boolean}
+ */
+function isScrolling() {
+    return hasScrolling;
+}
+
 export {
     flatListRef,
+    isScrolling,
     scrollToIndex,
     scrollToBottom,
+    toggleScrolling,
 };
