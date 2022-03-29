@@ -39,7 +39,11 @@ class FullScreenLoadingIndicator extends React.Component {
         Log.info(`[LoadingIndicator] "${this.props.name}" became visible`);
 
         this.timeoutId = setTimeout(
-            () => Log.alert(`[LoadingIndicator] "${this.props.name}" is still visible after ${this.props.timeout} ms`),
+            () => Log.alert(
+                `[LoadingIndicator] "${this.props.name}" is still visible after ${this.props.timeout} ms`,
+                '',
+                false,
+            ),
             this.props.timeout,
         );
     }
