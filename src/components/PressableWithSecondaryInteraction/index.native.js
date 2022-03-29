@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import {Pressable} from 'react-native';
+import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
 import HapticFeedback from '../../libs/HapticFeedback';
@@ -15,21 +16,28 @@ const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? Text : Pressable;
     return (
-        <Node
-            ref={props.forwardedRef}
-            onPress={props.onPress}
-            onPressIn={props.onPressIn}
-            onLongPress={(e) => {
+        <LongPressGestureHandler
+            onHandlerStateChange={(e) => {
+                if (e.nativeEvent.state !== State.ACTIVE) {
+                    return;
+                }
                 e.preventDefault();
                 HapticFeedback.trigger();
                 props.onSecondaryInteraction(e);
             }}
-            onPressOut={props.onPressOut}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(_.omit(props, 'onLongPress'))}
         >
-            {props.children}
-        </Node>
+            <Node
+                ref={props.forwardedRef}
+                onPress={props.onPress}
+                onPressIn={props.onPressIn}
+                onPressOut={props.onPressOut}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(_.omit(props, 'onLongPress'))}
+            >
+                {props.children}
+            </Node>
+        </LongPressGestureHandler>
+
     );
 };
 

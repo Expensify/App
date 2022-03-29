@@ -5,7 +5,7 @@ import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
-import TextInputFocusable from '../../../components/TextInputFocusable';
+import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
@@ -158,7 +158,7 @@ class ReportActionItemMessageEdit extends React.Component {
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
-                    <TextInputFocusable
+                    <Composer
                         multiline
                         ref={(el) => {
                             this.textInput = el;
