@@ -51,7 +51,7 @@ function retryFailedRequest(queuedRequest, error) {
     }
 
     const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
-    NetworkEvents.getLogger().info('A retryable request failed', false, {
+    NetworkEvents.getLogger().info('[Network] A retryable request failed', false, {
         retryCount,
         command: queuedRequest.command,
         error: error.message,
@@ -62,7 +62,7 @@ function retryFailedRequest(queuedRequest, error) {
         return true;
     }
 
-    NetworkEvents.getLogger().info('Request was retried too many times with no success. No more retries left');
+    NetworkEvents.getLogger().info('[Network] Request was retried too many times with no success. No more retries left');
     return false;
 }
 
@@ -125,32 +125,20 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
-            .then(response => NetworkEvents.triggerResponse(queuedRequest, response))
             .catch((error) => {
-                // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here.
-                if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                    NetworkEvents.triggerError(queuedRequest, error);
+                // Because we ran into an error we assume we might be offline and do a "connection" health test
+                NetworkEvents.triggerRecheckNeeded();
+                if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
 
-                // Because we ran into an error we assume we might be offline and do a "connection" health test
-                NetworkEvents.triggerRecheckNeeded();
-
-                // Retry any request that returns a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario
-                // like incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
-                if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                    if (retryFailedRequest(queuedRequest, error)) {
-                        return;
-                    }
-
-                    // We were not able to retry so pass the error to the handler in API.js
-                    NetworkEvents.triggerError(queuedRequest, error);
+                if (queuedRequest.command !== 'Log') {
+                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
                 } else {
-                    NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
-                        command: queuedRequest.command,
-                        error: error.message,
-                    });
+                    console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }
+
+                queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
             });
     });
 

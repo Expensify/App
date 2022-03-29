@@ -9,7 +9,6 @@ import requireParameters from './requireParameters';
 import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
-import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkEvents from './Network/NetworkEvents';
@@ -48,21 +47,10 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
+// We set the logger for Network here so that we can avoid a circular dependency
 NetworkEvents.registerLogHandler(() => Log);
 
-NetworkEvents.onRequestMade((queuedRequest, finalParameters) => {
-    if (queuedRequest.command === 'Log') {
-        return;
-    }
-
-    Log.info('Making API request', false, {
-        command: queuedRequest.command,
-        type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.shouldUseSecure,
-        rvl: finalParameters.returnValueList,
-    });
-});
-
+// Handle response event sent by the Network
 NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
@@ -100,34 +88,13 @@ NetworkEvents.onResponse((queuedRequest, response) => {
         return;
     }
 
+    // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
     if (!queuedRequest.resolve) {
         return;
     }
 
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
-});
-
-NetworkEvents.onError((queuedRequest, error) => {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        Log.info('[API] request canceled', false, queuedRequest);
-        return;
-    }
-    if (queuedRequest.command !== 'Log') {
-        Log.hmmm('[API] Handled error when making request', error);
-    } else {
-        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
-    }
-
-    // Set an error state and signify we are done loading
-    setSessionLoadingAndError(false, 'Cannot connect to server');
-
-    // Reject the queued request with an API offline error so that the original caller can handle it
-    // Note: We are checking for the reject method as this could be a persisted request which had it's promise handling logic stripped
-    // from it when persisted to storage
-    if (queuedRequest.reject) {
-        queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
-    }
 });
 
 /**

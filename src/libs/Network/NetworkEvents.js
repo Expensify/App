@@ -1,11 +1,14 @@
 import CONST from '../../CONST';
 import createCallback from '../createCallback';
 
+/**
+ * This file helps bridge the Network layer with other parts of the app like API, NetworkConnection, PersistedRequestsQueue etc.
+ * It helps avoid circular dependencies and by setting up event triggers and subscribers.
+ */
+
 const [getLogger, registerLogHandler] = createCallback();
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const [triggerRequestMade, onRequestMade] = createCallback();
 const [triggerResponse, onResponse] = createCallback();
-const [triggerError, onError] = createCallback();
 const [triggerRecheckNeeded, onRecheckNeeded] = createCallback();
 
 /**
@@ -22,12 +25,8 @@ export {
     getLogger,
     triggerConnectivityResumed,
     onConnectivityResumed,
-    triggerRequestMade,
-    onRequestMade,
     onResponse,
     triggerResponse,
-    onError,
-    triggerError,
     triggerRecheckNeeded,
     onRecheckNeeded,
     startRecheckTimeoutTimer,
