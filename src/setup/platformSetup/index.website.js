@@ -5,7 +5,6 @@ import 'shim-keyboard-event-key';
 
 import checkForUpdates from '../../libs/checkForUpdates';
 import Config from '../../CONFIG';
-import HttpUtils from '../../libs/HttpUtils';
 import DateUtils from '../../libs/DateUtils';
 import {version as currentVersion} from '../../../package.json';
 import Visibility from '../../libs/Visibility';
@@ -15,7 +14,10 @@ import Visibility from '../../libs/Visibility';
  * then refresh. If the page is visibile, prompt the user to refresh.
  */
 function webUpdate() {
-    HttpUtils.download('version.json')
+    fetch(`${Config.EXPENSIFY.NEW_EXPENSIFY_URL}version.json`, {
+        cache: 'no-cache',
+    })
+        .then(response => response.json())
         .then(({version}) => {
             if (version === currentVersion) {
                 return;
