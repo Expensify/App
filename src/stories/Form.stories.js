@@ -157,7 +157,10 @@ ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverError
 InputError.args = {
     ...defaultArgs,
     draftValues: {
-        routingNumber: '', accountNumber: '', dob: '', checkbox: false,
+        routingNumber: '',
+        accountNumber: '',
+        dob: '',
+        checkbox: false,
     },
 };
 WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};

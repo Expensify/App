@@ -14,7 +14,7 @@ class DatePicker extends React.Component {
             selectedDate: props.value || props.defaultValue,
         };
         this.showPicker = this.showPicker.bind(this);
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.setDate = this.setDate.bind(this);
     }
 
     componentDidUpdate() {
@@ -57,7 +57,9 @@ class DatePicker extends React.Component {
                     label={this.props.label}
                     ref={(el) => {
                         this.textInput = el;
-                        if (typeof this.props.forwardRef === 'function') { this.props.forwardedRef(el); }
+                        if (typeof this.props.forwardRef === 'function') { 
+                            this.props.forwardedRef(el); 
+                        }
                     }}
                     defaultValue={DateUtils.getDateAsText(this.state.selectedDate) || CONST.DATE.MOMENT_FORMAT_STRING}
                     placeholder={this.props.placeholder}
@@ -72,12 +74,12 @@ class DatePicker extends React.Component {
                     inputID={this.props.inputID}
                 />
                 {this.state.isPickerVisible && (
-                <RNDatePicker
-                    value={this.state.selectedDate ? moment(this.state.selectedDate).toDate() : new Date()}
-                    mode="date"
-                    onChange={this.setDate}
-                    maximumDate={this.props.maximumDate}
-                />
+                    <RNDatePicker
+                        value={this.state.selectedDate ? moment(this.state.selectedDate).toDate() : new Date()}
+                        mode="date"
+                        onChange={this.setDate}
+                        maximumDate={this.props.maximumDate}
+                    />
                 )}
             </>
         );
