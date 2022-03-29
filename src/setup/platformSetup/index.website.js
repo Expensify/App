@@ -14,9 +14,7 @@ import Visibility from '../../libs/Visibility';
  * then refresh. If the page is visibile, prompt the user to refresh.
  */
 function webUpdate() {
-    fetch(`${Config.EXPENSIFY.NEW_EXPENSIFY_URL}version.json`, {
-        cache: 'no-cache',
-    })
+    fetch('/version.json', {cache: 'no-cache'})
         .then(response => response.json())
         .then(({version}) => {
             if (version === currentVersion) {
