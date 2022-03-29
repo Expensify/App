@@ -175,6 +175,7 @@ function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
             searchTerms.push(personalDetail.login);
+            searchTerms.push(personalDetail.login.replace(/\./g, ''));
         });
     }
     if (report) {
@@ -333,6 +334,7 @@ function createOption(personalDetailList, report, {
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
     const searchWords = _.map(
         searchValue
+            .replace(/\./g, '')
             .replace(/,/g, ' ')
             .split(' '),
         word => word.trim(),
