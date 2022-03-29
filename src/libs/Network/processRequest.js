@@ -40,6 +40,10 @@ export default function processRequest(request) {
     logRequestDetails(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
         .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.type === CONST.ERROR_TYPE.SOCKET) {
+                NetworkEvents.getLogger().hmmm('[Network] Issue connecting to database when making request');
+                throw new Error(CONST.ERROR.FAILED_TO_FETCH);
+            }
             if (persisted) {
                 PersistedRequests.remove(request);
             }

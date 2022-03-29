@@ -325,9 +325,13 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
+    ERROR_TYPE: {
+        SOCKET: 'Expensify\\Auth\\Error\\Socket',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
+        EXP_ERROR: 666,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
