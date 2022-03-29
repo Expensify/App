@@ -5,8 +5,9 @@ import _ from 'underscore';
 // to the original ref.
 const flatListRef = React.createRef();
 
-// Whether the user is scrolling the Report messages list.
+// Whether the user is scrolling the report messages list.
 let hasScrolling = false;
+let activeHoveredItem = null;
 
 /**
  * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
@@ -35,25 +36,38 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
-const setScrollOff = _.debounce(() => {
+/**
+ * Unset the scrolling status and activate the hovered item's hover state
+ */
+const unsetScrollingAndActivateHoveredItem = _.debounce(() => {
     hasScrolling = false;
+    if (!activeHoveredItem) {
+        return;
+    }
+    activeHoveredItem.setHovered();
 }, 100);
 
 /**
  * Toggle scrolling status.
- * @param {Boolean} scrolling
  */
-function setScrollingAndStartOffListener(scrolling) {
-    hasScrolling = scrolling;
-    setScrollOff();
+function setScrollingAndStartUnsetListener() {
+    hasScrolling = true;
+    unsetScrollingAndActivateHoveredItem();
 }
 
 /**
- * Toggle scrolling status.
+ * Whether user is scrolling the report messages list
  * @returns {Boolean}
  */
 function isScrolling() {
     return hasScrolling;
+}
+
+/**
+ * @param {Object} item
+ */
+function setCurrentlyHoveredReportActionItem(item) {
+    activeHoveredItem = item;
 }
 
 export {
@@ -61,5 +75,6 @@ export {
     isScrolling,
     scrollToIndex,
     scrollToBottom,
-    setScrollingAndStartOffListener,
+    setScrollingAndStartUnsetListener,
+    setCurrentlyHoveredReportActionItem,
 };

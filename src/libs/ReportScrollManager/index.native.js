@@ -1,12 +1,8 @@
 import React from 'react';
-import _ from 'underscore';
 
 // This ref is created using React.createRef here because this function is used by a component that doesn't have access
 // to the original ref.
 const flatListRef = React.createRef();
-
-// Whether the user is scrolling the Report messages list.
-let hasScrolling = false;
 
 /**
  * Scroll to the provided index.
@@ -29,31 +25,19 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
-const setScrollOff = _.debounce(() => {
-    hasScrolling = false;
-}, 100);
-
 /**
- * Toggle scrolling status.
- * @param {Boolean} scrolling
+ * Ignore the scrolling on Native devices as currently they are not used.
  */
-function setScrollingAndStartOffListener(scrolling) {
-    hasScrolling = scrolling;
-    setScrollOff();
-}
 
-/**
- * Toggle scrolling status.
- * @returns {Boolean}
- */
-function isScrolling() {
-    return hasScrolling;
-}
+function isScrolling() {}
+function setScrollingAndStartUnsetListener() {}
+function setCurrentlyHoveredReportActionItem() {}
 
 export {
     flatListRef,
     isScrolling,
     scrollToIndex,
     scrollToBottom,
-    setScrollingAndStartOffListener,
+    setScrollingAndStartUnsetListener,
+    setCurrentlyHoveredReportActionItem,
 };
