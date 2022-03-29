@@ -38,7 +38,8 @@ class EmojiPicker extends React.Component {
             return;
         }
 
-        // Dismiss the Keyboard and focus to prevent emoji press twice when selecting an emoji
+        // Dismiss the keyboard to provide a focus for the emoji picker to avoid selection issues.
+        // Eg: https://github.com/Expensify/App/issues/8110
         Keyboard.dismiss();
     }
 
