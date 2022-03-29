@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 
 // This ref is created using React.createRef here because this function is used by a component that doesn't have access
 // to the original ref.
@@ -34,11 +35,17 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
+const setScrollOff = _.debounce(() => {
+    hasScrolling = false;
+}, 100);
+
 /**
  * Toggle scrolling status.
+ * @param {Boolean} scrolling
  */
-function toggleScrolling() {
-    hasScrolling = !hasScrolling;
+function setScrollingAndStartOffListener(scrolling) {
+    hasScrolling = scrolling;
+    setScrollOff();
 }
 
 /**
@@ -54,5 +61,5 @@ export {
     isScrolling,
     scrollToIndex,
     scrollToBottom,
-    toggleScrolling,
+    setScrollingAndStartOffListener,
 };
