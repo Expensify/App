@@ -414,7 +414,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-            return fetchedReports;
+            return simplifiedReports;
         })
         .catch((err) => {
             if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -916,7 +916,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             // We are returning an array with a report object here since fetchAllReports calls this method or
             // fetchChatReportsByIDs which returns an array of report objects.
-            return [data];
+            return [getSimplifiedReportObject(data)];
         });
 }
 
