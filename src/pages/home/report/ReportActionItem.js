@@ -97,14 +97,14 @@ class ReportActionItem extends Component {
     }
 
     setHovered() {
-        if (ReportScrollManager.isScrolling() || !this.hovered) {
+        if (ReportScrollManager.isScrolling() || !this.isHovering) {
             return;
         }
         this.setState({hovered: true});
     }
 
     setHoveredWhenNotScrolling() {
-        this.hovered = true;
+        this.isHovering = true;
         if (ReportScrollManager.isScrolling()) {
             ReportScrollManager.setCurrentlyHoveredReportActionItem(this);
             return;
@@ -113,7 +113,7 @@ class ReportActionItem extends Component {
     }
 
     unsetHovered() {
-        this.hovered = false;
+        this.isHovering = false;
         this.setState({hovered: false});
     }
 
