@@ -95,6 +95,7 @@ const IdentityForm = (props) => {
                 value={props.values.dob}
                 onChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
+                maximumDate={new Date()}
             />
             <TextInput
                 label={`${props.translate('common.ssnLast4')}`}

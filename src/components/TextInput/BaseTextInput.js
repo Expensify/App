@@ -29,6 +29,8 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+
+            // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
         };
 
@@ -62,7 +64,7 @@ class BaseTextInput extends Component {
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
         // Only update when value prop is provided
-        if (this.props.value === undefined || this.state.value === this.props.value) {
+        if (_.isUndefined(this.props.value) || this.state.value === this.props.value) {
             return;
         }
 
@@ -260,7 +262,7 @@ class BaseTextInput extends Component {
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
-                                            this.props.secureTextEntry && styles.pr2,
+                                            this.props.secureTextEntry && styles.secureInput,
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -287,26 +289,10 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    {(!_.isEmpty(inputHelpText) || !_.isNull(this.props.maxLength)) && (
-                        <View
-                            style={[
-                                styles.mt1,
-                                styles.flexRow,
-                                styles.justifyContentBetween,
-                                styles.ph3,
-                            ]}
-                        >
-                            {!_.isEmpty(inputHelpText) && (
-                                <Text style={[formHelpStyles]}>{inputHelpText}</Text>
-                            )}
-                            {!_.isNull(this.props.maxLength) && (
-                                <Text style={[formHelpStyles, styles.flex1, styles.textAlignRight]}>
-                                    {this.state.value.length}
-                                    /
-                                    {this.props.maxLength}
-                                </Text>
-                            )}
-                        </View>
+                    {!_.isEmpty(inputHelpText) && (
+                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
+                            {inputHelpText}
+                        </Text>
                     )}
                 </View>
                 {/*

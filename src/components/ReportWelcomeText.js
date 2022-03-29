@@ -74,13 +74,13 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
-
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
                 <>
-                    <Text>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
                     </Text>
                     <Text style={[styles.textStrong]}>
@@ -100,24 +100,22 @@ const ReportWelcomeText = (props) => {
             )}
             {isChatRoom && (
                 <>
-                    <Text>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
+                        {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]}>
                         {props.report.reportName}
                     </Text>
                     <Text>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        {roomWelcomeMessage.phrase2}
                     </Text>
                 </>
             )}
             {isDefault && (
                 <>
-                    <Text>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
                     {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
