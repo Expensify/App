@@ -49,7 +49,7 @@ const MainDrawerNavigator = (props) => {
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator name="Main Drawer Loader" timeout={15 * 1000} />;
+        return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
     }
 
     // After the app initializes and reports are available the home navigation is mounted

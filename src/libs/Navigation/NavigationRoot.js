@@ -59,8 +59,7 @@ class NavigationRoot extends Component {
             <NavigationContainer
                 fallback={(
                     <FullScreenLoadingIndicator
-                        name="Navigation Fallback Loader"
-                        timeout={15 * 1000}
+                        logDetail={{name: 'Navigation Fallback Loader', authenticated: this.props.authenticated}}
                         style={styles.navigatorFullScreenLoading}
                     />
                 )}

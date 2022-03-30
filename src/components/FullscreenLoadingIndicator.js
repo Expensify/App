@@ -6,22 +6,25 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Log from '../libs/Log';
+import CONST from '../CONST';
 
 const propTypes = {
-    /** Name used in the logs if the loader is displayed for too long time */
-    name: PropTypes.string,
-
-    /** Optional duration (ms) after which a message would be logged if the loader is still covering the screen */
-    timeout: PropTypes.number,
+    /**
+     * Context info printed in timing log.
+     * Providing this prop would capture logs for mounting/unmounting and staying visible for too long
+     */
+    logDetail: PropTypes.shape({
+        /** Name is used to distinct the loader in captured logs. */
+        name: PropTypes.string.isRequired,
+    }),
 
     /** Additional style props */
     style: stylePropTypes,
 };
 
 const defaultProps = {
-    timeout: 0,
-    name: '',
     style: [],
+    logDetail: null,
 };
 
 /**
@@ -32,29 +35,33 @@ const defaultProps = {
  */
 class FullScreenLoadingIndicator extends React.Component {
     componentDidMount() {
-        if (!this.props.name || !this.props.timeout) {
+        if (!this.props.logDetail) {
             return;
         }
 
-        Log.info(`[LoadingIndicator] "${this.props.name}" became visible`);
+        if (!this.props.logDetail.name) {
+            throw new Error('A name should be set to distinct logged messages. Please check the `logDetails` prop');
+        }
 
-        this.timeoutId = setTimeout(
+        Log.info('[LoadingIndicator] Became visible', false, this.props.logDetail);
+
+        this.timeoutID = setTimeout(
             () => Log.alert(
-                `[LoadingIndicator] "${this.props.name}" is still visible after ${this.props.timeout} ms`,
-                '',
+                `${CONST.ERROR.ENSURE_BUGBOT} [LoadingIndicator] Visible after timeout`,
+                {timeout: CONST.TIMING.SPINNER_TIMEOUT, ...this.props.logDetail},
                 false,
             ),
-            this.props.timeout,
+            CONST.TIMING.SPINNER_TIMEOUT,
         );
     }
 
     componentWillUnmount() {
-        if (!this.timeoutId) {
+        if (!this.timeoutID) {
             return;
         }
 
-        clearTimeout(this.timeoutId);
-        Log.info(`[LoadingIndicator] "${this.props.name}" disappeared`);
+        clearTimeout(this.timeoutID);
+        Log.info('[LoadingIndicator] Disappeared', false, this.props.logDetail);
     }
 
     render() {
