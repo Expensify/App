@@ -36,6 +36,14 @@ function setDidTapNotification() {
 }
 
 /**
+ * Returns true if the Navigation is ready to navigate
+ * @returns {boolean}
+ */
+function isReady() {
+    return navigationRef.isReady();
+}
+
+/**
  * @param {String} methodName
  * @param {Object} params
  * @returns {Boolean}
@@ -186,6 +194,17 @@ function isActiveRoute(routePath) {
 }
 
 /**
+ * Returns whether we have a chat visible or not
+ * @returns {boolean}
+ */
+function isChatVisible() {
+    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).slice(0, 3)
+        : '';
+    return path === '/r/';
+}
+
+/**
  * Alternative to the `Navigation.dismissModal()` function that we can use inside
  * the render function of other components to avoid breaking React rules about side-effects.
  *
@@ -217,6 +236,8 @@ export default {
     navigate,
     dismissModal,
     isActiveRoute,
+    isChatVisible,
+    isReady,
     goBack,
     DismissModal,
     closeDrawer,
