@@ -314,6 +314,8 @@ const CONST = {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
+        FAILED_TO_FETCH: 'Failed to fetch',
+        ENSURE_BUGBOT: 'ENSURE_BUGBOT',
     },
     NETWORK: {
         METHOD: {
@@ -323,10 +325,9 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
-    HTTP_STATUS_CODE: {
+    JSON_CODE: {
         SUCCESS: 200,
-        BAD_REQUEST: 400,
-        UNAUTHORIZED: 401,
+        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',

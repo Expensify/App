@@ -45,14 +45,22 @@ class TermsStep extends React.Component {
         };
     }
 
+    clearError() {
+        if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            return;
+        }
+
+        this.setState({error: false});
+    }
+
     toggleDisclosure() {
-        this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}));
+        this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}), () => this.clearError());
     }
 
     togglePrivacyPolicy() {
         this.setState(prevState => ({
             hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
-        }));
+        }), () => this.clearError());
     }
 
     render() {
