@@ -134,6 +134,9 @@ export default {
     // The user's credit cards
     CARD_LIST: 'cardList',
 
+    // Stores information about the user's saved statements
+    WALLET_STATEMENT: 'walletStatement',
+
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
