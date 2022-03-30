@@ -39,7 +39,6 @@ class EmojiPicker extends React.Component {
         }
 
         // Dismiss the keyboard to provide a focus for the emoji picker to avoid selection issues.
-        // Eg: https://github.com/Expensify/App/issues/8110
         Keyboard.dismiss();
     }
 
