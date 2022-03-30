@@ -1417,6 +1417,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    editChatItemEmojiWrapper: {
+        marginRight: 3,
+    },
+
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
     },

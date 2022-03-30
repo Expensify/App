@@ -13,6 +13,7 @@ class EmojiPicker extends React.Component {
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
         this.selectEmoji = this.selectEmoji.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
+        this.measureEmojiPopoverAnchorPositionAndUpdateState = this.measureEmojiPopoverAnchorPositionAndUpdateState.bind(this);
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
         this.measureContent = this.measureContent.bind(this);
         this.onModalHide = () => {};
@@ -30,7 +31,7 @@ class EmojiPicker extends React.Component {
     }
 
     componentDidMount() {
-        this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        this.emojiPopoverDimensionListener = Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPositionAndUpdateState);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -62,6 +63,7 @@ class EmojiPicker extends React.Component {
     }
 
     hideEmojiPicker() {
+        this.emojiPopoverAnchor = null;
         this.setState({isEmojiPickerVisible: false});
     }
 
@@ -77,18 +79,24 @@ class EmojiPicker extends React.Component {
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
 
-        this.setState({isEmojiPickerVisible: true});
-        this.measureEmojiPopoverAnchorPosition();
+        this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
+            this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition});
+        });
     }
 
     measureEmojiPopoverAnchorPosition() {
-        if (!this.emojiPopoverAnchor) {
-            return;
-        }
+        return new Promise((resolve) => {
+            if (!this.emojiPopoverAnchor) {
+                return resolve({horizontal: 0, vertical: 0});
+            }
+            this.emojiPopoverAnchor.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
+        });
+    }
 
-        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
-            emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
-        }));
+    measureEmojiPopoverAnchorPositionAndUpdateState() {
+        this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
+            this.setState({emojiPopoverAnchorPosition});
+        });
     }
 
     /**
@@ -125,6 +133,7 @@ class EmojiPicker extends React.Component {
                 onModalShow={this.focusEmojiSearchInput}
                 onModalHide={this.onModalHide}
                 hideModalContentWhileAnimating
+                shouldSetModalVisibility={false}
                 animationInTiming={1}
                 animationOutTiming={1}
                 anchorPosition={{
