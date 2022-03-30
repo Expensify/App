@@ -24,10 +24,10 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-let currentUser;
+let loginList;
 Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => currentUser = val,
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: val => loginList = _.isEmpty(val) ? [] : val,
 });
 
 let countryCodeByIP;
@@ -219,6 +219,12 @@ function getAvatarSources(report) {
         if (ReportUtils.isArchivedRoom(report)) {
             return Expensicons.DeletedRoomAvatar;
         }
+        if (ReportUtils.isAdminRoom(report)) {
+            return Expensicons.AdminRoomAvatar;
+        }
+        if (ReportUtils.isAnnounceRoom(report)) {
+            return Expensicons.AnnounceRoomAvatar;
+        }
         if (ReportUtils.isChatRoom(report)) {
             return Expensicons.ActiveRoomAvatar;
         }
@@ -263,6 +269,7 @@ function createOption(personalDetailList, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    let icons = getAvatarSources(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -278,11 +285,15 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
+        if (!report) {
+            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
+            icons = [personalDetail.avatar];
+        }
     }
     return {
         text,
         alternateText,
-        icons: getAvatarSources(report),
+        icons,
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
@@ -350,7 +361,6 @@ function isCurrentUser(userDetails) {
 
     // Initial check with currentUserLogin
     let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const loginList = _.isEmpty(currentUser) || _.isEmpty(currentUser.loginList) ? [] : currentUser.loginList;
     let index = 0;
 
     // Checking userDetailsLogin against to current user login options.
@@ -461,8 +471,9 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later.
-        if (logins.length <= 1) {
+        // personal detail option later. Individuals should not be associated with single participant
+        // policyExpenseChats or chatRooms since those are not people.
+        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';

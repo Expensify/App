@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import LoginUtil from '../../libs/LoginUtil';
+import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
@@ -115,7 +115,7 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(login);
+        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
         const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
 
         if (!Str.isValidEmail(login) && !isValidPhoneLogin) {

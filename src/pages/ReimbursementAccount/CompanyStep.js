@@ -26,7 +26,7 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import AddressForm from './AddressForm';
 import PhoneTextInput from '../../components/PhoneTextInput';
-import LoginUtil from '../../libs/LoginUtil';
+import * as LoginUtils from '../../libs/LoginUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -180,7 +180,7 @@ class CompanyStep extends React.Component {
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
         BankAccounts.setupWithdrawalAccount({
             ...this.state,
-            companyPhone: LoginUtil.getPhoneNumberWithoutUSCountryCode(this.state.companyPhone),
+            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCode(this.state.companyPhone),
             incorporationDate,
         });
     }

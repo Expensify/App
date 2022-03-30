@@ -123,9 +123,8 @@ class ReportDetailsPage extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.details')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.m5]}>

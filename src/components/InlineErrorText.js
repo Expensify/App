@@ -6,14 +6,13 @@ import Text from './Text';
 
 const propTypes = {
     /** Text to display */
-    children: PropTypes.string,
+    children: PropTypes.string.isRequired,
 
     /** Styling for inline error text */
     styles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
-    children: 'Error',
     styles: [],
 };
 

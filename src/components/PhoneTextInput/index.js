@@ -1,7 +1,7 @@
 import React from 'react';
 import * as baseTextInputPropTypes from '../TextInput/baseTextInputPropTypes';
 import TextInput from '../TextInput';
-import LoginUtil from '../../libs/LoginUtil';
+import * as LoginUtils from '../../libs/LoginUtils';
 
 class PhoneTextInput extends React.Component {
     constructor(props) {
@@ -15,7 +15,7 @@ class PhoneTextInput extends React.Component {
 
     setValue(value) {
         this.setState({value});
-        this.props.onChangeText(LoginUtil.getPhoneNumberWithoutSpecialChars(value));
+        this.props.onChangeText(LoginUtils.getPhoneNumberWithoutSpecialChars(value));
     }
 
     render() {
