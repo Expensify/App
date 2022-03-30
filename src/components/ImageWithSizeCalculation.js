@@ -122,7 +122,11 @@ class ImageWithSizeCalculation extends PureComponent {
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                 />
-                {this.state.isLoading && <FullscreenLoadingIndicator />}
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

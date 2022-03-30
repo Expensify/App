@@ -255,7 +255,11 @@ class ImageView extends PureComponent {
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
-                    {this.state.isLoading && <FullscreenLoadingIndicator />}
+                    {this.state.isLoading && (
+                        <FullscreenLoadingIndicator
+                            style={[styles.opacity1, styles.bgTransparent]}
+                        />
+                    )}
                 </View>
             );
         }
@@ -294,7 +298,11 @@ class ImageView extends PureComponent {
                     />
                 </Pressable>
 
-                {this.state.isLoading && <FullscreenLoadingIndicator />}
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

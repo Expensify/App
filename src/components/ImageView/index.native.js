@@ -137,7 +137,9 @@ class ImageView extends PureComponent {
                         style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
                         resizeMode="contain"
                     />
-                    <FullscreenLoadingIndicator />
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
                 </View>
             );
         }
@@ -212,7 +214,11 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
-                {this.state.isLoading && <FullscreenLoadingIndicator />}
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }
