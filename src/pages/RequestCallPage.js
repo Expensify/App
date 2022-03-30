@@ -38,15 +38,12 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: personalDetailsPropType.isRequired,
 
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.arrayOf(PropTypes.shape({
 
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-        })),
-    }).isRequired,
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+    })),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -90,6 +87,7 @@ const defaultProps = {
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
+    loginList: [],
 };
 
 class RequestCallPage extends Component {
@@ -100,7 +98,7 @@ class RequestCallPage extends Component {
             firstName,
             hasFirstNameError: false,
             lastName,
-            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            phoneNumber: this.getPhoneNumber(props.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
             hasLastNameError: false,
@@ -336,8 +334,8 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
-        user: {
-            key: ONYXKEYS.USER,
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

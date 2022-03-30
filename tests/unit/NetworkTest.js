@@ -13,7 +13,7 @@ import CONST from '../../src/CONST';
 import * as Network from '../../src/libs/Network';
 import * as NetworkStore from '../../src/libs/Network/NetworkStore';
 import * as Session from '../../src/libs/actions/Session';
-import * as NetworkRequestQueue from '../../src/libs/actions/NetworkRequestQueue';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import Log from '../../src/libs/Log';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
@@ -33,13 +33,13 @@ const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
     HttpUtils.xhr = originalXHR;
-    NetworkRequestQueue.clearPersistedRequests();
+    PersistedRequests.clear();
     Network.clearRequestQueue();
     return Onyx.clear().then(waitForPromisesToResolve);
 });
 
 afterEach(() => {
-    NetworkStore.setIsReady(false);
+    NetworkStore.setHasReadRequiredDataFromStorage(false);
     Onyx.addDelayToConnectCallback(0);
     jest.clearAllMocks();
 });
@@ -234,7 +234,7 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
 
 test('retry network request if auth and credentials are not read from Onyx yet', () => {
     // In order to test an scenario where the auth token and credentials hasn't been read from storage we set
-    // NetworkStore.setIsReady(false) and set the session and credentials to "ready" the Network
+    // NetworkStore.setHasReadRequiredDataFromStorage(false) and set the session and credentials to "ready" the Network
 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
@@ -244,7 +244,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
 
     // Given initial state to Network
-    NetworkStore.setIsReady(false);
+    NetworkStore.setHasReadRequiredDataFromStorage(false);
 
     // Given an initial value to trigger an update
     Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
@@ -259,7 +259,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     Session.fetchAccountDetails(TEST_USER_LOGIN);
     return waitForPromisesToResolve().then(() => {
         // Then we expect not having the Network ready and not making an http request
-        expect(NetworkStore.isReady()).toBe(false);
+        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(false);
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // When we resolve Onyx.connect callbacks
@@ -267,7 +267,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
 
         // Then we should expect call Network.setIsReady(true)
         // And We should expect not making an http request yet
-        expect(NetworkStore.isReady()).toBe(true);
+        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(true);
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // When we run processNetworkRequestQueue in the setInterval of Network.js
@@ -327,7 +327,7 @@ test('requests should be persisted while offline', () => {
             // Then `xhr` should not be used and requests should be persisted to storage
             expect(xhr).not.toHaveBeenCalled();
 
-            const persisted = NetworkRequestQueue.getPersistedRequests();
+            const persisted = PersistedRequests.getAll();
             expect(persisted).toEqual([
                 expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
                 expect.objectContaining({command: 'mock command', data: expect.objectContaining({param3: 'value3'})}),
@@ -359,7 +359,7 @@ test('requests should resume when we are online', () => {
                 expect.arrayContaining(['mock command', expect.objectContaining({param2: 'value2'})]),
             ]);
 
-            const persisted = NetworkRequestQueue.getPersistedRequests();
+            const persisted = PersistedRequests.getAll();
             expect(persisted).toEqual([]);
         });
 });
@@ -391,15 +391,15 @@ test('persisted request should not be cleared until a backend response occurs', 
         .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
         .then(() => {
             // Then requests should remain persisted until the xhr call is resolved
-            expect(_.size(NetworkRequestQueue.getPersistedRequests())).toEqual(2);
+            expect(_.size(PersistedRequests.getAll())).toEqual(2);
 
             xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
             return waitForPromisesToResolve();
         })
         .then(waitForPromisesToResolve)
         .then(() => {
-            expect(_.size(NetworkRequestQueue.getPersistedRequests())).toEqual(1);
-            expect(NetworkRequestQueue.getPersistedRequests()).toEqual([
+            expect(_.size(PersistedRequests.getAll())).toEqual(1);
+            expect(PersistedRequests.getAll()).toEqual([
                 expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
             ]);
 
@@ -408,8 +408,8 @@ test('persisted request should not be cleared until a backend response occurs', 
             return waitForPromisesToResolve();
         })
         .then(() => {
-            expect(_.size(NetworkRequestQueue.getPersistedRequests())).toEqual(1);
-            expect(NetworkRequestQueue.getPersistedRequests()).toEqual([
+            expect(_.size(PersistedRequests.getAll())).toEqual(1);
+            expect(PersistedRequests.getAll()).toEqual([
                 expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
             ]);
 
@@ -418,7 +418,7 @@ test('persisted request should not be cleared until a backend response occurs', 
             return waitForPromisesToResolve();
         })
         .then(() => {
-            expect(_.size(NetworkRequestQueue.getPersistedRequests())).toEqual(0);
+            expect(_.size(PersistedRequests.getAll())).toEqual(0);
         });
 });
 
