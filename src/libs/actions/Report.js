@@ -155,9 +155,18 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room or a Policy Expense chat, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
+    // For a basic policy room, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
+    }
+
+    // For a Policy Expense Chat, return its original name and append (archived)' if it is archived
+    if (ReportUtils.isPolicyExpenseChat({chatType})) {
+        let name = LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
+        if (ReportUtils.isArchivedRoom({stateNum: fullReport.state, statusNum: fullReport.status})) {
+            name += " (archived)";
+        }
+        return name;
     }
 
     const {sharedReportList} = fullReport;
