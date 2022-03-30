@@ -14,8 +14,8 @@
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
-* [Philosophy](#Philosophy)
-* [Internationalization](#Internationalization)
+* [Philosophy](#philosophy)
+* [Internationalization](#internationalization)
 * [Deploying](#deploying)
 
 #### Additional Reading
@@ -276,17 +276,20 @@ export default withOnyx({
 
 # Philosophy
 This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+1. **Data Flow** - All data flows will happen like this:
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).*
     2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
     3. UI pushes data to people's brains (React component -> device screen).
     4. Brain pushes data into UI inputs (Device input -> React component).
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
-    ![New Expensify Data Flow Chart](/web/data_flow.png)
+
+***Note:** The only exception to `i` is for network requests that happen outside of being logged in or API requests to third-party-APIs. Pusher cannot be used until there is an authToken. XHR will be used instead for these rare exceptions.
+
+![New Expensify Data Flow Chart](/web/data_flow.png)
+    
 1. **Offline first**
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
+    - All data that is brought into the app will be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
