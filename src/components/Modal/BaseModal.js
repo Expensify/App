@@ -110,8 +110,8 @@ class BaseModal extends PureComponent {
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
-                animationInTiming={this.props.animationInTiming}
-                animationOutTiming={this.props.animationOutTiming}
+                animationInTiming={this.props.disableAnimation ? 1 : this.props.animationInTiming}
+                animationOutTiming={this.props.disableAnimation ? 1 : this.props.animationOutTiming}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {

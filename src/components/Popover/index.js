@@ -32,11 +32,10 @@ const Popover = (props) => {
             popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            disableAnimation={props.disableAnimation && !props.isSmallScreenWidth}
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
             animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
             animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
-            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
-            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
         />
     );
 };
