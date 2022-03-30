@@ -70,11 +70,9 @@ function getIOUErrorMessage(response) {
         if (response.jsonCode === 405) {
             return Localize.translateLocal('common.error.invalidAmount');
         }
-
         if (response.jsonCode === 404) {
             return Localize.translateLocal('iou.error.invalidSplit');
         }
-
         if (response.jsonCode === 402) {
             return Localize.translateLocal('common.error.phoneNumber');
         }
