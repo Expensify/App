@@ -170,8 +170,6 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             command,
             data,
             type,
-            resolve,
-            reject,
             shouldUseSecure,
         };
 
@@ -183,6 +181,25 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             canCancel: lodashGet(data, 'canCancel', true),
         };
 
+        // All requests that should be persisted must be saved immediately whether they are run now or when we are back from offline.
+        // If the user closes their browser or the app crashes before a response is recieved then the request will be saved and retried later.
+        if (request.persist) {
+            PersistedRequests.save([request]);
+            return;
+        }
+
+        // We're offline. If this request cannot be persisted then we need to return a response so the front end can handle this situation.
+        // In reality, for any blocking pessimistic requests we should not be able to make them at all so we will also log here when it happens
+        // as it may indicate an issue with our UX. We also return a specific jsonCode so at a minimum this situation is not handled as a "success"
+        if (NetworkStore.getIsOffline()) {
+            NetworkEvents.getLogger().alert('[Network] Attempted to make non-persistable request while offline', {command}, false);
+            resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
+            return;
+        }
+
+        request.resolve = resolve;
+        request.reject = reject;
+
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);
 
@@ -191,6 +208,9 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // since we call Log inside processNetworkRequestQueue().
         const shouldProcessImmediately = lodashGet(request, 'data.shouldProcessImmediately', true);
         if (!shouldProcessImmediately) {
+            _.delay(() => {
+                processRequest(request);
+            }, 100);
             return;
         }
 
