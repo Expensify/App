@@ -49,8 +49,6 @@ const propTypes = {
     /** Callback to be used to calulate the width and height of tooltip */
     measureTooltip: PropTypes.func.isRequired,
 
-    /** Maximun amount of words the tooltip should show */
-    maximumWords: PropTypes.number.isRequired,
 };
 
 const defaultProps = {};
@@ -92,24 +90,14 @@ class TooltipRenderedOnPageBody extends React.Component {
             this.props.shiftVertical,
             this.state.tooltipTextWidth,
         );
-        const maximumWords = this.props.maximumWords;
-        const wordsProvided = this.props.text.split(' ');
-
-        // Only show the amount words we want to see no matter the amount of lines needed to fit them
-        // This will give us an accurate width of visible text using ref.offsetWidth
-        // offsetWidth is accurate to visible text width if there no height overflow,
-        // otherwise will give us a longer width if there's longer line hidden in overflow
-        const wordsToShow = wordsProvided.slice(0, maximumWords);
-
         return ReactDOM.createPortal(
             <Animated.View
                 ref={this.props.setTooltipRef}
                 onLayout={this.props.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
-                <Text style={tooltipTextStyle}>
-                    <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{wordsToShow.join(' ')}</Text>
-                    {maximumWords < wordsProvided.length ? <Text style={tooltipTextStyle}>...</Text> : '' }
+                <Text numberOfLines={2} style={tooltipTextStyle}>
+                    <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{this.props.text}</Text>
                 </Text>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
