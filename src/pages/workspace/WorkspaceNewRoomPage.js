@@ -173,7 +173,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 items={this.state.workspaceOptions}
                                 errorText={this.state.errors.policyID}
                                 hasError={Boolean(this.state.errors.policyID)}
-                                onChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                                onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
                             />
                         </View>
                         <View style={styles.mb2}>
@@ -181,7 +181,7 @@ class WorkspaceNewRoomPage extends React.Component {
                                 value={this.state.visibility}
                                 label={this.props.translate('newRoomPage.visibility')}
                                 items={visibilityOptions}
-                                onChange={visibility => this.setState({visibility})}
+                                onInputChange={visibility => this.setState({visibility})}
                             />
                         </View>
                         <Text style={[styles.textLabel, styles.colorMuted]}>

@@ -168,7 +168,7 @@ class ReportSettingsPage extends Component {
                         <View style={[styles.mt2]}>
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
-                                onChange={(notificationPreference) => {
+                                onInputChange={(notificationPreference) => {
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
                                         notificationPreference,
