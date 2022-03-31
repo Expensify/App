@@ -40,6 +40,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
             shouldShowConfirmPopover: false,
+            isSelectedPaymentMethodDefault: true,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
@@ -112,8 +113,9 @@ class BasePaymentsPage extends React.Component {
      * @param {Object} nativeEvent
      * @param {String} accountType
      * @param {String} account
+     * @param {Boolean} accountDefault
      */
-    paymentMethodPressed(nativeEvent, accountType, account) {
+    paymentMethodPressed(nativeEvent, accountType, account, accountDefault) {
         const position = getClickedElementLocation(nativeEvent);
         this.setState({
             addPaymentMethodButton: nativeEvent,
@@ -143,6 +145,7 @@ class BasePaymentsPage extends React.Component {
                 };
             }
             this.setState({
+                isSelectedPaymentMethodDefault: !accountDefault,
                 shouldShowDefaultDeleteMenu: true,
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
@@ -318,7 +321,7 @@ class BasePaymentsPage extends React.Component {
                                     interactive={false}
                                 />
                             )}
-                            {Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
+                            {this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
