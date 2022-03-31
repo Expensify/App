@@ -119,12 +119,10 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // All requests that should be persisted must be saved immediately whether they are run now or when we are back from offline.
         // If the user closes their browser or the app crashes before a response is recieved then the request will be saved and retried later.
         if (persist) {
-            PersistedRequests.save([request]);
+            PersistedRequests.save(_.clone(request));
         }
 
-        // We're offline. If this request cannot be persisted then we need to return a response so the front end can handle this situation.
-        // In reality, for any blocking pessimistic requests we should not be able to make them at all so we will also log here when it happens
-        // as it may indicate an issue with our UX. We also return a specific jsonCode so at a minimum this situation is not handled as a "success"
+        // We're offline. If this request cannot be persisted then we won't make the request at all.
         if (!persist && NetworkStore.getIsOffline()) {
             return;
         }

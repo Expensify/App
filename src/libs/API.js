@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
