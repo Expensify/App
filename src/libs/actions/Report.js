@@ -799,7 +799,7 @@ function subscribeToReportCommentPushNotifications() {
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
         if (Navigation.isReady()) {
             // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-            if (Navigation.isChatVisible() && Navigation.isActiveRoute(`r/${reportID}`)) {
+            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));

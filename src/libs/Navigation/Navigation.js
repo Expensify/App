@@ -1,11 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {Keyboard} from 'react-native';
-import {
-    StackActions,
-    DrawerActions,
-    getPathFromState,
-} from '@react-navigation/native';
+import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
@@ -194,14 +190,13 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * Returns whether we have a chat visible or not
- * @returns {boolean}
+ * Returns the current active path
+ * @returns {String}
  */
-function isChatVisible() {
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).slice(0, 3)
+function getActiveRoute() {
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
         : '';
-    return path === '/r/';
 }
 
 /**
@@ -236,7 +231,7 @@ export default {
     navigate,
     dismissModal,
     isActiveRoute,
-    isChatVisible,
+    getActiveRoute,
     isReady,
     goBack,
     DismissModal,
