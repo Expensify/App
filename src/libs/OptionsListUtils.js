@@ -174,7 +174,6 @@ function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat
     if (!isChatRoomOrPolicyExpenseChat) {
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
-            searchTerms.push(personalDetail.login);
             searchTerms.push(personalDetail.login.replace(/\./g, ''));
         });
     }
@@ -589,8 +588,8 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     let userToInvite = null;
     if (searchValue
-        && recentReportOptions.length === 0
-        && personalDetailsOptions.length === 0
+        && ((recentReportOptions.length + personalDetailsOptions.length) === 0
+        || (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase())))
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
