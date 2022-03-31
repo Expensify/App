@@ -3,12 +3,21 @@ import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
 
 let isPersistedRequestsQueueRunning = false;
+
+/**
+ * @param {Array} requests
+ * @returns {Promise}
+ */
+function runRequestsSync(requests) {
+    return _.reduce(requests, (previousRequest, request) => {
+        previousRequest.then(() => processRequest(request));
+    }, Promise.resolve());
+}
 
 /**
  * This method will get any persisted requests and fire them off in parallel to retry them.
@@ -26,18 +35,8 @@ function process() {
         return Promise.resolve();
     }
 
-    const tasks = _.map(persistedRequests, request => processRequest(request)
-        .catch((error) => {
-            const retryCount = PersistedRequests.incrementRetries(request);
-            NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
-                PersistedRequests.remove(request);
-            }
-        }));
-
     // Do a recursive call in case the queue is not empty after processing the current batch
-    return Promise.all(tasks)
+    return Promise.all(runRequestsSync(persistedRequests))
         .then(process);
 }
 
@@ -68,7 +67,14 @@ function flush() {
 // Flush the queue when the connection resumes
 NetworkEvents.onConnectivityResumed(flush);
 
+/**
+ * @returns {Boolean}
+ */
+function isRunning() {
+    return isPersistedRequestsQueueRunning;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     flush,
+    isRunning,
 };

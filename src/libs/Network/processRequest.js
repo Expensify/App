@@ -40,10 +40,13 @@ export default function processRequest(request) {
     logRequestDetails(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
         .then((response) => {
+            // Auth is down
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.type === CONST.ERROR_TYPE.SOCKET) {
                 NetworkEvents.getLogger().hmmm('[Network] Issue connecting to database when making request');
                 throw new Error(CONST.ERROR.FAILED_TO_FETCH);
             }
+
+            // We got a successful response from the server. This request is a persisted one so we can remove it.
             if (persisted) {
                 PersistedRequests.remove(request);
             }
@@ -51,27 +54,26 @@ export default function processRequest(request) {
             return response;
         })
         .catch((error) => {
-            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario like
-                // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
+            // Persisted requests should never throw since they are only either removed from the queue on success or left in the queue to be retried again later.
+            if (!persisted && error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                // This situation is common if a user is offline or experiencing an unlikely scenario like
+                // Auth down, incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 throw error;
             }
 
             // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
-            // remove the request from the PersistedRequests if the request exists.
+            // remove the request from the PersistedRequests if the request exists as it was "cancelled" and should not be run again.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 NetworkEvents.getLogger().info('[Network] Request canceled', false, request);
+                if (persisted) {
+                    PersistedRequests.remove(request);
+                }
             } else {
-                // If we get any error that is not "Failed to fetch" create GitHub issue so we can handle it. These requests will not be retried.
+                // If we get any error that is not "Failed to fetch" create GitHub issue so we can look into what exactly happened.
                 NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
                     command: request.command,
                     error: error.message,
                 });
-            }
-
-            // If we did not throw and we have a persisted request that was cancelled or for an unknown error remove it so it is not retried
-            if (persisted) {
-                PersistedRequests.remove(request);
             }
         })
         .finally(() => cancelRequestTimeoutTimer());
