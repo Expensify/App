@@ -190,7 +190,7 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * Returns the current active path
+ * Returns the current active route
  * @returns {String}
  */
 function getActiveRoute() {
