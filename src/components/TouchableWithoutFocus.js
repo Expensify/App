@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity} from 'react-native';
+import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -36,9 +36,9 @@ class TouchableWithoutFocus extends React.Component {
 
     render() {
         return (
-            <TouchableOpacity onPress={this.pressAndBlur} ref={el => this.touchableRef = el} style={this.props.styles}>
+            <Pressable onPress={this.pressAndBlur} ref={el => this.touchableRef = el} style={this.props.styles}>
                 {this.props.children}
-            </TouchableOpacity>
+            </Pressable>
         );
     }
 }
