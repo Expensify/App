@@ -43,6 +43,9 @@ const propTypes = {
         unreadActionCount: PropTypes.number,
     })),
 
+    /** Reports having a draft */
+    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
+
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -81,6 +84,7 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
+    reportsWithDraft: {},
     personalDetails: {},
     myPersonalDetails: {
         avatar: OptionsListUtils.getDefaultAvatar(),
@@ -114,7 +118,7 @@ class SidebarLinks extends React.Component {
         return unreadReports;
     }
 
-    static shouldReorder(nextProps, orderedReports, currentlyViewedReportID, unreadReports) {
+    static shouldReorder(nextProps, reportsWithDraft, orderedReports, currentlyViewedReportID, unreadReports) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
 
@@ -144,10 +148,12 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report has a draft and vice versa.
+        // Do not re-order if the active report had or has a draft
         if (nextProps.currentlyViewedReportID) {
-            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
-            return !hasActiveReportDraft;
+            if (lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false)) {
+                return false;
+            }
+            return !lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
         }
 
         return true;
@@ -158,12 +164,13 @@ class SidebarLinks extends React.Component {
         this.state = {
             currentlyViewedReportID: props.currentlyViewedReportID,
             orderedReports: [],
+            reportsWithDraft: props.reportsWithDraft,
             unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
         };
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.reportsWithDraft, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
         const recentReports = SidebarLinks.getRecentReports(nextProps);
         const orderedReports = shouldReorder
             ? recentReports
@@ -176,6 +183,7 @@ class SidebarLinks extends React.Component {
         return {
             orderedReports,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
+            reportsWithDraft: nextProps.reportsWithDraft,
             unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
         };
     }
