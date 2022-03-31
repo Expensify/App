@@ -69,7 +69,7 @@ class ImageView extends PureComponent {
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            // resize image to fit the screen dimensions if it small than screen else resize the smaller dimension only to avoid the resize issue on android
+            // Resize small images to fit the screen. Else resize the smaller dimension to avoid resize issue on Android - https://github.com/Expensify/App/pull/7660#issuecomment-1071622163
             if (imageHeight < containerHeight && imageWidth < containerWidth) {
                 imageHeight *= aspectRatio;
                 imageWidth *= aspectRatio;
