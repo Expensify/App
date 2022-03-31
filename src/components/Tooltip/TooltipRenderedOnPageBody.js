@@ -96,7 +96,7 @@ class TooltipRenderedOnPageBody extends React.Component {
                 onLayout={this.props.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
-                <Text numberOfLines={2} style={tooltipTextStyle}>
+                <Text numberOfLines={3} style={tooltipTextStyle}>
                     <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{this.props.text}</Text>
                 </Text>
                 <View style={pointerWrapperStyle}>

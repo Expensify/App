@@ -50,30 +50,6 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
- * Correct tooltipWrapper width according to visible inner text offssetWidth
- *
- * @param {Number}  textWidth - The inner text offsetWidth of Tooltip
- * @param {Number}  tooltipHorizontalPadding - The horizontal padding set for wrapper tooltip
- *
- * @returns {Number}
- */
-function getCorrectWidth(textWidth, tooltipHorizontalPadding) {
-    const maxWidth = variables.sideBarWidth;
-    if (textWidth >= maxWidth) {
-        return maxWidth;
-    }
-    const maxWidthDiffTextWidth = maxWidth - textWidth;
-
-    // This operation will serve us to avoid adding more width than maxwidth
-    // Get horizontal padding of tooltipWrapper and sum the right and left
-    const leftRighPadding = tooltipHorizontalPadding * 2;
-    if (leftRighPadding > maxWidthDiffTextWidth) {
-        return textWidth + maxWidthDiffTextWidth;
-    }
-    return textWidth + leftRighPadding;
-}
-
-/**
  * Generate styles for the tooltip component.
  *
  * @param {Number} currentSize - The current size of the tooltip used in the scaling animation.
@@ -118,7 +94,6 @@ export default function getTooltipStyles(
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
-    const tooltipHorizontalPadding = spacing.ph2;
 
     return {
         animationStyle: {
@@ -134,9 +109,13 @@ export default function getTooltipStyles(
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
-            ...tooltipHorizontalPadding,
+            ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            maxWidth: getCorrectWidth(tooltipTextWidth, tooltipHorizontalPadding.paddingHorizontal),
+            maxWidth: tooltipTextWidth >= variables.sideBarWidth
+                ? variables.sideBarWidth
+
+                // Sum left and right padding
+                : tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2),
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
