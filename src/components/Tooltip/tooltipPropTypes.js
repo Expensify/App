@@ -25,8 +25,6 @@ const propTypes = {
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
 
-    /** Maximun amount of words the tooltip should show */
-    maximumWords: PropTypes.number,
 };
 
 const defaultProps = {
@@ -35,7 +33,6 @@ const defaultProps = {
     shiftVertical: 0,
     containerStyles: [],
     text: '',
-    maximumWords: 8,
 };
 
 export {

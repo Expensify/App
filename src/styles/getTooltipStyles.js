@@ -151,9 +151,9 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
-            overflowWrap: 'normal',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            // overflowWrap: 'normal',
+            // overflow: 'hidden',
+            // textOverflow: 'ellipsis',
         },
         pointerWrapperStyle: {
             position: 'fixed',
