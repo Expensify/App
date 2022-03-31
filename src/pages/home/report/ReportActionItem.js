@@ -150,7 +150,8 @@ class ReportActionItem extends Component {
                     />
                 );
         }
-        return (
+
+        const wrappedChildren = (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
                 onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
@@ -159,46 +160,50 @@ class ReportActionItem extends Component {
                 preventDefaultContentMenu={!this.props.draftMessage}
 
             >
-                <Hoverable resetsOnClickOutside>
-                    {hovered => (
-                        <View>
-                            {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator />
-                            )}
-                            <View
-                                style={StyleUtils.getReportActionItemStyle(
-                                    hovered
-                                    || this.state.isContextMenuActive
-                                    || this.props.draftMessage,
-                                )}
-                            >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
-                            </View>
-                            <MiniReportActionContextMenu
-                                reportID={this.props.reportID}
-                                reportAction={this.props.action}
-                                displayAsGroup={this.props.displayAsGroup}
-                                isVisible={
-                                    hovered
-                                    && !this.state.isContextMenuActive
-                                    && !this.props.draftMessage
-                                }
-                                draftMessage={this.props.draftMessage}
-                            />
-                        </View>
-                    )}
-                </Hoverable>
+                {children}
             </PressableWithSecondaryInteraction>
+        );
+
+        return (
+            <Hoverable resetsOnClickOutside>
+                {hovered => (
+                    <View>
+                        {this.props.shouldDisplayNewIndicator && (
+                            <UnreadActionIndicator />
+                        )}
+                        <View
+                            style={StyleUtils.getReportActionItemStyle(
+                                hovered
+                                || this.state.isContextMenuActive
+                                || this.props.draftMessage,
+                            )}
+                        >
+                            {!this.props.displayAsGroup
+                                ? (
+                                    <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                        {wrappedChildren}
+                                    </ReportActionItemSingle>
+                                )
+                                : (
+                                    <ReportActionItemGrouped>
+                                        {wrappedChildren}
+                                    </ReportActionItemGrouped>
+                                )}
+                        </View>
+                        <MiniReportActionContextMenu
+                            reportID={this.props.reportID}
+                            reportAction={this.props.action}
+                            displayAsGroup={this.props.displayAsGroup}
+                            isVisible={
+                                hovered
+                                && !this.state.isContextMenuActive
+                                && !this.props.draftMessage
+                            }
+                            draftMessage={this.props.draftMessage}
+                        />
+                    </View>
+                )}
+            </Hoverable>
         );
     }
 }
