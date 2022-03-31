@@ -15,9 +15,10 @@ const Popover = (props) => {
         <Modal
             type={!props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             popoverAnchorPosition={!props.isSmallScreenWidth ? props.anchorPosition : undefined}
-            disableAnimation={!props.isSmallScreenWidth}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
+            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
+            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
 
             // Mobile will always has fullscreen menu
             // eslint-disable-next-line react/jsx-props-no-multi-spaces

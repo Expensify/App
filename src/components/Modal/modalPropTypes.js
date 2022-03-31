@@ -47,9 +47,6 @@ const propTypes = {
         PropTypes.object,
     ]),
 
-    /** Whether disable the animations */
-    disableAnimation: PropTypes.bool,
-
     /** The anchor position of a popover modal. Has no effect on other modal types. */
     popoverAnchorPosition: PropTypes.shape({
         top: PropTypes.number,
@@ -74,7 +71,6 @@ const defaultProps = {
     onModalShow: () => {},
     animationIn: null,
     animationOut: null,
-    disableAnimation: undefined,
     popoverAnchorPosition: {},
     containerStyle: {},
 };
