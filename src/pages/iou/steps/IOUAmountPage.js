@@ -20,6 +20,7 @@ import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import TextInput from '../../../components/TextInput';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as CurrencySymbolUtils from '../../../libs/CurrencySymbolUtils';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -63,7 +64,6 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.isCurrencySymbolLTR = this.isCurrencySymbolLTR.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -80,24 +80,6 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
-    }
-
-    /**
-     * Is currency symbol to left
-     * @param {String} currencyCode
-     * @return {Boolean}
-     */
-    isCurrencySymbolLTR(currencyCode) {
-        const parts = this.props.formatToParts(0, {
-            style: 'currency',
-            currency: currencyCode,
-        });
-
-        // The first element of parts will be type: currency for all currency
-        // Where it starts with symbol and the other will have it at last
-        // If it is not the first, it must be at last
-        const isLeft = parts[0].type === 'currency';
-        return isLeft;
     }
 
     /**
@@ -213,9 +195,9 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
-        const currencySymbol = this.props.getLocalizedCurrencySymbol(this.props.iou.selectedCurrencyCode);
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
-        const isCurrencySymbolLTR = this.isCurrencySymbolLTR(this.props.iou.selectedCurrencyCode);
+        const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
+        const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
 
         const currencySymbolElement = (
             <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants

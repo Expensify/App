@@ -1,7 +1,6 @@
 import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
@@ -20,9 +19,6 @@ const withLocalizePropTypes = {
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    /** Formats number to parts according to locale and options */
-    formatToParts: PropTypes.func.isRequired,
-
     /** Converts a timestamp into a localized string representation that's relative to current moment in time */
     timestampToRelative: PropTypes.func.isRequired,
 
@@ -37,9 +33,6 @@ const withLocalizePropTypes = {
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
-
-    /** Get localized currency symbol for SO4217 Code */
-    getLocalizedCurrencySymbol: PropTypes.func.isRequired,
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: PropTypes.func.isRequired,
@@ -66,29 +59,14 @@ class LocaleContextProvider extends React.Component {
         return {
             translate: this.translate.bind(this),
             numberFormat: this.numberFormat.bind(this),
-            formatToParts: this.formatToParts.bind(this),
             timestampToRelative: this.timestampToRelative.bind(this),
             timestampToDateTime: this.timestampToDateTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
-            getLocalizedCurrencySymbol: this.getLocalizedCurrencySymbol.bind(this),
             preferredLocale: this.props.preferredLocale,
         };
-    }
-
-    /**
-     * @param {String} currencyCode
-     * @return {String}
-     */
-    getLocalizedCurrencySymbol(currencyCode) {
-        const parts = NumberFormatUtils.formatToParts(this.props.preferredLocale, 0, {
-            style: 'currency',
-            currency: currencyCode,
-        });
-        const currencySymbol = _.find(parts, part => part.type === 'currency').value;
-        return currencySymbol;
     }
 
     /**
@@ -107,15 +85,6 @@ class LocaleContextProvider extends React.Component {
      */
     numberFormat(number, options) {
         return NumberFormatUtils.format(this.props.preferredLocale, number, options);
-    }
-
-    /**
-     * @param {Number} number
-     * @param {Intl.NumberFormatOptions} options
-     * @returns {Array}
-     */
-    formatToParts(number, options) {
-        return NumberFormatUtils.formatToParts(this.props.preferredLocale, number, options);
     }
 
     /**
