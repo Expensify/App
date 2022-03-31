@@ -39,7 +39,7 @@ function canMakeRequest(request) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
-    // We're offline nothing to do here until we're back online
+    // We're offline. Nothing to do here until we're back online
     if (NetworkStore.getIsOffline()) {
         return;
     }
@@ -50,12 +50,12 @@ function processNetworkRequestQueue() {
     }
 
     // Some requests should be retried and will end up here if the following conditions are met:
-    // - we are in the process of authenticating and the request is retryable (most are)
-    // - the request does not have forceNetworkRequest === true (this will trigger it to process immediately)
+    // - we are in the process of authenticating
+    // - the sync queue is running and we must wait for it to finish
+    // - the request does not have forceNetworkRequest === true (as this will trigger it to process immediately)
     const requestsToProcessOnNextRun = [];
 
     _.each(networkRequestQueue, (queuedRequest) => {
-        // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
         if (!canMakeRequest(queuedRequest)) {
             requestsToProcessOnNextRun.push(queuedRequest);
             return;
@@ -65,17 +65,6 @@ function processNetworkRequestQueue() {
             .catch((error) => {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
-
-                const persist = lodashGet(queuedRequest, 'data.persist');
-                if (persist) {
-                    // This request should alread be in our sync queue so there's nothing else to do here. We might have gotten here because we
-                    // - Made a request while online
-                    // - Failed to fetch error occurred because we went offline while the request was in progress
-                    // - Failed to fetch error occurred because Expensify service interruption
-                    //
-                    // We'll retry this request when we are back online, but can also schedule a retry in case there was an Expensify service interruption
-                    return;
-                }
 
                 if (queuedRequest.command !== 'Log') {
                     NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
