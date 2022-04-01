@@ -57,8 +57,8 @@ class DatePicker extends React.Component {
                     label={this.props.label}
                     ref={(el) => {
                         this.textInput = el;
-                        if (typeof this.props.forwardRef === 'function') { 
-                            this.props.forwardedRef(el); 
+                        if (typeof this.props.forwardRef === 'function') {
+                            this.props.forwardedRef(el);
                         }
                     }}
                     defaultValue={DateUtils.getDateAsText(this.state.selectedDate) || CONST.DATE.MOMENT_FORMAT_STRING}

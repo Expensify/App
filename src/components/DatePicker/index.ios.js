@@ -37,7 +37,7 @@ class Datepicker extends React.Component {
         if (this.props.value === undefined || this.state.value === dateValue) {
             return;
         }
-        
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({value: dateValue});
         this.textInput.setNativeProps({text: dateValue});
@@ -86,8 +86,8 @@ class Datepicker extends React.Component {
                     label={this.props.label}
                     ref={(el) => {
                         this.textInput = el;
-                        if (typeof this.props.forwardRef === 'function') { 
-                            this.props.forwardedRef(el); 
+                        if (typeof this.props.forwardRef === 'function') {
+                            this.props.forwardedRef(el);
                         }
                     }}
                     placeholder={this.props.placeholder}
