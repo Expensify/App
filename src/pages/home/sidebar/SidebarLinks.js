@@ -38,8 +38,13 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     reports: PropTypes.objectOf(PropTypes.shape({
+        /** ID of the report */
         reportID: PropTypes.number,
+
+        /** Name of the report */
         reportName: PropTypes.string,
+
+        /** Number of unread actions on the report */
         unreadActionCount: PropTypes.number,
     })),
 
