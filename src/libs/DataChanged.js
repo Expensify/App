@@ -6,7 +6,7 @@ const callbacksByAPICommandName = {};
  */
 function publish(apiCommandName, data = {}) {
     const callbacksToTrigger = callbacksByAPICommandName[apiCommandName];
-    if (!callbacksToTrigger) {
+    if (!callbacksToTrigger || !callbacksToTrigger.length) {
         return;
     }
     for (let i = 0; i < callbacksToTrigger.length; i++) {
