@@ -1,40 +1,42 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
 
-let persistedRequests = [];
+let persistedRequestMap = new Map();
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: val => persistedRequests = val || [],
+    callback: (requests) => {
+        persistedRequestMap = new Map();
+        _.each(requests, request => persistedRequestMap.set(request.id, request));
+    },
 });
+
+/**
+ * @returns {Array}
+ */
+function getAll() {
+    return Array.from(persistedRequestMap.values());
+}
 
 function clear() {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
 /**
- * @param {Array} requestsToPersist
+ * @param {Object} requestToPersist
  */
-function save(requestsToPersist) {
-    persistedRequests = lodashUnionWith(persistedRequests, requestsToPersist, _.isEqual);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+function save(requestToPersist) {
+    persistedRequestMap.set(requestToPersist.id, requestToPersist);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, getAll());
 }
 
 /**
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
-}
-
-/**
- * @returns {Array}
- */
-function getAll() {
-    return persistedRequests;
+    persistedRequestMap.delete(requestToRemove.id);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, getAll());
 }
 
 export {

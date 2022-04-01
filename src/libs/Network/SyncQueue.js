@@ -7,16 +7,17 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
 
-let isPersistedRequestsQueueRunning = false;
+let isQueueRunning = false;
 
 /**
  * @param {Array} requests
  * @returns {Promise}
  */
 function runRequestsSync(requests) {
-    // TODO: Have a feeling reauthentication is kind of wonky atm because request passed to triggerResponse() won't have a resolve() method.
-    // Which means we can't block the next request in the sync queue on reauthentication
-    return _.reduce(requests, (previousRequest, request) => previousRequest.then(() => processRequest(request)), Promise.resolve());
+    return _.reduce(requests, (previousRequest, request) => previousRequest.then(() => new Promise((resolve, reject) => {
+        const requestWithHandlers = {...request, resolve, reject};
+        processRequest(requestWithHandlers);
+    })), Promise.resolve());
 }
 
 /**
@@ -47,7 +48,7 @@ function process() {
 }
 
 function flush() {
-    if (isPersistedRequestsQueueRunning) {
+    if (isQueueRunning) {
         return;
     }
 
@@ -57,7 +58,7 @@ function flush() {
         return;
     }
 
-    isPersistedRequestsQueueRunning = true;
+    isQueueRunning = true;
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -65,7 +66,7 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process()
-                .finally(() => isPersistedRequestsQueueRunning = false);
+                .finally(() => isQueueRunning = false);
         },
     });
 }
@@ -77,7 +78,7 @@ NetworkEvents.onConnectivityResumed(flush);
  * @returns {Boolean}
  */
 function isRunning() {
-    return isPersistedRequestsQueueRunning;
+    return isQueueRunning;
 }
 
 export {

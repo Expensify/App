@@ -1,16 +1,16 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import HttpUtils from '../HttpUtils';
 import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
-import * as PersistedRequestsQueue from './PersistedRequestsQueue';
+import * as SyncQueue from './SyncQueue';
 import processRequest from './processRequest';
 
-// Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue = [];
+let mainQueue = [];
 
 /**
  * Checks to see if a request can be made.
@@ -41,20 +41,20 @@ function canMakeRequest(request) {
 
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating and will also want to queue
     // any requests while the sync queue is running.
-    return !NetworkStore.getIsAuthenticating() && !PersistedRequestsQueue.isRunning();
+    return !NetworkStore.getIsAuthenticating() && !SyncQueue.isRunning();
 }
 
 /**
- * Process the networkRequestQueue by looping through the queue and attempting to make the requests
+ * Process the mainQueue by looping through the queue and attempting to make the requests
  */
-function processNetworkRequestQueue() {
+function processMainQueue() {
     // We're offline. Nothing to do here until we're back online
     if (NetworkStore.getIsOffline()) {
         return;
     }
 
     // When the queue length is empty an early return is performed since nothing needs to be processed
-    if (networkRequestQueue.length === 0) {
+    if (mainQueue.length === 0) {
         return;
     }
 
@@ -64,7 +64,7 @@ function processNetworkRequestQueue() {
     // - the request does not have forceNetworkRequest === true (as this will trigger it to process immediately)
     const requestsToProcessOnNextRun = [];
 
-    _.each(networkRequestQueue, (queuedRequest) => {
+    _.each(mainQueue, (queuedRequest) => {
         if (!canMakeRequest(queuedRequest)) {
             requestsToProcessOnNextRun.push(queuedRequest);
             return;
@@ -87,15 +87,15 @@ function processNetworkRequestQueue() {
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some
     // requests we want to retry or an empty array
-    networkRequestQueue = requestsToProcessOnNextRun;
+    mainQueue = requestsToProcessOnNextRun;
 }
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
-    PersistedRequestsQueue.flush();
+    SyncQueue.flush();
 
     // Start main queue and process once every n ms delay
-    setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    setInterval(processMainQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
 
 /**
@@ -128,7 +128,9 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // All requests that should be persisted must be saved immediately whether they are run now or when we are back from offline.
         // If the user closes their browser or the app crashes before a response is recieved then the request will be saved and retried later.
         if (persist) {
-            PersistedRequests.save(_.clone(request));
+            const requestToPersist = _.clone(request);
+            requestToPersist.id = Str.guid();
+            PersistedRequests.save(requestToPersist);
         }
 
         // We're offline. If this request cannot be persisted then we won't make the request at all.
@@ -139,8 +141,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         request.resolve = resolve;
         request.reject = reject;
 
-        // Add the request to a queue of actions to perform
-        networkRequestQueue.push(request);
+        // Add the request to the main queue
+        mainQueue.push(request);
 
         // This check is mainly used to prevent API commands from triggering calls to processNetworkRequestQueue from inside the context of a previous
         // call to processNetworkRequestQueue() e.g. calling a Log command without this would cause the requests in networkRequestQueue to double process
@@ -151,7 +153,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         }
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        processNetworkRequestQueue();
+        processMainQueue();
     });
 }
 
@@ -160,7 +162,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
  * Non-cancellable requests like Log would not be cleared
  */
 function clearRequestQueue() {
-    networkRequestQueue = _.filter(networkRequestQueue, request => !request.data.canCancel);
+    mainQueue = _.filter(mainQueue, request => !request.data.canCancel);
     HttpUtils.cancelPendingRequests();
 }
 
