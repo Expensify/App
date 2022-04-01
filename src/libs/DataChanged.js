@@ -1,5 +1,9 @@
 const callbacksByAPICommandName = {};
 
+/**
+ * @param {String} apiCommandName
+ * @param {Object|Array} data
+ */
 function publish(apiCommandName, data) {
     const callbacksToTrigger = callbacksByAPICommandName[apiCommandName];
     if (!callbacksToTrigger) {
@@ -10,6 +14,10 @@ function publish(apiCommandName, data) {
     }
 }
 
+/**
+ * @param {String} apiCommandName
+ * @param {Function} callback
+ */
 function subscribe(apiCommandName, callback) {
     if (!callbacksByAPICommandName[apiCommandName]) {
         callbacksByAPICommandName[apiCommandName] = [];
