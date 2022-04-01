@@ -24,4 +24,25 @@ describe('DataChanged', () => {
         // Then the callback should not have been called at all
         expect(callbackFunction).toBeCalledTimes(0);
     });
+
+    it('Multiple callbacks are triggered the right number of times', () => {
+        // Given three callbacks subscribed to two unique API commands
+        const callbackFunction1 = jest.fn();
+        const callbackFunction2 = jest.fn();
+        const callbackFunction3 = jest.fn();
+        DataChanged.subscribe('callbackFunctionTest1', callbackFunction1);
+        DataChanged.subscribe('callbackFunctionTest1', callbackFunction2);
+        DataChanged.subscribe('callbackFunctionTest2', callbackFunction3);
+
+        // When an event is published twice for both API commands
+        DataChanged.publish('callbackFunctionTest1', {});
+        DataChanged.publish('callbackFunctionTest1', {});
+        DataChanged.publish('callbackFunctionTest2', {});
+        DataChanged.publish('callbackFunctionTest2', {});
+
+        // Then all callbacks should be called twice
+        expect(callbackFunction1).toBeCalledTimes(2);
+        expect(callbackFunction2).toBeCalledTimes(2);
+        expect(callbackFunction3).toBeCalledTimes(2);
+    });
 });
