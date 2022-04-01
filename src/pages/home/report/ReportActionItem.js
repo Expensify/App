@@ -151,19 +151,6 @@ class ReportActionItem extends Component {
                 );
         }
 
-        const wrappedChildren = (
-            <PressableWithSecondaryInteraction
-                ref={el => this.popoverAnchor = el}
-                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onSecondaryInteraction={this.showPopover}
-                preventDefaultContentMenu={!this.props.draftMessage}
-
-            >
-                {children}
-            </PressableWithSecondaryInteraction>
-        );
-
         return (
             <Hoverable resetsOnClickOutside>
                 {hovered => (
@@ -181,13 +168,32 @@ class ReportActionItem extends Component {
                             {!this.props.displayAsGroup
                                 ? (
                                     <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                        {wrappedChildren}
+                                        <PressableWithSecondaryInteraction
+                                            ref={el => this.popoverAnchor = el}
+                                            onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                                            onPressOut={() => ControlSelection.unblock()}
+                                            onSecondaryInteraction={this.showPopover}
+                                            preventDefaultContentMenu={!this.props.draftMessage}
+
+                                        >
+                                            {children}
+                                        </PressableWithSecondaryInteraction>
                                     </ReportActionItemSingle>
                                 )
                                 : (
-                                    <ReportActionItemGrouped>
-                                        {wrappedChildren}
-                                    </ReportActionItemGrouped>
+                                    <PressableWithSecondaryInteraction
+                                        ref={el => this.popoverAnchor = el}
+                                        onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                                        onPressOut={() => ControlSelection.unblock()}
+                                        onSecondaryInteraction={this.showPopover}
+                                        preventDefaultContentMenu={!this.props.draftMessage}
+
+                                    >
+
+                                        <ReportActionItemGrouped>
+                                            {children}
+                                        </ReportActionItemGrouped>
+                                    </PressableWithSecondaryInteraction>
                                 )}
                         </View>
                         <MiniReportActionContextMenu
