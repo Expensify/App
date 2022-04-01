@@ -449,7 +449,7 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasExcludedIOUEmails
+                                                    ...(hasExcludedIOUEmails
                                                         && Permissions.canUseIOU(this.props.betas) ? [
                                                             hasMultipleParticipants
                                                                 ? {
@@ -474,7 +474,7 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
-                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                    ...(hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
                                                         {
                                                             icon: Expensicons.Send,
                                                             text: this.props.translate('iou.sendMoney'),
