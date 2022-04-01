@@ -311,7 +311,6 @@ class RequestCallPage extends Component {
                         )}
                         <Button
                             success
-                            pressOnEnter
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}

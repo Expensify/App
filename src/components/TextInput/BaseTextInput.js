@@ -262,7 +262,6 @@ class BaseTextInput extends Component {
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
-                                            this.props.secureTextEntry && styles.secureInput,
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -276,7 +275,7 @@ class BaseTextInput extends Component {
                                     {this.props.secureTextEntry && (
                                         <Pressable
                                             accessibilityRole="button"
-                                            style={styles.secureInputEyeButton}
+                                            style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
                                             <Icon
