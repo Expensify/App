@@ -723,6 +723,11 @@ const styles = {
         margin: 1,
     },
 
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
