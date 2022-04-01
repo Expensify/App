@@ -2,10 +2,10 @@ import _ from 'underscore';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 /**
- * Get localized currency symbol for SO4217 Code
+ * Get localized currency symbol for currency(ISO 4217) Code
  * @param {String} preferredLocale
  * @param {String} currencyCode
- * @return {String}
+ * @returns {String}
  */
 function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
     const parts = NumberFormatUtils.formatToParts(preferredLocale, 0, {
@@ -16,10 +16,10 @@ function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
 }
 
 /**
- * Is currency symbol to left
+ * Whether the currency symbol is left-to-right.
  * @param {String} preferredLocale
  * @param {String} currencyCode
- * @return {Boolean}
+ * @returns {Boolean}
  */
 function isCurrencySymbolLTR(preferredLocale, currencyCode) {
     const parts = NumberFormatUtils.formatToParts(preferredLocale, 0, {
