@@ -53,9 +53,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             PersistedRequests.save(requestToPersist);
         }
 
-        // We're offline. If this request cannot be persisted then we won't make the request at all.
+        // We're offline. If this request cannot be persisted then we won't make the request at all. This request will still succeed, but
+        // we'll use a jsonCode to let the user know that they are offline (if we need to tell them).
         if (!persist && NetworkStore.getIsOffline()) {
-            NetworkEvents.getLogger().info('Skipping non-persistable request because we are offline', false, {});
+            NetworkEvents.getLogger().info('Skipping non-persistable request because we are offline', false, {command: request.command});
+            resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
             return;
         }
 

@@ -12,6 +12,7 @@ import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkEvents from './Network/NetworkEvents';
 import processRequest from './Network/processRequest';
+import * as SyncQueue from './Network/SyncQueue';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -46,10 +47,13 @@ function handleExpiredAuthToken(originalRequest) {
             });
         })
         .catch(() => {
-            // If the request did not succeed because we failed to fetch when calling Authenticate then we'll reject the original promise back to the original caller.
-            // If this was called from the sync queue then we will try the request again later. If this was called from the main queue then we either don't want to retry it
-            // or it's in the sync queue and will be retried eventually.
-            originalRequest.reject();
+            // If the request did not succeed because we failed to fetch when calling Authenticate then we'll resolve as it won't be retried.
+            // If this was called from the sync queue then we will reject and try again later.
+            if (SyncQueue.isRunning()) {
+                originalRequest.reject();
+            } else {
+                originalRequest.resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
+            }
         });
 }
 
