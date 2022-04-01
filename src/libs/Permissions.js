@@ -99,7 +99,7 @@ function canUsePolicyRooms(betas) {
  * @returns {Boolean}
  */
 function canUsePolicyExpenseChat(betas) {
-    return _.contains(betas, CONST.BETAS.BETA_POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
+    return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
 }
 
 export default {
