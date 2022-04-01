@@ -55,7 +55,12 @@ export default function processRequest(request) {
         })
         .catch((error) => {
             // Persisted requests should never throw since they are only either removed from the queue on success or left in the queue to be retried again later.
-            if (!persisted && error.message === CONST.ERROR.FAILED_TO_FETCH) {
+            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                if (persisted) {
+                    request.resolve();
+                    return;
+                }
+
                 // This situation is common if a user is offline or experiencing an unlikely scenario like
                 // Auth down, incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 throw error;

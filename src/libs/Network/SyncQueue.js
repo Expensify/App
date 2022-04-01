@@ -14,8 +14,8 @@ let isQueueRunning = false;
  * @returns {Promise}
  */
 function runRequestsSync(requests) {
-    return _.reduce(requests, (previousRequest, request) => previousRequest.then(() => new Promise((resolve, reject) => {
-        const requestWithHandlers = {...request, resolve, reject};
+    return _.reduce(requests, (previousRequest, request) => previousRequest.then(() => new Promise((resolve) => {
+        const requestWithHandlers = {...request, resolve, reject: resolve};
         processRequest(requestWithHandlers);
     })), Promise.resolve());
 }
@@ -43,8 +43,7 @@ function process() {
     }
 
     // Do a recursive call in case the queue is not empty after processing the current batch
-    return Promise.all(runRequestsSync(persistedRequests))
-        .then(process);
+    return runRequestsSync(persistedRequests).then(process);
 }
 
 function flush() {
@@ -66,7 +65,9 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process()
-                .finally(() => isQueueRunning = false);
+                .finally(() => {
+                    isQueueRunning = false;
+                });
         },
     });
 }

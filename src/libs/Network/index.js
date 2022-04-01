@@ -6,6 +6,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
+import * as NetworkEvents from './NetworkEvents';
 import * as SyncQueue from './SyncQueue';
 import * as MainQueue from './MainQueue';
 
@@ -54,6 +55,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
 
         // We're offline. If this request cannot be persisted then we won't make the request at all.
         if (!persist && NetworkStore.getIsOffline()) {
+            NetworkEvents.getLogger().info('Skipping non-peristable request because we are offline', false, {});
             return;
         }
 
