@@ -14,9 +14,9 @@ let isPersistedRequestsQueueRunning = false;
  * @returns {Promise}
  */
 function runRequestsSync(requests) {
-    return _.reduce(requests, (previousRequest, request) => {
-        previousRequest.then(() => processRequest(request));
-    }, Promise.resolve());
+    // TODO: Have a feeling reauthentication is kind of wonky atm because request passed to triggerResponse() won't have a resolve() method.
+    // Which means we can't block the next request in the sync queue on reauthentication
+    return _.reduce(requests, (previousRequest, request) => previousRequest.then(() => processRequest(request)), Promise.resolve());
 }
 
 /**
