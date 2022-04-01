@@ -46,7 +46,9 @@ function handleExpiredAuthToken(originalRequest) {
             });
         })
         .catch(() => {
-            // If the request did not succeed because we failed to fetch when calling Authenticate then we'll reject the original promise back to the original caller
+            // If the request did not succeed because we failed to fetch when calling Authenticate then we'll reject the original promise back to the original caller.
+            // If this was called from the sync queue then we will try the request again later. If this was called from the main queue then we either don't want to retry it
+            // or it's in the sync queue and will be retried eventually.
             originalRequest.reject();
         });
 }

@@ -352,7 +352,7 @@ test('requests should resume when we are online', () => {
         });
 });
 
-test('persisted request should not be cleared until a backend response occurs', () => {
+test('persisted request should not be cleared until a successful jsonCode response occurs', () => {
     // We're setting up xhr handler that will resolve calls programmatically
     const xhrCalls = [];
     const promises = [];
@@ -405,8 +405,8 @@ test('persisted request should not be cleared until a backend response occurs', 
         })
         .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
         .then(() => {
-            // When run again the queue should be empty
-            xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+            // When run again the queue should be empty even if we get a 404 or other non-200 jsonCode
+            xhrCalls[2].resolve({jsonCode: 404});
             return waitForPromisesToResolve();
         })
         .then(() => {
@@ -465,5 +465,40 @@ test('persisted request can trigger reauthentication', () => {
             expect(commandName1).toBe('Mock');
             expect(commandName2).toBe('Authenticate');
             expect(commandName3).toBe('Mock');
+        });
+});
+
+test('several actions made while offline will get added in the order they are created', () => {
+    // Given offline state where all requests will eventualy succeed without issue
+    const xhr = jest.spyOn(HttpUtils, 'xhr')
+        .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+        .then(() => {
+            // When we queue 6 persistable commands
+            Network.post('MockCommand', {content: 'value1', persist: true});
+            Network.post('MockCommand', {content: 'value2', persist: true});
+            Network.post('MockCommand', {content: 'value3', persist: true});
+            Network.post('MockCommand', {content: 'value4', persist: true});
+            Network.post('MockCommand', {content: 'value5', persist: true});
+            Network.post('MockCommand', {content: 'value6', persist: true});
+
+            // And one non-persistable
+            Network.post('MockCommand', {content: 'value7'});
+
+            return waitForPromisesToResolve();
+        })
+        .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+        .then(waitForPromisesToResolve)
+        .then(() => {
+            // Then expect only 6 calls to have been made and for them to be made in the order that we made them and the non-persistable
+            // request isn't one of them.
+            expect(xhr.mock.calls.length).toBe(6);
+            expect(xhr.mock.calls[0][1].content).toBe('value1');
+            expect(xhr.mock.calls[1][1].content).toBe('value2');
+            expect(xhr.mock.calls[2][1].content).toBe('value3');
+            expect(xhr.mock.calls[3][1].content).toBe('value4');
+            expect(xhr.mock.calls[4][1].content).toBe('value5');
+            expect(xhr.mock.calls[5][1].content).toBe('value6');
         });
 });
