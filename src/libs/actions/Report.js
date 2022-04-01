@@ -186,8 +186,6 @@ function getSimplifiedReportObject(report) {
     const isLastMessageAttachment = /<img|a\s[^>]*data-expensify-source\s*=\s*"[^"]*"[^>]*>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
-    console.log("LastActionMessage",lastActionMessage);
-
     let lastMessageText = null;
     if (report.reportActionCount > 0) {
         // We are removing any html tags from the message html since we cannot access the text version of any comments as
