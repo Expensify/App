@@ -12,7 +12,6 @@ const symbolPositions = [
     [false, 'es', 'USD']
 ];
 
-
 describe('CurrencySymbolUtils', () => {
     describe('getLocalizedCurrencySymbol', () => {
 
