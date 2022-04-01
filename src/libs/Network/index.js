@@ -30,9 +30,18 @@ function canMakeRequest(request) {
     }
 
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
+    if (request.data.forceNetworkRequest === true) {
+        return true;
+    }
+
+    // Requests require a Pusher subscription should be queued until we have one
+    if (!NetworkStore.isPusherSubscribed()) {
+        return false;
+    }
+
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating and will also want to queue
     // any requests while the sync queue is running.
-    return request.data.forceNetworkRequest === true || (!NetworkStore.getIsAuthenticating() && !PersistedRequestsQueue.isRunning());
+    return !NetworkStore.getIsAuthenticating() && !PersistedRequestsQueue.isRunning();
 }
 
 /**

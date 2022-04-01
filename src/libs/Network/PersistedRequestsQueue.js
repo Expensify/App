@@ -35,6 +35,12 @@ function process() {
         return Promise.resolve();
     }
 
+    // All persisted requests require Pusher so if we don't have an active connection then don't persist
+    if (!NetworkStore.isPusherSubscribed()) {
+        // TODO: If we do this we also need to trigger event to empty the queue again when we do subscribe
+        return Promise.resolve();
+    }
+
     // Do a recursive call in case the queue is not empty after processing the current batch
     return Promise.all(runRequestsSync(persistedRequests))
         .then(process);

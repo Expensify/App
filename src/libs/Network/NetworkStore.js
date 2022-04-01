@@ -121,6 +121,14 @@ function getIsAuthenticating() {
     return isAuthenticating;
 }
 
+/**
+ * Just adding this as a stub...
+ * @returns {Boolean}
+ */
+function isPusherSubscribed() {
+    return true;
+}
+
 export {
     getAuthToken,
     setAuthToken,
@@ -131,4 +139,5 @@ export {
     setIsAuthenticating,
     getIsAuthenticating,
     getIsOffline,
+    isPusherSubscribed,
 };
