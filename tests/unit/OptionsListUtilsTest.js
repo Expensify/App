@@ -7,98 +7,112 @@ import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
 
 describe('OptionsListUtils', () => {
+    let reportCount = 0;
+
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
-        1: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739295,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 1,
+            reportID: reportCount,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
             unreadActionCount: 1,
         },
-        2: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739296,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 2,
+            reportID: reportCount,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
             unreadActionCount: 1,
         },
 
         // This is the only report we are pinning in this test
-        3: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739297,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: 3,
+            reportID: reportCount,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
             unreadActionCount: 0,
         },
-        4: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739298,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 4,
+            reportID: reportCount,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
             unreadActionCount: 1,
         },
-        5: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739299,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 5,
+            reportID: reportCount,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
             unreadActionCount: 1,
         },
-        6: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739300,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 6,
+            reportID: reportCount,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
             unreadActionCount: 0,
         },
 
         // Note: This report has the largest lastMessageTimestamp
-        7: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739301,
             lastMessageTimestamp: 1611282169,
             isPinned: false,
-            reportID: 7,
+            reportID: reportCount,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
             unreadActionCount: 1,
         },
 
         // Note: This report has no lastMessageTimestamp
-        8: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739301,
             lastMessageTimestamp: 0,
             isPinned: false,
-            reportID: 8,
+            reportID: reportCount,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
             unreadActionCount: 0,
         },
 
         // Note: This report has an IOU
-        9: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1611282168,
             isPinned: false,
-            reportID: 9,
+            reportID: reportCount,
             participants: ['mistersinister@marauders.com'],
             reportName: 'Mister Sinister',
             unreadActionCount: 0,
             iouReportID: 100,
             hasOutstandingIOU: true,
+        },
+
+        // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
+        [++reportCount]: {
+            lastVisitedTimestamp: 1610666739200,
+            lastMessageTimestamp: 1,
+            reportID: reportCount,
+            isPinned: false,
+            participants: ['captain_britain@expensify.com', 'captain_america@expensify.com'],
+            reportName: '',
+            oldPolicyName: "SHIELD's workspace",
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         },
     };
 
@@ -152,11 +166,11 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_CONCIERGE = {
         ...REPORTS,
 
-        10: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: reportCount,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
             unreadActionCount: 1,
@@ -165,11 +179,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
-        11: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: reportCount,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
             unreadActionCount: 1,
@@ -178,11 +192,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
-        12: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: reportCount,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
             unreadActionCount: 1,
@@ -191,20 +205,20 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_MORE_PINS = {
         ...REPORTS,
-        13: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: 13,
+            reportID: reportCount,
             participants: ['d_email@email.com'],
             reportName: 'D report name',
             unreadActionCount: 0,
         },
-        14: {
+        [++reportCount]: {
             lastVisitedTimestamp: 1610666732302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: 14,
+            reportID: reportCount,
             participants: ['z_email@email.com'],
             reportName: 'Z Report Name',
             unreadActionCount: 0,
@@ -569,11 +583,11 @@ describe('OptionsListUtils', () => {
             ...REPORTS,
 
             // Note: This report has no lastMessageTimestamp but is also pinned
-            10: {
+            [++reportCount]: {
                 lastVisitedTimestamp: 1610666739300,
                 lastMessageTimestamp: 0,
                 isPinned: true,
-                reportID: 10,
+                reportID: reportCount,
                 participants: ['captain_britain@expensify.com'],
                 reportName: 'Captain Britain',
             },
@@ -600,16 +614,20 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // And the most recent pinned report is first in the list of reports
-                expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
+                let index = 0;
+                expect(results.recentReports[index].login).toBe('captain_britain@expensify.com');
 
                 // And the third report is the report with an IOU debt
-                expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
+                index += 2;
+                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
 
                 // And the fourth report is the report with a draft comment
-                expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+                expect(results.recentReports[++index].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
 
                 // And the fifth report is the report with the lastMessage timestamp
-                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
+
+                expect(_.last(results.recentReports).text).toBe("SHIELD's workspace");
             });
     });
 
@@ -628,28 +646,32 @@ describe('OptionsListUtils', () => {
 
                 // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
                 // D report name (Alphabetically first among pinned reports)
-                expect(results.recentReports[0].login).toBe('d_email@email.com');
+                let index = 0;
+                expect(results.recentReports[index].login).toBe('d_email@email.com');
 
                 // Mister Fantastic report name (Alphabetically second among pinned reports)
-                expect(results.recentReports[1].login).toBe('reedrichards@expensify.com');
+                expect(results.recentReports[++index].login).toBe('reedrichards@expensify.com');
 
                 // Z report name (Alphabetically third among pinned reports)
-                expect(results.recentReports[2].login).toBe('z_email@email.com');
+                expect(results.recentReports[++index].login).toBe('z_email@email.com');
 
                 // Unpinned report name ordered alphabetically after pinned reports
                 // Black Panther report name has unread message
-                expect(results.recentReports[3].login).toBe('tchalla@expensify.com');
+                expect(results.recentReports[++index].text).toBe("SHIELD's workspace");
+
+                expect(results.recentReports[++index].login).toBe('tchalla@expensify.com');
 
                 // Captain America report name has unread message
-                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
 
                 // Invisible woman report name has unread message
-                expect(results.recentReports[5].login).toBe('suestorm@expensify.com');
+                expect(results.recentReports[++index].login).toBe('suestorm@expensify.com');
 
                 // Mister Sinister report name has IOU debt
-                expect(results.recentReports[7].login).toBe('mistersinister@marauders.com');
+                index += 2;
+                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
 
                 // Spider-Man report name is last report and has unread message
-                expect(results.recentReports[8].login).toBe('peterparker@expensify.com');
+                expect(results.recentReports[++index].login).toBe('peterparker@expensify.com');
             }));
 });
