@@ -183,7 +183,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
+    const isLastMessageAttachment = /<\/?(a|img|...)\b[^<>]*>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     let lastMessageText = null;
