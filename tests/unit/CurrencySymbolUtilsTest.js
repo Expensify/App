@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
 import currencyList from './currencyList.json';
 
