@@ -158,7 +158,7 @@ class ReportActionItem extends Component {
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
                 onKeyDown={(event) => {
-                    // This is workaround to solve blue border box appear after click and press a key
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
                     event.target.blur();
                 }}
             >
