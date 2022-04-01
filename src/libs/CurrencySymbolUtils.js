@@ -12,8 +12,7 @@ function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
         style: 'currency',
         currency: currencyCode,
     });
-    const currencySymbol = _.find(parts, part => part.type === 'currency').value;
-    return currencySymbol;
+    return _.find(parts, part => part.type === 'currency').value;
 }
 
 /**
@@ -31,8 +30,7 @@ function isCurrencySymbolLTR(preferredLocale, currencyCode) {
     // The first element of parts will be type: currency for all currency
     // Where it starts with symbol and the other will have it at last
     // If it is not the first, it must be at last
-    const isLeft = parts[0].type === 'currency';
-    return isLeft;
+    return parts[0].type === 'currency';
 }
 
 export {
