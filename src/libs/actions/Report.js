@@ -1262,7 +1262,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     API.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
-        'markAsUnread': manuallyMarked,
+        markAsUnread: manuallyMarked,
     });
 }
 
