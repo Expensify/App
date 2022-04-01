@@ -2,9 +2,9 @@ const callbacksByAPICommandName = {};
 
 /**
  * @param {String} apiCommandName
- * @param {any} data
+ * @param {any} [data]
  */
-function publish(apiCommandName, data) {
+function publish(apiCommandName, data = {}) {
     const callbacksToTrigger = callbacksByAPICommandName[apiCommandName];
     if (!callbacksToTrigger) {
         return;
