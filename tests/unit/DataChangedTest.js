@@ -10,7 +10,7 @@ describe('DataChanged', () => {
         DataChanged.publish('callbackFunctionTest', {});
 
         // Then the callback should be called once
-        expect(callbackFunction).toBeCalledTimes(1);
+        expect(callbackFunction).toHaveBeenCalledTimes(1);
     });
 
     it('A single callback is not triggered when publish is called with a different command', () => {
@@ -22,7 +22,7 @@ describe('DataChanged', () => {
         DataChanged.publish('callbackFunctionSomeOtherTest', {});
 
         // Then the callback should not have been called at all
-        expect(callbackFunction).toBeCalledTimes(0);
+        expect(callbackFunction).toHaveBeenCalledTimes(0);
     });
 
     it('Multiple callbacks are triggered the right number of times', () => {
@@ -41,8 +41,20 @@ describe('DataChanged', () => {
         DataChanged.publish('callbackFunctionTest2', {});
 
         // Then all callbacks should be called twice
-        expect(callbackFunction1).toBeCalledTimes(2);
-        expect(callbackFunction2).toBeCalledTimes(2);
-        expect(callbackFunction3).toBeCalledTimes(2);
+        expect(callbackFunction1).toHaveBeenCalledTimes(2);
+        expect(callbackFunction2).toHaveBeenCalledTimes(2);
+        expect(callbackFunction3).toHaveBeenCalledTimes(2);
+    });
+
+    it('Callbacks are triggered with the proper data', () => {
+        // Given a single callback subscribed to an API command
+        const callbackFunction = jest.fn();
+        DataChanged.subscribe('callbackFunctionTest', callbackFunction);
+
+        // When an event for that API command is published with specific data
+        DataChanged.publish('callbackFunctionTest', {a: 1});
+
+        // Then the callback should be called with the proper data
+        expect(callbackFunction).toHaveBeenCalledWith({a: 1});
     });
 });
