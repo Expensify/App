@@ -3,7 +3,6 @@ import _ from 'underscore';
 import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
 
-const persistedRequestsMap = new Map();
 let persistedRequests = [];
 
 Onyx.connect({
@@ -13,7 +12,6 @@ Onyx.connect({
 
 function clear() {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
-    persistedRequestsMap.clear();
 }
 
 /**
@@ -28,7 +26,6 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequestsMap.remove(requestToRemove);
     persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
