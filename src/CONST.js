@@ -324,6 +324,7 @@ const CONST = {
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        SYNC_QUEUE_TIMEOUT_MS: 60 * 1000,
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',

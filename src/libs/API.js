@@ -11,21 +11,22 @@ import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkEvents from './Network/NetworkEvents';
+import processRequest from './Network/processRequest';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {String} [originalType]
+ * @param {Object} originalRequest
  * @returns {Promise}
  */
-function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
+function handleExpiredAuthToken(originalRequest) {
+    const originalCommand = originalRequest.command;
+
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (NetworkStore.getIsAuthenticating()) {
-        return Network.post(originalCommand, originalParameters, originalType);
+        return Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure);
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -35,14 +36,22 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
     return reauthenticate(originalCommand)
         .then(() => {
             // Now that the API is authenticated, make the original request again with the new authToken
-            const params = enhanceParameters(originalCommand, originalParameters);
-            return Network.post(originalCommand, params, originalType);
+            const params = enhanceParameters(originalCommand, originalRequest.data);
+
+            // If this is being called from the sync queue then we should not re-queue the original request via Network.post()
+            // as that would drop it back in the main queue.
+            if (params.persist) {
+                processRequest(originalRequest);
+                return;
+            }
+
+            return Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure);
         })
         .catch(() => (
 
             // If the request did not succeed because of a networking issue or the server did not respond requeue the
             // original request.
-            Network.post(originalCommand, originalParameters, originalType)
+            Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure)
         ));
 }
 
@@ -73,7 +82,7 @@ NetworkEvents.onResponse((queuedRequest, response) => {
             return;
         }
 
-        handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
+        handleExpiredAuthToken(queuedRequest)
             .then(queuedRequest.resolve)
             .catch(queuedRequest.reject);
         return;

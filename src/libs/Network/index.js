@@ -12,6 +12,7 @@ import * as MainQueue from './MainQueue';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
+    // Start sync queue and process at a much longer interval than main queue
     SyncQueue.flush();
 
     // Start main queue and process once every n ms delay
