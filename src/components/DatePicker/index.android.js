@@ -19,7 +19,7 @@ class DatePicker extends React.Component {
 
     componentDidUpdate() {
         const dateValue = DateUtils.getDateAsText(this.props.value);
-        if (this.props.value === undefined || DateUtils.getDateAsText(this.state.value) === dateValue) {
+        if (this.props.value === undefined || DateUtils.getDateAsText(this.state.selectedDate) === dateValue) {
             return;
         }
         // eslint-disable-next-line react/no-did-update-set-state
