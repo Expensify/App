@@ -27,9 +27,7 @@ function isCurrencySymbolLTR(preferredLocale, currencyCode) {
         currency: currencyCode,
     });
 
-    // The first element of parts will be type: currency for all currency
-    // Where it starts with symbol and the other will have it at last
-    // If it is not the first, it must be at last
+    // Currency is LTR when the first part is of currency type.
     return parts[0].type === 'currency';
 }
 
