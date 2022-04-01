@@ -18,41 +18,37 @@ import processRequest from './Network/processRequest';
  * then replays the original request
  *
  * @param {Object} originalRequest
- * @returns {Promise}
  */
 function handleExpiredAuthToken(originalRequest) {
     const originalCommand = originalRequest.command;
 
-    // When the authentication process is running, and more API requests will be requeued and they will
-    // be performed after authentication is done.
+    // When the authentication process is running any other API requests that need to reauthenticate will be requeued after authentication is done.
     if (NetworkStore.getIsAuthenticating()) {
-        return Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure);
+        Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure)
+            .then(originalRequest.resolve)
+            .catch(originalRequest.reject);
+        return;
     }
 
     // Prevent any more requests from being processed while authentication happens
     NetworkStore.setIsAuthenticating(true);
 
     // eslint-disable-next-line no-use-before-define
-    return reauthenticate(originalCommand)
+    reauthenticate(originalCommand)
         .then(() => {
-            // Now that the API is authenticated, make the original request again with the new authToken
-            const params = enhanceParameters(originalCommand, originalRequest.data);
+            // If there's a chance this is being called from the sync queue then we should not re-queue the original request via Network.post()
+            // as that would drop it back in the main queue and it won't be able to run if the sync queue is running. Instead we will run this request immediately.
+            processRequest({
+                ...originalRequest,
 
-            // If this is being called from the sync queue then we should not re-queue the original request via Network.post()
-            // as that would drop it back in the main queue.
-            if (params.persist) {
-                processRequest(originalRequest);
-                return;
-            }
-
-            return Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure);
+                // Make the original request again with the new authToken
+                data: enhanceParameters(originalCommand, originalRequest.data),
+            });
         })
-        .catch(() => (
-
-            // If the request did not succeed because of a networking issue or the server did not respond requeue the
-            // original request.
-            Network.post(originalCommand, originalRequest.data, originalRequest.type, originalRequest.shouldUseSecure)
-        ));
+        .catch(() => {
+            // If the request did not succeed because we failed to fetch when calling Authenticate then we'll reject the original promise back to the original caller
+            originalRequest.reject();
+        });
 }
 
 // We set the logger for Network here so that we can avoid a circular dependency
@@ -82,9 +78,7 @@ NetworkEvents.onResponse((queuedRequest, response) => {
             return;
         }
 
-        handleExpiredAuthToken(queuedRequest)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
+        handleExpiredAuthToken(queuedRequest);
         return;
     }
 

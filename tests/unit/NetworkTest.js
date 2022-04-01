@@ -44,27 +44,24 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-test('failing to reauthenticate while offline should not log out user', () => {
+test('failing to reauthenticate while experiencing a networking issue should not log out user', () => {
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
     const TEST_USER_ACCOUNT_ID = 1;
 
-    let isOffline;
-
+    let session;
     Onyx.connect({
-        key: ONYXKEYS.NETWORK,
+        key: ONYXKEYS.SESSION,
         callback: (val) => {
-            isOffline = val && val.isOffline;
+            session = val;
         },
     });
 
     // Given a test user login and account ID
     return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
         .then(() => {
-            expect(isOffline).toBe(null);
-
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError('Failed to fetch'))));
+            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError(CONST.ERROR.FAILED_TO_FETCH))));
 
             const actualXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn();
@@ -73,38 +70,21 @@ test('failing to reauthenticate while offline should not log out user', () => {
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }))
 
-                // Fail the call to re-authenticate
-                .mockImplementationOnce(actualXhr)
+                // Fail the call to re-authenticate with a "Failed to fetch" error
+                .mockImplementationOnce(actualXhr);
 
-                // The next call should still be using the old authToken
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }))
-
-                // Succeed the call to set a new authToken
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                    authToken: 'qwerty12345',
-                }))
-
-                // All remaining requests should succeed
-                .mockImplementation(() => Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                }));
-
-            // This should first trigger re-authentication and then an API is offline error
+            // This should first trigger re-authentication and then an API is offline error, but we should go no further than that.
+            // This is a pretty rare case, but basically if a user gets a Fetch error while trying to authenticate we should make sure they
+            // do not get logged out.
             API.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve()
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
-                    expect(isOffline).toBe(false);
-
                     // Advance the network request queue by 1 second so that it can realize it's back online
                     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
                     return waitForPromisesToResolve();
                 })
                 .then(() => {
-                    // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
+                    // We should just have 1 call to Get and 1 call to Authenticate
                     const callsToChatList = _.filter(HttpUtils.xhr.mock.calls, ([command, params]) => (
                         command === 'Get' && params.returnValueList === 'chatList'
                     ));
@@ -112,8 +92,11 @@ test('failing to reauthenticate while offline should not log out user', () => {
                         command === 'Authenticate'
                     ));
 
-                    expect(callsToChatList.length).toBe(3);
-                    expect(callsToAuthenticate.length).toBe(2);
+                    expect(callsToChatList.length).toBe(1);
+                    expect(callsToAuthenticate.length).toBe(1);
+                    expect(session.authToken).toBeTruthy();
+                    expect(session.accountID).toBe(TEST_USER_ACCOUNT_ID);
+                    expect(session.email).toBe(TEST_USER_LOGIN);
                 });
         });
 });
@@ -179,10 +162,16 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }))
 
-                // The request to Authenticate should succeed and we mock the responses for the remaining calls
+                // The request to Authenticate should succeed and we mock the responses for the remaining calls in the order that we make them
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     authToken: 'qwerty12345',
+                }))
+
+                // Get&returnValueList=chatList
+                .mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    chatList: TEST_CHAT_LIST,
                 }))
 
                 // Get&returnValueList=personalDetailsList
@@ -195,12 +184,6 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     account: TEST_ACCOUNT_DATA,
-                }))
-
-                // Get&returnValueList=chatList
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                    chatList: TEST_CHAT_LIST,
                 }));
 
             // And then make 3 API requests in quick succession with an expired authToken and handle the response
@@ -220,11 +203,16 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             return waitForPromisesToResolve();
         })
         .then(() => {
+            // Wait for the next tick of main queue and wait for Onyx data to update
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        }).then(() => {
             // We should expect to see seven request be made in total. 3 Get requests that initially fail. Then the call
             // to Authenticate. Followed by 3 requests to Get again.
             const callsToGet = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Get');
-            const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
             expect(callsToGet.length).toBe(6);
+
+            const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
             expect(callsToAuthenticate.length).toBe(1);
             expect(account).toEqual(TEST_ACCOUNT_DATA);
             expect(personalDetailsList).toEqual(TEST_PERSONAL_DETAILS);

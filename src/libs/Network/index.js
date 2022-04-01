@@ -12,7 +12,6 @@ import * as MainQueue from './MainQueue';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
-    // Start sync queue and process at a much longer interval than main queue
     SyncQueue.flush();
 
     // Start main queue and process once every n ms delay
@@ -56,7 +55,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
 
         // We're offline. If this request cannot be persisted then we won't make the request at all.
         if (!persist && NetworkStore.getIsOffline()) {
-            NetworkEvents.getLogger().info('Skipping non-peristable request because we are offline', false, {});
+            NetworkEvents.getLogger().info('Skipping non-persistable request because we are offline', false, {});
             return;
         }
 
@@ -66,9 +65,9 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // Add the request to the main queue
         MainQueue.push(request);
 
-        // This check is mainly used to prevent API commands from triggering calls to processNetworkRequestQueue from inside the context of a previous
-        // call to processNetworkRequestQueue() e.g. calling a Log command without this would cause the requests in networkRequestQueue to double process
-        // since we call Log inside processNetworkRequestQueue().
+        // This check is mainly used to prevent API commands from triggering calls to MainQueue.process() from inside the context of a previous
+        // call to MainQueue.process() e.g. calling a Log command without this would cause the requests in mainQueue to double process
+        // since we call Log inside MainQueue.process().
         const shouldProcessImmediately = lodashGet(request, 'data.shouldProcessImmediately', true);
         if (!shouldProcessImmediately) {
             return;
