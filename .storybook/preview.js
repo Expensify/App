@@ -6,7 +6,6 @@ import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../src/components/withLocalize';
 import ONYXKEYS from '../src/ONYXKEYS';
-import MockNavigationProvider from '../__mocks__/MockNavigationProvider';
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -19,7 +18,6 @@ const decorators = [
                 OnyxProvider,
                 LocaleContextProvider,
                 HTMLEngineProvider,
-                MockNavigationProvider,
             ]}
         >
             <Story />
