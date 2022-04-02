@@ -1,0 +1,9 @@
+[commit]
+    gpgsign = true
+[user]
+    email = bmmozyurt@gmail.com
+    name = Metehan Özyurt
+    username = metehanozyurt
+    signingkey = DB5038AEFEFE3C40F903925E0C87FF87CC085EEF
+[gpg]
+    program = gpg

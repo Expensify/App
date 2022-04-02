@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
 import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
 import styles from '../../styles/styles';
+import displayStyles from '../../styles/utilities/display';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
@@ -51,7 +52,7 @@ class PDFView extends PureComponent {
 
         return (
             <View
-                style={[styles.PDFView, this.props.style]}
+                style={[styles.PDFView, this.props.style, displayStyles.dGrid]}
                 onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
             >
                 <Document

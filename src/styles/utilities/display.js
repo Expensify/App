@@ -20,4 +20,8 @@ export default {
     dInline: {
         display: 'inline',
     },
+
+    dGrid: {
+        display: 'grid',
+    },
 };

@@ -1695,6 +1695,7 @@ const styles = {
         justifyContent: 'center',
         overflow: 'hidden',
         overflowY: 'auto',
+        alignItems: 'center',
     },
 
     modalCenterContentContainer: {
