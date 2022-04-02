@@ -502,3 +502,33 @@ test('several actions made while offline will get added in the order they are cr
             expect(xhr.mock.calls[5][1].content).toBe('value6');
         });
 });
+
+test('several persistent and non persistent actions made while online will run with writes prioritized over reads', () => {
+    // Given offline state where all requests will eventualy succeed without issue
+    const xhr = jest.spyOn(HttpUtils, 'xhr')
+        .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // When we queue 6 persistable commands
+            Network.post('MockCommand', {content: 'value1', persist: true});
+            Network.post('MockCommand', {content: 'value2'});
+            Network.post('MockCommand', {content: 'value3', persist: true});
+            Network.post('MockCommand', {content: 'value4'});
+            Network.post('MockCommand', {content: 'value5', persist: true});
+            Network.post('MockCommand', {content: 'value6'});
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+
+            // Then expect only 6 calls to have been made and for write requests to be blocking the read requests
+            expect(xhr.mock.calls.length).toBe(6);
+            expect(xhr.mock.calls[0][1].content).toBe('value1');
+            expect(xhr.mock.calls[1][1].content).toBe('value3');
+            expect(xhr.mock.calls[2][1].content).toBe('value5');
+            expect(xhr.mock.calls[3][1].content).toBe('value2');
+            expect(xhr.mock.calls[4][1].content).toBe('value4');
+            expect(xhr.mock.calls[5][1].content).toBe('value6');
+        });
+});

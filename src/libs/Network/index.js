@@ -1,10 +1,7 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import HttpUtils from '../HttpUtils';
 import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
-import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as SyncQueue from './SyncQueue';
@@ -12,6 +9,7 @@ import * as MainQueue from './MainQueue';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
+    // Calling SyncQueue.flush() before process should ensure that our persisted requests run before any read requests
     SyncQueue.flush();
 
     // Start main queue and process once every n ms delay
@@ -48,19 +46,18 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // All requests that should be persisted must be saved immediately whether they are run now or when we are back from offline.
         // If the user closes their browser or the app crashes before a response is recieved then the request will be saved and retried later.
         if (persist) {
-            const requestToPersist = _.clone(request);
-            requestToPersist.id = Str.guid();
-            PersistedRequests.save(requestToPersist);
+            SyncQueue.push(request);
+            return;
         }
 
-        // We're offline. If this request cannot be persisted then we won't make the request at all. This request will still succeed, but
-        // we'll use a jsonCode to let the user know that they are offline (if we need to tell them).
-        if (!persist && NetworkStore.getIsOffline()) {
+        // We're offline and this request cannot be persisted we'll use a special jsonCode to let the user know that they are offline (if we need to tell them)
+        if (NetworkStore.getIsOffline()) {
             NetworkEvents.getLogger().info('Skipping non-persistable request because we are offline', false, {command: request.command});
             resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
             return;
         }
 
+        // Note: We are adding these handlers here since the SyncQueue handles it's promises differently and we cannot serialize functions
         request.resolve = resolve;
         request.reject = reject;
 

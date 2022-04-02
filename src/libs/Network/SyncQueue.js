@@ -1,5 +1,7 @@
+/* eslint-disable no-use-before-define */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
@@ -10,13 +12,13 @@ import CONST from '../../CONST';
 
 let isQueueRunning = false;
 let scheduledSyncQueueTimerID;
+let additionalRequests = [];
 
 /**
  * Schedule a new process and cancel the previous pending scheduled process. This enables us to retry emptying the sync queue again at some point in the future.
  */
 function scheduleSyncQueueProcess() {
     clearTimeout(scheduledSyncQueueTimerID);
-    // eslint-disable-next-line no-use-before-define
     scheduledSyncQueueTimerID = setTimeout(() => flush, CONST.NETWORK.SYNC_QUEUE_TIMEOUT_MS);
 }
 
@@ -37,7 +39,33 @@ function runRequestsSync(requests) {
                 resolve();
                 scheduleSyncQueueProcess();
             });
-    })), Promise.resolve());
+    })), Promise.resolve())
+        .then(() => {
+            if (_.isEmpty(additionalRequests)) {
+                return Promise.resolve();
+            }
+
+            // If any additional requests were queued by this tab while we are online and the queue is running we will also run them now
+            const additionalRequestsToRun = _.clone(additionalRequests);
+            additionalRequests = [];
+            return runRequestsSync(additionalRequestsToRun);
+        });
+}
+
+/**
+ * Add a new request to the queue and try to run
+ *
+ * @param {Object} request
+ */
+function push(request) {
+    const requestToPersist = _.clone(request);
+    requestToPersist.id = Str.guid();
+    PersistedRequests.save(requestToPersist);
+    if (isQueueRunning) {
+        additionalRequests.push(request);
+    } else {
+        flush();
+    }
 }
 
 /**
@@ -53,28 +81,28 @@ function runRequestsSync(requests) {
 function process() {
     const persistedRequests = PersistedRequests.getAll();
 
+    // If we are offline we'll run the queue when we're back. If we have no requests we don't need to do anything for this run.
     if (NetworkStore.getIsOffline() || _.isEmpty(persistedRequests)) {
         return Promise.resolve();
     }
 
     // All persisted requests require Pusher so if we don't have an active connection then don't persist
     if (!NetworkStore.isPusherSubscribed()) {
-        // TODO: If we do this we also need to trigger event to empty the queue again when we do subscribe
+        // TODO: If we do this we also need to trigger event to empty the queue again when we do subscribe again
         return Promise.resolve();
     }
 
-    // Do a recursive call in case the queue is not empty after processing the current batch
     return runRequestsSync(persistedRequests);
 }
 
 function flush() {
-    if (isQueueRunning) {
-        return;
-    }
-
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
+        return;
+    }
+
+    if (isQueueRunning) {
         return;
     }
 
@@ -88,6 +116,7 @@ function flush() {
             process()
                 .finally(() => {
                     isQueueRunning = false;
+                    additionalRequests = [];
                 });
         },
     });
@@ -105,5 +134,6 @@ function isRunning() {
 
 export {
     flush,
+    push,
     isRunning,
 };
