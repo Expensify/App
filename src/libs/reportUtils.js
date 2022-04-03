@@ -29,8 +29,8 @@ function getReportParticipantsTitle(logins) {
  * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportActionMessage) {
-    return reportActionMessage.text === '[Attachment]' && reportActionMessage.html !== '[Attachment]';
+function isReportMessageAttachment({text, html}) {
+    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
