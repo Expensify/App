@@ -34,7 +34,7 @@ export default {
     CURRENT_DATE: 'currentDate',
 
     // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
+    LAST_VIEWED_REPORTID: 'lastViewedReportID',
 
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',

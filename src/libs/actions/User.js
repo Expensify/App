@@ -34,10 +34,10 @@ Onyx.connect({
     },
 });
 
-let currentlyViewedReportID = '';
+let lastViewedReportID = '';
 Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val || '',
+    key: ONYXKEYS.LAST_VIEWED_REPORTID,
+    callback: val => lastViewedReportID = val || '',
 });
 
 /**
@@ -204,7 +204,7 @@ function setSecondaryLoginAndNavigate(login, password) {
  */
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
-    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
+    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(lastViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.ValidateEmail({

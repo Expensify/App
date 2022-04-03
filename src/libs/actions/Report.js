@@ -44,7 +44,7 @@ Onyx.connect({
 
 let lastViewedReportID;
 Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    key: ONYXKEYS.LAST_VIEWED_REPORTID,
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
@@ -1347,8 +1347,8 @@ function handleReportChanged(report) {
 /**
  * @param {Number} reportID
  */
-function updateCurrentlyViewedReportID(reportID) {
-    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+function updateLastViewedReportID(reportID) {
+    Onyx.merge(ONYXKEYS.LAST_VIEWED_REPORTID, String(reportID));
 }
 
 Onyx.connect({
@@ -1559,7 +1559,7 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    updateCurrentlyViewedReportID,
+    updateLastViewedReportID,
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,

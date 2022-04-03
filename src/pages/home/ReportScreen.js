@@ -153,7 +153,7 @@ class ReportScreen extends React.Component {
             Report.handleInaccessibleReport();
             return;
         }
-        Report.updateCurrentlyViewedReportID(reportID);
+        Report.updateLastViewedReportID(reportID);
         this.props.setCurrentlyViewedReportID(reportID);
     }
 
