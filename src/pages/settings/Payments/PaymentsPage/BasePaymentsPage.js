@@ -40,7 +40,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
             shouldShowConfirmPopover: false,
-            isSelectedPaymentMethodDefault: true,
+            isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
@@ -113,9 +113,9 @@ class BasePaymentsPage extends React.Component {
      * @param {Object} nativeEvent
      * @param {String} accountType
      * @param {String} account
-     * @param {Boolean} accountDefault
+     * @param {Boolean} isDefault
      */
-    paymentMethodPressed(nativeEvent, accountType, account, accountDefault) {
+    paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
         const position = getClickedElementLocation(nativeEvent);
         this.setState({
             addPaymentMethodButton: nativeEvent,
@@ -145,7 +145,7 @@ class BasePaymentsPage extends React.Component {
                 };
             }
             this.setState({
-                isSelectedPaymentMethodDefault: !accountDefault,
+                isSelectedPaymentMethodDefault: isDefault,
                 shouldShowDefaultDeleteMenu: true,
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
@@ -321,7 +321,7 @@ class BasePaymentsPage extends React.Component {
                                     interactive={false}
                                 />
                             )}
-                            {this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
+                            {!this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
