@@ -317,6 +317,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
     textDanger: {
         color: colors.red,
     },
