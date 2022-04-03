@@ -69,6 +69,7 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
+        this.renderWrappedComponents = this.renderWrappedComponents.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -116,6 +117,24 @@ class ReportActionItem extends Component {
 
     checkIfContextMenuActive() {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
+    }
+
+    renderWrappedComponents(children) {
+        return (
+            <PressableWithSecondaryInteraction
+                ref={el => this.popoverAnchor = el}
+                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onSecondaryInteraction={this.showPopover}
+                preventDefaultContentMenu={!this.props.draftMessage}
+                onKeyDown={(event) => {
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
+                    event.target.blur();
+                }}
+            >
+                {children}
+            </PressableWithSecondaryInteraction>
+        );
     }
 
     render() {
@@ -168,39 +187,10 @@ class ReportActionItem extends Component {
                             {!this.props.displayAsGroup
                                 ? (
                                     <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                        <PressableWithSecondaryInteraction
-                                            ref={el => this.popoverAnchor = el}
-                                            onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
-                                            onPressOut={() => ControlSelection.unblock()}
-                                            onSecondaryInteraction={this.showPopover}
-                                            preventDefaultContentMenu={!this.props.draftMessage}
-                                            onKeyDown={(event) => {
-                                                // Blur the input after a key is pressed to keep the blue focus border from appearing
-                                                event.target.blur();
-                                            }}
-                                        >
-                                            {children}
-                                        </PressableWithSecondaryInteraction>
+                                        {this.renderWrappedComponents(children)}
                                     </ReportActionItemSingle>
                                 )
-                                : (
-                                    <PressableWithSecondaryInteraction
-                                        ref={el => this.popoverAnchor = el}
-                                        onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
-                                        onPressOut={() => ControlSelection.unblock()}
-                                        onSecondaryInteraction={this.showPopover}
-                                        preventDefaultContentMenu={!this.props.draftMessage}
-                                        onKeyDown={(event) => {
-                                            // Blur the input after a key is pressed to keep the blue focus border from appearing
-                                            event.target.blur();
-                                        }}
-                                    >
-
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    </PressableWithSecondaryInteraction>
-                                )}
+                                : this.renderWrappedComponents(<ReportActionItemGrouped>{children}</ReportActionItemGrouped>)}
                         </View>
                         <MiniReportActionContextMenu
                             reportID={this.props.reportID}
