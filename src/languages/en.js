@@ -337,6 +337,14 @@ export default {
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
+    confirmationScreen: {
+        passwordUpdated: 'Password updated!',
+        allSet: 'You’re all set, keep your new password safe.',
+        set2FAPartOne: 'Set up',
+        set2FAPartTwo: 'two-factor authentication',
+        set2FAPartThree: 'for additional account security.',
+        gotIt: 'Got it',
+    },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
