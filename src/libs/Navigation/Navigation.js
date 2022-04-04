@@ -173,6 +173,16 @@ function dismissModal(shouldOpenDrawer = false) {
 }
 
 /**
+ * Returns the current active route
+ * @returns {String}
+ */
+function getActiveRoute() {
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
+        : '';
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -183,20 +193,7 @@ function dismissModal(shouldOpenDrawer = false) {
  */
 function isActiveRoute(routePath) {
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
-        : '';
-    return path === routePath;
-}
-
-/**
- * Returns the current active route
- * @returns {String}
- */
-function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    return getActiveRoute().substring(1) === routePath;
 }
 
 /**
