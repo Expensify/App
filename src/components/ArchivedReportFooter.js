@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -54,7 +53,7 @@ const defaultProps = {
 
 const ArchivedReportFooter = (props) => {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    const policyName = archiveReason === CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY ? props.report.oldPolicyName : lodashGet(props.policies, `${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}.name`, Localize.translateLocal('workspace.common.unavailable'));
+    let policyName = lodashGet(props.policies, `${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}.name`, props.translate('workspace.common.unavailable'));
     let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
     let oldDisplayName;
@@ -63,6 +62,10 @@ const ArchivedReportFooter = (props) => {
         const oldLogin = props.reportClosedAction.originalMessage.oldLogin;
         displayName = lodashGet(props.personalDetails, `${newLogin}.displayName`, newLogin);
         oldDisplayName = lodashGet(props.personalDetails, `${oldLogin}.displayName`, oldLogin);
+    }
+
+    if (archiveReason === CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY) {
+        policyName = props.report.oldPolicyName;
     }
 
     return (
