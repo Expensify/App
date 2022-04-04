@@ -163,7 +163,7 @@ function getChatReportName(fullReport, chatType) {
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
         let name = LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
         if (ReportUtils.isArchivedRoom({stateNum: fullReport.state, statusNum: fullReport.status})) {
-            name += " (archived)";
+            name += ' (archived)';
         }
         return name;
     }
