@@ -250,6 +250,7 @@ function createOption(personalDetailList, report, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -262,7 +263,7 @@ function createOption(personalDetailList, report, {
     const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment(lodashGet(report, 'lastMessageText', ''))
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
+    let lastMessageText = report && !isArchivedRoom && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
