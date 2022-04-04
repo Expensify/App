@@ -27,12 +27,6 @@ const defaultProps = {
     logDetail: null,
 };
 
-/**
- * Loading indication component intended to cover the whole page, while the page prepares for initial render
- *
- * @param {Object} props
- * @returns {JSX.Element}
- */
 class FullScreenLoadingIndicator extends React.Component {
     componentDidMount() {
         if (!this.props.logDetail) {
@@ -40,7 +34,7 @@ class FullScreenLoadingIndicator extends React.Component {
         }
 
         if (!this.props.logDetail.name) {
-            throw new Error('A name should be set to distinct logged messages. Please check the `logDetails` prop');
+            throw new Error('A name should be set to distinct logged messages. Please check the `logDetails` prop.');
         }
 
         Log.info('[LoadingIndicator] Became visible', false, this.props.logDetail);
