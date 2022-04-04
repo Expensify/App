@@ -1691,14 +1691,14 @@ const styles = {
         backgroundColor: themeColors.modalBackground,
     },
     PDFView: {
-        flex: 1,
+        display: 'grid',
         backgroundColor: themeColors.modalBackground,
         width: '100%',
         height: '100%',
-        flexDirection: 'row',
         justifyContent: 'center',
         overflow: 'hidden',
         overflowY: 'auto',
+        alignItems: 'center',
     },
 
     modalCenterContentContainer: {
