@@ -33,7 +33,7 @@ function setDidTapNotification() {
 
 /**
  * Returns true if the Navigation is ready to navigate
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isReady() {
     return navigationRef.isReady();
