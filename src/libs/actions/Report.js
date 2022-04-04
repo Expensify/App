@@ -797,7 +797,7 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        if (Navigation.isReady()) {
+        if (Navigation.canNavigate('navigate')) {
             // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();

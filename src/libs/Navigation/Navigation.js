@@ -32,14 +32,6 @@ function setDidTapNotification() {
 }
 
 /**
- * Returns true if the Navigation is ready to navigate
- * @returns {Boolean}
- */
-function isReady() {
-    return navigationRef.isReady();
-}
-
-/**
  * @param {String} methodName
  * @param {Object} params
  * @returns {Boolean}
@@ -225,11 +217,11 @@ DismissModal.defaultProps = {
 };
 
 export default {
+    canNavigate,
     navigate,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
-    isReady,
     goBack,
     DismissModal,
     closeDrawer,
