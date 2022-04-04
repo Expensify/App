@@ -67,7 +67,8 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Number} tooltipTextWidth - tooltip's inner text width
+ * @param {Number} tooltipTextWidth - Tooltip's inner text width
+ * @param {Number} maxWidth -  Max-width for tooltip's wrapper
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -82,6 +83,7 @@ export default function getTooltipStyles(
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
     tooltipTextWidth,
+    maxWidth,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
@@ -111,8 +113,8 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            maxWidth: tooltipTextWidth >= variables.sideBarWidth
-                ? variables.sideBarWidth
+            maxWidth: tooltipTextWidth >= maxWidth
+                ? maxWidth
 
                 // Sum left and right padding
                 : tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2),
@@ -151,9 +153,8 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
-            // overflowWrap: 'normal',
-            // overflow: 'hidden',
-            // textOverflow: 'ellipsis',
+            overflowWrap: 'normal',
+            overflow: 'hidden',
         },
         pointerWrapperStyle: {
             position: 'fixed',

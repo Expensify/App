@@ -26,9 +26,6 @@ class Tooltip extends PureComponent {
             wrapperWidth: 0,
             wrapperHeight: 0,
 
-            // The width and height of the tooltip itself
-            tooltipWidth: 0,
-            tooltipHeight: 0,
         };
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
@@ -43,7 +40,6 @@ class Tooltip extends PureComponent {
         this.animation = new Animated.Value(0);
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
-        this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
     }
@@ -84,18 +80,6 @@ class Tooltip extends PureComponent {
                 });
             }
         }));
-    }
-
-    /**
-     * Measure the size of the tooltip itself.
-     *
-     * @param {Object} nativeEvent
-     */
-    measureTooltip({nativeEvent}) {
-        this.setState({
-            tooltipWidth: nativeEvent.layout.width,
-            tooltipHeight: nativeEvent.layout.height,
-        });
     }
 
     /**
@@ -200,13 +184,12 @@ class Tooltip extends PureComponent {
                         yOffset={this.state.yOffset}
                         wrapperWidth={this.state.wrapperWidth}
                         wrapperHeight={this.state.wrapperHeight}
-                        tooltipWidth={this.state.tooltipWidth}
-                        tooltipHeight={this.state.tooltipHeight}
                         setTooltipRef={el => this.tooltip = el}
                         shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
-                        measureTooltip={this.measureTooltip}
                         text={this.props.text}
+                        maxWidth={this.props.maxWidth}
+                        numberOfLines={this.props.numberOfLines}
                     />
                 )}
                 <Hoverable

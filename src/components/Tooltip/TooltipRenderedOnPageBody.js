@@ -4,7 +4,6 @@ import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
-import variables from '../../styles/variables';
 
 const propTypes = {
     /** Window width */
@@ -26,12 +25,6 @@ const propTypes = {
     /** The Height of the tooltip wrapper */
     wrapperHeight: PropTypes.number.isRequired,
 
-    /** The width of the tooltip itself */
-    tooltipWidth: PropTypes.number.isRequired,
-
-    /** The Height of the tooltip itself */
-    tooltipHeight: PropTypes.number.isRequired,
-
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal: PropTypes.number.isRequired,
@@ -46,8 +39,11 @@ const propTypes = {
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
-    /** Callback to be used to calulate the width and height of tooltip */
-    measureTooltip: PropTypes.func.isRequired,
+    /** number of pixels to set max-width on tooltip  */
+    maxWidth: PropTypes.number.isRequired,
+
+    /** maximum number of lines to set on tooltip */
+    numberOfLines: PropTypes.number.isRequired,
 
 };
 
@@ -58,15 +54,33 @@ class TooltipRenderedOnPageBody extends React.Component {
         super(props);
         this.state = {
             // Set maxWidth as initial so we can get width of word wrapped text
-            tooltipTextWidth: variables.sideBarWidth,
+            tooltipTextWidth: this.props.maxWidth,
+
+            // The width and height of the tooltip itself
+            tooltipWidth: 0,
+            tooltipHeight: 0,
         };
 
         this.textRef = null;
+
+        this.measureTooltip = this.measureTooltip.bind(this);
     }
 
     componentDidMount() {
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
+        });
+    }
+
+    /**
+     * Measure the size of the tooltip itself.
+     *
+     * @param {Object} nativeEvent
+     */
+    measureTooltip({nativeEvent}) {
+        this.setState({
+            tooltipWidth: nativeEvent.layout.width,
+            tooltipHeight: nativeEvent.layout.height,
         });
     }
 
@@ -84,19 +98,20 @@ class TooltipRenderedOnPageBody extends React.Component {
             this.props.yOffset,
             this.props.wrapperWidth,
             this.props.wrapperHeight,
-            this.props.tooltipWidth,
-            this.props.tooltipHeight,
+            this.state.tooltipWidth,
+            this.state.tooltipHeight,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
             this.state.tooltipTextWidth,
+            this.props.maxWidth,
         );
         return ReactDOM.createPortal(
             <Animated.View
                 ref={this.props.setTooltipRef}
-                onLayout={this.props.measureTooltip}
+                onLayout={this.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
-                <Text numberOfLines={3} style={tooltipTextStyle}>
+                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
                     <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{this.props.text}</Text>
                 </Text>
                 <View style={pointerWrapperStyle}>
