@@ -176,6 +176,19 @@ function isArchivedRoom(report) {
 }
 
 /**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyName(report, policies) {
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
@@ -314,6 +327,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getPolicyName,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
