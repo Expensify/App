@@ -316,7 +316,7 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isArchivedRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
         isPolicyExpenseChat,
     };
