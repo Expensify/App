@@ -27,6 +27,12 @@ const propTypes = {
     /** Styles for the outermost View */
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles for avatar outermost view */
+    wrapperAvatarStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Styles for header outermost view */
+    wrapperHeaderStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 
@@ -39,6 +45,8 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
+    wrapperAvatarStyles: [],
+    wrapperHeaderStyles: [styles.chatItemMessageHeader],
     showHeader: true,
 };
 
@@ -63,17 +71,19 @@ const ReportActionItemSingle = (props) => {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(props.action.actorEmail)}>
-                <Tooltip text={props.action.actorEmail}>
-                    <Avatar
-                        imageStyles={[styles.actionAvatar]}
-                        source={avatarUrl}
-                    />
-                </Tooltip>
-            </Pressable>
+            <View style={props.wrapperAvatarStyles}>
+                <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(props.action.actorEmail)}>
+                    <Tooltip text={props.action.actorEmail}>
+                        <Avatar
+                            imageStyles={[styles.actionAvatar]}
+                            source={avatarUrl}
+                        />
+                    </Tooltip>
+                </Pressable>
+            </View>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
-                    <View style={[styles.chatItemMessageHeader]}>
+                    <View style={props.wrapperHeaderStyles}>
                         <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
