@@ -208,11 +208,7 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
-    return lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    return getPolicyName(report, policiesMap);
 }
 
 /**
@@ -224,12 +220,7 @@ function getChatRoomSubtitle(report, policiesMap) {
 
 function getRoomWelcomeMessage(report, policiesMap) {
     const welcomeMessage = {};
-
-    const workspaceName = lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    const workspaceName = getPolicyName(report, policiesMap);
 
     if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
