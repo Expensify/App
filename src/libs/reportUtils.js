@@ -93,6 +93,26 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAdminRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+}
+
+/**
+ * Whether the provided report is a Announce room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAnnounceRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
  * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
@@ -142,16 +162,17 @@ function findLastAccessedReport(reports, ignoreDefaultRooms) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isDefaultRoom(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -179,6 +200,37 @@ function getChatRoomSubtitle(report, policiesMap) {
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
         Localize.translateLocal('workspace.common.unavailable'),
     );
+}
+
+/**
+ * Get welcome message based on room type
+ * @param {Object} report
+ * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Object}
+ */
+
+function getRoomWelcomeMessage(report, policiesMap) {
+    const welcomeMessage = {};
+
+    const workspaceName = lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        Localize.translateLocal('workspace.common.unavailable'),
+    );
+
+    if (isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else {
+        // Message for user created rooms or other room types.
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+
+    return welcomeMessage;
 }
 
 /**
@@ -257,6 +309,8 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    isAdminRoom,
+    isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
@@ -267,4 +321,5 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    getRoomWelcomeMessage,
 };

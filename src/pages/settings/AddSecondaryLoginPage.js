@@ -20,7 +20,7 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
-import LoginUtil from '../../libs/LoginUtil';
+import * as LoginUtils from '../../libs/LoginUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +72,7 @@ class AddSecondaryLoginPage extends Component {
      */
     submitForm() {
         const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
             : this.state.login;
         User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
@@ -84,7 +84,7 @@ class AddSecondaryLoginPage extends Component {
      */
     validateForm() {
         const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
             : this.state.login;
 
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
