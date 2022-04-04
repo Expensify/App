@@ -274,7 +274,7 @@ function createOption(personalDetailList, report, {
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = isArchivedRoom ? report.oldPolicyName : lodashGet(report, ['reportName'], '');
+        text = (isArchivedRoom && report.isOwnPolicyExpenseChat) ? report.oldPolicyName : lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
