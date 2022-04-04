@@ -26,6 +26,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -69,7 +70,7 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
-        this.renderWrappedComponents = this.renderWrappedComponents.bind(this);
+        this.wrapWithPressable = this.wrapWithPressable.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -119,7 +120,7 @@ class ReportActionItem extends Component {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
     }
 
-    renderWrappedComponents(children) {
+    wrapWithPressable(children) {
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
@@ -186,11 +187,20 @@ class ReportActionItem extends Component {
                         >
                             {!this.props.displayAsGroup
                                 ? (
-                                    <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                        {this.renderWrappedComponents(children)}
+                                    <ReportActionItemSingle
+                                        action={this.props.action}
+                                        showHeader={!this.props.draftMessage}
+                                        wrapperStyles={[styles.chatItemSingleWrapper]}
+                                        wrapperAvatarStyles={[styles.chatItemSingleAvatarWrapper]}
+                                        wrapperHeaderStyles={[
+                                            styles.chatItemMessageHeader,
+                                            styles.chatItemHeaderAbsolute,
+                                        ]}
+                                    >
+                                        {this.wrapWithPressable(<View style={styles.chatItemSingleChildren}>{children}</View>)}
                                     </ReportActionItemSingle>
                                 )
-                                : this.renderWrappedComponents(<ReportActionItemGrouped>{children}</ReportActionItemGrouped>)}
+                                : this.wrapWithPressable(<ReportActionItemGrouped>{children}</ReportActionItemGrouped>)}
                         </View>
                         <MiniReportActionContextMenu
                             reportID={this.props.reportID}

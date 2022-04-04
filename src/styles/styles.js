@@ -636,6 +636,35 @@ const styles = {
         marginLeft: 48,
     },
 
+    chatItemSingleWrapper: {
+        display: 'flex',
+        flexDirection: 'row',
+        padding: 0,
+    },
+
+    chatItemSingleAvatarWrapper: {
+        position: 'absolute',
+        zIndex: 1,
+        top: 8,
+        left: 20,
+    },
+
+    chatItemHeaderAbsolute: {
+        paddingLeft: 20,
+        paddingRight: 20,
+        position: 'absolute',
+        zIndex: 1,
+        top: 8,
+        left: variables.avatarSizeNormal + 8,
+    },
+
+    chatItemSingleChildren: {
+        marginTop: 32,
+        marginBottom: 8,
+        marginLeft: variables.avatarSizeNormal + 28,
+        marginRight: 20,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
