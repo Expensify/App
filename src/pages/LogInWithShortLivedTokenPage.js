@@ -10,6 +10,9 @@ import Navigation from '../libs/Navigation/Navigation';
 import Log from '../libs/Log';
 
 const propTypes = {
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The parameters needed to authenticate with a short lived token are in the URL */
     route: PropTypes.shape({
         /** The name of the route */
@@ -42,6 +45,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: null,
     route: {
         params: {},
     },
@@ -74,6 +78,21 @@ class LogInWithShortLivedTokenPage extends Component {
             Log.info('[LoginWithShortLivedTokenPage] exitTo is workspace/new - handling new workspace creation in AuthScreens');
             return;
         }
+        this.navigateToExitRoute();
+    }
+
+    componentDidUpdate() {
+        this.navigateToExitRoute();
+    }
+
+    navigateToExitRoute() {
+        if (!this.props.betas) {
+            // Wait to navigate until the betas are loaded. Some pages like ReimbursementAccountPage require betas, so keep loading until they are available.
+            return;
+        }
+
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
         // In order to navigate to a modal, we first have to dismiss the current modal. Without dismissing the current modal, if the user cancels out of the workspace modal,
         // then they will be routed back to /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
@@ -111,6 +130,9 @@ LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
     session: {
         key: ONYXKEYS.SESSION,
     },
