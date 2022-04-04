@@ -116,7 +116,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.clientID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
     }
@@ -128,7 +128,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
 
     debouncedSaveDraft(newDraft) {
-        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.clientID, newDraft);
     }
 
     /**

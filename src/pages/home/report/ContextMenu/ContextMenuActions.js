@@ -114,7 +114,7 @@ export default [
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => Report.saveReportActionDraft(
                 reportID,
-                reportAction.reportActionID,
+                reportAction.clientID,
                 _.isEmpty(draftMessage) ? getActionText(reportAction) : '',
             );
 

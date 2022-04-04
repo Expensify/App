@@ -59,6 +59,13 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
+let queuedReportActionUpdates = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_QUEUED_UPDATES,
+    callback: val => queuedReportActionUpdates = val || {},
+});
+
 /**
  * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
  *
@@ -634,6 +641,13 @@ function updateReportWithNewAction(
     };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+
+    const queuedUpdateKey = `${reportID}_${reportAction.clientID}`;
+    const queuedUpdate = queuedReportActionUpdates[queuedUpdateKey];
+    if (queuedUpdate) {
+        // There is a queued update update, try to apply it now
+        editReportComment(reportID, reportActionsToMerge[reportAction.sequenceNumber], queuedUpdate);
+    }
 
     // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
@@ -1385,37 +1399,49 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Optimistically update the report action with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const newReportAction = {...originalReportAction};
+    const newReportAction = {...originalReportAction, message: [...originalReportAction.message]};
+    newReportAction.message[0] = {
+        ...newReportAction.message[0],
+        isEdited: true,
+        html: htmlForNewComment,
+        text: Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ')),
+    };
     const actionToMerge = {};
-    newReportAction.message[0].isEdited = true;
-    newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' '));
     actionToMerge[sequenceNumber] = newReportAction;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
     // Persist the updated report comment
-    API.Report_EditComment({
-        reportID,
-        reportActionID: originalReportAction.reportActionID,
-        reportComment: htmlForNewComment,
-        sequenceNumber,
-    })
-        .catch(() => {
-            // If it fails, reset Onyx
-            actionToMerge[sequenceNumber] = originalReportAction;
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+    if (originalReportAction.reportActionID) {
+        // We have the reportActionID so we can proceed to update normally
+        API.Report_EditComment({
+            reportID,
+            reportActionID: originalReportAction.reportActionID,
+            reportComment: htmlForNewComment,
+            sequenceNumber,
+        })
+            .catch(() => {
+                // If it fails, reset Onyx
+                actionToMerge[sequenceNumber] = originalReportAction;
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+            });
+    } else {
+        // The reportActionID is not available because this is an optimistic fake report action, we should wait for the real one
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_QUEUED_UPDATES}`, {
+            ...queuedReportActionUpdates,
+            [`${reportID}_${originalReportAction.clientID}`]: textForNewComment,
         });
+    }
 }
 
 /**
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {Number} reportID
- * @param {Number} reportActionID
+ * @param {Number} clientID
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, clientID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${clientID}`, draftMessage);
 }
 
 /**
