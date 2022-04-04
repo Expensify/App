@@ -9,7 +9,7 @@ import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as PersistedRequestsQueue from './PersistedRequestsQueue';
 import processRequest from './processRequest';
-import {version} from '../../package.json';
+import {version} from '../../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
