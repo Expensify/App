@@ -189,11 +189,11 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
-    }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
         return Localize.translateLocal('workspace.common.workspace');
+    }
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
     }
     return lodashGet(
         policiesMap,
