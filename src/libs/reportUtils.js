@@ -172,6 +172,7 @@ function isArchivedRoom(report) {
     if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
+    console.log(report);
 
     return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }

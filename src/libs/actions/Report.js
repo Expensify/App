@@ -161,11 +161,13 @@ function getChatReportName(fullReport, chatType) {
     }
 
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        let name = LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
-        if (ReportUtils.isArchivedRoom({stateNum: fullReport.state, statusNum: fullReport.status})) {
-            name += ' (archived)';
-        }
-        return name;
+        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (archived)`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
