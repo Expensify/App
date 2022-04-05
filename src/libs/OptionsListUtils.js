@@ -216,11 +216,12 @@ function hasReportDraftComment(report) {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
+ * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getReportIcons(report) {
+function getReportIcons(report, defaultIcon = null) {
     if (!report) {
-        return [getDefaultAvatar()];
+        return [defaultIcon || getDefaultAvatar()];
     }
     if (ReportUtils.isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
@@ -294,7 +295,6 @@ function createOption(personalDetailList, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    let icons = getReportIcons(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -310,15 +310,11 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
-        if (!report) {
-            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
-            icons = [personalDetail.avatar];
-        }
     }
     return {
         text,
         alternateText,
-        icons,
+        icons: getReportIcons(report, personalDetail.avatar),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
