@@ -20,6 +20,8 @@ import * as ReportUtils from '../libs/reportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
+import AttachmentModal from '../components/AttachmentModal';
+import TouchableWithoutFocus from '../components/TouchableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
@@ -98,11 +100,25 @@ const DetailsPage = (props) => {
                 {details ? (
                     <ScrollView>
                         <View style={styles.pageWrapper}>
-                            <Avatar
-                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                imageStyles={[styles.avatarLarge]}
-                                source={details.avatar}
-                            />
+                            <AttachmentModal
+                                sourceURL={details.avatarHighResolution}
+                                isAuthTokenRequired
+                                displayName={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
+                                isProfilePicture
+                            >
+                                {({show}) => (
+                                    <TouchableWithoutFocus
+                                        style={styles.noOutline}
+                                        onPress={show}
+                                    >
+                                        <Avatar
+                                            containerStyles={[styles.avatarLarge, styles.mb3]}
+                                            imageStyles={[styles.avatarLarge]}
+                                            source={details.avatar}
+                                        />
+                                    </TouchableWithoutFocus>
+                                )}
+                            </AttachmentModal>
                             {details.displayName && (
                                 <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}

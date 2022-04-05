@@ -28,6 +28,9 @@ const propTypes = {
     /** Determines title of the modal header depending on if we are uploading an attachment or not */
     isUploadingAttachment: PropTypes.bool,
 
+    /** Determines title of the modal header depending on if we are viewing a profile picture or not */
+    isProfilePicture: PropTypes.bool,
+
     /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
@@ -53,6 +56,7 @@ const propTypes = {
 
 const defaultProps = {
     isUploadingAttachment: false,
+    isProfilePicture: false,
     sourceURL: null,
     onConfirm: null,
     originalFileName: null,
@@ -145,6 +149,15 @@ class AttachmentModal extends PureComponent {
             : [styles.imageModalImageCenterContainer, styles.p5];
 
         const {fileName, fileExtension} = this.splitExtensionFromFileName();
+
+        let headerTitle = '';
+        if (this.props.isProfilePicture) {
+            headerTitle = this.props.displayName;
+        } else {
+            headerTitle = this.props.isUploadingAttachment
+                ? this.props.translate('reportActionCompose.sendAttachment')
+                : this.props.translate('common.attachment');
+        }
         return (
             <>
                 <Modal
@@ -157,11 +170,9 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={this.props.isUploadingAttachment
-                            ? this.props.translate('reportActionCompose.sendAttachment')
-                            : this.props.translate('common.attachment')}
+                        title={headerTitle}
                         shouldShowBorderBottom
-                        shouldShowDownloadButton={!this.props.isUploadingAttachment}
+                        shouldShowDownloadButton={!this.props.isUploadingAttachment && !this.props.isProfilePicture}
                         onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(
