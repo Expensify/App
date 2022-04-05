@@ -1691,6 +1691,9 @@ const styles = {
         backgroundColor: themeColors.modalBackground,
     },
     PDFView: {
+        // `display: grid` is not supported in native platforms!
+        // It's being used on Web/Desktop only to vertically center short PDFs,
+        // while preventing the overflow of the top of long PDF files.
         display: 'grid',
         backgroundColor: themeColors.modalBackground,
         width: '100%',
