@@ -40,14 +40,17 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     /** number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number.isRequired,
+    maxWidth: PropTypes.number,
 
     /** maximum number of lines to set on tooltip */
-    numberOfLines: PropTypes.number.isRequired,
+    numberOfLines: PropTypes.number,
 
 };
 
-const defaultProps = {};
+const defaultProps = {
+    maxWidth: undefined,
+    numberOfLines: undefined,
+};
 
 class TooltipRenderedOnPageBody extends React.Component {
     constructor(props) {
