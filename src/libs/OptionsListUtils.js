@@ -587,7 +587,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     let userToInvite = null;
 
-    // We should normalize the logins in case the user is searching for a phone number
+    // We should normalize logins to compare with the list of logins to exclude in case the user is searching for a phone number
     let normalizedLogin = null;
     if (Str.isValidPhone(searchValue)) {
         const smsLogin = `${searchValue}${CONST.SMS.DOMAIN}`;
@@ -797,7 +797,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue)) {
+        if (!Str.isValidPhone(searchValue)) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
