@@ -252,6 +252,7 @@ function getAvatarSources(report) {
         ];
     }
 
+    // Return avatar sources for Group chats
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName']) || getDefaultAvatar(dmParticipant),
         avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
