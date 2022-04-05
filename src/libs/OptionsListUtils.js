@@ -220,19 +220,19 @@ function hasReportDraftComment(report) {
  */
 function getAvatarSources(report) {
     if (!report) {
-        return getDefaultAvatar();
+        return [getDefaultAvatar()];
     }
     if (ReportUtils.isArchivedRoom(report)) {
-        return Expensicons.DeletedRoomAvatar;
+        return [Expensicons.DeletedRoomAvatar];
     }
     if (ReportUtils.isAdminRoom(report)) {
-        return Expensicons.AdminRoomAvatar;
+        return [Expensicons.AdminRoomAvatar];
     }
     if (ReportUtils.isAnnounceRoom(report)) {
-        return Expensicons.AnnounceRoomAvatar;
+        return [Expensicons.AnnounceRoomAvatar];
     }
     if (ReportUtils.isChatRoom(report)) {
-        return Expensicons.ActiveRoomAvatar;
+        return [Expensicons.ActiveRoomAvatar];
     }
     if (ReportUtils.isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
