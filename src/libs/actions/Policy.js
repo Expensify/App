@@ -68,7 +68,6 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         rate: {
             id: customUnitRate.customUnitRateID,
             name: customUnitRate.name,
-            currency: customUnitRate.currency,
             value: Number(customUnitRate.rate),
         },
     };
@@ -128,10 +127,11 @@ function create(name = '') {
                 Growl.error(errorMessage, 5000);
                 return;
             }
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
             res = response;
 
-            // Fetch the default reports on the policy
-            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce]);
+            // Fetch the default reports and the policyExpenseChat reports on the policy
+            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
@@ -183,8 +183,7 @@ function deletePolicy(policyID) {
         })
         .then(() => Report.fetchAllReports(false, true))
         .then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.goBack();
             return Promise.resolve();
         });
 }
@@ -333,10 +332,13 @@ function invite(logins, welcomeNote, policyID) {
         policyID,
     })
         .then((data) => {
-            // Save the personalDetails for the invited user in Onyx
+            // Save the personalDetails for the invited user in Onyx and fetch the latest policyExpenseChats
             if (data.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
                 Navigation.goBack();
+                if (!_.isEmpty(data.policyExpenseChatIDs)) {
+                    Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
+                }
                 return;
             }
 

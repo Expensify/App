@@ -36,6 +36,7 @@ const ButtonWithDropdown = props => (
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
             style={[styles.flex1]}
+            pressOnEnter
         />
         <Button
             success

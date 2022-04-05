@@ -36,8 +36,9 @@ import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
+import EmojiPicker from '../../../components/EmojiPicker';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -72,8 +73,8 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+    /** Are we waiting for more report data? */
+    isLoadingReportData: PropTypes.bool,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -92,8 +93,8 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingReportActions: false,
+    isLoadingReportData: false,
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -126,6 +127,7 @@ class ReportActionsView extends React.Component {
         this.toggleMarker = this.toggleMarker.bind(this);
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
     componentDidMount() {
@@ -144,21 +146,16 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-
-        // Only mark as read if the report is open
-        if (!this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
+        if (!this.props.isLoadingReportData) {
+            this.updateNewMarkerAndMarkReadOnce();
         }
 
         Report.fetchActions(this.props.reportID);
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        const copyShortcutModifiers = KeyboardShortcut.getShortcutModifiers(copyShortcutConfig.modifiers);
-
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
             this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutModifiers, false);
+        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -174,6 +171,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
+            return true;
+        }
+
+        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
             return true;
         }
 
@@ -201,6 +202,12 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Update the last read action for the report currently in view when report data finishes loading.
+        // This report should now be up-to-date and since it is in view we mark it as read.
+        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
+            this.updateNewMarkerAndMarkReadOnce();
+        }
+
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
@@ -320,7 +327,7 @@ class ReportActionsView extends React.Component {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
@@ -333,7 +340,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
                 || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .map((item, index) => ({action: item, index}))
@@ -441,6 +448,18 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Update NEW marker and mark report as read
+     */
+    updateNewMarkerAndMarkRead() {
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
+        // Only mark as read if the report is open
+        if (!this.props.isDrawerOpen) {
+            Report.updateLastReadActionID(this.props.reportID);
+        }
+    }
+
+    /**
      * Show the new MarkerBadge
      */
     showMarker() {
@@ -545,7 +564,7 @@ class ReportActionsView extends React.Component {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         return (
             <>
@@ -578,6 +597,7 @@ class ReportActionsView extends React.Component {
                     extraData={extraData}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
             </>
         );
     }
@@ -593,12 +613,12 @@ export default compose(
     withLocalize,
     withPersonalDetails(),
     withOnyx({
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionsView);

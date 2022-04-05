@@ -8,10 +8,11 @@ import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as Localize from '../libs/Localize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -26,24 +27,31 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    /** Whether it is a default Chat Room */
-    shouldIncludeParticipants: PropTypes.bool,
-
     /** The report currently being looked at */
     report: PropTypes.oneOfType([PropTypes.object]),
 
+    /* Onyx Props */
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
-    shouldIncludeParticipants: true,
 };
 
 const ReportWelcomeText = (props) => {
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isChatRoom = ReportUtils.isChatRoom(props.report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -66,46 +74,63 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
-    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
-
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
-        <Text style={[styles.mt3, styles.textAlignCenter]}>
-            {!props.shouldIncludeParticipants
-                ? (
-                    <>
-                        <Text>
-                            {isResctrictedRoom
-                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
-                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
-                        </Text>
-                        <Text style={[styles.textStrong]}>
-                            {lodashGet(chatUsers, '[0].displayName', '')}
-                        </Text>
-                        <Text>
-                            {isResctrictedRoom
-                                ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
-                                : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
-                        </Text>
-                    </>
-                ) : (
-                    <>
-                        <Text>
-                            {props.translate('reportActionsView.beginningOfChatHistory')}
-                        </Text>
-                        {_.map(chatUsers, ({displayName, pronouns}, index) => (
-                            <Text key={displayName}>
-                                <Text style={[styles.textStrong]}>
-                                    {displayName}
-                                </Text>
-                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                                {(index === chatUsers.length - 1) && <Text>.</Text>}
-                                {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                                {(index < chatUsers.length - 2) && <Text>, </Text>}
+        <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
+            {isPolicyExpenseChat && (
+                <>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
+                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
+                    </Text>
+                    <Text style={[styles.textStrong]}>
+                        {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
+                        {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                    </Text>
+                    <Text>
+                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
+                    </Text>
+                    <Text style={[styles.textStrong]}>
+                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
+                    </Text>
+                    <Text>
+                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
+                    </Text>
+                </>
+            )}
+            {isChatRoom && (
+                <>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
+                        {roomWelcomeMessage.phrase1}
+                    </Text>
+                    <Text style={[styles.textStrong]}>
+                        {props.report.reportName}
+                    </Text>
+                    <Text>
+                        {roomWelcomeMessage.phrase2}
+                    </Text>
+                </>
+            )}
+            {isDefault && (
+                <>
+                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                    <Text style={styles.textAlignCenter}>
+                        {props.translate('reportActionsView.beginningOfChatHistory')}
+                    </Text>
+                    {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
+                        <Text key={displayName}>
+                            <Text style={[styles.textStrong]}>
+                                {displayName}
                             </Text>
-                        ))}
-                    </>
-                )}
+                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                            {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
+                            {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                            {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
+                        </Text>
+                    ))}
+                </>
+            )}
         </Text>
     );
 };
@@ -119,6 +144,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportWelcomeText);

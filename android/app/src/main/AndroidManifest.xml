@@ -17,6 +17,7 @@
     </queries>
 
     <application
+      android:supportsRtl="false" 
       android:name=".MainApplication"
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
@@ -49,7 +50,6 @@
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="expensify-cash"/>
             <data android:scheme="new-expensify"/>
         </intent-filter>
 

@@ -14,6 +14,7 @@ export default {
     border: colors.gray2,
     borderFocus: colors.blue,
     icon: colors.gray3,
+    iconHovered: colors.dark,
     iconSuccessFill: colors.green,
     iconReversed: colors.white,
     textSupporting: colors.gray4,
@@ -46,4 +47,5 @@ export default {
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,
     heroCard: colors.blue,
+    uploadPreviewActivityIndicator: colors.gray1,
 };

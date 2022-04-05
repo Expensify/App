@@ -109,6 +109,10 @@ export default {
         marginLeft: 20,
     },
 
+    ml8: {
+        marginLeft: 32,
+    },
+
     mln5: {
         marginLeft: -20,
     },
@@ -175,6 +179,8 @@ export default {
 
     p0: {
         padding: 0,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
     },
 
     p1: {
@@ -282,6 +288,10 @@ export default {
 
     pr15: {
         paddingRight: 60,
+    },
+
+    pl1: {
+        paddingLeft: 4,
     },
 
     pl5: {

@@ -40,7 +40,7 @@ function openOldDotLink(url) {
     }
 
     function buildOldDotURL({shortLivedAuthToken}) {
-        return `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
     }
 
     asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);

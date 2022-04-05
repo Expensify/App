@@ -16,10 +16,10 @@ const {promiseWhile} = __nccwpck_require__(4502);
 
 /**
  * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
- * It's two minutes :)
+ * It's ten minutes :)
  * @type {number}
  */
-const NEW_WORKFLOW_TIMEOUT = 120000;
+const NEW_WORKFLOW_TIMEOUT = 600000;
 
 /**
  * The maximum amount of time (in ms) we'll wait for a workflow to complete before giving up.
@@ -191,8 +191,25 @@ function getJSONInput(name, options, defaultValue = undefined) {
     return defaultValue;
 }
 
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+
 module.exports = {
     getJSONInput,
+    getStringInput,
 };
 
 
@@ -265,7 +282,6 @@ class GithubUtils {
         }));
         return this.octokitInternal;
     }
-
 
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.

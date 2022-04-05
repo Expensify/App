@@ -3,7 +3,9 @@
 const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('underscore');
-const custom = require('../config/webpack/webpack.common');
+const custom = require('../config/webpack/webpack.common')({
+    envFile: '../.env.production',
+});
 
 const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).parsed;
 
@@ -17,7 +19,7 @@ module.exports = ({config}) => {
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
     const definePluginIndex = _.findIndex(config.plugins, plugin => plugin.constructor.name === 'DefinePlugin');
     config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
-    config.resolve.extensions.push('.web.js', '.website.js');
+    config.resolve.extensions = custom.resolve.extensions;
 
     const babelRulesIndex = _.findIndex(custom.module.rules, rule => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules[babelRulesIndex];

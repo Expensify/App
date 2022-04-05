@@ -27,7 +27,7 @@ import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Expensicons from '../components/Icon/Expensicons';
-import LoginUtil from '../libs/LoginUtil';
+import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
@@ -38,15 +38,12 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     myPersonalDetails: personalDetailsPropType.isRequired,
 
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.arrayOf(PropTypes.shape({
 
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-        })),
-    }).isRequired,
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+    })),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -90,17 +87,18 @@ const defaultProps = {
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
+    loginList: [],
 };
 
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.myPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,
             lastName,
-            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            phoneNumber: this.getPhoneNumber(props.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
             hasLastNameError: false,
@@ -112,7 +110,6 @@ class RequestCallPage extends Component {
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
         this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
-        this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
         this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
@@ -151,7 +148,7 @@ class RequestCallPage extends Component {
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -173,7 +170,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
@@ -192,38 +189,6 @@ class RequestCallPage extends Component {
             return this.props.translate('requestCallPage.error.phoneExtension');
         }
         return '';
-    }
-
-    /**
-     * Gets the first and last name from the user's personal details.
-     * If the login is the same as the displayName, then they don't exist,
-     * so we return empty strings instead.
-     * @param {String} login
-     * @param {String} displayName
-     *
-     * @returns {Object}
-     */
-    getFirstAndLastName({login, displayName}) {
-        let firstName;
-        let lastName;
-
-        if (Str.removeSMSDomain(login) === displayName) {
-            firstName = '';
-            lastName = '';
-        } else {
-            const firstSpaceIndex = displayName.indexOf(' ');
-            const lastSpaceIndex = displayName.lastIndexOf(' ');
-
-            if (firstSpaceIndex === -1) {
-                firstName = displayName;
-                lastName = '';
-            } else {
-                firstName = displayName.substring(0, firstSpaceIndex);
-                lastName = displayName.substring(lastSpaceIndex);
-            }
-        }
-
-        return {firstName, lastName};
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -285,7 +250,7 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isBlockedFromConcierge = !_.isEmpty(this.props.blockedFromConcierge) && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
 
         return (
             <ScreenWrapper>
@@ -313,32 +278,27 @@ class RequestCallPage extends Component {
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
                             />
-                            <View style={[styles.mt4, styles.flexRow]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        label={this.props.translate('common.phoneNumber')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneNumber}
-                                        placeholder="2109400803"
-                                        errorText={this.state.phoneNumberError}
-                                        onBlur={this.validatePhoneInput}
-                                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        label={this.props.translate('requestCallPage.extension')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        value={this.state.phoneExtension}
-                                        placeholder="100"
-                                        errorText={this.state.phoneExtensionError}
-                                        onBlur={this.validatePhoneExtensionInput}
-                                        onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                    />
-                                </View>
-                            </View>
+                            <TextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                name="phone"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="2109400803"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={this.validatePhoneInput}
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                            <TextInput
+                                label={this.props.translate('requestCallPage.extension')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneExtension}
+                                placeholder="100"
+                                errorText={this.state.phoneExtensionError}
+                                onBlur={this.validatePhoneExtensionInput}
+                                onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                containerStyles={[styles.mt4]}
+                            />
                             <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
                     </ScrollView>
@@ -373,8 +333,8 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
-        user: {
-            key: ONYXKEYS.USER,
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

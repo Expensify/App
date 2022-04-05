@@ -2,9 +2,9 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 let sessionEmail;
 Onyx.connect({
@@ -23,13 +23,14 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Check whether a report action is Attachment is not.
+ * Check whether a report action is Attachment or not.
+ * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
- * @param {Object} reportMessageText report action's message as text
+ * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText) {
-    return reportMessageText === '[Attachment]';
+function isReportMessageAttachment({text, html}) {
+    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -60,7 +61,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
 }
 
 /**
@@ -93,6 +94,26 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAdminRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+}
+
+/**
+ * Whether the provided report is a Announce room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAnnounceRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
  * Whether the provided report is a user created policy room
  * @param {Object} report
  * @param {String} report.chatType
@@ -100,6 +121,16 @@ function isDefaultRoom(report) {
  */
 function isUserCreatedPolicyRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+/**
+ * Whether the provided report is a Policy Expense chat.
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChat(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
 /**
@@ -132,16 +163,17 @@ function findLastAccessedReport(reports, ignoreDefaultRooms) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isDefaultRoom(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -151,7 +183,7 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report, policiesMap) {
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report)) {
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
@@ -161,11 +193,45 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
+    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+        return Localize.translateLocal('workspace.common.workspace');
+    }
     return lodashGet(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        'Unknown Policy',
+        Localize.translateLocal('workspace.common.unavailable'),
     );
+}
+
+/**
+ * Get welcome message based on room type
+ * @param {Object} report
+ * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Object}
+ */
+
+function getRoomWelcomeMessage(report, policiesMap) {
+    const welcomeMessage = {};
+
+    const workspaceName = lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        Localize.translateLocal('workspace.common.unavailable'),
+    );
+
+    if (isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else {
+        // Message for user created rooms or other room types.
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+
+    return welcomeMessage;
 }
 
 /**
@@ -180,6 +246,16 @@ function isConciergeChatReport(report) {
 }
 
 /**
+ * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function chatIncludesConcierge(report) {
+    return report.participants
+            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+}
+
+/**
  * Returns true if there is any automated expensify account in emails
  * @param {Array} emails
  * @returns {Boolean}
@@ -191,23 +267,19 @@ function hasExpensifyEmails(emails) {
 /**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
- * @param {Object} myPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
-    const currentUserTimezone = lodashGet(myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasExpensifyEmails(reportParticipants)
         && !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
-        && currentUserTimezone.selected
-        && reportRecipientTimezone.selected
-        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        && reportRecipientTimezone.selected;
 }
 
 /**
@@ -238,6 +310,8 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    isAdminRoom,
+    isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
@@ -246,4 +320,7 @@ export {
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
+    chatIncludesConcierge,
+    isPolicyExpenseChat,
+    getRoomWelcomeMessage,
 };

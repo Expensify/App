@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -38,9 +39,6 @@ const propTypes = {
         /** The authToken for the current session */
         email: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -48,62 +46,60 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
 
-        // User is trying to transition with a different account than the one they are currently signed in as so we will sign out and then sign in with the new authToken
-        if (email !== this.props.session.email) {
-            Session.signOut();
+        const isUserSignedIn = this.props.session && this.props.session.authToken;
+        if (!isUserSignedIn) {
+            Log.info('[LoginWithShortLivedTokenPage] User not signed in - signing in with short lived token');
             Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
             return;
         }
 
-        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
-        if (this.props.session.authToken && email === this.props.session.email) {
+        if (this.signOutIfNeeded(email)) {
             return;
         }
 
-        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
-    }
-
-    componentDidUpdate() {
-        if (!this.props.betas || !this.props.session.authToken) {
-            return;
-        }
-
-        const email = lodashGet(this.props.route.params, 'email', '');
+        Log.info('[LoginWithShortLivedTokenPage] User is signed in');
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-
-        // User is signing in to a different account sign them out and sign in again
-        if (email !== this.props.session.email) {
-            const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
-            const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-            Session.signOut();
-            Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
-            return;
-        }
-
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
+            Log.info('[LoginWithShortLivedTokenPage] exitTo is workspace/new - handling new workspace creation in AuthScreens');
             return;
         }
 
-        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-        // of the workspace modal, then they will be routed back to
-        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-        // if they cancel out of the new workspace modal.
+        // In order to navigate to a modal, we first have to dismiss the current modal. Without dismissing the current modal, if the user cancels out of the workspace modal,
+        // then they will be routed back to /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/` if they cancel out of the new workspace modal.
+        Log.info('[LoginWithShortLivedTokenPage] Dismissing LoginWithShortLivedTokenPage and navigating to exitTo');
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
+    }
+
+    /**
+     * If the user is trying to transition with a different account than the one
+     * they are currently signed in as we will sign them out, clear Onyx,
+     * and cancel all network requests. This component will mount again from
+     * PublicScreens and since they are no longer signed in, a request will be
+     * made to sign them in with their new account.
+     * @param {String} email The user's email passed as a route param.
+     * @returns {Boolean}
+     */
+    signOutIfNeeded(email) {
+        if (this.props.session && this.props.session.email === email) {
+            return false;
+        }
+
+        Log.info('[LoginWithShortLivedTokenPage] Different user signed in - signing out');
+        Session.signOutAndRedirectToSignIn();
+        return true;
     }
 
     render() {
@@ -117,8 +113,5 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(LogInWithShortLivedTokenPage);

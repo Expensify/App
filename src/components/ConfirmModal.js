@@ -1,16 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import Header from './Header';
 import Modal from './Modal';
-import styles from '../styles/styles';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import Button from './Button';
-import Text from './Text';
+import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */
@@ -43,7 +36,11 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
-    ...withLocalizePropTypes,
+    /** Callback method fired when the modal is hidden */
+    onModalHide: PropTypes.func,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -56,6 +53,8 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
+    shouldSetModalVisibility: true,
+    onModalHide: () => {},
 };
 
 const ConfirmModal = props => (
@@ -63,46 +62,27 @@ const ConfirmModal = props => (
         onSubmit={props.onConfirm}
         onClose={props.onCancel}
         isVisible={props.isVisible}
+        shouldSetModalVisibility={props.shouldSetModalVisibility}
+        onModalHide={props.onModalHide}
         type={props.isSmallScreenWidth
             ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
             : CONST.MODAL.MODAL_TYPE.CONFIRM}
     >
-        <View style={styles.m5}>
-            <View style={[styles.flexRow, styles.mb4]}>
-                <Header title={props.title} />
-            </View>
-
-            {_.isString(props.prompt)
-                ? (
-                    <Text>
-                        {props.prompt}
-                    </Text>
-                ) : (props.prompt)}
-
-            <Button
-                success={props.success}
-                danger={props.danger}
-                style={[styles.mt4]}
-                onPress={props.onConfirm}
-                pressOnEnter
-                text={props.confirmText || props.translate('common.yes')}
-            />
-            {props.shouldShowCancelButton
-            && (
-                <Button
-                    style={[styles.mt3]}
-                    onPress={props.onCancel}
-                    text={props.cancelText || props.translate('common.no')}
-                />
-            )}
-        </View>
+        <ConfirmContent
+            title={props.title}
+            onConfirm={props.onConfirm}
+            onCancel={props.onCancel}
+            confirmText={props.confirmText}
+            cancelText={props.cancelText}
+            prompt={props.prompt}
+            success={props.success}
+            danger={props.danger}
+            shouldShowCancelButton={props.shouldShowCancelButton}
+        />
     </Modal>
 );
 
 ConfirmModal.propTypes = propTypes;
 ConfirmModal.defaultProps = defaultProps;
 ConfirmModal.displayName = 'ConfirmModal';
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(ConfirmModal);
+export default withWindowDimensions(ConfirmModal);

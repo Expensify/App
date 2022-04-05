@@ -5,7 +5,6 @@ import CONST from '../../CONST';
 export default {
     prefixes: [
         'new-expensify://',
-        'expensify-cash://', // DEPRECATED
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
@@ -216,6 +215,11 @@ export default {
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
+                },
+            },
+            Wallet_Statement: {
+                screens: {
+                    WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
         },

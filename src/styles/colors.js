@@ -8,6 +8,7 @@ export default {
     black: '#000000',
     blue: '#0185ff',
     blueHover: '#0063bf',
+    floralwhite: '#fffaf0',
     green: '#03d47c',
     greenHover: '#03c775',
     orange: '#ff7101',

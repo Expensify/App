@@ -5,7 +5,7 @@ const contextMenuRef = React.createRef();
 /**
  * Show the ReportActionContextMenu modal popover.
  *
- * @param {string} type - the context menu type to display [LINK, REPORT_ACTION]
+ * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION]
  * @param {Object} [event] - A press event.
  * @param {string} [selection] - A copy text.
  * @param {Element} contextMenuAnchor - popoverAnchor
@@ -82,12 +82,15 @@ function hideDeleteModal() {
  * Opens the Confirm delete action modal
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {Boolean} [shouldSetModalVisibility]
+ * @param {Function} [onConfirm]
+ * @param {Function} [onCancel]
  */
-function showDeleteModal(reportID, reportAction) {
+function showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction);
+    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
 }
 
 /**

@@ -20,6 +20,7 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -35,39 +36,15 @@ const propTypes = {
                 id: PropTypes.string,
                 name: PropTypes.string,
                 value: PropTypes.number,
-                currency: PropTypes.string,
             }),
         }),
+        outputCurrency: PropTypes.string,
     }).isRequired,
 
     ...withLocalizePropTypes,
 };
 
-
 class WorkspaceReimburseNoVBAView extends React.Component {
-    unitItems = [
-        {
-            label: this.props.translate('workspace.reimburse.kilometers'),
-            value: 'km',
-        },
-        {
-            label: this.props.translate('workspace.reimburse.miles'),
-            value: 'mi',
-        },
-    ];
-
-    /**
-     * Set the rate throttled by 3 seconds so the user does not have to type over the corrected value
-     */
-    updateRateValueThrottled = _.throttle((value) => {
-        this.setState({rateValue: this.getRateDisplayValue(value)});
-        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
-            customUnitRateID: this.state.rateID,
-            name: this.state.rateName,
-            rate: value,
-        }, null);
-    }, 3000, {leading: false, trailing: true});
-
     constructor(props) {
         super(props);
         this.state = {
@@ -76,30 +53,43 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
             rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
             rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', '')),
-            rateCurrency: lodashGet(props, 'policy.customUnit.rate.currency', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
+            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
+
+        this.unitItems = [
+            {
+                label: this.props.translate('workspace.reimburse.kilometers'),
+                value: 'km',
+            },
+            {
+                label: this.props.translate('workspace.reimburse.miles'),
+                value: 'mi',
+            },
+        ];
+
+        this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
+        this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
     }
 
     getRateDisplayValue(value) {
         const numValue = parseFloat(value);
-        return !Number.isNaN(numValue)
-            ? numValue.toFixed(2).toString()
-            : '';
+        if (Number.isNaN(numValue)) {
+            return '';
+        }
+
+        return numValue.toFixed(3);
     }
 
     setRate(value) {
-        const numValue = parseFloat(value);
-        if (Number.isNaN(numValue)) {
-            this.setState({rateValue: ''});
-            return;
-        }
+        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
-        // Set the immediate value so the user does not lose the input
-        this.setState({rateValue: numValue.toString()});
-
-        // Set the corrected value with a delay and sync to the server
-        this.updateRateValueThrottled(numValue);
+        this.setState(prevState => ({
+            rateValue: !isInvalidRateValue ? value : prevState.rateValue,
+        }), () => {
+            // Set the corrected value with a delay and sync to the server
+            this.updateRateValueDebounced(this.state.rateValue);
+        });
     }
 
     setUnit(value) {
@@ -109,6 +99,32 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
+        }, null);
+    }
+
+    debounceUpdateOnCursorMove(event) {
+        if (!_.contains(['ArrowLeft', 'ArrowRight'], event.key)) {
+            return;
+        }
+
+        this.updateRateValueDebounced(this.state.rateValue);
+    }
+
+    updateRateValue(value) {
+        const numValue = parseFloat(value);
+
+        if (_.isNaN(numValue)) {
+            return;
+        }
+
+        this.setState({
+            rateValue: numValue.toFixed(3),
+        });
+
+        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
+            customUnitRateID: this.state.rateID,
+            name: this.state.rateName,
+            rate: numValue.toFixed(3) * 100,
         }, null);
     }
 
@@ -151,11 +167,13 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                         <View style={[styles.rateCol]}>
                             <TextInput
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.rateCurrency}
+                                placeholder={this.state.outputCurrency}
                                 onChangeText={value => this.setRate(value)}
                                 value={this.state.rateValue}
                                 autoCompleteType="off"
                                 autoCorrect={false}
+                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                onKeyPress={this.debounceUpdateOnCursorMove}
                             />
                         </View>
                         <View style={[styles.unitCol]}>

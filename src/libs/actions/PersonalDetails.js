@@ -8,10 +8,12 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
+import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import Timing from './Timing';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -74,7 +76,6 @@ function getMaxCharacterError(isError) {
     return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
-
 /**
  * Format personal details
  *
@@ -82,32 +83,37 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
-        // Form the details into something that has all the data in an easy to use format.
-        const avatar = getAvatar(personalDetailsResponse, login);
-        const displayName = getDisplayName(login, personalDetailsResponse);
-        const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
-        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
-        const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
-        const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
-        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
-        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
+    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
+    const formattedResult = {};
 
-        return {
-            ...finalObject,
-            [login]: {
-                login,
-                avatar,
-                displayName,
-                firstName,
-                lastName,
-                pronouns,
-                timezone,
-                payPalMeAddress,
-                phoneNumber,
-            },
+    // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    Object.entries(personalDetailsList).forEach(([login, details]) => {
+        const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
+
+        // Form the details into something that has all the data in an easy to use format.
+        const avatar = getAvatar(details, sanitizedLogin);
+        const displayName = getDisplayName(sanitizedLogin, details);
+        const pronouns = details.pronouns || '';
+        const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
+        const firstName = details.firstName || '';
+        const lastName = details.lastName || '';
+        const payPalMeAddress = details.expensify_payPalMeAddress || '';
+        const phoneNumber = details.phoneNumber || '';
+        formattedResult[sanitizedLogin] = {
+            login: sanitizedLogin,
+            avatar,
+            displayName,
+            firstName,
+            lastName,
+            pronouns,
+            timezone,
+            payPalMeAddress,
+            phoneNumber,
         };
-    }, {});
+    });
+    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
+    return formattedResult;
 }
 
 /**
@@ -140,6 +146,43 @@ function fetchPersonalDetails() {
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         });
+}
+
+/**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ * @param {Object} personalDetail
+ * @param {String} personalDetail.login
+ * @param {String} personalDetail.displayName
+ * @param {String} personalDetail.firstName
+ * @param {String} personalDetail.lastName
+ *
+ * @returns {Object}
+ */
+function extractFirstAndLastNameFromAvailableDetails({
+    login,
+    displayName,
+    firstName,
+    lastName,
+}) {
+    if (firstName || lastName) {
+        return {firstName: firstName || '', lastName: lastName || ''};
+    }
+    if (Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    const firstSpaceIndex = displayName.indexOf(' ');
+    const lastSpaceIndex = displayName.lastIndexOf(' ');
+    if (firstSpaceIndex === -1) {
+        return {firstName: displayName, lastName: ''};
+    }
+
+    return {
+        firstName: displayName.substring(0, firstSpaceIndex).trim(),
+        lastName: displayName.substring(lastSpaceIndex).trim(),
+    };
 }
 
 /**
@@ -179,12 +222,12 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report)) {
                     return;
                 }
 
                 const avatars = OptionsListUtils.getReportIcons(report, details);
-                const reportName = ReportUtils.isChatRoom(report)
+                const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
@@ -303,32 +346,29 @@ function setAvatar(file) {
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
-                const error = new Error();
-                error.jsonCode = response.jsonCode;
-                throw error;
+                setPersonalDetails({avatarUploading: false});
+                if (response.jsonCode === 405 || response.jsonCode === 502) {
+                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                } else {
+                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                }
+                return;
             }
+
             setPersonalDetails({avatar: response.s3url, avatarUploading: false});
-        })
-        .catch((error) => {
-            setPersonalDetails({avatarUploading: false});
-            if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-            } else {
-                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-            }
         });
 }
 
 /**
- * Deletes the user's avatar image
+ * Replaces the user's avatar image with a default avatar
  *
- * @param {String} login
+ * @param {String} defaultAvatarURL
  */
-function deleteAvatar(login) {
+function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
@@ -345,4 +385,5 @@ export {
     fetchLocalCurrency,
     getCurrencyList,
     getMaxCharacterError,
+    extractFirstAndLastNameFromAvailableDetails,
 };

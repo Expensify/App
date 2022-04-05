@@ -13,9 +13,11 @@ const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
+const CONFIG = require('../src/CONFIG').default;
 
-const isDev = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 8080;
+
+app.setName('New Expensify');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -39,17 +41,6 @@ autoUpdater.logger.transports.file.level = 'info';
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
-
-// setup Hot reload
-if (isDev) {
-    try {
-        require('electron-reloader')(module, {
-            watchRenderer: false,
-            ignore: [/^(desktop)/],
-        });
-        // eslint-disable-next-line no-empty
-    } catch {}
-}
 
 // This sets up the command line arguments used to manage the update. When
 // the --expected-update-version flag is set, the app will open pre-hidden
@@ -124,13 +115,14 @@ const electronUpdater = browserWindow => ({
 });
 
 const mainWindow = (() => {
-    const loadURL = isDev
+    const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
-        : serve({directory: `${__dirname}/../dist`});
+        : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
-    if (isDev) {
-        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+    if (__DEV__) {
+        console.debug('CONFIG: ', CONFIG);
+        app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify');
     }
 
@@ -147,8 +139,42 @@ const mainWindow = (() => {
                 titleBarStyle: 'hidden',
             });
 
+            /*
+             * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
+             * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+             * The same issue happens when using the web proxy to communicate with the staging or production API on dev.
+             *
+             * To fix this, we'll:
+             *
+             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
+             *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
+             */
+            const webRequest = browserWindow.webContents.session.webRequest;
+            const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+            /* eslint-disable no-param-reassign */
+            if (!__DEV__) {
+                // Modify the origin and referer for requests sent to our API
+                webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                    details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                    details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                    callback({requestHeaders: details.requestHeaders});
+                });
+
+                // Modify access-control-allow-origin header for the response
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
+                    callback({responseHeaders: details.responseHeaders});
+                });
+            } else {
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${process.env.PORT}`];
+                    callback({responseHeaders: details.responseHeaders});
+                });
+            }
+            /* eslint-enable */
+
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (isDev) {
+            if (__DEV__) {
                 browserWindow.setTitle('New Expensify');
             }
 
@@ -177,7 +203,6 @@ const mainWindow = (() => {
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
             appMenu.submenu.insert(2, keyboardShortcutsMenu);
-
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -286,7 +311,7 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (isDev) {
+            if (__DEV__) {
                 return;
             }
 

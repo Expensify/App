@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -24,7 +25,6 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
-import * as ReportUtils from '../../../libs/reportUtils';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 
 const propTypes = {
@@ -97,8 +97,8 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
-        // Block menu on the message being Edited or is already deleted
-        if (this.props.draftMessage || ReportUtils.isDeletedAction(this.props.action)) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
             return;
         }
         ReportActionContextMenu.showContextMenu(
@@ -145,6 +145,8 @@ class ReportActionItem extends Component {
                             reportID={this.props.reportID}
                             index={this.props.index}
                             ref={el => this.textInput = el}
+                            report={this.props.report}
+                            blockedFromConcierge={this.props.blockedFromConcierge}
                     />
                 );
         }
@@ -155,7 +157,10 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-
+                onKeyDown={(event) => {
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
+                    event.target.blur();
+                }}
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
@@ -190,7 +195,6 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
-                                    && !ReportUtils.isDeletedAction(this.props.action)
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
@@ -211,6 +215,14 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);

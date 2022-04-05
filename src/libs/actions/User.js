@@ -16,9 +16,9 @@ import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
+import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -111,7 +111,8 @@ function getUserDetails() {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -176,7 +177,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.merge(ONYXKEYS.USER, {loginList});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
@@ -230,17 +231,22 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
- * Checks if the expiresAt date of a user's ban is before right now
+ * Checks the blockedFromConcierge object to see if it has an expiresAt key,
+ * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {String} expiresAt
- * @returns {boolean}
+ * @param {Object} blockedFromConcierge
+ * @returns {Boolean}
  */
-function isBlockedFromConcierge(expiresAt) {
-    if (!expiresAt) {
+function isBlockedFromConcierge(blockedFromConcierge) {
+    if (_.isEmpty(blockedFromConcierge)) {
         return false;
     }
 
-    return moment().isBefore(moment(expiresAt), 'day');
+    if (!blockedFromConcierge.expiresAt) {
+        return false;
+    }
+
+    return moment().isBefore(moment(blockedFromConcierge.expiresAt), 'day');
 }
 
 /**
@@ -392,6 +398,26 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
+/**
+ * Downloads the statement PDF for the provided period
+ * @param {String} period YYYYMM format
+ * @returns {Promise<Void>}
+ */
+function generateStatementPDF(period) {
+    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
+    return API.GetStatementPDF({period})
+        .then((response) => {
+            if (response.jsonCode !== 200 || !response.filename) {
+                Log.info('[User] Failed to generate statement PDF', false, {response});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
+        });
+}
+
 export {
     changePasswordAndNavigate,
     closeAccount,
@@ -411,4 +437,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
+    generateStatementPDF,
 };

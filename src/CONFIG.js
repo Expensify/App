@@ -7,12 +7,12 @@ import CONST from './CONST';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyCashURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
-const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const expensifyURLSecure = Url.addTrailingForwardSlash(lodashGet(
-    Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
+const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
+    Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/',
 ));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
@@ -20,8 +20,8 @@ const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : exp
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-    if (!useNgrok && expensifyURL.includes('dev') && !expensifyURLSecure.includes('dev')) {
-        throw new Error('EXPENSIFY_URL_SECURE must end with .dev when EXPENSIFY_URL_COM ends with .dev');
+    if (!useNgrok && expensifyURL.includes('dev') && !secureExpensifyUrl.includes('dev')) {
+        throw new Error('SECURE_EXPENSIFY_URL must end with .dev when EXPENSIFY_URL ends with .dev');
     }
 
     if (useNgrok && !secureNgrokURL) {
@@ -29,7 +29,7 @@ if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
     }
 }
 
-const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : expensifyURLSecure;
+const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : secureExpensifyUrl;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
@@ -40,16 +40,17 @@ export default {
     APP_NAME: 'NewExpensify',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
-        URL_EXPENSIFY_COM: expensifyURL,
-        URL_EXPENSIFY_SECURE: secureURLRoot,
-        URL_EXPENSIFY_CASH: expensifyCashURL,
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
+        EXPENSIFY_URL: expensifyURL,
+        SECURE_EXPENSIFY_URL: secureURLRoot,
+        NEW_EXPENSIFY_URL: newExpensifyURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
+    IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
         CLUSTER: 'mt1',

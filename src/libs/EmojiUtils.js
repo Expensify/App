@@ -122,7 +122,6 @@ function addSpacesToEmojiCategories(emojis) {
     return updatedEmojis;
 }
 
-
 /**
  * Get a merged array with frequently used emojis
  * @param {Object[]} emojis
@@ -171,7 +170,6 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 
     User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
-
 
 export {
     isSingleEmoji,

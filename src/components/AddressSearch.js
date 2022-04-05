@@ -9,6 +9,7 @@ import styles from '../styles/styles';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import * as FormUtils from '../libs/FormUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -16,6 +17,26 @@ import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
+    /** Indicates that the input is being used with the Form component */
+    isFormInput: PropTypes.bool,
+
+    /**
+     * The ID used to uniquely identify the input
+     *
+     * @param {Object} props - props passed to the input
+     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
+     */
+    inputID: props => FormUtils.validateInputIDProps(props),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** Callback that is called when the text input is blurred */
+    onBlur: PropTypes.func,
+
+    /** Error text to display */
+    errorText: PropTypes.string,
+
     /** The label to display for the field */
     label: PropTypes.string.isRequired,
 
@@ -32,7 +53,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    value: '',
+    isFormInput: false,
+    inputID: undefined,
+    shouldSaveDraft: false,
+    onBlur: () => {},
+    errorText: '',
+    value: undefined,
     containerStyles: [],
 };
 
@@ -65,8 +91,10 @@ const AddressSearch = (props) => {
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
-        const values = {};
-        if (street && street.length > props.value.trim().length) {
+        const values = {
+            street: props.value ? props.value.trim() : '',
+        };
+        if (street && street.length >= values.street.length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
             // like Apt # and this is the best way we have to tell that the new value it's giving us is less
@@ -107,14 +135,32 @@ const AddressSearch = (props) => {
             }}
             requestUrl={{
                 useOnPlatform: 'web',
-                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
             }}
             textInputProps={{
                 InputComp: TextInput,
+                ref: (node) => {
+                    if (!props.innerRef) {
+                        return;
+                    }
+
+                    if (_.isFunction(props.innerRef)) {
+                        props.innerRef(node);
+                        return;
+                    }
+
+                    // eslint-disable-next-line no-param-reassign
+                    props.innerRef.current = node;
+                },
                 label: props.label,
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
                 value: props.value,
+                isFormInput: props.isFormInput,
+                inputID: props.inputID,
+                shouldSaveDraft: props.shouldSaveDraft,
+                onBlur: props.onBlur,
+                autoComplete: 'off',
                 onChangeText: (text) => {
                     if (skippedFirstOnChangeTextRef.current) {
                         props.onChange({street: text});
@@ -160,4 +206,7 @@ const AddressSearch = (props) => {
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 
-export default withLocalize(AddressSearch);
+export default withLocalize(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <AddressSearch {...props} innerRef={ref} />
+)));

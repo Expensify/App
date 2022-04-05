@@ -6,7 +6,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import Text from '../../../components/Text';
 import Timers from '../../../libs/Timers';
 import CONST from '../../../CONST';

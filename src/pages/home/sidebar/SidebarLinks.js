@@ -20,7 +20,7 @@ import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
-import {participantPropTypes} from './optionPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
@@ -118,6 +118,16 @@ class SidebarLinks extends React.Component {
         return unreadReports;
     }
 
+    /**
+     * Returns true if the sidebar list should be re-ordered
+     *
+     * @param {Object} nextProps
+     * @param {Object} reportsWithDraft
+     * @param {Array} orderedReports
+     * @param {String} currentlyViewedReportID
+     * @param {Array} unreadReports
+     * @returns {Boolean}
+     */
     static shouldReorder(nextProps, reportsWithDraft, orderedReports, currentlyViewedReportID, unreadReports) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
@@ -148,7 +158,7 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report had or has a draft
+        // If the active report had or has a draft, we do not want to re-order the list
         if (nextProps.currentlyViewedReportID) {
             if (lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false)) {
                 return false;
@@ -165,23 +175,35 @@ class SidebarLinks extends React.Component {
             currentlyViewedReportID: props.currentlyViewedReportID,
             orderedReports: [],
             reportsWithDraft: props.reportsWithDraft,
+            priorityMode: props.priorityMode,
             unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
         };
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.reportsWithDraft, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
+
+        // Build the report options we want to show
         const recentReports = SidebarLinks.getRecentReports(nextProps);
-        const orderedReports = shouldReorder
+
+        // Determine whether we need to keep the previous LHN order
+        const orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
-            : _.map(prevState.orderedReports,
-                orderedReport => _.chain(recentReports)
-                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
-                    .first()
-                    .value());
+            : _.chain(prevState.orderedReports)
+
+            // To preserve the order of the conversations, we map over the previous state's order of reports.
+            // Then match and replace older reports with the newer report conversations from recentReports
+                .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
+
+            // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
+            // does not have all the conversations in prevState.orderedReports
+                .filter(orderedReport => orderedReport !== undefined)
+                .value();
 
         return {
             orderedReports,
+            priorityMode: nextProps.priorityMode,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
             reportsWithDraft: nextProps.reportsWithDraft,
             unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
@@ -303,6 +325,7 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,

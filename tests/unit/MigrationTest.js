@@ -63,7 +63,7 @@ describe('MoveToIndexedDb', () => {
 
     it('Should not clear non Onyx keys from localStorage', () => {
         // Given some Onyx and non-Onyx data exists in localStorage
-        localStorage.setItem(ONYXKEYS.SESSION, JSON.stringify({authToken: 'mock-token', loading: false}));
+        localStorage.setItem(ONYXKEYS.SESSION, JSON.stringify({authToken: 'mock-token'}));
         localStorage.setItem('non-onyx-item', 'MOCK');
 
         // When the migration runs
