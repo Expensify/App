@@ -232,6 +232,7 @@ class BasePaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
+        const isShowButtonMakeDefaultPayment = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
@@ -321,7 +322,7 @@ class BasePaymentsPage extends React.Component {
                                     interactive={false}
                                 />
                             )}
-                            {!this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
+                            {isShowButtonMakeDefaultPayment && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
@@ -359,7 +360,7 @@ class BasePaymentsPage extends React.Component {
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
-                                    Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && styles.mt4,
+                                    isShowButtonMakeDefaultPayment && styles.mt4,
                                     styles.alignSelfCenter,
                                     styles.w100,
                                 ]}
