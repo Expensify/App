@@ -212,7 +212,7 @@ function hasReportDraftComment(report) {
  * @returns {Array<*>}
  */
 function getAvatarSources(report) {
-    return _.map(lodashGet(report, 'icons', ['']), (source) => {
+    return _.map(lodashGet(report, 'icons'), (source) => {
         if (source) {
             return source;
         }
