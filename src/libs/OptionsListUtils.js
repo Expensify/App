@@ -587,7 +587,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     let userToInvite = null;
-
     if (searchValue
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
