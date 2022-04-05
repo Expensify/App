@@ -23,13 +23,14 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Check whether a report action is Attachment is not.
+ * Check whether a report action is Attachment or not.
+ * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
- * @param {Object} reportMessageText report action's message as text
+ * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText) {
-    return reportMessageText === '[Attachment]';
+function isReportMessageAttachment({text, html}) {
+    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -60,7 +61,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
 }
 
 /**

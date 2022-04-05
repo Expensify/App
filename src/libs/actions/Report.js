@@ -236,6 +236,7 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
         isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
+        lastMessageHtml: lastActionMessage,
     };
 }
 
@@ -414,7 +415,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-            return fetchedReports;
+            return simplifiedReports;
         })
         .catch((err) => {
             if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -629,7 +630,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
         loading: false,
     };
 
@@ -907,7 +908,8 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             }
 
             // Merge report into Onyx
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, {reportID: data.reportID});
+            const simplifiedReportObject = getSimplifiedReportObject(data);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
 
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report
@@ -916,7 +918,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             // We are returning an array with a report object here since fetchAllReports calls this method or
             // fetchChatReportsByIDs which returns an array of report objects.
-            return [data];
+            return [simplifiedReportObject];
         });
 }
 

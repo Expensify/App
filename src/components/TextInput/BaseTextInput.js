@@ -276,7 +276,7 @@ class BaseTextInput extends Component {
                                     {this.props.secureTextEntry && (
                                         <Pressable
                                             accessibilityRole="button"
-                                            style={styles.secureInputEyeButton}
+                                            style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
                                             <Icon
