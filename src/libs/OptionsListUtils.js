@@ -450,7 +450,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
                 // We make exceptions for active defaultRooms and policyExpenseChats so we can immediately
                 // highlight them in the LHN when they are created and have no messsages yet
-                && (!isArchivedRoom && (isDefaultRoom || isPolicyExpenseChat));
+                && !(!isArchivedRoom && (isDefaultRoom || isPolicyExpenseChat));
 
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
