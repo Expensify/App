@@ -1,9 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
-import ONYXKEYS from '../ONYXKEYS';
 import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import redirectToSignIn from './actions/SignInRedirect';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
@@ -11,88 +9,9 @@ import requireParameters from './requireParameters';
 import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
-import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
-
-let isAuthenticating;
-let credentials;
-let authToken;
-let currentUserEmail;
-
-function checkRequiredDataAndSetNetworkReady() {
-    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
-        return;
-    }
-
-    Network.setIsReady(true);
-}
-
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (val) => {
-        credentials = val || null;
-        checkRequiredDataAndSetNetworkReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        authToken = lodashGet(val, 'authToken', null);
-        currentUserEmail = lodashGet(val, 'email', null);
-        checkRequiredDataAndSetNetworkReady();
-    },
-});
-
-/**
- * Does this command require an authToken?
- *
- * @param {String} command
- * @return {Boolean}
- */
-function isAuthTokenRequired(command) {
-    return !_.contains([
-        'Log',
-        'Graphite_Timer',
-        'Authenticate',
-        'GetAccountStatus',
-        'SetPassword',
-        'User_SignUp',
-        'ResendValidateCode',
-        'ResetPassword',
-        'User_ReopenAccount',
-        'ValidateEmail',
-    ], command);
-}
-
-/**
- * Adds default values to our request data
- *
- * @param {String} command
- * @param {Object} parameters
- * @returns {Object}
- */
-function addDefaultValuesToParameters(command, parameters) {
-    const finalParameters = {...parameters};
-
-    if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = authToken;
-    }
-
-    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
-
-    // This application does not save its authToken in cookies like the classic Expensify app.
-    // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
-    // and prevents interfering with the cookie authToken that Expensify classic uses.
-    finalParameters.api_setCookie = false;
-
-    // Unless email is already set include current user's email in every request and the server logs
-    finalParameters.email = lodashGet(parameters, 'email', currentUserEmail);
-
-    return finalParameters;
-}
-
-// Tie into the network layer to add auth token to the parameters of all requests
-Network.registerParameterEnhancer(addDefaultValuesToParameters);
+import * as NetworkStore from './Network/NetworkStore';
+import enhanceParameters from './Network/enhanceParameters';
+import * as NetworkEvents from './Network/NetworkEvents';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -106,19 +25,18 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
-    if (isAuthenticating) {
+    if (NetworkStore.getIsAuthenticating()) {
         return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
+    NetworkStore.setIsAuthenticating(true);
 
     // eslint-disable-next-line no-use-before-define
     return reauthenticate(originalCommand)
         .then(() => {
             // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
+            const params = enhanceParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
         })
         .catch(() => (
@@ -129,26 +47,11 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
-Network.registerLogHandler(() => Log);
+// We set the logger for Network here so that we can avoid a circular dependency
+NetworkEvents.registerLogHandler(() => Log);
 
-Network.registerRequestHandler((queuedRequest, finalParameters) => {
-    if (queuedRequest.command === 'Log') {
-        return;
-    }
-
-    Log.info('Making API request', false, {
-        command: queuedRequest.command,
-        type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.shouldUseSecure,
-        rvl: finalParameters.returnValueList,
-    });
-});
-
-Network.registerRequestSkippedHandler((parameters) => {
-    Log.hmmm('Trying to make a request when Network is not ready', parameters);
-});
-
-Network.registerResponseHandler((queuedRequest, response) => {
+// Handle response event sent by the Network
+NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -159,8 +62,10 @@ Network.registerResponseHandler((queuedRequest, response) => {
         });
     }
 
-    if (response.jsonCode === 407) {
-        // Credentials haven't been initialized. We will not be able to re-authenticates with the API
+    if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+        const credentials = NetworkStore.getCredentials();
+
+        // Credentials haven't been initialized. We will not be able to re-authenticate with the API
         const unableToReauthenticate = (!credentials || !credentials.autoGeneratedLogin
             || !credentials.autoGeneratedPassword);
 
@@ -169,36 +74,27 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // of the new response created by handleExpiredAuthToken.
         const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
         if (!shouldRetry || unableToReauthenticate) {
-            queuedRequest.resolve(response);
+            // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
+            // from it when persisted to storage
+            if (queuedRequest.resolve) {
+                queuedRequest.resolve(response);
+            }
             return;
         }
 
         handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
+            .then(queuedRequest.resolve || (() => Promise.resolve()))
+            .catch(queuedRequest.reject || (() => Promise.resolve()));
+        return;
+    }
+
+    // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
+    if (!queuedRequest.resolve) {
         return;
     }
 
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
-});
-
-Network.registerErrorHandler((queuedRequest, error) => {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        Log.info('[API] request canceled', false, queuedRequest);
-        return;
-    }
-    if (queuedRequest.command !== 'Log') {
-        Log.hmmm('[API] Handled error when making request', error);
-    } else {
-        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
-    }
-
-    // Set an error state and signify we are done loading
-    setSessionLoadingAndError(false, 'Cannot connect to server');
-
-    // Reject the queued request with an API offline error so that the original caller can handle it.
-    queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
 
 /**
@@ -280,6 +176,7 @@ function Authenticate(parameters) {
  * @returns {Promise}
  */
 function reauthenticate(command = '') {
+    const credentials = NetworkStore.getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -297,18 +194,20 @@ function reauthenticate(command = '') {
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
             updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
-            authToken = response.authToken;
+
+            // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
+            // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+            // enough to do the updateSessionAuthTokens() call above.
+            NetworkStore.setAuthToken(response.authToken);
 
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
+            NetworkStore.setIsAuthenticating(false);
         })
 
         .catch((error) => {
             // If authentication fails, then the network can be unpaused
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
+            NetworkStore.setIsAuthenticating(false);
 
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will
