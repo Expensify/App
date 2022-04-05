@@ -237,7 +237,7 @@ function getAvatarSources(report) {
     if (ReportUtils.isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-        ], Expensicons.Workspace);
+        ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat) {
@@ -247,15 +247,15 @@ function getAvatarSources(report) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(formattedPersonalDetails, [report.ownerEmail, 'avatar'], getDefaultAvatar(report.ownerEmail)), policyExpenseChatAvatarSource,
+            lodashGet(formattedPersonalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            policyExpenseChatAvatarSource,
         ];
     }
 
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName'], getDefaultAvatar(dmParticipant)),
-        avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
+        firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName']) || getDefaultAvatar(dmParticipant),
+        avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
+    })).sort((first, second) => first.firstName - second.firstName);
     return _.map(sortedParticipants, item => item.avatar);
 }
 
