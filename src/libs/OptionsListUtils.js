@@ -218,7 +218,7 @@ function hasReportDraftComment(report) {
  * @param {Object} report
  * @returns {Array<*>}
  */
-function getAvatarSources(report) {
+function getReportIcons(report) {
     if (!report) {
         return [getDefaultAvatar()];
     }
@@ -294,7 +294,7 @@ function createOption(personalDetailList, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    let icons = getAvatarSources(report);
+    let icons = getReportIcons(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -842,7 +842,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
-    getAvatarSources,
+    getReportIcons,
     getSearchOptions,
     getNewChatOptions,
     getSidebarOptions,

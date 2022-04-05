@@ -133,7 +133,7 @@ class ReportDetailsPage extends Component {
                         >
                             <View style={styles.mb4}>
                                 <RoomHeaderAvatars
-                                    avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
+                                    avatarIcons={OptionsListUtils.getReportIcons(this.props.report)}
                                     shouldShowLargeAvatars={isPolicyExpenseChat}
                                 />
                             </View>
