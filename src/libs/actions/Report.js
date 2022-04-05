@@ -644,7 +644,7 @@ function updateReportWithNewAction(
 
     const queuedUpdateKey = `${reportID}_${reportAction.clientID}`;
     const queuedUpdate = queuedReportActionUpdates[queuedUpdateKey];
-    if (queuedUpdate) {
+    if (_.isString(queuedUpdate)) {
         // There is a queued update update, try to apply it now
         editReportComment(reportID, reportActionsToMerge[reportAction.sequenceNumber], queuedUpdate);
     }
@@ -1219,27 +1219,35 @@ function deleteReportComment(reportID, reportAction) {
         setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
     });
 
-    // Try to delete the comment by calling the API
-    API.Report_EditComment({
-        reportID,
-        reportActionID: reportAction.reportActionID,
-        reportComment: '',
-        sequenceNumber,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
+    if (reportAction.reportActionID) {
+        // We have the reportActionID so we can proceed to update normally
+        // Try to delete the comment by calling the API
+        API.Report_EditComment({
+            reportID,
+            reportActionID: reportAction.reportActionID,
+            reportComment: '',
+            sequenceNumber,
+        })
+            .then((response) => {
+                if (response.jsonCode === 200) {
+                    return;
+                }
 
-            // Reverse Optimistic Response
-            reportActionsToMerge[sequenceNumber] = {
-                ...reportAction,
-                message: oldMessage,
-            };
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-                setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+                // Reverse Optimistic Response
+                reportActionsToMerge[sequenceNumber] = {
+                    ...reportAction,
+                    message: oldMessage,
+                };
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+                    setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+                });
             });
+    } else {
+        // The reportActionID is not available because this is an optimistic fake report action, we should wait for the real one
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_QUEUED_UPDATES}`, {
+            [`${reportID}_${reportAction.clientID}`]: '',
         });
+    }
 }
 
 /**
@@ -1427,7 +1435,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     } else {
         // The reportActionID is not available because this is an optimistic fake report action, we should wait for the real one
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_QUEUED_UPDATES}`, {
-            ...queuedReportActionUpdates,
             [`${reportID}_${originalReportAction.clientID}`]: textForNewComment,
         });
     }
