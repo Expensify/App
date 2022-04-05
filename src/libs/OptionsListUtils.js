@@ -586,13 +586,23 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     let userToInvite = null;
+
+    // We should normalize the logins in case the user is searching for a phone number
+    let normalizedLogin = null;
+    if (Str.isValidPhone(searchValue)) {
+        const smsLogin = `${searchValue}${CONST.SMS.DOMAIN}`;
+        normalizedLogin = smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
+    } else {
+        normalizedLogin = searchValue;
+    }
+    
     if (searchValue
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase()))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === normalizedLogin.toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
