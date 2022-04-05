@@ -212,74 +212,51 @@ function hasReportDraftComment(report) {
 }
 
 /**
- * Returns the appropriate icons for the given chat report using the stored personalDetails
- *
- * @param {Object} report
- * @returns {Array<String>}
- */
-function getReportIcons(report) {
-    // TODO: remove this condition
-    if (!report) {
-        return [''];
-    }
-
-    // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isChatRoom(report)) {
-        return [''];
-    }
-
-    if (ReportUtils.isPolicyExpenseChat(report)) {
-        const policyExpenseChatAvatarURL = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-        ]);
-
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
-            return [policyExpenseChatAvatarURL];
-        }
-
-        // If the user is an admin, return avatar url of the other participant of the report
-        // (their workspace chat) and the avatar url of the workspace
-        return [lodashGet(formattedPersonalDetails, [report.ownerEmail, 'avatar']), policyExpenseChatAvatarURL];
-    }
-
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar'], '')
-            || getDefaultAvatar(dmParticipant),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
-}
-
-/**
- * Get the Avatar urls or return the icon according to the chat type
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
  * @returns {Array<*>}
  */
 function getAvatarSources(report) {
-    return _.map(getReportIcons(report), (source) => {
-        if (source) {
-            return source;
+    if (!report) {
+        return getDefaultAvatar();
+    }
+    if (ReportUtils.isArchivedRoom(report)) {
+        return Expensicons.DeletedRoomAvatar;
+    }
+    if (ReportUtils.isAdminRoom(report)) {
+        return Expensicons.AdminRoomAvatar;
+    }
+    if (ReportUtils.isAnnounceRoom(report)) {
+        return Expensicons.AnnounceRoomAvatar;
+    }
+    if (ReportUtils.isChatRoom(report)) {
+        return Expensicons.ActiveRoomAvatar;
+    }
+    if (ReportUtils.isPolicyExpenseChat(report)) {
+        const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+        ], Expensicons.Workspace);
+
+        // Return the workspace avatar if the user is the owner of the policy expense chat
+        if (report.isOwnPolicyExpenseChat) {
+            return [policyExpenseChatAvatarSource];
         }
-        if (ReportUtils.isArchivedRoom(report)) {
-            return Expensicons.DeletedRoomAvatar;
-        }
-        if (ReportUtils.isAdminRoom(report)) {
-            return Expensicons.AdminRoomAvatar;
-        }
-        if (ReportUtils.isAnnounceRoom(report)) {
-            return Expensicons.AnnounceRoomAvatar;
-        }
-        if (ReportUtils.isChatRoom(report)) {
-            return Expensicons.ActiveRoomAvatar;
-        }
-        if (ReportUtils.isPolicyExpenseChat(report)) {
-            return Expensicons.Workspace;
-        }
-        return Expensicons.Profile;
-    });
+
+        // If the user is an admin, return avatar source of the other participant of the report
+        // (their workspace chat) and the avatar source of the workspace
+        return [
+            lodashGet(formattedPersonalDetails, [report.ownerEmail, 'avatar'], getDefaultAvatar(report.ownerEmail)), policyExpenseChatAvatarSource,
+        ];
+    }
+
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName'], getDefaultAvatar(dmParticipant)),
+        avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
+    }))
+        .sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
 }
 
 /**
