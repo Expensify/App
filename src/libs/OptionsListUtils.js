@@ -206,13 +206,49 @@ function hasReportDraftComment(report) {
 }
 
 /**
+ * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ *
+ * @param {Object} report
+ * @returns {Array<String>}
+ */
+function getReportIcons(report, personalDetails) {
+    // Default rooms have a specific avatar so we can return any non-empty array
+    if (ReportUtils.isChatRoom(report)) {
+        return [''];
+    }
+
+    if (ReportUtils.isPolicyExpenseChat(report)) {
+        const policyExpenseChatAvatarURL = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+        ]);
+
+        // Return the workspace avatar if the user is the owner of the policy expense chat
+        if (report.isOwnPolicyExpenseChat) {
+            return [policyExpenseChatAvatarURL];
+        }
+
+        // If the user is an admin, return avatar url of the other participant of the report
+        // (their workspace chat) and the avatar url of the workspace
+        return [lodashGet(personalDetails, [report.ownerEmail, 'avatarThumbnail']), policyExpenseChatAvatarURL];
+    }
+
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
+}
+
+/**
  * Get the Avatar urls or return the icon according to the chat type
  *
  * @param {Object} report
  * @returns {Array<*>}
  */
 function getAvatarSources(report) {
-    return _.map(lodashGet(report, 'icons'), (source) => {
+    return _.map(getReportIcons(report), (source) => {
         if (source) {
             return source;
         }
@@ -814,43 +850,6 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
-/**
- * Returns the appropriate icons for the given chat report using personalDetails if applicable
- *
- * @param {Object} report
- * @param {Object} personalDetails
- * @returns {Array<String>}
- */
-function getReportIcons(report, personalDetails) {
-    // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isChatRoom(report)) {
-        return [''];
-    }
-
-    if (ReportUtils.isPolicyExpenseChat(report)) {
-        const policyExpenseChatAvatarURL = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-        ]);
-
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
-            return [policyExpenseChatAvatarURL];
-        }
-
-        // If the user is an admin, return avatar url of the other participant of the report
-        // (their workspace chat) and the avatar url of the workspace
-        return [lodashGet(personalDetails, [report.ownerEmail, 'avatarThumbnail']), policyExpenseChatAvatarURL];
-    }
-
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
-            || getDefaultAvatar(dmParticipant),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -864,5 +863,4 @@ export {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
-    getReportIcons,
 };
