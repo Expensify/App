@@ -166,7 +166,7 @@ function getChatReportName(fullReport, chatType) {
             stateNum: fullReport.state,
             statusNum: fullReport.status,
         })
-            ? ` (archived)`
+            ? ` (${Localize.translateLocal('common.archived')})`
             : '')}`;
     }
 
