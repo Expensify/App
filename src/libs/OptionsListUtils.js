@@ -78,6 +78,12 @@ Onyx.connect({
     },
 });
 
+let formattedPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => formattedPersonalDetails = val,
+});
+
 /**
  * Helper method to return a default avatar
  *
@@ -206,12 +212,17 @@ function hasReportDraftComment(report) {
 }
 
 /**
- * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ * Returns the appropriate icons for the given chat report using the stored personalDetails
  *
  * @param {Object} report
  * @returns {Array<String>}
  */
-function getReportIcons(report, personalDetails) {
+function getReportIcons(report) {
+    // TODO: remove this condition
+    if (!report) {
+        return [''];
+    }
+
     // Default rooms have a specific avatar so we can return any non-empty array
     if (ReportUtils.isChatRoom(report)) {
         return [''];
@@ -229,12 +240,12 @@ function getReportIcons(report, personalDetails) {
 
         // If the user is an admin, return avatar url of the other participant of the report
         // (their workspace chat) and the avatar url of the workspace
-        return [lodashGet(personalDetails, [report.ownerEmail, 'avatarThumbnail']), policyExpenseChatAvatarURL];
+        return [lodashGet(formattedPersonalDetails, [report.ownerEmail, 'avatar']), policyExpenseChatAvatarURL];
     }
 
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+        firstName: lodashGet(formattedPersonalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(formattedPersonalDetails, [dmParticipant, 'avatar'], '')
             || getDefaultAvatar(dmParticipant),
     }))
         .sort((first, second) => first.firstName - second.firstName);
