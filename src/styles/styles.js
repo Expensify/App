@@ -2473,6 +2473,39 @@ const styles = {
     closeAccountMessageInput: {
         height: 153,
     },
+
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    sliderKnob: {
+        backgroundColor: colors.green,
+        position: 'absolute',
+        height: 26,
+        width: 26,
+        borderRadius: 13,
+        top: -9,
+        left: -13,
+    },
+
+    sliderLine: {
+        backgroundColor: colors.gray2,
+        height: 8,
+        borderRadius: 4,
+    },
+
+    imageCropRotateButton: {
+        height: 40,
+        width: 40,
+        borderRadius: variables.componentBorderRadiusNormal,
+        backgroundColor: colors.gray2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
 };
 
 export default styles;

@@ -13,6 +13,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
@@ -76,6 +77,8 @@ class AvatarWithImagePicker extends React.Component {
         this.state = {
             isMenuVisible: false,
             isMaxUploadSizeModalOpen: false,
+            isAvatarCropModalOpen: false,
+            image: {},
         };
     }
 
@@ -116,6 +119,10 @@ class AvatarWithImagePicker extends React.Component {
         return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
+    openAvatarCropModal(image) {
+        this.setState({isAvatarCropModalOpen: true, image});
+    }
+
     /**
      * Create menu items list for avatar menu
      *
@@ -129,13 +136,7 @@ class AvatarWithImagePicker extends React.Component {
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: (image) => {
-                            if (!this.isValidSize(image)) {
-                                this.setUploadLimitModalVisibility(true);
-                                return;
-                            }
-                            this.props.onImageSelected(image);
-                        },
+                        onPicked: avatar => this.openAvatarCropModal(avatar),
                     });
                 },
             },
@@ -240,6 +241,7 @@ class AvatarWithImagePicker extends React.Component {
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
+                <AvatarCropModal onClose={() => this.setState({isAvatarCropModalOpen: false})} isVisible={this.state.isAvatarCropModalOpen} imageUri={this.state.image.uri} />
             </View>
         );
     }
