@@ -9,16 +9,6 @@ import styles from '../../../styles/styles';
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
-// const propTypes = {
-//     panGestureEvent: PropTypes.func.isRequired,
-//     source: PropTypes.func.isRequired,
-//     onLayout: PropTypes.func,
-//     style: PropTypes.func.isRequired,
-// };
-
-// const defaultProps = {
-// };
-
 const ImageCropView = props => (
     <PanGestureHandler onGestureEvent={props.panGestureEvent}>
         <Animated.View>
@@ -41,7 +31,4 @@ const ImageCropView = props => (
 
 );
 
-// ImageCropView.propTypes = propTypes;
-// ImageCropView.defaultProps = defaultProps;
-// ImageCropView.displayName = 'ImageCropView';
 export default ImageCropView;

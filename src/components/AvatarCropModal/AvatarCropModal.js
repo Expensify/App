@@ -26,28 +26,6 @@ import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
 
-// const propTypes = {
-
-//     /** A callback to call when the form has been submitted */
-//     onCrop: PropTypes.func.isRequired,
-
-//     /** A callback to call when the form has been closed */
-//     onCancel: PropTypes.func,
-
-//     /** Modal visibility */
-//     isVisible: PropTypes.bool.isRequired,
-
-//     /** Should we announce the Modal visibility changes? */
-//     shouldSetModalVisibility: PropTypes.bool,
-
-//     ...windowDimensionsPropTypes,
-// };
-
-// const defaultProps = {
-//     onCancel: () => { },
-//     shouldSetModalVisibility: true,
-// };
-
 // This component cant be writen using class since reanimated API uses hooks
 const AvatarCropModal = memo((props) => {
     const imageWidth = useSharedValue(1);
@@ -227,9 +205,6 @@ const AvatarCropModal = memo((props) => {
     );
 });
 
-// AvatarCropModal.propTypes = propTypes;
-// AvatarCropModal.defaultProps = defaultProps;
-// AvatarCropModal.displayName = 'AvatarCropModal';
 export default compose(
     withWindowDimensions,
     withLocalize,
