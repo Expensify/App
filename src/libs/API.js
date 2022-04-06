@@ -9,11 +9,9 @@ import requireParameters from './requireParameters';
 import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
-import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
-
-let isAuthenticating;
+import * as NetworkEvents from './Network/NetworkEvents';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -27,13 +25,12 @@ let isAuthenticating;
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
-    if (isAuthenticating) {
+    if (NetworkStore.getIsAuthenticating()) {
         return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
+    NetworkStore.setIsAuthenticating(true);
 
     // eslint-disable-next-line no-use-before-define
     return reauthenticate(originalCommand)
@@ -50,26 +47,11 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
-Network.registerLogHandler(() => Log);
+// We set the logger for Network here so that we can avoid a circular dependency
+NetworkEvents.registerLogHandler(() => Log);
 
-Network.registerRequestHandler((queuedRequest, finalParameters) => {
-    if (queuedRequest.command === 'Log') {
-        return;
-    }
-
-    Log.info('Making API request', false, {
-        command: queuedRequest.command,
-        type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.shouldUseSecure,
-        rvl: finalParameters.returnValueList,
-    });
-});
-
-Network.registerRequestSkippedHandler((parameters) => {
-    Log.hmmm('Trying to make a request when Network is not ready', parameters);
-});
-
-Network.registerResponseHandler((queuedRequest, response) => {
+// Handle response event sent by the Network
+NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -106,34 +88,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
     if (!queuedRequest.resolve) {
         return;
     }
 
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
-});
-
-Network.registerErrorHandler((queuedRequest, error) => {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        Log.info('[API] request canceled', false, queuedRequest);
-        return;
-    }
-    if (queuedRequest.command !== 'Log') {
-        Log.hmmm('[API] Handled error when making request', error);
-    } else {
-        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
-    }
-
-    // Set an error state and signify we are done loading
-    setSessionLoadingAndError(false, 'Cannot connect to server');
-
-    // Reject the queued request with an API offline error so that the original caller can handle it
-    // Note: We are checking for the reject method as this could be a persisted request which had it's promise handling logic stripped
-    // from it when persisted to storage
-    if (queuedRequest.reject) {
-        queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
-    }
 });
 
 /**
@@ -241,14 +202,12 @@ function reauthenticate(command = '') {
 
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
+            NetworkStore.setIsAuthenticating(false);
         })
 
         .catch((error) => {
             // If authentication fails, then the network can be unpaused
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
+            NetworkStore.setIsAuthenticating(false);
 
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will
