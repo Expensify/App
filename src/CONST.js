@@ -379,6 +379,8 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
     },
 
+    ATTACHMENT_SOURCE_ATTRIBUTE : 'data-expensify-source',
+
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
