@@ -195,7 +195,7 @@ class OptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex: adjustedItemIndex});
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
     }
 
     /**
