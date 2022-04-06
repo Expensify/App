@@ -128,7 +128,6 @@ class TooltipRenderedOnPageBody extends React.Component {
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;
-TooltipRenderedOnPageBody.displayName = 'TooltipRenderedOnPageBody';
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
