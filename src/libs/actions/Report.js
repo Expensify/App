@@ -155,9 +155,19 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room or a Policy Expense chat, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
+    // For a basic policy room, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
+    }
+
+    if (ReportUtils.isPolicyExpenseChat({chatType})) {
+        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (${Localize.translateLocal('common.archived')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -236,6 +246,7 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
         isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
+        lastMessageHtml: lastActionMessage,
     };
 }
 
@@ -414,7 +425,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-            return fetchedReports;
+            return simplifiedReports;
         })
         .catch((err) => {
             if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -629,7 +640,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
         loading: false,
     };
 
@@ -797,8 +808,17 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.setDidTapNotification();
-        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        if (Navigation.canNavigate('navigate')) {
+            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                Navigation.goBack();
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        } else {
+            // Navigation container is not yet ready, use deeplinking to open to correct report instead
+            Navigation.setDidTapNotification();
+            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        }
     });
 }
 
@@ -907,7 +927,8 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             }
 
             // Merge report into Onyx
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, {reportID: data.reportID});
+            const simplifiedReportObject = getSimplifiedReportObject(data);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
 
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report
@@ -916,7 +937,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             // We are returning an array with a report object here since fetchAllReports calls this method or
             // fetchChatReportsByIDs which returns an array of report objects.
-            return [data];
+            return [simplifiedReportObject];
         });
 }
 

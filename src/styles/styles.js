@@ -317,6 +317,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
     textDanger: {
         color: colors.red,
     },
@@ -715,9 +719,12 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputEyeButton: {
+    secureInputShowPasswordButton: {
+        borderTopRightRadius: 6,
+        borderBottomRightRadius: 6,
         paddingHorizontal: 11,
         justifyContent: 'center',
+        margin: 1,
     },
 
     secureInput: {
@@ -1415,6 +1422,10 @@ const styles = {
         height: 32,
         margin: 3,
         justifyContent: 'center',
+    },
+
+    editChatItemEmojiWrapper: {
+        marginRight: 3,
     },
 
     hoveredButton: {

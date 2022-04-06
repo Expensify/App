@@ -24,10 +24,10 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-let currentUser;
+let loginList;
 Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => currentUser = val,
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: val => loginList = _.isEmpty(val) ? [] : val,
 });
 
 let countryCodeByIP;
@@ -250,6 +250,7 @@ function createOption(personalDetailList, report, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -259,10 +260,10 @@ function createOption(personalDetailList, report, {
         : {};
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment(lodashGet(report, 'lastMessageText', ''))
+    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
+    let lastMessageText = report && !isArchivedRoom && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
@@ -273,7 +274,7 @@ function createOption(personalDetailList, report, {
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = lodashGet(report, ['reportName'], '');
+        text = (isArchivedRoom && report.isOwnPolicyExpenseChat) ? report.oldPolicyName : lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
@@ -315,7 +316,7 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isArchivedRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
         isPolicyExpenseChat,
     };
@@ -361,7 +362,6 @@ function isCurrentUser(userDetails) {
 
     // Initial check with currentUserLogin
     let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const loginList = _.isEmpty(currentUser) || _.isEmpty(currentUser.loginList) ? [] : currentUser.loginList;
     let index = 0;
 
     // Checking userDetailsLogin against to current user login options.
