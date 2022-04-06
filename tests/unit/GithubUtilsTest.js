@@ -383,7 +383,6 @@ describe('GithubUtils', () => {
         // eslint-disable-next-line max-len
         const firebaseVerification = 'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.';
 
-
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
                 + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`

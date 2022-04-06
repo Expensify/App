@@ -308,9 +308,10 @@ describe('createOrUpdateStagingDeployCash', () => {
 
         test('without NPM_VERSION input, just a new deploy blocker', () => {
             mockGetInput.mockImplementation((arg) => {
-                if (arg === 'GITHUB_TOKEN') {
-                    return 'fake_token';
+                if (arg !== 'GITHUB_TOKEN') {
+                    return;
                 }
+                return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
