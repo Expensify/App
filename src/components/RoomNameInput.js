@@ -64,7 +64,7 @@ class RoomNameInput extends Component {
     }
 
     /**
-     * Sets the modified room name in the state and calls the onChangeText callback
+     * Sets the room name in the state and calls the onChangeText callback with modified room name
      * @param {Event} event
      */
     setModifiedRoomName(event) {
@@ -73,7 +73,7 @@ class RoomNameInput extends Component {
         const target = nativeEvent.target;
         const selection = target.selectionStart;
         const modifiedRoomName = this.modifyRoomName(roomName);
-        this.setState({roomName: modifiedRoomName}, () => {
+        this.setState({roomName: `${CONST.POLICY.ROOM_PREFIX}${roomName}`}, () => {
             if (!selection) {
                 return;
             }
