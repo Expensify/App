@@ -67,8 +67,8 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Number} tooltipTextWidth - Tooltip's inner text width
- * @param {Number} maxWidth -  Max-width for tooltip's wrapper
+ * @param {Number} [tooltipTextWidth] - Tooltip's inner text width
+ * @param {Number} [maxWidth] -  Max-width for tooltip's wrapper
  * @returns {Object}
  */
 export default function getTooltipStyles(
