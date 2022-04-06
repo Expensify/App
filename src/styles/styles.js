@@ -317,6 +317,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
     textDanger: {
         color: colors.red,
     },
@@ -721,6 +725,11 @@ const styles = {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
+    },
+
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
     },
 
     textInput: {
