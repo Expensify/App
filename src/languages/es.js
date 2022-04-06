@@ -37,6 +37,7 @@ export default {
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
         deleted: 'eliminado',
+        archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
