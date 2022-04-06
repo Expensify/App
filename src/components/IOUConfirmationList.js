@@ -133,7 +133,6 @@ class IOUConfirmationList extends Component {
 
         this.state = {
             sections: this.getSections(formattedParticipants),
-            currentActor: formattedParticipants[0],
             participants: formattedParticipants,
             selectedParticipants: formattedParticipants,
         };
