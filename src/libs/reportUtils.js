@@ -177,6 +177,19 @@ function isArchivedRoom(report) {
 }
 
 /**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyName(report, policies) {
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
@@ -190,17 +203,13 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
-    }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
         return Localize.translateLocal('workspace.common.workspace');
     }
-    return lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
+    }
+    return getPolicyName(report, policiesMap);
 }
 
 /**
@@ -212,12 +221,7 @@ function getChatRoomSubtitle(report, policiesMap) {
 
 function getRoomWelcomeMessage(report, policiesMap) {
     const welcomeMessage = {};
-
-    const workspaceName = lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    const workspaceName = getPolicyName(report, policiesMap);
 
     if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
@@ -315,6 +319,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getPolicyName,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
