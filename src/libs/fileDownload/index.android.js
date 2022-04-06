@@ -13,7 +13,7 @@ function hasAndroidPermission() {
 
     return Promise.all([writePromise, readPromise]).then(([hasWritePermission, hasReadPermission]) => {
         if (hasWritePermission && hasReadPermission) {
-            return true; // return true if permission is already given
+            return true; // Return true if permission is already given
         }
 
         // Ask for permission if not given
