@@ -124,6 +124,10 @@ export default {
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'Attachments must be one of the following types: ',
     },
+    avatarCropModal: {
+        title: 'Edit photo',
+        description: 'Drag, zoom, and rotate your image to your preferred specifications',
+    },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',

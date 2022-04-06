@@ -79,8 +79,18 @@ import Upload from '../../../assets/images/upload.svg';
 import Users from '../../../assets/images/users.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
+import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
+import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
+import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
+import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
+import ImageCropMask from '../../../assets/images/image-crop-mask.svg';
+import Zoom from '../../../assets/images/zoom.svg';
+import Rotate from '../../../assets/images/rotate.svg';
 
 export {
+    Zoom,
+    Rotate,
+    ImageCropMask,
     ActiveRoomAvatar,
     AdminRoomAvatar,
     Android,

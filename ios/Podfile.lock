@@ -563,7 +563,7 @@ PODS:
     - Firebase/Performance (= 8.4.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (1.9.0):
+  - RNGestureHandler (2.3.1):
     - React-Core
   - RNPermissions (3.0.1):
     - React-Core
@@ -974,8 +974,8 @@ SPEC CHECKSUMS:
   RNFBApp: 64c90ab78b6010ed5c3ade026dfe5ff6442c21fd
   RNFBCrashlytics: 1de18b8cc36d9bcf86407c4a354399228cc84a61
   RNFBPerf: e3a7269f573a4787810a32de51647cdcbe08dfb4
-  RNGestureHandler: 9b7e605a741412e20e13c512738a31bd1611759b
-  RNPermissions: 4c8a37b4dde50f1f152bf8cd08c4a43d2355829e
+  RNGestureHandler: 68f660f1080d3300936a67ce5c6879bd8f26ecc2
+  RNPermissions: eb94f9fdc0a8ecd02fcce0676d56ffb1395d41e1
   RNReactNativeHapticFeedback: b83bfb4b537bdd78eb4f6ffe63c6884f7b049ead
   RNReanimated: da3860204e5660c0dd66739936732197d359d753
   RNScreens: 522705f2e5c9d27efb17f24aceb2bf8335bc7b8e
@@ -988,4 +988,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 45bdac6573d097a250f282496b9f82bf9c5bf6dc
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.11.3
