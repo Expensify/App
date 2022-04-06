@@ -249,7 +249,6 @@ class WorkspaceMembersPage extends React.Component {
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
-            .unique()
             .sortBy(person => person.displayName.toLowerCase())
             .value();
         const policyID = lodashGet(this.props.route, 'params.policyID');
