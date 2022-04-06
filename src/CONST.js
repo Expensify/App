@@ -315,6 +315,7 @@ const CONST = {
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
+        SPINNER_TIMEOUT: 15 * 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

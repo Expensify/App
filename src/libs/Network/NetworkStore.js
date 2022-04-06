@@ -2,29 +2,32 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as NetworkEvents from './NetworkEvents';
 
 let credentials;
 let authToken;
 let currentUserEmail;
-let networkReady = false;
+let hasReadRequiredData = false;
+let isAuthenticating = false;
+let isOffline = false;
 
 /**
- * @param {Boolean} ready
+ * @param {Boolean} val
  */
-function setIsReady(ready) {
-    networkReady = ready;
+function setHasReadRequiredDataFromStorage(val) {
+    hasReadRequiredData = val;
 }
 
 /**
  * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
-function checkRequiredDataAndSetNetworkReady() {
+function checkRequiredData() {
     if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
         return;
     }
 
-    setIsReady(true);
+    setHasReadRequiredDataFromStorage(true);
 }
 
 Onyx.connect({
@@ -32,7 +35,7 @@ Onyx.connect({
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
         currentUserEmail = lodashGet(val, 'email', null);
-        checkRequiredDataAndSetNetworkReady();
+        checkRequiredData();
     },
 });
 
@@ -40,9 +43,34 @@ Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
         credentials = val || null;
-        checkRequiredDataAndSetNetworkReady();
+        checkRequiredData();
     },
 });
+
+// We subscribe to the online/offline status of the network to determine when we should fire off API calls
+// vs queueing them for later.
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+
+        // Client becomes online emit connectivity resumed event
+        if (isOffline && !network.isOffline) {
+            NetworkEvents.triggerConnectivityResumed();
+        }
+
+        isOffline = network.isOffline;
+    },
+});
+
+/**
+ * @returns {Boolean}
+ */
+function getIsOffline() {
+    return isOffline;
+}
 
 /**
  * @returns {String}
@@ -75,8 +103,22 @@ function getCurrentUserEmail() {
 /**
  * @returns {Boolean}
  */
-function isReady() {
-    return networkReady;
+function hasReadRequiredDataFromStorage() {
+    return hasReadRequiredData;
+}
+
+/**
+ * @param {Boolean} value
+ */
+function setIsAuthenticating(value) {
+    isAuthenticating = value;
+}
+
+/**
+ * @returns {Boolean}
+ */
+function getIsAuthenticating() {
+    return isAuthenticating;
 }
 
 export {
@@ -84,6 +126,9 @@ export {
     setAuthToken,
     getCredentials,
     getCurrentUserEmail,
-    isReady,
-    setIsReady,
+    hasReadRequiredDataFromStorage,
+    setHasReadRequiredDataFromStorage,
+    setIsAuthenticating,
+    getIsAuthenticating,
+    getIsOffline,
 };
