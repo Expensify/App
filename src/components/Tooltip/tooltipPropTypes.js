@@ -25,10 +25,10 @@ const propTypes = {
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
 
-    /** number of pixels to set max-width on tooltip  */
+    /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number,
 
-    /** maximum number of lines to set on tooltip */
+    /** Maximum number of lines to set on tooltip */
     numberOfLines: PropTypes.number,
 
 };

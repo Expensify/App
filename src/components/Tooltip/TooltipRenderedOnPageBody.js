@@ -39,10 +39,10 @@ const propTypes = {
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
-    /** number of pixels to set max-width on tooltip  */
+    /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number,
 
-    /** maximum number of lines to set on tooltip */
+    /** Maximum number of lines to set on tooltip */
     numberOfLines: PropTypes.number,
 
 };
