@@ -93,7 +93,7 @@ function getFileType(fileUrl) {
     if (!fileUrl) {
         return;
     }
-    const fileName = new URL(fileUrl).pathname;
+    const fileName = fileUrl.split('/').pop().split('?')[0].split('#')[0];
     if (isImage(fileName)) {
         return CONST.ATTACHMENT_FILE_TYPE.IMAGE;
     }
