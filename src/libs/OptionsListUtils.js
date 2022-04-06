@@ -250,6 +250,7 @@ function createOption(personalDetailList, report, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -262,7 +263,7 @@ function createOption(personalDetailList, report, {
     const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
+    let lastMessageText = report && !isArchivedRoom && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
@@ -273,7 +274,7 @@ function createOption(personalDetailList, report, {
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = lodashGet(report, ['reportName'], '');
+        text = (isArchivedRoom && report.isOwnPolicyExpenseChat) ? report.oldPolicyName : lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
@@ -315,7 +316,7 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
+        isArchivedRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
         isPolicyExpenseChat,
     };
