@@ -207,6 +207,7 @@ class IOUConfirmationList extends Component {
             const unselectedParticipants = unselected || [];
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
+            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
@@ -224,14 +225,9 @@ class IOUConfirmationList extends Component {
                 isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: formattedSelectedParticipants,
+                data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 1,
-            }, {
-                title: undefined,
-                data: formattedUnselectedParticipants,
-                shouldShow: !_.isEmpty(formattedUnselectedParticipants),
-                indexOffset: 1 + formattedSelectedParticipants.length,
             });
         } else {
             const formattedParticipants = OptionsListUtils.getIOUConfirmationOptionsFromParticipants(this.props.participants,
@@ -381,6 +377,10 @@ class IOUConfirmationList extends Component {
      * @param {String} paymentMethod
      */
     confirm(paymentMethod) {
+        if (_.isEmpty(this.state.selectedParticipants)) {
+            return;
+        }
+
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             if (!paymentMethod) {
                 return;
