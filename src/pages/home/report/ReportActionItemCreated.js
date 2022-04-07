@@ -8,7 +8,6 @@ import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import styles from '../../../styles/styles';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -23,15 +22,22 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
+    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const avatarIcons = ReportUtils.getReportIcons(props.report, props.personalDetails);
+    const avatarIcons = ReportUtils.getReportIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[
             styles.chatContent,
@@ -60,5 +66,8 @@ export default withOnyx({
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(ReportActionItemCreated);
