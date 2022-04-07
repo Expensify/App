@@ -314,19 +314,19 @@ function getReportIcons(report, personalDetails, defaultIcon = null) {
     if (!report) {
         return [defaultIcon || getDefaultAvatar()];
     }
-    if (ReportUtils.isArchivedRoom(report)) {
+    if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
     }
-    if (ReportUtils.isAdminRoom(report)) {
+    if (isAdminRoom(report)) {
         return [Expensicons.AdminRoomAvatar];
     }
-    if (ReportUtils.isAnnounceRoom(report)) {
+    if (isAnnounceRoom(report)) {
         return [Expensicons.AnnounceRoomAvatar];
     }
-    if (ReportUtils.isChatRoom(report)) {
+    if (isChatRoom(report)) {
         return [Expensicons.ActiveRoomAvatar];
     }
-    if (ReportUtils.isPolicyExpenseChat(report)) {
+    if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
@@ -374,4 +374,5 @@ export {
     chatIncludesConcierge,
     isPolicyExpenseChat,
     getRoomWelcomeMessage,
+    getReportIcons,
 };

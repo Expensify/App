@@ -780,7 +780,6 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
-    getReportIcons,
     getSearchOptions,
     getNewChatOptions,
     getSidebarOptions,
