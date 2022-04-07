@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Wether we should wait before focusing the TextInput, useful when using transitions  */
@@ -70,6 +71,9 @@ const propTypes = {
     /** Whether to autofocus the search input on mount */
     autoFocus: PropTypes.bool,
 
+    /** Whether to show options list */
+    shouldShowOptions: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -87,6 +91,7 @@ const defaultProps = {
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
     autoFocus: true,
+    shouldShowOptions: true,
 };
 
 class OptionsSelector extends Component {
@@ -131,6 +136,10 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
+        if (!this.list) {
+            return;
+        }
+
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -238,21 +247,24 @@ class OptionsSelector extends Component {
                         selectTextOnFocus
                     />
                 </View>
-                <OptionsList
-                    ref={el => this.list = el}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    onSelectRow={this.selectRow}
-                    sections={this.props.sections}
-                    focusedIndex={this.state.focusedIndex}
-                    selectedOptions={this.props.selectedOptions}
-                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                    hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
-                    disableFocusOptions={this.props.disableArrowKeysActions}
-                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                    showTitleTooltip={this.props.showTitleTooltip}
-                />
+                {this.props.shouldShowOptions
+                    ? <OptionsList
+                        ref={el => this.list = el}
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        onSelectRow={this.selectRow}
+                        sections={this.props.sections}
+                        focusedIndex={this.state.focusedIndex}
+                        selectedOptions={this.props.selectedOptions}
+                        canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                        hideSectionHeaders={this.props.hideSectionHeaders}
+                        headerMessage={this.props.headerMessage}
+                        disableFocusOptions={this.props.disableArrowKeysActions}
+                        hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                        forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                        showTitleTooltip={this.props.showTitleTooltip}
+                    />
+                    : <FullScreenLoadingIndicator />                
+                }
             </View>
         );
     }

@@ -266,6 +266,7 @@ class NewChatPage extends Component {
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                         shouldFocusOnSelectRow={this.props.isGroupChat}
+                                        shouldShowOptions={didScreenTransitionEnd}
                                     />
                                     {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>

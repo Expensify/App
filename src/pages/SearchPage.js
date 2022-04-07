@@ -181,6 +181,7 @@ class SearchPage extends Component {
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     showTitleTooltip
+                                    shouldShowOptions={didScreenTransitionEnd}
                                 />
                         </View>
                         <KeyboardSpacer />
