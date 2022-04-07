@@ -238,6 +238,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const PERSONAL_DETAILS_WITH_PERIODS = {
+        ...PERSONAL_DETAILS,
+
+        'barry.allen@expensify.com': {
+            displayName: 'The Flash',
+            login: 'barry.allen@expensify.com',
+        },
+    };
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -277,6 +286,13 @@ describe('OptionsListUtils', () => {
         // Then we get both values with the pinned value still on top
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
+
+        // When we filter again but provide a searchValue that should match with periods
+        results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+
+        // Then we expect to have the personal detail with period filtered
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].text).toBe('The Flash');
     });
 
     it('getNewChatOptions()', () => {
