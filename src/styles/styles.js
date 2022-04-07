@@ -650,12 +650,12 @@ const styles = {
     },
 
     chatItemHeaderAbsolute: {
-        paddingLeft: 20,
+        width: '100%',
+        paddingLeft: variables.avatarSizeNormal + 28,
         paddingRight: 20,
         position: 'absolute',
         zIndex: 1,
         top: 8,
-        left: variables.avatarSizeNormal + 8,
     },
 
     chatItemSingleChildren: {
