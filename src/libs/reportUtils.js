@@ -319,10 +319,11 @@ function getDefaultAvatar(login = '') {
  *
  * @param {Object} report
  * @param {Object} personalDetails
+ * @param {Object} policies
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getReportIcons(report, personalDetails, defaultIcon = null) {
+function getReportIcons(report, personalDetails, policies, defaultIcon = null) {
     if (!report) {
         return [defaultIcon || getDefaultAvatar()];
     }
