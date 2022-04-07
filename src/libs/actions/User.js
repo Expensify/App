@@ -183,12 +183,10 @@ function setSecondaryLoginAndNavigate(login, password) {
         }
 
         let error;
-        switch (response.jsonCode) {
-            case 409:
-                error = 'addSecondaryLoginPage.error.existingAccount';
-                break;
-            default:
-                error = 'addSecondaryLoginPage.error.unableToAdd';
+        if (response.type === CONST.ERROR.CANNOT_ADD_SECONDARY_LOGIN) {
+            error = 'addSecondaryLoginPage.error.existingAccount';
+        } else {
+            error = 'addSecondaryLoginPage.error.unableToAdd';
         }
 
         Onyx.merge(ONYXKEYS.USER, {error});

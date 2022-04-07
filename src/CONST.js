@@ -317,6 +317,7 @@ const CONST = {
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        CANNOT_ADD_SECONDARY_LOGIN: 'Expensify\\Error\\User\\CannotAddSecondaryLogin',
     },
     NETWORK: {
         METHOD: {
