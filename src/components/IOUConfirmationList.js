@@ -39,6 +39,9 @@ const propTypes = {
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
+    /** Can the set of participants be adjusted? */
+    canDeselectParticipants: PropTypes.bool,
+
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
@@ -61,9 +64,6 @@ const propTypes = {
         payPalMeAddress: PropTypes.string,
         phoneNumber: PropTypes.string,
     })).isRequired,
-
-    /** Is this IOU associated with existing report */
-    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -111,6 +111,7 @@ const defaultProps = {
     comment: '',
     myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    canDeselectParticipants: true,
 };
 
 class IOUConfirmationList extends Component {
@@ -352,6 +353,10 @@ class IOUConfirmationList extends Component {
      * @param {Number} index
      */
     scrollToIndex(index) {
+        if (!this.props.canDeselectParticipants) {
+            return;
+        }
+
         const option = this.allOptions[index];
         if (!this.list || !option) {
             return;
@@ -402,6 +407,10 @@ class IOUConfirmationList extends Component {
             return;
         }
 
+        if (!this.props.canDeselectParticipants) {
+            return;
+        }
+
         this.toggleOption(this.allOptions[index]);
     }
 
@@ -425,13 +434,13 @@ class IOUConfirmationList extends Component {
                             <OptionsList
                                 ref={e => this.list = e}
                                 sections={this.state.sections}
-                                focusedIndex={focusedIndex}
+                                focusedIndex={this.props.canDeselectParticipants ? focusedIndex : null}
                                 hideAdditionalOptionStates
                                 forceTextUnreadStyle
                                 canSelectMultipleOptions={this.props.hasMultipleParticipants}
                                 selectedOptions={this.getSelectedOptions()}
                                 onSelectRow={toggleOption}
-                                disableRowInteractivity={!this.props.isGroupSplit}
+                                isDisabled={!this.props.canDeselectParticipants}
                                 optionHoveredStyle={hoverStyle}
                             />
                         </ScrollView>
