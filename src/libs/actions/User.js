@@ -182,11 +182,13 @@ function setSecondaryLoginAndNavigate(login, password) {
             return;
         }
 
-        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-        // Replace error with a friendlier message
-        if (error.includes('already belongs to an existing Expensify account.')) {
-            error = 'This login already belongs to an existing Expensify account.';
+        let error;
+        switch (response.jsonCode) {
+            case 409:
+                error = 'addSecondaryLoginPage.error.existingAccount';
+                break;
+            default:
+                error = 'addSecondaryLoginPage.error.unableToAdd';
         }
 
         Onyx.merge(ONYXKEYS.USER, {error});

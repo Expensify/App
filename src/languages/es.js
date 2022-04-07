@@ -281,6 +281,10 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono y contraseña para recibir el enlace de validación.',
         enterPreferredEmailToSendValidationLink: 'Escribe tu email y contraseña para recibir el enlace de validación.',
         sendValidation: 'Enviar validación',
+        error: {
+            existingAccount: 'This login already belongs to an existing Expensify account.',
+            unableToAdd: 'Unable to add secondary login. Please try again.',
+        },
     },
     initialSettingsPage: {
         about: 'Acerca de',
