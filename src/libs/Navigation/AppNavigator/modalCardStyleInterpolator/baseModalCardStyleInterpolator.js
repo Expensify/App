@@ -20,18 +20,19 @@ export default (
     }), inverted);
 
     const opacity = Animated.multiply(progress, inverted);
+    const newCardStyle = cardStyle;
 
     if (isFullScreenModal && !isSmallScreenWidth) {
-        cardStyle.opacity = opacity;
+        newCardStyle.opacity = opacity;
     } else {
-        cardStyle.transform = [{translateX}];
+        newCardStyle.transform = [{translateX}];
     }
 
     return ({
         containerStyle: {
             overflow: 'hidden',
         },
-        cardStyle,
+        cardStyle: newCardStyle,
         overlayStyle: {
             opacity: progress.interpolate({
                 inputRange: [0, 1],

@@ -448,7 +448,7 @@ function getPaddingLeft(paddingLeft) {
 function getCardStyle(isSmallScreenWidth, screen) {
     return {
         position: 'fixed',
-        width: isSmallScreenWidth? screen.width : variables.sideBarWidth,
+        width: isSmallScreenWidth ? screen.width : variables.sideBarWidth,
         right: 0,
         height: '100%',
     };

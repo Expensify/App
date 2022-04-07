@@ -1,5 +1,5 @@
 import baseModalCardStyleInterpolator from './baseModalCardStyleInterpolator';
-import {getCardStyle} from '../../../../styles/StyleUtils';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 
 export default (
     isSmallScreenWidth,
@@ -11,17 +11,15 @@ export default (
             screen,
         },
     },
-) => {
-    return baseModalCardStyleInterpolator(
-        isSmallScreenWidth,
-        isFullScreenModal,
-        {
-            current: {progress},
-            inverted,
-            layouts: {
-                screen,
-            },
+) => baseModalCardStyleInterpolator(
+    isSmallScreenWidth,
+    isFullScreenModal,
+    {
+        current: {progress},
+        inverted,
+        layouts: {
+            screen,
         },
-        getCardStyle(isSmallScreenWidth, screen),
-    );
-}
+    },
+    StyleUtils.getCardStyle(isSmallScreenWidth, screen),
+);
