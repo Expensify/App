@@ -160,7 +160,7 @@ class IOUConfirmationList extends Component {
             enterConfig.shortcutKey,
             this.confirm,
             enterConfig.descriptionKey,
-            'CTRL',
+            ['CTRL'],
             true,
         );
     }

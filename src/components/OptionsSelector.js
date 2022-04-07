@@ -138,7 +138,7 @@ class OptionsSelector extends Component {
                 this.props.onConfirmSelection(this.focusedOption);
             },
             enterConfig.descriptionKey,
-            'CTRL',
+            ['CTRL'],
             true,
         );
 
