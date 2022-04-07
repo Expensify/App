@@ -8,7 +8,6 @@ import moment from 'moment-timezone';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';

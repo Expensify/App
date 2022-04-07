@@ -31,7 +31,7 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const avatarIcons = OptionsListUtils.getReportIcons(props.report, props.personalDetails);
+    const avatarIcons = ReportUtils.getReportIcons(props.report, props.personalDetails);
     return (
         <View style={[
             styles.chatContent,
