@@ -447,7 +447,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
 
-                // We make exceptions for active defaultRooms and policyExpenseChats so we can immediately
+                // We make exceptions for nonarchived defaultRooms and policyExpenseChats so we can immediately
                 // highlight them in the LHN when they are created and have no messsages yet
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
