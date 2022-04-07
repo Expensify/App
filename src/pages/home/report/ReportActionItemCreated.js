@@ -37,7 +37,7 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const avatarIcons = ReportUtils.getReportIcons(props.report, props.personalDetails, props.policies);
+    const reportIcons = ReportUtils.getReportIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[
             styles.chatContent,
@@ -47,7 +47,7 @@ const ReportActionItemCreated = (props) => {
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
-                    avatarIcons={avatarIcons}
+                    avatarIcons={reportIcons}
                     shouldShowLargeAvatars={isPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} />
