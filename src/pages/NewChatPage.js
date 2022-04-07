@@ -77,6 +77,7 @@ class NewChatPage extends Component {
             '',
             [],
             this.props.isGroupChat ? this.excludedGroupEmails : [],
+            true,
         );
         this.state = {
             searchValue: '',
@@ -184,6 +185,7 @@ class NewChatPage extends Component {
                 prevState.searchValue,
                 [],
                 this.excludedGroupEmails,
+                true,
             );
 
             return {
@@ -256,6 +258,7 @@ class NewChatPage extends Component {
                                                 searchValue,
                                                 [],
                                                 this.props.isGroupChat ? this.excludedGroupEmails : [],
+                                                true,
                                             );
                                             this.setState({
                                                 searchValue,
