@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -35,6 +37,7 @@ export default {
         privacyPolicy: 'Privacy policy',
         delete: 'Delete',
         deleted: 'deleted',
+        archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
@@ -156,7 +159,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
@@ -166,17 +168,20 @@ export default {
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
+        copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
+        beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
+        beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
+        beginningOfChatHistoryUserRoomPartTwo: ' related.',
         beginningOfChatHistory: 'This is the beginning of your chat history with ',
-        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private ',
-        beginningOfChatHistoryRestrictedPartOne: 'This is the beginning of ',
-        beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
-        beginningOfChatHistoryRestrictedPartTwo: ', invite others by @mentioning them.',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
@@ -188,6 +193,13 @@ export default {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
         fabAction: 'New chat',
@@ -568,6 +580,12 @@ export default {
         genericError: 'There was an error while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Camera permissions not granted',
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
+        originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
+        documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
+        imageNeedsBetterQuality: 'There\'s an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.',
+        selfieIssue: 'There\'s an issue with your selfie/video. Please upload a new selfie/video in real time.',
+        selfieNotMatching: 'Your selfie/video doesn\'t match your ID. Please upload a new selfie/video where your face can be clearly seen.',
+        selfieNotLive: 'Your selfie/video doesn\'t appear to be a live photo/video. Please upload a live selfie/video.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -689,7 +707,6 @@ export default {
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
-        onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
         isControllingOfficer: 'I am authorized to use my company bank account for business spend',
         isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
     },

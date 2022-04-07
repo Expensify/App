@@ -317,8 +317,16 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
     textDanger: {
         color: colors.red,
+    },
+
+    borderRadiusNormal: {
+        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     button: {
@@ -698,6 +706,10 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
+    textInputMultiline: {
+        scrollPadding: '23px 0 0 0',
+    },
+
     textInputAndIconContainer: {
         flex: 1,
         height: '100%',
@@ -707,9 +719,12 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputEyeButton: {
+    secureInputShowPasswordButton: {
+        borderTopRightRadius: 6,
+        borderBottomRightRadius: 6,
         paddingHorizontal: 11,
         justifyContent: 'center',
+        margin: 1,
     },
 
     secureInput: {
@@ -1289,15 +1304,6 @@ const styles = {
         lineHeight: 20,
     },
 
-    chatItemCompose: {
-        minHeight: 65,
-        marginBottom: 5,
-        paddingLeft: 20,
-        paddingRight: 20,
-        display: 'flex',
-        backgroundColor: themeColors.appBG,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1315,6 +1321,15 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
+    },
+
+    chatFooter: {
+        minHeight: 65,
+        marginBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     textInputCompose: addOutlineWidth({
@@ -1407,6 +1422,10 @@ const styles = {
         height: 32,
         margin: 3,
         justifyContent: 'center',
+    },
+
+    editChatItemEmojiWrapper: {
+        marginRight: 3,
     },
 
     hoveredButton: {
@@ -2136,6 +2155,7 @@ const styles = {
         width: '90%',
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
+        ...spacing.ml4,
     },
 
     blockquote: {

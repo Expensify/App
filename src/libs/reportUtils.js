@@ -23,13 +23,14 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Check whether a report action is Attachment is not.
+ * Check whether a report action is Attachment or not.
+ * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
- * @param {Object} reportMessageText report action's message as text
+ * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText) {
-    return reportMessageText === '[Attachment]';
+function isReportMessageAttachment({text, html}) {
+    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -60,7 +61,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
 }
 
 /**
@@ -162,16 +163,30 @@ function findLastAccessedReport(reports, ignoreDefaultRooms) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isDefaultRoom(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+}
+
+/**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyName(report, policies) {
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
 }
 
 /**
@@ -188,17 +203,39 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
-    }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
         return Localize.translateLocal('workspace.common.workspace');
     }
-    return lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
+    }
+    return getPolicyName(report, policiesMap);
+}
+
+/**
+ * Get welcome message based on room type
+ * @param {Object} report
+ * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Object}
+ */
+
+function getRoomWelcomeMessage(report, policiesMap) {
+    const welcomeMessage = {};
+    const workspaceName = getPolicyName(report, policiesMap);
+
+    if (isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else {
+        // Message for user created rooms or other room types.
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+
+    return welcomeMessage;
 }
 
 /**
@@ -282,6 +319,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getPolicyName,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
@@ -289,4 +327,5 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    getRoomWelcomeMessage,
 };
