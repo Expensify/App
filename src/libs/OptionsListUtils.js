@@ -245,7 +245,7 @@ function createOption(logins, personalDetails, report, {
     return {
         text,
         alternateText,
-        icons: getReportIcons(report, personalDetails, personalDetail.avatar),
+        icons: ReportUtils.getReportIcons(report, personalDetails, policies, personalDetail.avatar),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
