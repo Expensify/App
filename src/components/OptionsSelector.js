@@ -126,7 +126,6 @@ class OptionsSelector extends Component {
 
     componentDidMount() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        const modifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
             () => {
@@ -137,7 +136,7 @@ class OptionsSelector extends Component {
                 this.props.onConfirmSelection(this.focusedOption);
             },
             enterConfig.descriptionKey,
-            modifiers,
+            'CTRL',
             true,
         );
 
