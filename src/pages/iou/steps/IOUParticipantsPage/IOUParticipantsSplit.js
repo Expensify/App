@@ -74,6 +74,7 @@ class IOUParticipantsSplit extends Component {
             '',
             props.participants,
             CONST.EXPENSIFY_EMAILS,
+            true,
         );
 
         this.state = {
@@ -175,6 +176,7 @@ class IOUParticipantsSplit extends Component {
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
                 CONST.EXPENSIFY_EMAILS,
+                true,
             );
             return {
                 recentReports,
@@ -218,6 +220,7 @@ class IOUParticipantsSplit extends Component {
                                 searchValue,
                                 this.props.participants,
                                 CONST.EXPENSIFY_EMAILS,
+                                true,
                             );
                             this.setState({
                                 searchValue,
