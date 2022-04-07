@@ -65,8 +65,7 @@ class RoomNameInput extends Component {
      * @param {Event} event
      */
     setModifiedRoomName(event) {
-        const nativeEvent = event.nativeEvent;
-        const roomName = nativeEvent.text;
+        const roomName = event.nativeEvent.text;
         const modifiedRoomName = this.modifyRoomName(roomName);
         this.props.onChangeText(modifiedRoomName);
     }
