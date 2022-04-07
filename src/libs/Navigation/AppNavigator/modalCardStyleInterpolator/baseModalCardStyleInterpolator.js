@@ -1,5 +1,5 @@
 import {Animated} from 'react-native';
-import variables from '../../../styles/variables';
+import variables from '../../../../styles/variables';
 
 export default (
     isSmallScreenWidth,
@@ -11,6 +11,7 @@ export default (
             screen,
         },
     },
+    cardStyle,
 ) => {
     const translateX = Animated.multiply(progress.interpolate({
         inputRange: [0, 1],
@@ -19,7 +20,6 @@ export default (
     }), inverted);
 
     const opacity = Animated.multiply(progress, inverted);
-    const cardStyle = {};
 
     if (isFullScreenModal && !isSmallScreenWidth) {
         cardStyle.opacity = opacity;
