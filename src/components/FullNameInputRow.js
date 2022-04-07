@@ -27,6 +27,9 @@ const propTypes = {
     /** Error message to display below lastName input */
     lastNameError: PropTypes.string,
 
+    /** Callback that is called when the text input's submit button is pressed. */
+    onSubmitEditing: PropTypes.func,
+
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
@@ -39,6 +42,7 @@ const defaultProps = {
     lastName: '',
     lastNameError: '',
     style: {},
+    onSubmitEditing: () => {},
 };
 
 const FullNameInputRow = (props) => {
@@ -53,6 +57,7 @@ const FullNameInputRow = (props) => {
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
                     placeholder={props.translate('profilePage.john')}
+                    onSubmitEditing={props.onSubmitEditing}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
@@ -63,6 +68,7 @@ const FullNameInputRow = (props) => {
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
                     placeholder={props.translate('profilePage.doe')}
+                    onSubmitEditing={props.onSubmitEditing}
                 />
             </View>
         </View>

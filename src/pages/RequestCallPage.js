@@ -277,6 +277,7 @@ class RequestCallPage extends Component {
                                 onChangeFirstName={firstName => this.setState({firstName})}
                                 onChangeLastName={lastName => this.setState({lastName})}
                                 style={[styles.mv4]}
+                                onSubmitEditing={this.onSubmit}
                             />
                             <TextInput
                                 label={this.props.translate('common.phoneNumber')}
@@ -287,6 +288,7 @@ class RequestCallPage extends Component {
                                 errorText={this.state.phoneNumberError}
                                 onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                onSubmitEditing={this.onSubmit}
                             />
                             <TextInput
                                 label={this.props.translate('requestCallPage.extension')}
@@ -298,6 +300,7 @@ class RequestCallPage extends Component {
                                 onBlur={this.validatePhoneExtensionInput}
                                 onChangeText={phoneExtension => this.setState({phoneExtension})}
                                 containerStyles={[styles.mt4]}
+                                onSubmitEditing={this.onSubmit}
                             />
                             <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
                         </Section>
