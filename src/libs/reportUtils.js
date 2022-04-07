@@ -55,7 +55,6 @@ function sortReportsByLastVisited(reports) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
@@ -71,7 +70,6 @@ function canEditReportAction(reportAction) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
