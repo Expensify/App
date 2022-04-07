@@ -165,7 +165,7 @@ ActiveClientManager.isReady().then(() => {
  * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, optimisticRollback = {}) {
     return new Promise((resolve, reject) => {
         const request = {
             command,
@@ -183,6 +183,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
             appversion: version,
+            optimisticRollback,
         };
 
         // Add the request to a queue of actions to perform

@@ -93,6 +93,10 @@ NetworkEvents.onResponse((queuedRequest, response) => {
         return;
     }
 
+    if (queuedRequest.optimisticRollback) {
+        Onyx.merge(API_Commands[queuedRequest.command].optimisticDataKey, queuedRequest.optimisticData);
+    }
+
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
     queuedRequest.resolve(response);
 });

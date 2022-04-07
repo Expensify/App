@@ -33,7 +33,8 @@ function logRequestDetails(request, parameters) {
  */
 export default function processRequest(request) {
     const persisted = lodashGet(request, 'data.persist', false);
-    const finalParameters = enhanceParameters(request.command, request.data);
+    let finalParameters = enhanceParameters(request.command, request.data);
+    finalParameters = _.omit(request, 'optimisticData');
 
     // When the request goes past a certain amount of time we trigger a re-check of the connection
     const cancelRequestTimeoutTimer = NetworkEvents.startRecheckTimeoutTimer();
