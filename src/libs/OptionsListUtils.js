@@ -10,7 +10,6 @@ import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import md5 from './md5';
-import * as Expensicons from '../components/Icon/Expensicons';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -203,57 +202,6 @@ function hasReportDraftComment(report) {
     return report
         && reportsWithDraft
         && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
-}
-
-/**
- * Returns the appropriate icons for the given chat report using the stored personalDetails.
- * The Avatar sources can be URLs or Icon components according to the chat type.
- *
- * @param {Object} report
- * @param {Object} personalDetails
- * @param {*} [defaultIcon]
- * @returns {Array<*>}
- */
-function getReportIcons(report, personalDetails, defaultIcon = null) {
-    if (!report) {
-        return [defaultIcon || getDefaultAvatar()];
-    }
-    if (ReportUtils.isArchivedRoom(report)) {
-        return [Expensicons.DeletedRoomAvatar];
-    }
-    if (ReportUtils.isAdminRoom(report)) {
-        return [Expensicons.AdminRoomAvatar];
-    }
-    if (ReportUtils.isAnnounceRoom(report)) {
-        return [Expensicons.AnnounceRoomAvatar];
-    }
-    if (ReportUtils.isChatRoom(report)) {
-        return [Expensicons.ActiveRoomAvatar];
-    }
-    if (ReportUtils.isPolicyExpenseChat(report)) {
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-        ]) || Expensicons.Workspace;
-
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
-            return [policyExpenseChatAvatarSource];
-        }
-
-        // If the user is an admin, return avatar source of the other participant of the report
-        // (their workspace chat) and the avatar source of the workspace
-        return [
-            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
-            policyExpenseChatAvatarSource,
-        ];
-    }
-
-    // Return avatar sources for Group chats
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
-    })).sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
 }
 
 /**
