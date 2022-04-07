@@ -259,18 +259,20 @@ function getReportIcons(report, personalDetails, defaultIcon = null) {
 /**
  * Creates a report list option
  *
- * @param {Array<Object>} personalDetailList
+ * @param {Array<String>} logins
+ * @param {Object} personalDetails
  * @param {Object} report
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(personalDetailList, report, {
+function createOption(logins, personalDetails, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const personalDetailList = getPersonalDetailsForLogins(logins, personalDetails);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -309,7 +311,7 @@ function createOption(personalDetailList, report, {
     return {
         text,
         alternateText,
-        icons: getReportIcons(report, personalDetail.avatar),
+        icons: getReportIcons(report, personalDetails, personalDetail.avatar),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
@@ -484,8 +486,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
-
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
@@ -493,14 +493,14 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(reportPersonalDetails, report, {
+        allReportOptions.push(createOption(logins, personalDetails, report, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], {
+        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
@@ -616,8 +616,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, {
+        userToInvite = createOption([login], personalDetails, null, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
