@@ -10,7 +10,6 @@ import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
@@ -39,7 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return OptionsListUtils.getDefaultAvatar(login);
+    return ReportUtils.getDefaultAvatar(login);
 }
 
 /**

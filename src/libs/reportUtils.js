@@ -387,6 +387,7 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
-    getRoomWelcomeMessage,
+    getDefaultAvatar,
     getReportIcons,
+    getRoomWelcomeMessage,
 };

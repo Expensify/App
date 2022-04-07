@@ -78,7 +78,7 @@ Onyx.connect({
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
-const defaultAvatarForUserToInvite = getDefaultAvatar();
+const defaultAvatarForUserToInvite = ReportUtils.getDefaultAvatar();
 
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
@@ -108,7 +108,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: login,
-                avatar: getDefaultAvatar(login),
+                avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
 
