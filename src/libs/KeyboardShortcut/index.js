@@ -177,10 +177,11 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String} descriptionKey Translation key for shortcut description
- * @param {String|Array} modifiers Can either be shift or control
- * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
- * @param {Boolean|Function} shouldBubble Should the event bubble?
- * @param {Number} priority The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
+ * @param {Array<String>} [modifiers] Can either be shift or control
+ * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
+ * @param {Boolean|Function} [shouldBubble] Should the event bubble?
+ * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
+ * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0) {
