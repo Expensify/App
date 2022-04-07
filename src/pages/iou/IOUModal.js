@@ -438,7 +438,7 @@ class IOUModal extends Component {
                                                 // Note: We do not allow participants to be adjusted if this was opened from the global create menu,
                                                 // because if a user reaches the confirm step from that flow, they've already hand-picked the participants.
                                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                                canDeselectParticipants={this.steps.length === 2}
+                                                canModifyParticipants={this.steps.length === 2}
                                             />
                                         </AnimatedStep>
                                     )}

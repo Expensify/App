@@ -41,7 +41,7 @@ const propTypes = {
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /** Can the set of participants be adjusted? */
-    canDeselectParticipants: PropTypes.bool,
+    canModifyParticipants: PropTypes.bool,
 
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
@@ -116,7 +116,7 @@ const defaultProps = {
     network: {},
     myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    canDeselectParticipants: true,
+    canModifyParticipants: true,
 };
 
 class IOUConfirmationList extends Component {
@@ -357,7 +357,7 @@ class IOUConfirmationList extends Component {
      * @param {Number} index
      */
     scrollToIndex(index) {
-        if (!this.props.canDeselectParticipants) {
+        if (!this.props.canModifyParticipants) {
             return;
         }
 
@@ -411,7 +411,7 @@ class IOUConfirmationList extends Component {
             return;
         }
 
-        if (!this.props.canDeselectParticipants) {
+        if (!this.props.canModifyParticipants) {
             return;
         }
 
@@ -439,13 +439,13 @@ class IOUConfirmationList extends Component {
                             <OptionsList
                                 ref={e => this.list = e}
                                 sections={this.state.sections}
-                                focusedIndex={this.props.canDeselectParticipants ? focusedIndex : null}
+                                focusedIndex={this.props.canModifyParticipants ? focusedIndex : null}
                                 hideAdditionalOptionStates
                                 forceTextUnreadStyle
                                 canSelectMultipleOptions={this.props.hasMultipleParticipants}
                                 selectedOptions={this.getSelectedOptions()}
                                 onSelectRow={toggleOption}
-                                isDisabled={!this.props.canDeselectParticipants}
+                                isDisabled={!this.props.canModifyParticipants}
                                 optionHoveredStyle={hoverStyle}
                             />
                         </ScrollView>

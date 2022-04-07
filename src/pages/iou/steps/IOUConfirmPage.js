@@ -20,7 +20,7 @@ const propTypes = {
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /** Can the set of participants be adjusted? */
-    canDeselectParticipants: PropTypes.bool.isRequired,
+    canModifyParticipants: PropTypes.bool.isRequired,
 
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
@@ -62,7 +62,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
-        canDeselectParticipants={props.canDeselectParticipants}
+        canModifyParticipants={props.canModifyParticipants}
     />
 );
 
