@@ -14,7 +14,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
@@ -235,8 +234,6 @@ class NewChatPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
                                 <>
                                     <OptionsSelector
                                         canSelectMultipleOptions={this.props.isGroupChat}
@@ -281,7 +278,6 @@ class NewChatPage extends Component {
                                         </FixedFooter>
                                     )}
                                 </>
-                            )}
                         </View>
                     </KeyboardAvoidingView>
                 )}
