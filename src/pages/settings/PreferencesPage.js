@@ -85,7 +85,7 @@ const PreferencesPage = (props) => {
                     <View style={[styles.mb2, styles.w100]}>
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
-                            onChange={
+                            onInputChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
                             items={_.values(priorityModes)}
