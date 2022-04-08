@@ -47,6 +47,7 @@ const FullNameInputRow = (props) => {
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>
                 <TextInput
+                    styles={{backgroundColor:'red'}}
                     label={props.translate('common.firstName')}
                     name="fname"
                     value={props.firstName}

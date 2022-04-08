@@ -16,17 +16,18 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import Accessibility from './AccessibilityFontSize'
 
 const picker = {
     backgroundColor: 'transparent',
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
-    fontSize: variables.fontSizeNormal,
-    lineHeight: variables.fontSizeNormalHeight,
+    fontSize: Accessibility().fontSizeNormal,
+    lineHeight: Accessibility().fontSizeNormalHeight,
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
+    height: Accessibility().inputHeight,
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: themeColors.border,
@@ -47,7 +48,7 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
-const webViewStyles = {
+const webViewStyles = (fontSize,pixelRatio) => ({
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
     // styles in the below "tagStyles" instead. If you need to reuse those
@@ -57,32 +58,38 @@ const webViewStyles = {
         em: {
             fontFamily: fontFamily.GTA,
             fontStyle: 'italic',
+            fontSize,
         },
 
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
+            fontSize,
         },
 
         strong: {
             fontFamily: fontFamily.GTA,
             fontWeight: 'bold',
+            fontSize,
         },
 
-        a: link,
+        a: {...link,fontSize},
 
         ul: {
             maxWidth: '100%',
             flex: 1,
+            fontSize,
         },
 
         ol: {
             maxWidth: '100%',
             flex: 1,
+            fontSize,
         },
 
         li: {
             flexShrink: 1,
+            fontSize,
         },
 
         blockquote: {
@@ -91,7 +98,7 @@ const webViewStyles = {
             paddingLeft: 12,
             marginTop: 4,
             marginBottom: 4,
-
+            fontSize,
             // Overwrite default HTML margin for blockquotes
             marginLeft: 0,
         },
@@ -105,6 +112,7 @@ const webViewStyles = {
             fontFamily: fontFamily.MONOSPACE,
             marginTop: 0,
             marginBottom: 0,
+            fontSize,
         },
 
         code: {
@@ -113,7 +121,7 @@ const webViewStyles = {
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
-            fontSize: 13,
+            fontSize:pixelRatio>1?50/pixelRatio:13
         },
 
         img: {
@@ -125,16 +133,18 @@ const webViewStyles = {
         p: {
             marginTop: 0,
             marginBottom: 0,
+            fontSize,
         },
     },
 
     baseFontStyle: {
         color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
+        // fontSize: Accessibility().fontSizeNormal,
+        fontSize,
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
-};
+})
 
 const styles = {
     // Add all of our utility and helper styles
@@ -181,19 +191,19 @@ const styles = {
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeh1,
+        fontSize: Accessibility().fontSizeh1,
         fontWeight: fontWeightBold,
     },
 
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: Accessibility().fontSizeLabel,
         fontWeight: fontWeightBold,
     },
 
@@ -210,60 +220,60 @@ const styles = {
     },
 
     label: {
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
     },
 
     textLabel: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
     },
 
     mutedTextLabel: {
         color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
     },
 
     textMicro: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        fontSize: Accessibility().fontSizeSmall,
+        lineHeight: Accessibility().lineHeightSmall,
     },
 
     textMicroBold: {
         color: themeColors.text,
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
     },
 
     textMicroSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        fontSize: Accessibility().fontSizeSmall,
+        lineHeight: Accessibility().lineHeightSmall,
     },
 
     textExtraSmallSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
+        fontSize: Accessibility().fontSizeExtraSmall,
     },
 
     textLarge: {
-        fontSize: variables.fontSizeLarge,
+        fontSize: Accessibility().fontSizeLarge,
     },
 
     textXXLarge: {
-        fontSize: variables.fontSizeXXLarge,
+        fontSize: Accessibility().fontSizeXXLarge,
     },
 
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeXXXLarge,
+        fontSize: Accessibility().fontSizeXXXLarge,
         fontWeight: fontWeightBold,
     },
 
@@ -340,7 +350,7 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
 
@@ -380,21 +390,21 @@ const styles = {
     },
 
     buttonSmallText: {
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonMediumText: {
-        fontSize: variables.fontSizeLabel,
+        fontSize: Accessibility().fontSizeLabel,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -500,7 +510,7 @@ const styles = {
     pickerSmall: {
         inputIOS: {
             fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
+            fontSize: Accessibility().fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
             paddingTop: 6,
@@ -516,7 +526,7 @@ const styles = {
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
+            fontSize: Accessibility().fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
             paddingTop: 6,
@@ -534,7 +544,7 @@ const styles = {
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
+            fontSize: Accessibility().fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
             paddingTop: 6,
@@ -585,8 +595,8 @@ const styles = {
 
     badgeText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        fontSize: Accessibility().fontSizeSmall,
+        lineHeight: Accessibility().lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -607,7 +617,7 @@ const styles = {
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontWeight: fontWeightBold,
     },
 
@@ -632,8 +642,8 @@ const styles = {
     chatItemComposeSecondaryRowSubText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        fontSize: Accessibility().fontSizeSmall,
+        lineHeight: Accessibility().lineHeightSmall,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -647,7 +657,11 @@ const styles = {
     },
 
     componentHeightLarge: {
-        height: variables.componentSizeLarge,
+        height: Accessibility().inputHeight,
+        // height: variables.componentSizeLarge,
+    },
+    textInputHeight:{
+        height: Accessibility().inputHeight
     },
 
     textInputContainer: {
@@ -665,7 +679,8 @@ const styles = {
         position: 'absolute',
         left: 11,
         top: 0,
-        fontSize: variables.fontSizeNormal,
+        // top: 5,
+        fontSize: Accessibility().fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
@@ -696,8 +711,8 @@ const styles = {
 
     baseTextInput: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        fontSize: Accessibility().fontSizeNormal,
+        lineHeight: Accessibility().fontSizeNormalHeight,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -740,7 +755,7 @@ const styles = {
         borderWidth: 1,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 10,
@@ -758,7 +773,7 @@ const styles = {
         paddingBottom: 8,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         textAlignVertical: 'center',
     },
 
@@ -775,7 +790,7 @@ const styles = {
     },
     picker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
-            top: 16,
+            top: Accessibility().pickerIconTop,
             right: 11,
             zIndex: -1,
         },
@@ -820,7 +835,7 @@ const styles = {
 
     textLabelSupporting: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
+        fontSize: Accessibility().fontSizeLabel,
         color: themeColors.textSupporting,
     },
 
@@ -832,29 +847,29 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
         marginBottom: 8,
     },
 
     formHelp: {
         color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
         marginBottom: 4,
     },
 
     formError: {
         color: themeColors.textError,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
         marginBottom: 4,
     },
 
     formSuccess: {
         color: themeColors.textSuccess,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        fontSize: Accessibility().fontSizeLabel,
+        lineHeight: Accessibility().lineHeightLarge,
         marginBottom: 4,
     },
 
@@ -883,14 +898,14 @@ const styles = {
     signInPageHeroHeading: {
         fontFamily: fontFamily.GTA,
         fontWeight: fontWeightBold,
-        fontSize: variables.fontSizeHero,
+        fontSize: Accessibility().fontSizeHero,
         color: colors.white,
-        lineHeight: variables.lineHeightHero,
+        lineHeight: Accessibility().lineHeightHero,
     },
 
     signInPageHeroDescription: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         color: colors.white,
     },
 
@@ -997,7 +1012,7 @@ const styles = {
 
     sidebarFooterUsername: {
         color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
+        fontSize: Accessibility().fontSizeLabel,
         fontWeight: '700',
         width: 200,
         textOverflow: 'ellipsis',
@@ -1007,10 +1022,10 @@ const styles = {
 
     sidebarFooterLink: {
         color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
     },
 
     sidebarListContainer: {
@@ -1024,8 +1039,8 @@ const styles = {
     },
 
     singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+        fontSize: Accessibility().fontSizeSingleEmoji,
+        lineHeight: Accessibility().fontSizeSingleEmojiHeight,
     },
 
     createMenuPositionSidebar: {
@@ -1055,7 +1070,7 @@ const styles = {
 
     createMenuHeaderText: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
+        fontSize: Accessibility().fontSizeLabel,
         color: themeColors.heading,
     },
 
@@ -1082,7 +1097,7 @@ const styles = {
 
     popoverMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
@@ -1123,7 +1138,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -1144,7 +1159,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -1157,7 +1172,7 @@ const styles = {
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
         height: 20,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
 
@@ -1177,7 +1192,7 @@ const styles = {
 
     optionAlternateText: {
         height: 20,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
     },
 
     optionAlternateTextCompact: {
@@ -1265,9 +1280,9 @@ const styles = {
     chatItemMessageHeaderSender: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontWeight: fontWeightBold,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
         paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
@@ -1276,16 +1291,16 @@ const styles = {
     chatItemMessageHeaderTimestamp: {
         flexShrink: 0,
         color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         height: 24,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
     },
 
     chatItemMessage: {
         color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
@@ -1299,9 +1314,9 @@ const styles = {
 
     chatItemMessageLink: {
         color: colors.blue,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {
@@ -1337,11 +1352,11 @@ const styles = {
         borderColor: themeColors.border,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
         overflowX: 'hidden',
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
@@ -1383,7 +1398,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
     },
 
     emojiSkinToneTitle: {
@@ -1393,14 +1408,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
     },
 
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
-        fontSize: variables.emojiSize,
+        fontSize: Accessibility().emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
     },
@@ -1582,7 +1597,7 @@ const styles = {
 
     avatarInnerText: {
         color: themeColors.textReversed,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
@@ -1590,7 +1605,7 @@ const styles = {
 
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
-        fontSize: variables.fontSizeExtraSmall,
+        fontSize: Accessibility().fontSizeExtraSmall,
         lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
@@ -1755,21 +1770,21 @@ const styles = {
         color: colors.blue,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: 150,
+        fontSize: Accessibility().fontSizeNormal,
     },
 
     notFoundTextBody: {
         color: themeColors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: 15,
+        fontSize: Accessibility().fontSizeNormal,
     },
 
     notFoundButtonText: {
         color: colors.blue,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: 15,
+        fontSize: Accessibility().fontSizeNormal,
     },
 
     defaultModalContainer: {
@@ -1853,7 +1868,7 @@ const styles = {
 
     avatarInnerTextChat: {
         color: themeColors.textReversed,
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         left: 1,
         textAlign: 'center',
         fontWeight: 'normal',
@@ -1861,7 +1876,7 @@ const styles = {
     },
 
     displayName: {
-        fontSize: variables.fontSizeLarge,
+        fontSize: Accessibility().fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1908,7 +1923,7 @@ const styles = {
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         fontWeight: fontWeightBold,
         textTransform: 'capitalize',
     },
@@ -1950,9 +1965,9 @@ const styles = {
     detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
+        fontSize: Accessibility().fontSizeSmall,
         height: 24,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightXLarge,
     },
 
     switchTrack: {
@@ -2006,14 +2021,14 @@ const styles = {
     iouAmountText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: variables.iouAmountTextSize,
+        fontSize: Accessibility().iouAmountTextSize,
         color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: variables.iouAmountTextSize,
+        fontSize: Accessibility().iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
         lineHeight: undefined,
@@ -2153,10 +2168,10 @@ const styles = {
     },
 
     growlNotificationText: {
-        fontSize: variables.fontSizeNormal,
+        fontSize: Accessibility().fontSizeNormal,
         fontFamily: fontFamily.GTA,
         width: '90%',
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: Accessibility().fontSizeNormalHeight,
         color: themeColors.textReversed,
         ...spacing.ml4,
     },
@@ -2245,9 +2260,9 @@ const styles = {
     },
 
     workspaceCardMainText: {
-        fontSize: variables.fontSizeXXXLarge,
+        fontSize: Accessibility().fontSizeXXXLarge,
         fontWeight: 'bold',
-        lineHeight: variables.fontSizeXXXLarge,
+        lineHeight: Accessibility().fontSizeXXXLarge,
     },
 
     workspaceCardContent: {
@@ -2287,8 +2302,8 @@ const styles = {
 
     peopleBadgeText: {
         color: themeColors.textReversed,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        fontSize: Accessibility().fontSizeSmall,
+        lineHeight: Accessibility().lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -2410,8 +2425,8 @@ const styles = {
 
     googleSearchText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        fontSize: Accessibility().fontSizeNormal,
+        lineHeight: Accessibility().fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
@@ -2485,7 +2500,7 @@ const styles = {
     },
 
     transferBalanceBalance: {
-        fontSize: 48,
+        fontSize: Accessibility().fontSizeXXXXXLarge,
     },
 
     closeAccountMessageInput: {

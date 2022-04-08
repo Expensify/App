@@ -44,4 +44,10 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
+    inputHeight: 52,
+    lineHeightSmall:14,
+    lineHeightNormal:16,
+    lineHeightLarge:18,
+    lineHeightXLarge:20,
+    pickerIconTop: 16
 };

@@ -14,6 +14,7 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
+import {useWindowDimensions} from 'react-native';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -41,7 +42,10 @@ const defaultProps = {
     interactive: true,
 };
 
-const MenuItem = props => (
+const MenuItem = props => {
+    const {width} = useWindowDimensions();
+
+return (  
     <Pressable
         onPress={(e) => {
             if (props.disabled) {
@@ -114,11 +118,11 @@ const MenuItem = props => (
                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                     {(props.subtitle || props.subtitle === 0) && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
-                            <Text
+                            {/* <Text
                                 style={styles.textLabelSupporting}
                             >
                                 {props.subtitle}
-                            </Text>
+                            </Text> */}
                         </View>
                     )}
                     {props.shouldShowRightIcon && (
@@ -134,7 +138,8 @@ const MenuItem = props => (
             </>
         )}
     </Pressable>
-);
+    );
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;

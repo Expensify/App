@@ -5,7 +5,7 @@ import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
+import Accessibility from '../styles/AccessibilityFontSize';
 
 const propTypes = {
     /** The color of the text */
@@ -29,7 +29,7 @@ const propTypes = {
 };
 const defaultProps = {
     color: themeColors.text,
-    fontSize: variables.fontSizeNormal,
+    fontSize: Accessibility().fontSizeNormal,
     family: 'GTA',
     textAlign: 'left',
     children: null,
@@ -58,8 +58,8 @@ const Text = React.forwardRef(({
         ...mergedStyles,
     };
 
-    if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
-        componentStyle.lineHeight = variables.fontSizeNormalHeight;
+    if (!componentStyle.lineHeight && componentStyle.fontSize === Accessibility().fontSizeNormal) {
+        componentStyle.lineHeight = Accessibility().fontSizeNormalHeight;
     }
 
     return (

@@ -1,11 +1,12 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef, useState,useEffect} from 'react';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
     defaultHTMLElementModels,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
+import {AppState,PixelRatio} from 'react-native';
 import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
@@ -44,14 +45,34 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
 const BaseHTMLEngineProvider = (props) => {
+    const appState = useRef(AppState.currentState);
+    const [pixelRatio,setPixelRatio] = useState(PixelRatio.getFontScale())
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener("change", nextAppState => {
+          if (
+            appState.current.match(/inactive|background/) &&
+            nextAppState === "active"
+          ) {
+            console.log("App has come to the foreground!");
+            setPixelRatio(PixelRatio.getFontScale())
+          }
+    
+          appState.current = nextAppState;
+        });
+    
+        return () => {
+          subscription.remove();
+        };
+      }, []);
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
 
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={styles.webViewStyles.baseFontStyle}
-            tagsStyles={styles.webViewStyles.tagStyles}
+            baseStyle={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).baseFontStyle}
+            tagsStyles={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing
             systemFonts={_.values(fontFamily)}
