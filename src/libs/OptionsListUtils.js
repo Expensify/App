@@ -103,7 +103,8 @@ const defaultAvatarForUserToInvite = getDefaultAvatar();
  */
 function addSMSDomainIfPhoneNumber(login) {
     if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
-        return login + CONST.SMS.DOMAIN;
+        const smsLogin = login + CONST.SMS.DOMAIN;
+        return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
     }
     return login;
 }
@@ -593,7 +594,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase()))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -788,7 +789,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue)) {
+        if (/^\d+$/.test(searchValue) && !Str.isValidPhone(searchValue)) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
