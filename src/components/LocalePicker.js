@@ -49,7 +49,7 @@ const LocalePicker = (props) => {
     return (
         <Picker
             label={props.size === 'normal' ? props.translate('preferencesPage.language') : null}
-            onChange={(locale) => {
+            onInputChange={(locale) => {
                 if (locale === props.preferredLocale) {
                     return;
                 }
