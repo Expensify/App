@@ -41,9 +41,7 @@ class WalletStatementModal extends React.Component {
         const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
             <>
-                <FullScreenLoadingIndicator
-                    visible={this.state.isLoading}
-                />
+                {this.state.isLoading && <FullScreenLoadingIndicator />}
                 <View style={[styles.flex1]}>
                     <iframe
                         src={`${this.props.statementPageURL}&authToken=${authToken}`}

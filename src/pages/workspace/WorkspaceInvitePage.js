@@ -262,7 +262,7 @@ class WorkspaceInvitePage extends React.Component {
                             onBackButtonPress={() => Navigation.goBack()}
                         />
                         <View style={[styles.flex1]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
                                     autoFocus={false}
