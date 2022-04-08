@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+import * as PersonalDetails from './actions/PersonalDetails';
+
 
 let sessionEmail;
 Onyx.connect({
@@ -190,6 +192,19 @@ function getPolicyName(report, policies) {
 }
 
 /**
+ * Get the title for a policyExpenseChat
+ * @param {Object} report
+ * @param {Object} policies must have Onyxkey prefix (i.e. 'policy_') for keys
+ * @param {Object} personalDetails must be keyed by email
+ */
+function getPolicyExpenseChatTitle(report, policies) {
+    if (report.isOwnPolicyExpenseChat) {
+        return getPolicyName(report, policies);
+    }
+    return PersonalDetails.getDisplayName(report.ownerEmail);
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
@@ -320,6 +335,7 @@ export {
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
+    getPolicyExpenseChatTitle,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
