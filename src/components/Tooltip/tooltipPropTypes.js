@@ -39,6 +39,8 @@ const defaultProps = {
     shiftVertical: 0,
     containerStyles: [],
     text: '',
+    maxWidth: undefined,
+    numberOfLines: undefined,
 };
 
 export {

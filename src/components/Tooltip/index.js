@@ -31,9 +31,6 @@ class Tooltip extends PureComponent {
         // The wrapper view containing the wrapped content along with the Tooltip itself.
         this.wrapperView = null;
 
-        // The tooltip (popover) itself.
-        this.tooltip = null;
-
         // Whether the tooltip is first tooltip to activate the TooltipSense
         this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
@@ -184,7 +181,6 @@ class Tooltip extends PureComponent {
                         yOffset={this.state.yOffset}
                         wrapperWidth={this.state.wrapperWidth}
                         wrapperHeight={this.state.wrapperHeight}
-                        setTooltipRef={el => this.tooltip = el}
                         shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}

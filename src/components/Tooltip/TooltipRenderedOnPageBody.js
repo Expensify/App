@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
@@ -33,9 +33,6 @@ const propTypes = {
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical: PropTypes.number.isRequired,
 
-    /** Callback to set the Ref to the Tooltip */
-    setTooltipRef: PropTypes.func.isRequired,
-
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
@@ -52,7 +49,12 @@ const defaultProps = {
     numberOfLines: undefined,
 };
 
-class TooltipRenderedOnPageBody extends React.Component {
+// Props will change frequently.
+// On every tooltip hover, we update the position in state which will result in re-rendering.
+// We also update the state on layout changes which will be triggered often.
+// There will be n number of tooltip components in the page.
+// Its good to memorize this one.
+class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
@@ -63,8 +65,6 @@ class TooltipRenderedOnPageBody extends React.Component {
             tooltipWidth: 0,
             tooltipHeight: 0,
         };
-
-        this.textRef = null;
 
         this.measureTooltip = this.measureTooltip.bind(this);
     }
@@ -113,7 +113,6 @@ class TooltipRenderedOnPageBody extends React.Component {
         );
         return ReactDOM.createPortal(
             <Animated.View
-                ref={this.props.setTooltipRef}
                 onLayout={this.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
@@ -132,9 +131,4 @@ class TooltipRenderedOnPageBody extends React.Component {
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;
 
-// Props will change frequently.
-// On every tooltip hover, we update the position in state which will result in re-rendering.
-// We also update the state on layout changes which will be triggered often.
-// There will be n number of tooltip components in the page.
-// Its good to memorize this one.
-export default memo(TooltipRenderedOnPageBody);
+export default TooltipRenderedOnPageBody;
