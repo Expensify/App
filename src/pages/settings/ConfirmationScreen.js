@@ -31,44 +31,42 @@ const defaultProps = {
 
 const ConfirmationScreen = props => (
     <>
-        <View style={[styles.flex1, styles.p5, styles.justifyContentCenter]}>
-            <View style={[styles.alignItemsCenter, styles.mb10]}>
-                <Image
-                    source={confettiPop}
-                    style={styles.confettiIcon}
-                />
-                <Text
-                    style={[
-                        styles.textStrong,
-                        styles.textLarge,
-                        styles.mb2,
-                    ]}
-                >
-                    {props.translate('confirmationScreen.passwordUpdated')}
-                </Text>
+        <View style={[styles.flex1, styles.p5, styles.justifyContentCenter, styles.alignItemsCenter, styles.mb10]}>
+            <Image
+                source={confettiPop}
+                style={styles.confettiIcon}
+            />
+            <Text
+                style={[
+                    styles.textStrong,
+                    styles.textLarge,
+                    styles.mb2,
+                ]}
+            >
+                {props.translate('confirmationScreen.passwordUpdated')}
+            </Text>
+            <Text style={styles.textAlignCenter}>
                 <Text style={styles.textAlignCenter}>
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('confirmationScreen.allSet')}
-                    </Text>
-                    {!props.requiresTwoFactorAuth && (
-                        <>
-                            <Text>
-                                {' '}
-                                {props.translate('confirmationScreen.set2FAPartOne')}
-                            </Text>
-                            <Text
-                                style={styles.link}
-                                onPress={() => Link.openExternalLink('')}
-                            >
-                                {' '}
-                                {props.translate('confirmationScreen.set2FAPartTwo')}
-                                {' '}
-                            </Text>
-                            <Text>{props.translate('confirmationScreen.set2FAPartThree')}</Text>
-                        </>
-                    )}
+                    {props.translate('confirmationScreen.allSet')}
                 </Text>
-            </View>
+                {!props.account.requiresTwoFactorAuth && (
+                    <>
+                        <Text>
+                            {' '}
+                            {props.translate('confirmationScreen.set2FAPartOne')}
+                        </Text>
+                        <Text
+                            style={styles.link}
+                            onPress={() => Link.openExternalLink('')}
+                        >
+                            {' '}
+                            {props.translate('confirmationScreen.set2FAPartTwo')}
+                            {' '}
+                        </Text>
+                        <Text>{props.translate('confirmationScreen.set2FAPartThree')}</Text>
+                    </>
+                )}
+            </Text>
         </View>
         <FixedFooter>
             <Button
