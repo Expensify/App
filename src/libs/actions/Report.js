@@ -161,11 +161,9 @@ function getChatReportName(fullReport, chatType, oldPolicyName) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
     }
 
+    // We can store whatever title for the report object since we'll create the real name based on the latest data in Onyx
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
-            ? oldPolicyName
-            : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
-        return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;

@@ -6,11 +6,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as Expensicons from '../components/Icon/Expensicons';
-import md5 from './md5';
-import Navigation from './Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import * as PersonalDetails from './actions/PersonalDetails';
+
 
 let sessionEmail;
 Onyx.connect({
@@ -212,6 +209,19 @@ function isArchivedRoom(report) {
 function getPolicyName(report, policies) {
     const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+}
+
+/**
+ * Get the title for a policyExpenseChat
+ * @param {Object} report
+ * @param {Object} policies must have Onyxkey prefix (i.e. 'policy_') for keys
+ * @param {Object} personalDetails must be keyed by email
+ */
+function getPolicyExpenseChatTitle(report, policies) {
+    if (report.isOwnPolicyExpenseChat) {
+        return getPolicyName(report, policies);
+    }
+    return PersonalDetails.getDisplayName(report.ownerEmail);
 }
 
 /**
@@ -553,6 +563,7 @@ export {
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
+    getPolicyExpenseChatTitle,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
