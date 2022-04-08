@@ -50,6 +50,30 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
+ *
+ * @param {Number} [maxWidth] - Max-width for tooltip's wrapper.
+ * @param {Number} [tooltipTextWidth] -  Max-width for tooltip's wrapper.
+ * @returns {Object}
+ */
+function setWrapperWidth(maxWidth, tooltipTextWidth) {
+    if (!maxWidth) {
+        return ({});
+    }
+
+    if (tooltipTextWidth >= maxWidth) {
+        return ({maxWidth});
+    }
+
+    // Sum left and right wrapper padding, otherwise the wrapper will clip the text.
+    // Add 1 px safe buffer to avoid last word wrap or clip on special cases
+    // where the real text width is float but a little larger than ref.offsetWidth, which will return integer
+    // ex. real text width: 172.2 px, ref.offsetWidth: 172px
+    return ({
+        maxWidth: tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1,
+    });
+}
+
+/**
  * Generate styles for the tooltip component.
  *
  * @param {Number} currentSize - The current size of the tooltip used in the scaling animation.
@@ -67,8 +91,8 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Number} [tooltipTextWidth] - Tooltip's inner text width
- * @param {Number} [maxWidth] -  Max-width for tooltip's wrapper
+ * @param {Number} [tooltipTextWidth] - Tooltip's inner text width.
+ * @param {Number} [maxWidth] -  Max-width for tooltip's wrapper.
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -113,11 +137,7 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            maxWidth: tooltipTextWidth >= maxWidth
-                ? maxWidth
-
-                // Sum left and right padding
-                : tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2),
+            ...setWrapperWidth(maxWidth, tooltipTextWidth),
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.

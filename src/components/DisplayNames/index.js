@@ -5,6 +5,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
+import variables from '../../styles/variables';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -110,7 +111,11 @@ class DisplayNames extends PureComponent {
                 {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive
                     && (
                         <View style={styles.displayNameTooltipEllipsis}>
-                            <Tooltip text={this.props.fullTitle}>
+                            <Tooltip
+                                text={this.props.fullTitle}
+                                numberOfLines={3}
+                                maxWidth={variables.sideBarWidth}
+                            >
                                 {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
                                 <Text>....</Text>
                             </Tooltip>
