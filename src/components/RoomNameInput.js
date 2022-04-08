@@ -96,8 +96,7 @@ class RoomNameInput extends Component {
                 prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
                 onChange={this.setModifiedRoomName}
-                // Since room name always starts with a prefix, we omit the first character
-                defaultValue={this.props.initialValue.substring(1)}
+                defaultValue={this.props.initialValue.substring(1)} // Since room name always starts with a prefix, we omit the first character
                 errorText={this.props.errorText}
                 autoCapitalize="none"
             />
