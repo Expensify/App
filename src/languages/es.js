@@ -341,7 +341,7 @@ export default {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo, guarda tu contraseña en un lugar seguro.',
         set2FAPartOne: 'Configura',
-        set2FAPartTwo: 'autenticación de dos factores',
+        set2FAPartTwo: 'la autenticación de dos factores',
         set2FAPartThree: 'para obtener seguridad adicional.',
         gotIt: 'Ok, entendido',
     },
