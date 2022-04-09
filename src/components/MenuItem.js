@@ -59,7 +59,7 @@ const MenuItem = props => (
     >
         {({hovered, pressed}) => (
             <>
-                <View style={[styles.flexRow, styles.pointerEventsNone]}>
+                <View style={[styles.flexRow, styles.flexShrink1, styles.pointerEventsNone]}>
                     {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
