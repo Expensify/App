@@ -709,7 +709,7 @@ function getNewChatOptions(
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-    sortByLastMessageTimestamp,
+    sortByLastMessageTimestamp = true,
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
