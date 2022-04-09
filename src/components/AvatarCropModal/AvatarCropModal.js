@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable react/prop-types */
 
 import React, {memo, useCallback, useEffect} from 'react';
@@ -9,6 +10,7 @@ import {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
+import {result} from 'underscore';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -25,6 +27,7 @@ import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
+import imageManipulator from './libs/imageManipulator';
 
 // This component cant be writen using class since reanimated API uses hooks
 const AvatarCropModal = memo((props) => {
@@ -155,8 +158,30 @@ const AvatarCropModal = memo((props) => {
     }, []);
 
     const initializeImage = useCallback(() => {
-        rotation.value += 0.0001; // needed to triger recalculation of image styles
+        rotation.value += 360; // needed to triger recalculation of image styles
     }, []);
+
+    const handleCrop = useCallback(() => {
+        const smallerSize = Math.min(imageHeight.value, imageWidth.value);
+        const size = smallerSize / scale.value;
+        const centerX = imageWidth.value / 2;
+        const centerY = imageHeight.value / 2;
+        const radius = size / 2;
+
+        const originX = centerX - radius - ((translateX.value / containerSize / scale.value) * smallerSize);
+        const originY = centerY - radius - ((translateY.value / containerSize / scale.value) * smallerSize);
+
+        const crop = {
+            height: size, width: size, originX, originY,
+        };
+
+        imageManipulator(props.imageUri, [{rotate: rotation.value}, {crop}], {compress: 1})
+            .then(() => {
+                // props.onClose();
+                // props.onCrop(newImage);
+                console.log(result);
+            });
+    }, [props.imageUri, containerSize]);
 
     return (
         <Modal
@@ -196,7 +221,7 @@ const AvatarCropModal = memo((props) => {
                 <Button
                     success
                     style={[styles.mh5, styles.mt6]}
-                    onPress={props.onClose}
+                    onPress={handleCrop}
                     pressOnEnter
                     text={props.translate('common.save')}
                 />
