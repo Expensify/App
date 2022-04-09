@@ -241,7 +241,12 @@ class AvatarWithImagePicker extends React.Component {
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
-                <AvatarCropModal onClose={() => this.setState({isAvatarCropModalOpen: false})} isVisible={this.state.isAvatarCropModalOpen} imageUri={this.state.image.uri} />
+                <AvatarCropModal
+                    onClose={() => this.setState({isAvatarCropModalOpen: false})}
+                    isVisible={this.state.isAvatarCropModalOpen}
+                    onCrop={this.props.onImageSelected}
+                    imageUri={this.state.image.uri}
+                />
             </View>
         );
     }
