@@ -449,7 +449,7 @@ function getPaddingLeft(paddingLeft) {
  * Get card style for cardStyleInterpolator
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} screenWidth
- * @returns
+ * @returns {Object}
  */
 function getCardStyle(isSmallScreenWidth, screenWidth) {
     return {
