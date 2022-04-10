@@ -111,6 +111,18 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     *  Checks if image has valid size and updates avatar
+     * @param {Object} image
+    */
+    updateAvatarImage(image) {
+        if (!this.isValidSize(image)) {
+            this.setUploadLimitModalVisibility(true);
+            return;
+        }
+        this.props.onImageSelected(image);
+    }
+
+    /**
      * Check if the attachment size is less than allowed size.
      * @param {Object} image
      * @returns {Boolean}
@@ -119,6 +131,10 @@ class AvatarWithImagePicker extends React.Component {
         return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
+    /**
+     *  Opens avatars crop modal and sets image to state
+     * @param {Object} image
+    */
     openAvatarCropModal(image) {
         this.setState({isAvatarCropModalOpen: true, image});
     }
@@ -242,9 +258,9 @@ class AvatarWithImagePicker extends React.Component {
                     shouldShowCancelButton={false}
                 />
                 <AvatarCropModal
-                    onClose={() => this.setState({isAvatarCropModalOpen: false})}
+                    onClose={() => this.setState({isAvatarCropModalOpen: false, image: {}})}
                     isVisible={this.state.isAvatarCropModalOpen}
-                    onCrop={this.props.onImageSelected}
+                    onCrop={image => this.updateAvatarImage(image)}
                     imageUri={this.state.image.uri}
                 />
             </View>
