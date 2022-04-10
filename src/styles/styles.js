@@ -317,6 +317,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
     textDanger: {
         color: colors.red,
     },
@@ -721,6 +725,11 @@ const styles = {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
+    },
+
+    secureInput: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
     },
 
     textInput: {
@@ -1682,14 +1691,17 @@ const styles = {
         backgroundColor: themeColors.modalBackground,
     },
     PDFView: {
-        flex: 1,
+        // `display: grid` is not supported in native platforms!
+        // It's being used on Web/Desktop only to vertically center short PDFs,
+        // while preventing the overflow of the top of long PDF files.
+        display: 'grid',
         backgroundColor: themeColors.modalBackground,
         width: '100%',
         height: '100%',
-        flexDirection: 'row',
         justifyContent: 'center',
         overflow: 'hidden',
         overflowY: 'auto',
+        alignItems: 'center',
     },
 
     modalCenterContentContainer: {
