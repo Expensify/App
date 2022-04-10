@@ -21,5 +21,5 @@ export default (
             screen,
         },
     },
-    StyleUtils.getCardStyle(isSmallScreenWidth, screen),
+    StyleUtils.getCardStyle(isSmallScreenWidth, screen.width),
 );

@@ -448,13 +448,13 @@ function getPaddingLeft(paddingLeft) {
 /**
  * Get card style for cardStyleInterpolator
  * @param {Boolean} isSmallScreenWidth
- * @param {*} screen
+ * @param {Number} screenWidth
  * @returns
  */
-function getCardStyle(isSmallScreenWidth, screen) {
+function getCardStyle(isSmallScreenWidth, screenWidth) {
     return {
         position: 'fixed',
-        width: isSmallScreenWidth ? screen.width : variables.sideBarWidth,
+        width: isSmallScreenWidth ? screenWidth : variables.sideBarWidth,
         right: 0,
         height: '100%',
     };
