@@ -445,6 +445,12 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Get card style for cardStyleInterpolator
+ * @param {Boolean} isSmallScreenWidth
+ * @param {*} screen
+ * @returns
+ */
 function getCardStyle(isSmallScreenWidth, screen) {
     return {
         position: 'fixed',
