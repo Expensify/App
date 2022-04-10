@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {Pressable} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -12,6 +13,8 @@ import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -70,6 +73,7 @@ const ReportWelcomeText = (props) => {
                 displayName: isMultipleParticipant ? shortName : longNameLocalized,
                 tooltip: Str.removeSMSDomain(login),
                 pronouns: finalPronouns,
+                login,
             };
         },
     );
@@ -103,9 +107,13 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {roomWelcomeMessage.phrase1}
                     </Text>
-                    <Text style={[styles.textStrong]}>
-                        {props.report.reportName}
-                    </Text>
+                    <Pressable
+                        onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                    >
+                        <Text style={[styles.textStrong]}>
+                            {props.report.reportName}
+                        </Text>
+                    </Pressable>
                     <Text>
                         {roomWelcomeMessage.phrase2}
                     </Text>
@@ -117,11 +125,13 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
-                    {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
+                    {_.map(displayNamesWithTooltips, ({displayName, pronouns, login}, index) => (
                         <Text key={displayName}>
-                            <Text style={[styles.textStrong]}>
-                                {displayName}
-                            </Text>
+                            <Pressable onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(login))}>
+                                <Text style={[styles.textStrong]}>
+                                    {displayName}
+                                </Text>
+                            </Pressable>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                             {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
                             {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
