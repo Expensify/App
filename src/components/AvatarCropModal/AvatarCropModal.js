@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-/* eslint-disable react/prop-types */
 
 import React, {memo, useCallback, useEffect} from 'react';
+import PropTypes from 'prop-types';
 import {Image, Pressable, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
@@ -19,15 +19,36 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Modal from '../Modal';
 import Text from '../Text';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import ImageCropView from './components/ImageCropView';
 import Slider from './components/Slider';
 
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
-import withLocalize from '../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
 import imageManipulator from './libs/imageManipulator';
+
+const propTypes = {
+    /** Link to image for cropping   */
+    imageUri: PropTypes.string,
+
+    /** Callback to be called when user closes the modal */
+    onClose: PropTypes.func,
+
+    /** Callback to be called when user crops image */
+    onCrop: PropTypes.func,
+
+    ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    imageUri: null,
+    onClose: () => {},
+    onCrop: () => {},
+};
 
 // This component cant be writen using class since reanimated API uses hooks
 const AvatarCropModal = memo((props) => {
@@ -176,9 +197,9 @@ const AvatarCropModal = memo((props) => {
         };
 
         imageManipulator(props.imageUri, [{rotate: rotation.value}, {crop}], {compress: 1})
-            .then(() => {
-                // props.onClose();
-                // props.onCrop(newImage);
+            .then((newImage) => {
+                props.onClose();
+                props.onCrop(newImage);
                 console.log(result);
             });
     }, [props.imageUri, containerSize]);
@@ -201,7 +222,7 @@ const AvatarCropModal = memo((props) => {
                 <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
                 <GestureHandlerRootView style={[{width: containerSize}, styles.alignSelfCenter, styles.mv5, styles.flex1]}>
                     <ImageCropView
-                        source={{uri: props.imageUri}}
+                        imageUri={props.imageUri}
                         style={[imageStyle, styles.h100, styles.w100]}
                         containerSize={containerSize}
                         panGestureEvent={panGestureEvent}
@@ -209,7 +230,7 @@ const AvatarCropModal = memo((props) => {
                     />
                     <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
                         <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                        <Slider sliderValue={translateSlider} onGestureEvent={panSliderGestureEvent} SLIDER_LINE_WIDTH={sliderLineWidth} />
+                        <Slider sliderValue={translateSlider} onGestureEvent={panSliderGestureEvent} sliderLineWidth={sliderLineWidth} />
                         <Pressable
                             onPress={handleRotate}
                             style={[styles.imageCropRotateButton]}
@@ -230,6 +251,9 @@ const AvatarCropModal = memo((props) => {
     );
 });
 
+AvatarCropModal.displayName = 'AvatarCropModal';
+AvatarCropModal.propTypes = propTypes;
+AvatarCropModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
