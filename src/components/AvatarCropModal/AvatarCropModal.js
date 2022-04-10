@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
-import React, {memo, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback, useEffect} from 'react';
 import {Image, Pressable, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
@@ -12,21 +12,20 @@ import {
 } from 'react-native-reanimated';
 import {result} from 'underscore';
 import CONST from '../../CONST';
+import compose from '../../libs/compose';
+import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import Button from '../Button';
+import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Modal from '../Modal';
 import Text from '../Text';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import ImageCropView from './components/ImageCropView';
 import Slider from './components/Slider';
-
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import colors from '../../styles/colors';
 import imageManipulator from './libs/imageManipulator';
 
 const propTypes = {
