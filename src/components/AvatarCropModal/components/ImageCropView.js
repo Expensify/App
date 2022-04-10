@@ -1,11 +1,11 @@
-import {Image, View} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {Image, View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
+import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
-import styles from '../../../styles/styles';
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
