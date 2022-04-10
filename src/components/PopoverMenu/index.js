@@ -20,7 +20,7 @@ const PopoverMenu = (props) => {
     };
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <BasePopoverMenu {...props} onItemSelected={selectItem} />;
+    return <BasePopoverMenu {...props} animationIn="fadeIn" onItemSelected={selectItem} />;
 };
 
 PopoverMenu.propTypes = propTypes;
