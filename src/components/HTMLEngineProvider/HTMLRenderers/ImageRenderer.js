@@ -4,7 +4,7 @@ import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import TouchableWithoutFocus from '../../TouchableWithoutFocus';
+import PressableWithoutFocus from '../../PressableWithoutFocus';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -50,7 +50,7 @@ const ImageRenderer = (props) => {
             originalFileName={originalFileName}
         >
             {({show}) => (
-                <TouchableWithoutFocus
+                <PressableWithoutFocus
                     style={styles.noOutline}
                     onPress={show}
                 >
@@ -59,7 +59,7 @@ const ImageRenderer = (props) => {
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
-                </TouchableWithoutFocus>
+                </PressableWithoutFocus>
             )}
         </AttachmentModal>
     );

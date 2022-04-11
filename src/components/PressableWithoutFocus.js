@@ -23,7 +23,7 @@ const defaultProps = {
 /**
  * This component prevents the tapped element from capturing focus
  */
-class TouchableWithoutFocus extends React.Component {
+class PressableWithoutFocus extends React.Component {
     constructor(props) {
         super(props);
         this.pressAndBlur = this.pressAndBlur.bind(this);
@@ -43,7 +43,7 @@ class TouchableWithoutFocus extends React.Component {
     }
 }
 
-TouchableWithoutFocus.propTypes = propTypes;
-TouchableWithoutFocus.defaultProps = defaultProps;
+PressableWithoutFocus.propTypes = propTypes;
+PressableWithoutFocus.defaultProps = defaultProps;
 
-export default TouchableWithoutFocus;
+export default PressableWithoutFocus;
