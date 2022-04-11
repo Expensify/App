@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
+import * as ReportUtils from '../libs/reportUtils';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -53,7 +54,6 @@ const defaultProps = {
 
 const ArchivedReportFooter = (props) => {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    const policyName = lodashGet(props.policies, `${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}.name`);
     let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
     let oldDisplayName;
@@ -69,7 +69,7 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${policyName}</strong>`,
+                policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
         />

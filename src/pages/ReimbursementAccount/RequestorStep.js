@@ -236,7 +236,7 @@ class RequestorStep extends React.Component {
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
-                                {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
+                                {`${this.props.translate('onfidoStep.facialScan')}`}
                             </Text>
                             {', '}
                             <Text
