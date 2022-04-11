@@ -145,7 +145,7 @@ const HeaderView = (props) => {
                                 />
                             ) : (
                                 <MultipleAvatars
-                                    avatarIcons={reportIcons}
+                                    icons={reportIcons}
                                     avatarTooltips={avatarTooltip}
                                 />
                             )}
