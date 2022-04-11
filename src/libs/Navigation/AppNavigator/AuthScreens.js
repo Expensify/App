@@ -79,17 +79,30 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
+
+    /** Is a workspace currently being created for the user? */
+    isCreatingWorkspace: PropTypes.bool,
+
     /** Information about the network */
     network: PropTypes.shape({
         /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    isCreatingWorkspace: false,
     network: {isOffline: true},
+    session: {email: null},
 };
 
 class AuthScreens extends React.Component {
@@ -188,6 +201,10 @@ class AuthScreens extends React.Component {
      */
     shouldCreateFreePolicy(url = '') {
         if (!url) {
+            return false;
+        }
+
+        if (this.props.isCreatingWorkspace) {
             return false;
         }
 
@@ -370,6 +387,9 @@ AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
+        isCreatingWorkspace: {
+            key: ONYXKEYS.IS_CREATING_WORKSPACE,
+        },
         network: {
             key: ONYXKEYS.NETWORK,
         },
