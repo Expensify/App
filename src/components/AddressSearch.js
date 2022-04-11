@@ -119,11 +119,10 @@ const AddressSearch = (props) => {
     return (
         <ScrollView
             horizontal
-            contentContainerStyle={[styles.flex1]}
+            contentContainerStyle={styles.flex1}
             scrollEnabled={false}
         >
-            <View style={[styles.w100]}>
-
+            <View style={styles.w100}>
                 <GooglePlacesAutocomplete
                     fetchDetails
                     suppressDefaultStyles
