@@ -473,6 +473,13 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
 
+        // When we add a search term for which exist options for it excluding its period.
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
+
+        // Then we will have an options at all and there should be a userToInvite too.
+        expect(results.recentReports.length).toBe(1);
+        expect(results.userToInvite).not.toBe(null);
+
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number without country code added
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '5005550006');
