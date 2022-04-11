@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox} from 'react-native';
+import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import TextInput from './TextInput';
-import NestedScrollView from './NestedScrollView';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import * as FormUtils from '../libs/FormUtils';
@@ -118,91 +117,98 @@ const AddressSearch = (props) => {
     };
 
     return (
-        <NestedScrollView>
-            <GooglePlacesAutocomplete
-                fetchDetails
-                suppressDefaultStyles
-                enablePoweredByContainer={false}
-                onPress={(data, details) => {
-                    saveLocationDetails(details);
+        <ScrollView
+            horizontal
+            contentContainerStyle={[styles.flex1]}
+            scrollEnabled={false}
+        >
+            <View style={[styles.w100]}>
 
-                    // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                    setDisplayListViewBorder(false);
-                }}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: props.preferredLocale,
-                    types: 'address',
-                    components: 'country:us',
-                }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: TextInput,
-                    ref: (node) => {
-                        if (!props.innerRef) {
-                            return;
-                        }
+                <GooglePlacesAutocomplete
+                    fetchDetails
+                    suppressDefaultStyles
+                    enablePoweredByContainer={false}
+                    onPress={(data, details) => {
+                        saveLocationDetails(details);
 
-                        if (_.isFunction(props.innerRef)) {
-                            props.innerRef(node);
-                            return;
-                        }
+                        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                        setDisplayListViewBorder(false);
+                    }}
+                    query={{
+                        key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                        language: props.preferredLocale,
+                        types: 'address',
+                        components: 'country:us',
+                    }}
+                    requestUrl={{
+                        useOnPlatform: 'web',
+                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                    }}
+                    textInputProps={{
+                        InputComp: TextInput,
+                        ref: (node) => {
+                            if (!props.innerRef) {
+                                return;
+                            }
 
-                        // eslint-disable-next-line no-param-reassign
-                        props.innerRef.current = node;
-                    },
-                    label: props.label,
-                    containerStyles: props.containerStyles,
-                    errorText: props.errorText,
-                    value: props.value,
-                    isFormInput: props.isFormInput,
-                    inputID: props.inputID,
-                    shouldSaveDraft: props.shouldSaveDraft,
-                    onBlur: props.onBlur,
-                    autoComplete: 'off',
-                    onChangeText: (text) => {
-                        if (skippedFirstOnChangeTextRef.current) {
-                            props.onChange({street: text});
-                        } else {
-                            skippedFirstOnChangeTextRef.current = true;
-                        }
+                            if (_.isFunction(props.innerRef)) {
+                                props.innerRef(node);
+                                return;
+                            }
 
-                        // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                        if (_.isEmpty(text)) {
-                            setDisplayListViewBorder(false);
-                        }
-                    },
-                }}
-                styles={{
-                    textInputContainer: [styles.flexColumn],
-                    listView: [
-                        !displayListViewBorder && styles.googleListView,
-                        displayListViewBorder && styles.borderTopRounded,
-                        displayListViewBorder && styles.borderBottomRounded,
-                        displayListViewBorder && styles.mt1,
-                        styles.overflowAuto,
-                        styles.borderLeft,
-                        styles.borderRight,
-                    ],
-                    row: [
-                        styles.pv4,
-                        styles.ph3,
-                        styles.overflowAuto,
-                    ],
-                    description: [styles.googleSearchText],
-                    separator: [styles.googleSearchSeparator],
-                }}
-                onLayout={(event) => {
+                            // eslint-disable-next-line no-param-reassign
+                            props.innerRef.current = node;
+                        },
+                        label: props.label,
+                        containerStyles: props.containerStyles,
+                        errorText: props.errorText,
+                        value: props.value,
+                        isFormInput: props.isFormInput,
+                        inputID: props.inputID,
+                        shouldSaveDraft: props.shouldSaveDraft,
+                        onBlur: props.onBlur,
+                        autoComplete: 'off',
+                        onChangeText: (text) => {
+                            if (skippedFirstOnChangeTextRef.current) {
+                                props.onChange({street: text});
+                            } else {
+                                skippedFirstOnChangeTextRef.current = true;
+                            }
+
+                            // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
+                            if (_.isEmpty(text)) {
+                                setDisplayListViewBorder(false);
+                            }
+                        },
+                    }}
+                    styles={{
+                        textInputContainer: [styles.flexColumn],
+                        listView: [
+                            !displayListViewBorder && styles.googleListView,
+                            displayListViewBorder && styles.borderTopRounded,
+                            displayListViewBorder && styles.borderBottomRounded,
+                            displayListViewBorder && styles.mt1,
+                            styles.overflowAuto,
+                            styles.borderLeft,
+                            styles.borderRight,
+                        ],
+                        row: [
+                            styles.pv4,
+                            styles.ph3,
+                            styles.overflowAuto,
+                        ],
+                        description: [styles.googleSearchText],
+                        separator: [styles.googleSearchSeparator],
+                    }}
+                    onLayout={(event) => {
                     // We use the height of the element to determine if we should hide the border of the listView dropdown
                     // to prevent a lingering border when there are no address suggestions.
                     // The height of the empty element is 2px (1px height for each top and bottom borders)
-                    setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
-                }}
-            />
-        </NestedScrollView>
+                        setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
+                    }}
+                />
+            </View>
+        </ScrollView>
     );
 };
 
