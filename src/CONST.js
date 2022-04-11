@@ -305,6 +305,7 @@ const CONST = {
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
+        SPINNER_TIMEOUT: 15 * 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -314,6 +315,8 @@ const CONST = {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
+        FAILED_TO_FETCH: 'Failed to fetch',
+        ENSURE_BUGBOT: 'ENSURE_BUGBOT',
     },
     NETWORK: {
         METHOD: {
@@ -323,10 +326,9 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
-    HTTP_STATUS_CODE: {
+    JSON_CODE: {
         SUCCESS: 200,
-        BAD_REQUEST: 400,
-        UNAUTHORIZED: 401,
+        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -377,6 +379,8 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
     },
+
+    ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',

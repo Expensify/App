@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -144,6 +145,8 @@ class ReportActionItem extends Component {
                             reportID={this.props.reportID}
                             index={this.props.index}
                             ref={el => this.textInput = el}
+                            report={this.props.report}
+                            blockedFromConcierge={this.props.blockedFromConcierge}
                     />
                 );
         }
@@ -154,7 +157,10 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-
+                onKeyDown={(event) => {
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
+                    event.target.blur();
+                }}
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
@@ -209,6 +215,14 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);

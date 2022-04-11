@@ -153,7 +153,7 @@ class ReportSettingsPage extends Component {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report);
-        const linkedWorkspace = _.find(this.props.policies, policy => policy.id === this.props.report.policyID);
+        const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
 
         return (
             <ScreenWrapper>
@@ -168,7 +168,7 @@ class ReportSettingsPage extends Component {
                         <View style={[styles.mt2]}>
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
-                                onChange={(notificationPreference) => {
+                                onInputChange={(notificationPreference) => {
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
                                         notificationPreference,
