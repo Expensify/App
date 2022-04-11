@@ -7,6 +7,8 @@ import Tooltip from '../Tooltip';
 import Text from '../Text';
 import variables from '../../styles/variables';
 
+const TOOLTIP_MAX_LINES = 3;
+
 class DisplayNames extends PureComponent {
     constructor(props) {
         super(props);
@@ -113,7 +115,7 @@ class DisplayNames extends PureComponent {
                         <View style={styles.displayNameTooltipEllipsis}>
                             <Tooltip
                                 text={this.props.fullTitle}
-                                numberOfLines={3}
+                                numberOfLines={TOOLTIP_MAX_LINES}
                                 maxWidth={variables.sideBarWidth}
                             >
                                 {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}

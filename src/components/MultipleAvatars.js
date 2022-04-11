@@ -11,6 +11,8 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 
+const TOOLTIP_MAX_LINES = 3;
+
 const propTypes = {
     /** Array of avatar URLs or icons */
     avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
@@ -81,7 +83,7 @@ const MultipleAvatars = (props) => {
                             />
                         </Tooltip>
                     ) : (
-                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute numberOfLines={3} maxWidth={variables.sideBarWidth}>
+                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute numberOfLines={TOOLTIP_MAX_LINES} maxWidth={variables.sideBarWidth}>
                             <View
                                 style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >

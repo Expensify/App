@@ -57,20 +57,21 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  */
 function setWrapperWidth(maxWidth, tooltipTextWidth) {
     if (!maxWidth) {
-        return ({});
+        return {};
     }
 
     if (tooltipTextWidth >= maxWidth) {
-        return ({maxWidth});
+        return {maxWidth};
     }
 
     // Sum left and right wrapper padding, otherwise the wrapper will clip the text.
-    // Add 1 px safe buffer to avoid last word wrap or clip on special cases
-    // where the real text width is float but a little larger than ref.offsetWidth, which will return integer
-    // ex. real text width: 172.2 px, ref.offsetWidth: 172px
-    return ({
+    // Sometimes the real width of a text is a value with fractional digits (i.e. 172.2px)
+    // but the text.offsetWidth returns a truncated integer (172px) making this function
+    // to set the wrapper width slightly smaller than text but enough to make the last word
+    // of a line to wrap or clip. So is neccesary add 1px extra to the sum so wrapper contains text entirely.
+    return {
         maxWidth: tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1,
-    });
+    };
 }
 
 /**
