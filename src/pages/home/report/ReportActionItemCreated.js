@@ -47,7 +47,7 @@ const ReportActionItemCreated = (props) => {
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
-                    avatarIcons={reportIcons}
+                    icons={reportIcons}
                     shouldShowLargeAvatars={isPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} />
