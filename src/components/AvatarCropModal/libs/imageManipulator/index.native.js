@@ -12,7 +12,9 @@ function imageManipulator(uri, actions, options) {
     return new Promise((resolve) => {
         RNImageManipulator.manipulate(uri, actions, options).then((result) => {
             RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
-                resolve({...result, size});
+                resolve({
+                    ...result, size, type: 'image/png', name: 'avatar.png',
+                });
             });
         });
     });

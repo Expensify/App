@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect} from 'react';
 import {Image, Pressable, View} from 'react-native';
@@ -10,7 +8,6 @@ import {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
-import {result} from 'underscore';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
@@ -195,11 +192,10 @@ const AvatarCropModal = memo((props) => {
             height: size, width: size, originX, originY,
         };
 
-        imageManipulator(props.imageUri, [{rotate: rotation.value}, {crop}], {compress: 1})
+        imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1})
             .then((newImage) => {
                 props.onClose();
                 props.onCrop(newImage);
-                console.log(result);
             });
     }, [props.imageUri, containerSize]);
 
