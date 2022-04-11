@@ -168,6 +168,11 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
         },
+        CTRL_ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: ['CTRL'],
+        },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
