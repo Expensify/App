@@ -101,7 +101,7 @@ const HeaderView = (props) => {
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
-    const reportIcons = ReportUtils.getReportIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -138,14 +138,14 @@ const HeaderView = (props) => {
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
-                                    mainAvatar={reportIcons[0]}
-                                    secondaryAvatar={reportIcons[1]}
+                                    mainAvatar={icons[0]}
+                                    secondaryAvatar={icons[1]}
                                     mainTooltip={props.report.ownerEmail}
                                     secondaryTooltip={subtitle}
                                 />
                             ) : (
                                 <MultipleAvatars
-                                    icons={reportIcons}
+                                    icons={icons}
                                     avatarTooltips={avatarTooltip}
                                 />
                             )}

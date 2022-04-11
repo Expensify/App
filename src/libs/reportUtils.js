@@ -328,7 +328,7 @@ function getDefaultAvatar(login = '') {
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getReportIcons(report, personalDetails, policies, defaultIcon = null) {
+function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (!report) {
         return [defaultIcon || getDefaultAvatar()];
     }
@@ -393,6 +393,6 @@ export {
     chatIncludesConcierge,
     isPolicyExpenseChat,
     getDefaultAvatar,
-    getReportIcons,
+    getIcons,
     getRoomWelcomeMessage,
 };
