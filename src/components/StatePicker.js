@@ -32,7 +32,7 @@ const StatePicker = props => (
     <Picker
         placeholder={{value: '', label: '-'}}
         items={STATES}
-        onChange={props.onChange}
+        onInputChange={props.onChange}
         value={props.value}
         label={props.label || props.translate('common.state')}
         hasError={props.hasError}

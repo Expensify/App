@@ -250,7 +250,7 @@ class ProfilePage extends Component {
                         <View style={styles.mb6}>
                             <Picker
                                 label={this.props.translate('profilePage.preferredPronouns')}
-                                onChange={(pronouns) => {
+                                onInputChange={(pronouns) => {
                                     const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
                                     this.setState({
                                         pronouns: hasSelfSelectedPronouns ? '' : pronouns,
@@ -288,10 +288,11 @@ class ProfilePage extends Component {
                         <View style={styles.mb3}>
                             <Picker
                                 label={this.props.translate('profilePage.timezone')}
-                                onChange={selectedTimezone => this.setState({selectedTimezone})}
+                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
+                                key={this.state.selectedTimezone}
                             />
                         </View>
                         <CheckboxWithLabel
