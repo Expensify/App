@@ -120,7 +120,6 @@ function create(name = '') {
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
-            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
@@ -157,7 +156,10 @@ function navigateToPolicy(policyID) {
  * @param {String} [name]
  */
 function createAndNavigate(name = '') {
-    create(name).then(navigateToPolicy);
+    create(name).then(() => {
+        navigateToPolicy();
+        Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
+    });
 }
 
 /**
@@ -228,6 +230,7 @@ function createAndGetPolicyList() {
         .then(() => {
             Navigation.dismissModal();
             navigateToPolicy(newPolicyID);
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
         });
 }
 
@@ -506,7 +509,6 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    create,
     uploadAvatar,
     update,
     setWorkspaceErrors,
