@@ -119,6 +119,7 @@ class OptionsSelector extends Component {
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
+        this.focusManager = null;
         this.relatedTarget = null;
 
         this.state = {
@@ -153,15 +154,24 @@ class OptionsSelector extends Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
+        const newOptions = OptionsListUtils.flattenSections(this.props.sections);
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
-            allOptions: OptionsListUtils.flattenSections(this.props.sections),
+            allOptions: newOptions,
         });
+
+        if (newOptions.length > 0 && this.focusManager) {
+            const prevFocusedIndex = this.focusManager.getFocusedIndex();
+            const prevFocusedItem = prevState.allOptions[prevFocusedIndex];
+            const newFocusedIndex = Math.max(_.findIndex(newOptions, option => option && option.login === prevFocusedItem.login), 0);
+            this.focusManager.setFocusedIndex(newFocusedIndex);
+            this.scrollToIndex(newFocusedIndex);
+        }
     }
 
     componentWillUnmount() {
@@ -241,6 +251,7 @@ class OptionsSelector extends Component {
             : this.props.maxParticipantsReachedMessage;
         return (
             <ArrowKeyFocusManager
+                ref={el => this.focusManager = el}
                 listLength={this.props.canSelectMultipleOptions ? this.state.allOptions.length + 1 : this.state.allOptions.length}
                 onFocusedIndexChanged={this.scrollToIndex}
                 onEnterKeyPressed={this.selectFocusedIndex}
