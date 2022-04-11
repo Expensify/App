@@ -6,7 +6,7 @@ import * as Expensicons from '../../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
-    onChange: PropTypes.func.isRequired,
+    onInputChange: PropTypes.func.isRequired,
 
     /** Whether or not to show the disabled styles */
     disabled: PropTypes.bool,

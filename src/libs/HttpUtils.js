@@ -30,7 +30,13 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         method,
         body,
     })
-        .then(response => response.json());
+        .then((response) => {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+
+            return response.json();
+        });
 }
 
 /**
@@ -53,23 +59,6 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
 }
 
-/**
- * Just download a file from the web server.
- *
- * @param {String} relativePath From the website root, NOT the API root. (no leading slash, ., or ..)
- * @returns {Promise}
- */
-function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL;
-
-    // Strip leading slashes and periods from relative path, if present
-    const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'
-        ? relativePath.slice(relativePath.indexOf('/') + 1)
-        : relativePath;
-
-    return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
-}
-
 function cancelPendingRequests() {
     cancellationController.abort();
 
@@ -79,7 +68,6 @@ function cancelPendingRequests() {
 }
 
 export default {
-    download,
     xhr,
     cancelPendingRequests,
 };

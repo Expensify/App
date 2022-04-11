@@ -62,7 +62,7 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const message = _.last(lodashGet(reportAction, 'message', null));
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
 
             const parser = new ExpensiMark();
@@ -72,7 +72,7 @@ export default [
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
-                : ReportUtils.isReportMessageAttachment(text);
+                : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 Clipboard.setString(text);
             } else {
@@ -97,7 +97,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber);
+            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber, true);
             Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
