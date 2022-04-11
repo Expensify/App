@@ -30,6 +30,11 @@ class PressableWithoutFocus extends React.Component {
     }
 
     pressAndBlur() {
+        // We need to blur this element when clicked as it opens modal that implements focus-trapping.
+        // When the modal is closed it focuses back to the last active element.
+        // Therefore it shifts the element to bring it back to focus.
+        // https://github.com/Expensify/App/issues/6806
+
         this.touchableRef.blur();
         this.props.onPress();
     }
