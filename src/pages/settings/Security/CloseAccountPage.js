@@ -111,7 +111,7 @@ class CloseAccountPage extends Component {
                         />
                     </FixedFooter>
                     <ConfirmModal
-                        title=""
+                        title={this.props.translate('closeAccountPage.unableToCloseAccount')}
                         success
                         confirmText={this.props.translate('closeAccountPage.okayGotIt')}
                         prompt={(
