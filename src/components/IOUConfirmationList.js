@@ -156,12 +156,12 @@ class IOUConfirmationList extends Component {
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
 
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
+            CTRLEnterConfig.shortcutKey,
             this.confirm,
-            enterConfig.descriptionKey,
-            ['CTRL'],
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
             true,
         );
     }
