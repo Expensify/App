@@ -443,6 +443,8 @@ PODS:
     - React-Core
   - react-native-flipper (0.117.0):
     - React-Core
+  - react-native-image-manipulator (1.0.5):
+    - React
   - react-native-image-picker (4.7.3):
     - React-Core
   - react-native-netinfo (8.0.0):
@@ -558,7 +560,7 @@ PODS:
     - Firebase/Performance (= 8.4.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (2.3.1):
+  - RNGestureHandler (1.9.0):
     - React-Core
   - RNPermissions (3.0.1):
     - React-Core
@@ -662,6 +664,7 @@ DEPENDENCIES:
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
+  - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -793,6 +796,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-document-picker"
   react-native-flipper:
     :path: "../node_modules/react-native-flipper"
+  react-native-image-manipulator:
+    :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
@@ -933,6 +938,7 @@ SPEC CHECKSUMS:
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
   react-native-flipper: cd9eabd8917104c1bbdca2621717cdca3b2addef
+  react-native-image-manipulator: db28c0cc09d89e740974c9bb2f13175eb48f1ef2
   react-native-image-picker: ae1202414bd5c37c00b2a701daa5b6194a06b7d9
   react-native-netinfo: 0124c0695373fce63cea24aeebb97ab2d237947a
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
@@ -965,7 +971,7 @@ SPEC CHECKSUMS:
   RNFBApp: 64c90ab78b6010ed5c3ade026dfe5ff6442c21fd
   RNFBCrashlytics: 1de18b8cc36d9bcf86407c4a354399228cc84a61
   RNFBPerf: e3a7269f573a4787810a32de51647cdcbe08dfb4
-  RNGestureHandler: 68f660f1080d3300936a67ce5c6879bd8f26ecc2
+  RNGestureHandler: 9b7e605a741412e20e13c512738a31bd1611759b
   RNPermissions: eb94f9fdc0a8ecd02fcce0676d56ffb1395d41e1
   RNReactNativeHapticFeedback: b83bfb4b537bdd78eb4f6ffe63c6884f7b049ead
   RNReanimated: da3860204e5660c0dd66739936732197d359d753
