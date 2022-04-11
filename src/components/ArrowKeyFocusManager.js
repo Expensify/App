@@ -42,6 +42,7 @@ class ArrowKeyFocusManager extends Component {
         this.state = {
             focusedIndex: props.initialFocusedIndex,
         };
+        this.setFocusedIndex = this.setFocusedIndex.bind(this);
         this.shouldEnterKeyEventBubble = this.shouldEnterKeyEventBubble.bind(this);
     }
 
@@ -109,6 +110,22 @@ class ArrowKeyFocusManager extends Component {
         if (this.unsubscribeArrowDownKey) {
             this.unsubscribeArrowDownKey();
         }
+    }
+
+    /**
+     * @returns {Number}
+     */
+    getFocusedIndex() {
+        return this.state.focusedIndex;
+    }
+
+    /**
+     * Imperatively adjust the focused index.
+     *
+     * @param {Number} index
+     */
+    setFocusedIndex(index) {
+        this.setState({focusedIndex: index});
     }
 
     /**
