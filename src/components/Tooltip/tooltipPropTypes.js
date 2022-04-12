@@ -30,7 +30,6 @@ const propTypes = {
 
     /** Maximum number of lines to set on tooltip */
     numberOfLines: PropTypes.number,
-
 };
 
 const defaultProps = {
