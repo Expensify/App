@@ -155,11 +155,7 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.mnh100,
-                        ]}
-                    >
+                    <ScrollView contentContainerStyle={styles.flex1}>
                         <Onfido
                             sdkToken={this.props.achData.sdkToken}
                             onUserExit={() => {
