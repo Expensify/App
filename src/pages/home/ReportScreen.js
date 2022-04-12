@@ -143,7 +143,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
+        return (this.state.isLoading || !getReportID(this.props.route)) && this.state.isGhostScreenVisible;
     }
 
     /**
