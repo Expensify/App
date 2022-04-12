@@ -183,6 +183,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
             appversion: version,
+            onData: lodashGet(data, 'onData') ? lodashGet(data, 'onData').toString() : undefined,
+            onError: lodashGet(data, 'onError') ? lodashGet(data, 'onError').toString() : undefined,
         };
 
         // Add the request to a queue of actions to perform

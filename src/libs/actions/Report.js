@@ -777,15 +777,16 @@ function subscribeToUserEvents() {
         return;
     }
 
+    // Temporarily disabling so we can test the serialized persisted function
     // Live-update a report's actions when a 'report comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
+    // subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_CHUNK,
-        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-        true,
-    );
+    // subscribeToPrivateUserChannelEvent(
+    //     Pusher.TYPE.REPORT_COMMENT_CHUNK,
+    //     pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+    //     true,
+    // );
 
     // Live-update a report's actions when an 'edit comment' event is received.
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
@@ -1164,30 +1165,56 @@ function addAction(reportID, text, file) {
         reportComment: commentText,
         clientID: optimisticReportActionID,
         persist: true,
-    })
-        .then((response) => {
+
+        /**
+         * @param {Object} response
+         * @param {Object} response.reportAction
+         * @param {Object} variables
+         * @param {Number} variables.reportID
+         * @param {Object} libs pseudo-global object with many things
+         *
+         * REQUIRES: Report
+         */
+        onData: (response, variables, libs) => {
+            // This cannot be accessed because it is in the module scope and not the API scope. We need to import it and then pass it in our "libs" object
+            libs.Report.updateReportWithNewAction(variables.reportID, response.reportAction);
+        },
+
+        onDataVariables: {reportID},
+
+        /**
+         * @param {Object} response
+         * @param {Object} variables
+         * @param {Number} variables.reportID
+         * @param {String} variables.optimisticReportActionID
+         * @param {Object} libs
+         *
+         * REQUIRES: Growl, Onyx, User
+         *
+         */
+        onError: (response, variables, libs) => {
             if (response.jsonCode === 408) {
-                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
+                libs.Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
+                libs.Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${variables.reportID}`, {
+                    [variables.optimisticReportActionID]: null,
                 });
                 console.error(response.message);
                 return;
             }
 
-            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
-                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
+            // This conciergeChatReportID is also available in the module scope only. We could pass it as a "variable" instead...
+            if (response.jsonCode === 666 && variables.reportID === variables.conciergeChatReportID) {
+                libs.Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+                libs.Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${variables.reportID}`, {
+                    [variables.optimisticReportActionID]: null,
                 });
 
                 // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
-                User.getUserDetails();
-                return;
+                libs.User.getUserDetails();
             }
-
-            updateReportWithNewAction(reportID, response.reportAction);
-        });
+        },
+        onErrorVariables: {reportID, optimisticReportActionID, conciergeChatReportID},
+    });
 }
 
 /**
@@ -1596,4 +1623,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    updateReportWithNewAction, // <- This needs to be exported so it can be accessed outside in our handlers that are not scoped here.
 };

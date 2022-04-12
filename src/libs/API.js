@@ -12,6 +12,7 @@ import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkEvents from './Network/NetworkEvents';
+import getResponseHandler from './getResponseHandler';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -50,8 +51,11 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 // We set the logger for Network here so that we can avoid a circular dependency
 NetworkEvents.registerLogHandler(() => Log);
 
-// Handle response event sent by the Network
-NetworkEvents.onResponse((queuedRequest, response) => {
+/**
+ * @param {Object} queuedRequest
+ * @param {Object} response
+ */
+function handleResponse(queuedRequest, response) {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,
@@ -94,8 +98,17 @@ NetworkEvents.onResponse((queuedRequest, response) => {
     }
 
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
-    queuedRequest.resolve(response);
-});
+    if (response.jsonCode === 200 && queuedRequest.data.onData) {
+        getResponseHandler(queuedRequest.data.onData)(response, queuedRequest.data.onDataVariables);
+    } else if (response.jsonCode !== 200 && queuedRequest.data.onError) {
+        getResponseHandler(queuedRequest.data.onError)(response, queuedRequest.data.onErrorVariables);
+    } else {
+        queuedRequest.resolve(response);
+    }
+}
+
+// Handle response event sent by the Network
+NetworkEvents.onResponse(handleResponse);
 
 /**
  * @param {Object} parameters
