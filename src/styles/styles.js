@@ -1102,6 +1102,9 @@ const styles = {
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
+        // backgroundColor:'red'
+        // maxWidth: 190,
+
     },
 
     menuItemTextContainer: {
@@ -1691,7 +1694,7 @@ const styles = {
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        height: variables.contentHeaderHeight,
+        height: Accessibility().contentHeaderHeight,
         width: '100%',
     },
 

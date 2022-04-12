@@ -71,8 +71,8 @@ const BaseHTMLEngineProvider = (props) => {
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).baseFontStyle}
-            tagsStyles={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).tagStyles}
+            baseStyle={styles.webViewStyles(pixelRatio > 1? 21/pixelRatio : 16,pixelRatio).baseFontStyle}
+            tagsStyles={styles.webViewStyles(pixelRatio > 1? 21/pixelRatio : 16,pixelRatio).tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing
             systemFonts={_.values(fontFamily)}

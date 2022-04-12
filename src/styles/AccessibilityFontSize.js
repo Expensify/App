@@ -5,7 +5,7 @@ const styles = () => {
     // if (PixelRatio.getFontScale() > 1.35) {
     if (PixelRatio.getFontScale() > 1) {
         return {
-            contentHeaderHeight: 65,
+            contentHeaderHeight: 100,
             componentSizeSmall: 28,
             componentSizeNormal: 40,
             inputComponentSizeNormal: 42,
@@ -25,7 +25,11 @@ const styles = () => {
             fontSizeExtraSmall: 9,
             fontSizeLabel: 19,
             fontSizeNormal: 21,
-            fontSizeLarge: 23,
+
+            // fontsizelarge=19 fix issue 11
+            // fontSizeLarge: 23,
+            fontSizeLarge: 19,
+
             fontSizeHero: 36,
             fontSizeh1: 19,
             fontSizeXXLarge: 28,
@@ -60,7 +64,8 @@ const styles = () => {
             baseTextInputPaddingBottom: 5,
             inputHeight: 72,
             pickerIconTop: 26,
-            formErrorLineHeight:23
+            formErrorLineHeight:23,
+            menuText: 17
 
         }
     }
@@ -121,7 +126,7 @@ const styles = () => {
             inputHeight: variables.inputHeight,
             pickerIconTop: variables.pickerIconTop,
             formErrorLineHeight:variables.formErrorLineHeight,
-
+            menuText: variables.menuText
         }
     }
 }
