@@ -1,11 +1,11 @@
 import { PixelRatio } from "react-native";
 import variables from "./variables";
 const styles = () => {
-    console.log('PixelRatio now :',PixelRatio.getFontScale())
+    // console.log('PixelRatio now :',PixelRatio.getFontScale())
     // if (PixelRatio.getFontScale() > 1.35) {
     if (PixelRatio.getFontScale() > 1) {
         return {
-            contentHeaderHeight: 65,
+            contentHeaderHeight: 100,
             componentSizeSmall: 28,
             componentSizeNormal: 40,
             inputComponentSizeNormal: 42,
@@ -25,7 +25,11 @@ const styles = () => {
             fontSizeExtraSmall: 9,
             fontSizeLabel: 19,
             fontSizeNormal: 21,
-            fontSizeLarge: 23,
+
+            // fontsizelarge=19 fix issue 11
+            // fontSizeLarge: 23,
+            fontSizeLarge: 19,
+
             fontSizeHero: 36,
             fontSizeh1: 19,
             fontSizeXXLarge: 28,
@@ -55,12 +59,14 @@ const styles = () => {
             // lineHeightSmall: 20,
             lineHeightNormal: 21,
             lineHeightLarge: 18,
-            lineHeightXLarge: 20,
+            // lineHeightXLarge: 20,
+            lineHeightXLarge: 22,
             baseTextInputPaddingTop: 18,
             baseTextInputPaddingBottom: 5,
             inputHeight: 72,
             pickerIconTop: 26,
-            formErrorLineHeight:23
+            formErrorLineHeight:23,
+            communicationsLinkHeight: 30,
 
         }
     }
@@ -115,13 +121,12 @@ const styles = () => {
             lineHeightSmall: variables.lineHeightSmall,
             lineHeightNormal: variables.lineHeightNormal,
             lineHeightLarge: variables.lineHeightLarge,
-            lineHeightXXXLarge: variables.lineHeightXXXLarge,
             baseTextInputPaddingTop: variables.baseTextInputPaddingTop,
             baseTextInputPaddingBottom: variables.baseTextInputPaddingBottom,
             inputHeight: variables.inputHeight,
             pickerIconTop: variables.pickerIconTop,
             formErrorLineHeight:variables.formErrorLineHeight,
-
+            communicationsLinkHeight: variables.communicationsLinkHeight,
         }
     }
 }

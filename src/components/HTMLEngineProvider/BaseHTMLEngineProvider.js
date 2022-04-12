@@ -47,7 +47,6 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 const BaseHTMLEngineProvider = (props) => {
     const appState = useRef(AppState.currentState);
     const [pixelRatio,setPixelRatio] = useState(PixelRatio.getFontScale())
-    console.log('proprs :---------------------------------------------------------------------------',props.children)
     useEffect(() => {
         const subscription = AppState.addEventListener("change", nextAppState => {
           if (
@@ -71,8 +70,8 @@ const BaseHTMLEngineProvider = (props) => {
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).baseFontStyle}
-            tagsStyles={styles.webViewStyles(pixelRatio > 1? 16/pixelRatio : 16,pixelRatio).tagStyles}
+            baseStyle={styles.webViewStyles(pixelRatio > 1? 21/pixelRatio : 16,pixelRatio).baseFontStyle}
+            tagsStyles={styles.webViewStyles(pixelRatio > 1? 21/pixelRatio : 16,pixelRatio).tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing
             systemFonts={_.values(fontFamily)}

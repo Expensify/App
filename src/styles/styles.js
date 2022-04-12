@@ -121,7 +121,7 @@ const webViewStyles = (fontSize,pixelRatio) => ({
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
-            fontSize:pixelRatio>1?50/pixelRatio:13
+            fontSize:pixelRatio>1?21/pixelRatio:13
         },
 
         img: {
@@ -1102,6 +1102,9 @@ const styles = {
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
+        // backgroundColor:'red'
+        // maxWidth: 190,
+
     },
 
     menuItemTextContainer: {
@@ -1194,6 +1197,7 @@ const styles = {
     optionAlternateText: {
         height: 20,
         lineHeight: Accessibility().lineHeightXLarge,
+        // lineHeight: 22,
     },
 
     optionAlternateTextCompact: {
@@ -1691,7 +1695,7 @@ const styles = {
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        height: variables.contentHeaderHeight,
+        height: Accessibility().contentHeaderHeight,
         width: '100%',
     },
 
@@ -2372,7 +2376,7 @@ const styles = {
     },
 
     communicationsLinkHeight: {
-        height: 20,
+        height: Accessibility().communicationsLinkHeight,
     },
 
     reportMarkerBadgeWrapper: {
