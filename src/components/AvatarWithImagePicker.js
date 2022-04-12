@@ -76,6 +76,7 @@ class AvatarWithImagePicker extends React.Component {
         this.state = {
             isMenuVisible: false,
             isMaxUploadSizeModalOpen: false,
+            isUsingDefaultAvatar: props.isUsingDefaultAvatar,
         };
     }
 
@@ -135,6 +136,7 @@ class AvatarWithImagePicker extends React.Component {
                                 return;
                             }
                             this.props.onImageSelected(image);
+                            this.setState({isUsingDefaultAvatar: false});
                         },
                     });
                 },
@@ -142,12 +144,13 @@ class AvatarWithImagePicker extends React.Component {
         ];
 
         // If current avatar isn't a default avatar, allow Remove Photo option
-        if (!this.props.isUsingDefaultAvatar) {
+        if (!this.state.isUsingDefaultAvatar) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: this.props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     this.props.onImageRemoved();
+                    this.setState({isUsingDefaultAvatar: true});
                 },
             });
         }
