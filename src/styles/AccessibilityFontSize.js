@@ -52,6 +52,7 @@ const styles = () => {
             gutterWidth: 16,
             popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
             lineHeightSmall: 16,
+            // lineHeightSmall: 20,
             lineHeightNormal: 21,
             lineHeightLarge: 18,
             lineHeightXLarge: 20,

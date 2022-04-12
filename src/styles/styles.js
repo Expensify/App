@@ -253,7 +253,8 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: Accessibility().fontSizeSmall,
-        lineHeight: Accessibility().lineHeightSmall,
+        // lineHeight: Accessibility().lineHeightSmall,
+        lineHeight:20
     },
 
     textExtraSmallSupporting: {

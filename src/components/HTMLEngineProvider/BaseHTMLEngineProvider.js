@@ -47,7 +47,7 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 const BaseHTMLEngineProvider = (props) => {
     const appState = useRef(AppState.currentState);
     const [pixelRatio,setPixelRatio] = useState(PixelRatio.getFontScale())
-
+    console.log('proprs :---------------------------------------------------------------------------',props.children)
     useEffect(() => {
         const subscription = AppState.addEventListener("change", nextAppState => {
           if (
