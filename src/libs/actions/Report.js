@@ -155,9 +155,19 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room or a Policy Expense chat, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
+    // For a basic policy room, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
+    }
+
+    if (ReportUtils.isPolicyExpenseChat({chatType})) {
+        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (${Localize.translateLocal('common.archived')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -183,7 +193,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
+    const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     let lastMessageText = null;
@@ -798,8 +808,17 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.setDidTapNotification();
-        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        if (Navigation.canNavigate('navigate')) {
+            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                Navigation.goBack();
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        } else {
+            // Navigation container is not yet ready, use deeplinking to open to correct report instead
+            Navigation.setDidTapNotification();
+            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        }
     });
 }
 
@@ -1235,10 +1254,11 @@ function deleteReportComment(reportID, reportAction) {
  *
  * @param {Number} reportID
  * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ * @param {Boolean} [manuallyMarked] If the user manually marked this as unread, we need to tell the API
  *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
  *  is last read (meaning that the entire report history has been read)
  */
-function updateLastReadActionID(reportID, sequenceNumber) {
+function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false) {
     // If report data is loading, we can't update the last read sequence number because it is obsolete
     if (isReportDataLoading) {
         return;
@@ -1264,6 +1284,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     API.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
+        markAsUnread: manuallyMarked,
     });
 }
 
