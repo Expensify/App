@@ -294,6 +294,9 @@ function removeMembers(members, policyID) {
     })
         .then((data) => {
             if (data.jsonCode === 200) {
+                if (!_.isEmpty(data.policyExpenseChatIDs)) {
+                    Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
+                }
                 return;
             }
             const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
