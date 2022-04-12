@@ -21,6 +21,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -190,18 +191,20 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                 <Section
                     title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.JewelBoxGreen}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.common.bankAccount'),
-                            onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID)),
-                            icon: Expensicons.Bank,
-                            shouldShowRightIcon: true,
-                        },
-                    ]}
                 >
                     <View style={[styles.mv4]}>
                         <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                     </View>
+                    <Button
+                        text={this.props.translate('workspace.common.bankAccount')}
+                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
+                        icon={Expensicons.Bank}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.mr5]}
+                        shouldShowRightIcon
+                        xLarge
+                        success
+                    />
                 </Section>
             </>
         );

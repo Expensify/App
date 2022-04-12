@@ -30,6 +30,7 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
+import Button from '../../components/Button';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -214,12 +215,16 @@ class BankAccountStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        <MenuItem
+                        <Button
                             icon={Expensicons.Bank}
-                            title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
+                            text={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                             disabled={this.props.isPlaidDisabled || !this.props.user.validated}
+                            style={[styles.mt5, styles.mh3]}
+                            iconStyles={[styles.mr5]}
                             shouldShowRightIcon
+                            success
+                            xLarge
                         />
                         {this.props.isPlaidDisabled && (
                             <Text style={[styles.formError, styles.mh5]}>
@@ -227,7 +232,7 @@ class BankAccountStep extends React.Component {
                             </Text>
                         )}
                         <MenuItem
-                            icon={Expensicons.Paycheck}
+                            icon={Expensicons.Connect}
                             title={this.props.translate('bankAccount.connectManually')}
                             disabled={!this.props.user.validated}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}

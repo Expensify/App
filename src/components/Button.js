@@ -10,13 +10,26 @@ import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: PropTypes.bool,
+
     /** The icon asset to display to the left of the text */
     icon: PropTypes.func,
+
+    /** The icon asset to display to the right of the text */
+    iconRight: PropTypes.func,
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -26,6 +39,9 @@ const propTypes = {
 
     /** medium sized button */
     medium: PropTypes.bool,
+
+    /** Extra large sized button */
+    xLarge: PropTypes.bool,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -84,12 +100,17 @@ const propTypes = {
 
 const defaultProps = {
     text: '',
+    shouldShowRightIcon: false,
     icon: null,
+    iconRight: Expensicons.ArrowRight,
+    iconFill: '#fff',
+    iconStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
     large: false,
     medium: false,
+    xLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -158,6 +179,7 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
+                    this.props.xLarge && styles.buttonXLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -169,15 +191,29 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={styles.mr1}>
-                        <Icon
-                            src={this.props.icon}
-                            fill={themeColors.heading}
-                            small={this.props.small}
-                        />
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
+                            styles.mr1,
+                            ...this.props.iconStyles,
+                        ]}
+                        >
+                            <Icon
+                                src={this.props.icon}
+                                fill={this.props.iconFill}
+                                small={this.props.small}
+                            />
+                        </View>
+                        {textComponent}
                     </View>
-                    {textComponent}
+                    {this.props.shouldShowRightIcon && (
+                        <View>
+                            <Icon
+                                src={this.props.iconRight}
+                                fill={this.props.iconFill}
+                            />
+                        </View>
+                    )}
                 </View>
             );
         }
@@ -216,6 +252,7 @@ class Button extends Component {
                             this.props.small ? styles.buttonSmall : undefined,
                             this.props.medium ? styles.buttonMedium : undefined,
                             this.props.large ? styles.buttonLarge : undefined,
+                            this.props.xLarge ? styles.buttonXLarge : undefined,
                             this.props.success ? styles.buttonSuccess : undefined,
                             this.props.danger ? styles.buttonDanger : undefined,
                             (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,

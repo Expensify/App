@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
+import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -16,6 +17,7 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
+const BUTTON = 'button';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -23,9 +25,6 @@ const propTypes = {
 
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
-
-    /** Is the payment options menu open / active? */
-    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -81,7 +80,6 @@ const defaultProps = {
         walletLinkedAccountType: '',
     },
     isLoadingPayments: false,
-    isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -159,14 +157,16 @@ class PaymentMethodList extends Component {
         }
 
         combinedPaymentMethods.push({
-            type: MENU_ITEM,
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.Plus,
+            type: BUTTON,
+            text: this.props.translate('paymentMethodList.addPaymentMethod'),
+            icon: Expensicons.CreditCard,
+            style: [styles.ph4],
+            iconStyles: [styles.mr4],
             onPress: e => this.props.onPress(e),
+            isDisabled: this.props.isLoadingPayments,
+            shouldShowRightIcon: true,
+            success: true,
             key: 'addPaymentMethodButton',
-            disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -206,6 +206,21 @@ class PaymentMethodList extends Component {
                     wrapperStyle={item.wrapperStyle}
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
+                />
+            );
+        }
+        if (item.type === BUTTON) {
+            return (
+                <Button
+                    text={item.text}
+                    icon={item.icon}
+                    onPress={item.onPress}
+                    isDisabled={item.isDisabled}
+                    style={item.style}
+                    iconStyles={item.iconStyles}
+                    success={item.success}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
+                    xLarge
                 />
             );
         }
