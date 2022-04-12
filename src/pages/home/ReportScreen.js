@@ -195,10 +195,9 @@ class ReportScreen extends React.Component {
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
-                    {
-                      (this.state.isGhostScreenVisible || this.shouldShowLoader()) && <ChatGhostUI />
-                    }
-                    {!this.state.isGhostScreenVisible && !this.shouldShowLoader() && (
+
+                    {this.shouldShowLoader() && <ChatGhostUI />}
+                    {!this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
