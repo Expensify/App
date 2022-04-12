@@ -49,5 +49,6 @@ export default {
     lineHeightNormal:16,
     lineHeightLarge:18,
     lineHeightXLarge:20,
-    pickerIconTop: 16
+    pickerIconTop: 16,
+    formErrorLineHeight:18,
 };

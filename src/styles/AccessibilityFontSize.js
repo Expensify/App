@@ -58,7 +58,8 @@ const styles = () => {
             baseTextInputPaddingTop: 18,
             baseTextInputPaddingBottom: 5,
             inputHeight: 72,
-            pickerIconTop: 26
+            pickerIconTop: 26,
+            formErrorLineHeight:23
 
         }
     }
@@ -117,7 +118,9 @@ const styles = () => {
             baseTextInputPaddingTop: variables.baseTextInputPaddingTop,
             baseTextInputPaddingBottom: variables.baseTextInputPaddingBottom,
             inputHeight: variables.inputHeight,
-            pickerIconTop: variables.pickerIconTop
+            pickerIconTop: variables.pickerIconTop,
+            formErrorLineHeight:variables.formErrorLineHeight,
+
         }
     }
 }

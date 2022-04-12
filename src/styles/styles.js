@@ -862,7 +862,7 @@ const styles = {
     formError: {
         color: themeColors.textError,
         fontSize: Accessibility().fontSizeLabel,
-        lineHeight: Accessibility().lineHeightLarge,
+        lineHeight: Accessibility().formErrorLineHeight,
         marginBottom: 4,
     },
 
