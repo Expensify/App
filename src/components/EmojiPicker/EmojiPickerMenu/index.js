@@ -256,6 +256,9 @@ class EmojiPickerMenu extends Component {
             const isHeader = e => e.header || e.spacer;
             do {
                 newIndex += steps;
+                if (newIndex < 0) {
+                    break;
+                }
             } while (isHeader(this.state.filteredEmojis[newIndex]));
         };
 
