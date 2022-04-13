@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import canUseTouchScreen from '../canUseTouchscreen';
+import isMobile from '../isMobile';
 
 /**
  * Is the virtual keyboard open?
@@ -15,14 +15,14 @@ function isOpen() {
 
 /**
  * As of January 2022, the VirtualKeyboard web API is not available in all browsers yet
- * If it is unavailable, we default to assuming that the virtual keyboard is open on touch-enabled devices.
+ * If it is unavailable, we default to assuming that the virtual keyboard is open mobile devices.
  * See https://github.com/Expensify/App/issues/6767 for additional context.
  *
  * @returns {Boolean}
  */
 function shouldAssumeIsOpen() {
     const isOpened = isOpen();
-    return _.isNull(isOpened) ? canUseTouchScreen() : isOpened;
+    return _.isNull(isOpened) ? isMobile() : isOpened;
 }
 
 export default {
