@@ -165,12 +165,12 @@ class OptionsSelector extends Component {
             allOptions: newOptions,
         });
 
-        if (newOptions.length > 0 && this.focusManager) {
-            const prevFocusedIndex = this.focusManager.getFocusedIndex();
-            const prevFocusedItem = prevState.allOptions[prevFocusedIndex];
-            const newFocusedIndex = _.findIndex(newOptions, option => _.has(option, 'login') && _.has(prevFocusedItem, 'login') && option.login === prevFocusedItem.login);
+        if (this.focusManager && newOptions.length !== lodashGet(prevState, 'allOptions.length')) {
+            const newFocusedIndex = this.props.selectedOptions.length;
             this.focusManager.setFocusedIndex(newFocusedIndex);
-            this.scrollToIndex(Math.max(newFocusedIndex, 0));
+            if (newOptions.length > newFocusedIndex) {
+                this.scrollToIndex(newFocusedIndex);
+            }
         }
     }
 
