@@ -102,9 +102,9 @@ export default function processRequest(request) {
                 throw new Error(CONST.ERROR.XHR_FAILED);
             }
 
-            // Auth command returned jsonCode 500 which may indicate an internal server failure
+            // Auth command returned jsonCode 500 which may indicate an internal server failure.
             if (error.jsonCode === CONST.JSON_CODE.INTERNAL_FAILURE) {
-                NetworkEvents.getLogger().hmmm('[Network] Error: Possible internal server failure', {jsonCode: error.jsonCode});
+                NetworkEvents.getLogger().hmmm('[Network] Error: Possible internal server failure', {jsonCode: error.jsonCode, message: error.message, command: request.command});
                 throw new Error(CONST.ERROR.XHR_FAILED);
             }
 
