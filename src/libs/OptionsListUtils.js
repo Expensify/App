@@ -587,9 +587,9 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     let userToInvite = null;
-    if (searchValue
-        && ((recentReportOptions.length + personalDetailsOptions.length) === 0
-        || (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase())))
+    const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
+    if (searchValue && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
