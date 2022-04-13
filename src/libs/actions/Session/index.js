@@ -474,7 +474,7 @@ function authenticatePusher(socketID, channelName, callback) {
     })
         .then((data) => {
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                callback(new Error('Expensify session expired'), {auth: ''});
+                callback(true, 'Expensify session expired');
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
@@ -491,11 +491,11 @@ function authenticatePusher(socketID, channelName, callback) {
                 false,
                 {channelName},
             );
-            callback(null, data);
+            callback(false, data);
         })
         .catch((error) => {
-            Log.info('[PusherConnectionManager] Unhandled error: ', false, {channelName});
-            callback(error, {auth: ''});
+            Log.hmmm('[PusherConnectionManager] Unhandled error: ', {channelName});
+            callback(true, error.message);
         });
 }
 
