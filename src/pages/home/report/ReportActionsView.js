@@ -346,6 +346,7 @@ class ReportActionsView extends React.Component {
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
+        debugger;
     }
 
     /**
@@ -483,6 +484,8 @@ class ReportActionsView extends React.Component {
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.toggleMarker();
+        ReportScrollManager.scrollToIndex({animated: true, index: 90, viewPosition: 1});
+        // ReportScrollManager.scrollToIndex({animated: true, index: 80, viewOffset: -400, viewPosition: 0});
     }
 
     /**
