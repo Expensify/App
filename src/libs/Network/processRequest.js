@@ -102,6 +102,12 @@ export default function processRequest(request) {
                 throw new Error(CONST.ERROR.XHR_FAILED);
             }
 
+            // Auth command returned jsonCode 500 which may indicate an internal server failure
+            if (error.jsonCode === CONST.JSON_CODE.INTERNAL_FAILURE) {
+                NetworkEvents.getLogger().hmmm('[Network] Error: Possible internal server failure', {jsonCode: error.jsonCode});
+                throw new Error(CONST.ERROR.XHR_FAILED);
+            }
+
             // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {

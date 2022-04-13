@@ -52,6 +52,12 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                 });
             }
 
+            if (response.jsonCode === CONST.JSON_CODE.INTERNAL_FAILURE) {
+                throw new HttpsError({
+                    jsonCode: CONST.JSON_CODE.INTERNAL_FAILURE,
+                });
+            }
+
             return response;
         });
 }
