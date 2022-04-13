@@ -70,6 +70,8 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    sequenceNumber: PropTypes.number,
+
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
@@ -95,6 +97,7 @@ const defaultProps = {
     isLoadingReportActions: false,
     isLoadingReportData: false,
     personalDetails: {},
+    sequenceNumber: 0,
 };
 
 class ReportActionsView extends React.Component {
@@ -482,6 +485,7 @@ class ReportActionsView extends React.Component {
      */
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        console.log(`current scroll: ${this.currentScrollOffset}`);
         this.toggleMarker();
     }
 
