@@ -85,6 +85,7 @@ const run = function () {
 
             // If we aren't sent a tag, then use the existing tag
             const tag = newVersion || currentStagingDeployCashData.tag;
+            const didVersionChange = newVersion ? newVersion !== currentStagingDeployCashData.tag : false;
 
             // Find the list of PRs merged between the last StagingDeployCash and the new version
             const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, tag);
@@ -128,6 +129,8 @@ const run = function () {
                 _.pluck(_.where(PRList, {isAccessible: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
+                didVersionChange ? false : currentStagingDeployCashData.isTimingDashboardChecked,
+                didVersionChange ? false : currentStagingDeployCashData.isFirebaseChecked,
             );
         })
         .then((body) => {

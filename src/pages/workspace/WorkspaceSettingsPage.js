@@ -168,7 +168,7 @@ class WorkspaceSettingsPage extends React.Component {
                         <View style={[styles.mt4]}>
                             <Picker
                                 label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                onChange={currency => this.setState({currency})}
+                                onInputChange={currency => this.setState({currency})}
                                 items={this.getCurrencyItems()}
                                 value={this.state.currency}
                                 isDisabled={hasVBA}
