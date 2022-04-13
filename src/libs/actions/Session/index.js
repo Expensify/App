@@ -494,7 +494,7 @@ function authenticatePusher(socketID, channelName, callback) {
             callback(null, data);
         })
         .catch((error) => {
-            Log.info('[PusherConnectionManager] Unhandled error: ', false, {channelName});
+            Log.hmmm('[PusherConnectionManager] Unhandled error: ', {channelName});
             callback(error, {auth: ''});
         });
 }
