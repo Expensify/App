@@ -35,13 +35,13 @@ class PressableWithoutFocus extends React.Component {
         // Therefore it shifts the element to bring it back to focus.
         // https://github.com/Expensify/App/issues/6806
 
-        this.touchableRef.blur();
+        this.pressableRef.blur();
         this.props.onPress();
     }
 
     render() {
         return (
-            <Pressable onPress={this.pressAndBlur} ref={el => this.touchableRef = el} style={this.props.styles}>
+            <Pressable onPress={this.pressAndBlur} ref={el => this.pressableRef = el} style={this.props.styles}>
                 {this.props.children}
             </Pressable>
         );
