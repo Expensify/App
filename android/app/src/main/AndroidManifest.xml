@@ -68,6 +68,7 @@
             <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
             <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/iou"/>
             <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/statements"/>
 
             <!-- Staging URLs -->
             <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
