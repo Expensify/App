@@ -29,7 +29,6 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
-            sequenceNumber: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -166,8 +165,6 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
-        debugger;
-        const sequenceNumber = Number.parseInt(this.props.route.params.sequenceNumber, 10);
 
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
         let reportClosedAction;
@@ -193,7 +190,6 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
-                            sequenceNumber={sequenceNumber}
                         />
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (

@@ -20,7 +20,6 @@ export default {
                 screens: {
                     // Report route
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID_AND_SEQUENCE_NUMBER,
                     [SCREENS.LOADING]: ROUTES.REPORT,
                 },
             },
