@@ -154,6 +154,9 @@ function Authenticate(parameters) {
                         }
                         throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
+                        if (response.message === 'Invalid code') {
+                            throw new Error('passwordForm.error.incorrect2fa');
+                        }
                         throw new Error('passwordForm.error.invalidLoginOrPassword');
                     case 404:
                         throw new Error('passwordForm.error.unableToResetPassword');
