@@ -243,7 +243,7 @@ class AddPlaidBankAccount extends React.Component {
                         <View style={[styles.mb5]}>
                             <Picker
                                 label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
-                                onChange={(index) => {
+                                onInputChange={(index) => {
                                     this.setState({selectedIndex: Number(index)});
                                     this.clearError('selectedBank');
                                 }}

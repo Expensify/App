@@ -1,11 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {Keyboard} from 'react-native';
-import {
-    StackActions,
-    DrawerActions,
-    getPathFromState,
-} from '@react-navigation/native';
+import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
@@ -169,6 +165,16 @@ function dismissModal(shouldOpenDrawer = false) {
 }
 
 /**
+ * Returns the current active route
+ * @returns {String}
+ */
+function getActiveRoute() {
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
+        : '';
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -179,10 +185,7 @@ function dismissModal(shouldOpenDrawer = false) {
  */
 function isActiveRoute(routePath) {
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
-        : '';
-    return path === routePath;
+    return getActiveRoute().substring(1) === routePath;
 }
 
 /**
@@ -214,9 +217,11 @@ DismissModal.defaultProps = {
 };
 
 export default {
+    canNavigate,
     navigate,
     dismissModal,
     isActiveRoute,
+    getActiveRoute,
     goBack,
     DismissModal,
     closeDrawer,

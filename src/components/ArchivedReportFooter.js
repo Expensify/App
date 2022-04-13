@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
+import * as ReportUtils from '../libs/reportUtils';
 
 const propTypes = {
     /** The reason this report was archived */
