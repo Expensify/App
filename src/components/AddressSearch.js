@@ -117,6 +117,13 @@ const AddressSearch = (props) => {
     };
 
     return (
+
+        /*
+         * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
+         * and VirtualizedLists cannot be directly nested within other VirtualizedLists of the same orientation.
+         * To work around this, we wrap the GooglePlacesAutocomplete component with a horizontal ScrollView
+         * that has scrolling disabled and would otherwise not be needed
+         */
         <ScrollView
             horizontal
             contentContainerStyle={styles.flex1}
