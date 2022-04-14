@@ -6,7 +6,8 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import * as ReportUtils from './ReportUtils';
+import * as Report from './actions/Report';
+import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
@@ -252,8 +253,7 @@ function createOption(logins, personalDetails, report, {
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = lodashGet(report, 'reportName')
-            || lodashGet(report, 'oldPolicyName', '');
+        text = isPolicyExpenseChat ? Report.getPolicyExpenseChatTitle(report, policies) : lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
