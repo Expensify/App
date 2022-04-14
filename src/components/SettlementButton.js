@@ -15,9 +15,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import KYCWall from './KYCWall';
 
 const propTypes = {
-    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: PropTypes.func.isRequired,
-
     /** Settlement currency type */
     currency: PropTypes.string,
 
@@ -109,11 +106,14 @@ class SettlementButton extends React.Component {
                 }
 
                 this.setState(prevState => ({
-                    buttonOptions: [...prevState.buttonOptions.splice(1, 0, {
-                        text: this.props.translate('iou.settleVenmo'),
-                        icon: Expensicons.Venmo,
-                        value: CONST.IOU.PAYMENT_TYPE.VENMO,
-                    })],
+                    buttonOptions: [...prevState.buttonOptions.slice(0, 1),
+                        {
+                            text: this.props.translate('iou.settleVenmo'),
+                            icon: Expensicons.Venmo,
+                            value: CONST.IOU.PAYMENT_TYPE.VENMO,
+                        },
+                        ...prevState.buttonOptions.slice(1),
+                    ],
                 }));
             });
     }
