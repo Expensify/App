@@ -143,7 +143,14 @@ function Authenticate(parameters) {
             // an expensify login or the login credentials we created after the initial authentication.
             // In both cases, we need the user to sign in again with their expensify credentials
             if (response.jsonCode !== 200) {
-                Log.hmmm('Unable to authenticate', {message: response.message, jsonCode: response.jsonCode});
+                Log.hmmm('Unable to authenticate', {
+                    message: response.message,
+                    jsonCode: response.jsonCode,
+                    hasAuthToken: Boolean(parameters.authToken),
+                    hasTwoFactorAuthCode: Boolean(parameters.twoFactorAuthCode),
+                    hasUserID: Boolean(parameters.partnerUserID),
+                    hasUserPassword: Boolean(parameters.partnerUserSecret),
+                });
                 switch (response.jsonCode) {
                     case 401:
                         throw new Error('passwordForm.error.incorrectLoginOrPassword');
