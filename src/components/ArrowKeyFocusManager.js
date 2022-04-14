@@ -61,19 +61,16 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            this.setState(
-                (prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex - 1;
+            this.setState((prevState) => {
+                let newFocusedIndex = prevState.focusedIndex - 1;
 
-                    // Wrap around to the bottom of the list
-                    if (newFocusedIndex < 0) {
-                        newFocusedIndex = this.props.listLength - 1;
-                    }
+                // Wrap around to the bottom of the list
+                if (newFocusedIndex < 0) {
+                    newFocusedIndex = this.props.listLength - 1;
+                }
 
-                    return {focusedIndex: newFocusedIndex};
-                },
-                () => this.props.onFocusedIndexChanged(this.state.focusedIndex),
-            );
+                return {focusedIndex: newFocusedIndex};
+            }, () => this.props.onFocusedIndexChanged(this.state.focusedIndex));
         }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
@@ -81,19 +78,16 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            this.setState(
-                (prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex + 1;
+            this.setState((prevState) => {
+                let newFocusedIndex = prevState.focusedIndex + 1;
 
-                    // Wrap around to the top of the list
-                    if (newFocusedIndex > this.props.listLength - 1) {
-                        newFocusedIndex = 0;
-                    }
+                // Wrap around to the top of the list
+                if (newFocusedIndex > this.props.listLength - 1) {
+                    newFocusedIndex = 0;
+                }
 
-                    return {focusedIndex: newFocusedIndex};
-                },
-                () => this.props.onFocusedIndexChanged(this.state.focusedIndex),
-            );
+                return {focusedIndex: newFocusedIndex};
+            }, () => this.props.onFocusedIndexChanged(this.state.focusedIndex));
         }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
     }
 

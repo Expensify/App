@@ -326,25 +326,22 @@ class IOUConfirmationList extends Component {
             return;
         }
 
-        this.setState(
-            (prevState) => {
-                const newParticipants = _.map(prevState.participants, (participant) => {
-                    if (participant.login === option.login) {
-                        return {...option, selected: !option.selected};
-                    }
-                    return participant;
-                });
-                const newSelectedParticipants = _.where(newParticipants, {selected: true});
-                const newSections = this.getSections(newParticipants);
+        this.setState((prevState) => {
+            const newParticipants = _.map(prevState.participants, (participant) => {
+                if (participant.login === option.login) {
+                    return {...option, selected: !option.selected};
+                }
+                return participant;
+            });
+            const newSelectedParticipants = _.where(newParticipants, {selected: true});
+            const newSections = this.getSections(newParticipants);
 
-                return {
-                    sections: newSections,
-                    participants: newParticipants,
-                    selectedParticipants: newSelectedParticipants,
-                };
-            },
-            () => { this.allOptions = OptionsListUtils.flattenSections(this.state.sections); },
-        );
+            return {
+                sections: newSections,
+                participants: newParticipants,
+                selectedParticipants: newSelectedParticipants,
+            };
+        }, () => this.allOptions = OptionsListUtils.flattenSections(this.state.sections));
     }
 
     /**
