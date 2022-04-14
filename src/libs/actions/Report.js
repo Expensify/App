@@ -161,7 +161,8 @@ function getChatReportName(fullReport, chatType, oldPolicyName) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
     }
 
-    // We can store whatever title for the report object since we'll create the real name based on the latest data in Onyx
+    // We can store whatever title for the report object since we'll grab the latest most accurate
+    // name using getPolicyExpenseChatTitle
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
         return fullReport.reportName;
     }
@@ -1541,6 +1542,19 @@ function renameReport(reportID, reportName) {
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
+/**
+ * Get the title for a policyExpenseChat
+ * @param {Object} report
+ * @param {Object} policies must have Onyxkey prefix (i.e. 'policy_') for keys
+ */
+ function getPolicyExpenseChatTitle(report, policies) {
+    if (report.isOwnPolicyExpenseChat) {
+        return ReportUtils.getPolicyName(report, policies);
+    }
+    return PersonalDetails.getDisplayName(report.ownerEmail);
+}
+
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1572,4 +1586,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    getPolicyExpenseChatTitle,
 };
