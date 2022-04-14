@@ -1123,71 +1123,65 @@ function addAction(reportID, text, file) {
         optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
     });
 
-    // Optimistically add the new comment to the store before waiting to save it to the server
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [optimisticReportActionID]: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorEmail: currentUserEmail,
-            actorAccountID: currentUserAccountID,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT',
-                },
-            ],
-            automatic: false,
-
-            // Use the client generated ID as a optimistic action ID so we can remove it later
-            sequenceNumber: optimisticReportActionID,
+    API.Queue('Report_AddComment', {
+        parameters: {
+            reportID,
+            file,
+            reportComment: commentText,
             clientID: optimisticReportActionID,
-            avatar: myPersonalDetails.avatar,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                    html: htmlForNewComment,
-                    text: textForNewComment,
-                },
-            ],
-            isFirstItem: false,
-            isAttachment,
-            attachmentInfo,
-            loading: true,
-            shouldShow: true,
         },
+        optimisticData: {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                [optimisticReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    actorEmail: currentUserEmail,
+                    actorAccountID: currentUserAccountID,
+                    person: [
+                        {
+                            style: 'strong',
+                            text: myPersonalDetails.displayName || currentUserEmail,
+                            type: 'TEXT',
+                        },
+                    ],
+                    automatic: false,
+
+                    // Use the client generated ID as a optimistic action ID so we can remove it later
+                    sequenceNumber: optimisticReportActionID,
+                    clientID: optimisticReportActionID,
+                    avatar: myPersonalDetails.avatar,
+                    timestamp: moment().unix(),
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: htmlForNewComment,
+                            text: textForNewComment,
+                        },
+                    ],
+                    isFirstItem: false,
+                    isAttachment,
+                    attachmentInfo,
+                    loading: true,
+                    shouldShow: true,
+                },
+            },
+        },
+        failData: {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                [optimisticReportActionID]: {
+                    loading: false,
+                    error: CONST.ERROR.PLACEHOLDER,
+                },
+            },
+        },
+        successData: {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                [optimisticReportActionID]: {
+                    loading: false,
+                },
+            },
+        },
+
     });
-
-    API.Report_AddComment({
-        reportID,
-        file,
-        reportComment: commentText,
-        clientID: optimisticReportActionID,
-        persist: true,
-    })
-        .then((response) => {
-            if (response.jsonCode === 408) {
-                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
-                });
-                console.error(response.message);
-                return;
-            }
-
-            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
-                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
-                });
-
-                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
-                User.getUserDetails();
-                return;
-            }
-
-            updateReportWithNewAction(reportID, response.reportAction);
-        });
 }
 
 /**

@@ -163,9 +163,12 @@ ActiveClientManager.isReady().then(() => {
  * @param {*} [data]
  * @param {String} [type]
  * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
+ * @param {Object} [newAPIOptions]
  * @returns {Promise}
  */
-function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, newAPIOptions = {}) {
+    // eslint-disable-next-line no-param-reassign
+    delete newAPIOptions.parameters;
     return new Promise((resolve, reject) => {
         const request = {
             command,
@@ -174,6 +177,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             resolve,
             reject,
             shouldUseSecure,
+            ...newAPIOptions,
         };
 
         // By default, request are retry-able and cancellable

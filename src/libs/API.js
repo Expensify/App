@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
@@ -83,19 +84,68 @@ NetworkEvents.onResponse((queuedRequest, response) => {
         }
 
         handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
-            .then(queuedRequest.resolve || (() => Promise.resolve()))
-            .catch(queuedRequest.reject || (() => Promise.resolve()));
-        return;
-    }
+            .then((res) => {
+                // eslint-disable-next-line no-use-before-define
+                handleSuccess(queuedRequest, res);
+            })
+            .catch((err) => {
+                if (queuedRequest.isDreamAPI) {
+                    // This is a fetch error so we should return a default error if it is not persist
+                    // Recursive replace error placeholder with a default errorKey
+                    const failData = JSON.parse(JSON.stringify(queuedRequest.failData).replace(new RegExp(CONST.ERROR.PLACEHOLDER, 'g'), 'defaultError'));
+                    _.each(failData, (val, key) => {
+                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                        Onyx.merge(key, val);
+                    });
 
-    // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
-    if (!queuedRequest.resolve) {
+                    if (!queuedRequest.data.persist) {
+                        queuedRequest.reject(); // So any side effects can be handled
+                    }
+                } else if (queuedRequest.reject) {
+                    queuedRequest.reject(err);
+                } else {
+                    // do nothing
+                }
+            });
         return;
     }
 
     // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
-    queuedRequest.resolve(response);
+    // eslint-disable-next-line no-use-before-define
+    handleSuccess(queuedRequest, response);
 });
+
+function handleSuccess(queuedRequest, response) {
+    if (queuedRequest.isDreamAPI) {
+        if (response.jsonCode === 200) {
+            _.each(queuedRequest.successData, (val, key) => {
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.merge(key, val);
+            });
+
+            if (!queuedRequest.data.persist) {
+                queuedRequest.resolve();
+            }
+        } else {
+            // Recursive replace error placeholder with errorKey
+            const failData = JSON.parse(JSON.stringify(queuedRequest.failData).replace(new RegExp(CONST.ERROR.PLACEHOLDER, 'g'), response.data.errorKey));
+            _.each(failData, (val, key) => {
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.merge(key, val);
+            });
+
+            if (!queuedRequest.data.persist) {
+                queuedRequest.reject(); // Reject so we can perform a side effect
+            }
+        }
+
+        // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
+    } else if (queuedRequest.resolve) {
+        queuedRequest.resolve(response);
+    } else {
+        // do nothing
+    }
+}
 
 /**
  * @param {Object} parameters
@@ -1120,6 +1170,22 @@ function GetStatementPDF(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function Call(commandName, options, persist = false) {
+    // eslint-disable-next-line no-param-reassign
+    options.parameters.persist = persist;
+    // eslint-disable-next-line no-param-reassign
+    options.isDreamAPI = true;
+    Network.post(commandName, options.parameters, 'post', options.shouldUseSecure, options);
+}
+
+function Queue(commandName, options) {
+    _.each(options.optimisticData || {}, (val, key) => {
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(key, val);
+    });
+    Call(commandName, options, true);
+}
+
 export {
     Authenticate,
     AddBillingCard,
@@ -1191,4 +1257,6 @@ export {
     Policy_Employees_Remove,
     PreferredLocale_Update,
     Policy_Delete,
+    Queue,
+    Call,
 };

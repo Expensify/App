@@ -8,6 +8,10 @@ import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import Text from '../../../components/Text';
+import colors from '../../../styles/colors';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The report action */
@@ -41,6 +45,12 @@ const ReportActionItemMessage = (props) => {
                     loading={props.action.loading}
                 />
             ))}
+            {props.action.error && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                    <Text style={styles.mutedTextLabel}>{props.translate(props.action.error)}</Text>
+                </View>
+            )}
         </View>
     );
 };

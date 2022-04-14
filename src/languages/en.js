@@ -105,6 +105,9 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
     },
+    error: {
+        test: 'I am a test error',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
         expensifyDoesntHaveAccessToCamera: 'This app does not have access to your camera, please enable the permission and try again.',
