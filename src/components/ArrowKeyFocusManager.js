@@ -116,8 +116,6 @@ class ArrowKeyFocusManager extends Component {
     }
 
     /**
-     * Imperatively adjust the focused index.
-     *
      * @param {Number} index
      */
     setFocusedIndex(index) {
