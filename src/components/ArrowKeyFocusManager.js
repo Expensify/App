@@ -24,7 +24,7 @@ const propTypes = {
     onEnterKeyPressed: PropTypes.func,
 
     /** Should the enter key event bubble? */
-    shouldEnterKeyEventBubble: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+    shouldEnterKeyEventBubble: PropTypes.func,
 };
 
 const defaultProps = {
@@ -32,7 +32,7 @@ const defaultProps = {
     listLength: 0,
     onFocusedIndexChanged: () => {},
     onEnterKeyPressed: undefined,
-    shouldEnterKeyEventBubble: false,
+    shouldEnterKeyEventBubble: () => false,
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -42,7 +42,6 @@ class ArrowKeyFocusManager extends Component {
             focusedIndex: props.initialFocusedIndex,
         };
         this.setFocusedIndex = this.setFocusedIndex.bind(this);
-        this.shouldEnterKeyEventBubble = this.shouldEnterKeyEventBubble.bind(this);
     }
 
     componentDidMount() {
@@ -51,9 +50,20 @@ class ArrowKeyFocusManager extends Component {
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
         if (this.props.onEnterKeyPressed) {
-            this.unsubscribeEnterKey = KeyboardShortcut.subscribe(enterConfig.shortcutKey, () => {
-                this.props.onEnterKeyPressed(this.state.focusedIndex);
-            }, enterConfig.descriptionKey, enterConfig.modifiers, true, this.shouldEnterKeyEventBubble);
+            this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
+                enterConfig.shortcutKey,
+                () => this.props.onEnterKeyPressed(this.state.focusedIndex),
+                enterConfig.descriptionKey,
+                enterConfig.modifiers,
+                true,
+                () => {
+                    const shouldBubble = this.props.shouldEnterKeyEventBubble(this.state.focusedIndex);
+                    if (!_.isBoolean(shouldBubble)) {
+                        throw new Error('shouldEnterKeyEventBubble prop did not return a boolean');
+                    }
+                    return shouldBubble;
+                },
+            );
         }
 
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
@@ -112,21 +122,6 @@ class ArrowKeyFocusManager extends Component {
      */
     setFocusedIndex(index) {
         this.setState({focusedIndex: index});
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    shouldEnterKeyEventBubble() {
-        if (_.isFunction(this.props.shouldEnterKeyEventBubble)) {
-            const shouldBubble = this.props.shouldEnterKeyEventBubble(this.state.focusedIndex);
-            if (!_.isBoolean(shouldBubble)) {
-                throw new Error('shouldEnterKeyEventBubble prop did not return a boolean');
-            }
-            return shouldBubble;
-        }
-
-        return this.props.shouldEnterKeyEventBubble;
     }
 
     render() {
