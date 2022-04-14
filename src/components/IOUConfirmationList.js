@@ -207,7 +207,14 @@ class IOUConfirmationList extends Component {
     getSections(participants) {
         const sections = [];
         if (this.props.hasMultipleParticipants) {
-            const {true: selected, false: unselected} = _.groupBy(participants, 'selected');
+            const [selected, unselected] = _.reduce(participants, (memo, participant) => {
+                if (participant.selected) {
+                    memo[0].push(participant);
+                } else {
+                    memo[1].push(participant);
+                }
+                return memo;
+            }, [[], []]);
             const selectedParticipants = selected || [];
             const unselectedParticipants = unselected || [];
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
