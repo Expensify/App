@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import {Component} from 'react';
 import PropTypes from 'prop-types';
-import * as PropTypeUtils from '../libs/PropTypeUtils';
 import CONST from '../CONST';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
@@ -12,11 +11,11 @@ const propTypes = {
         PropTypes.node,
     ]).isRequired,
 
-    /** The initial focused index. */
-    initialFocusedIndex: PropTypeUtils.integerPropType,
+    /** The initial focused index. Should be an integer >= -1 */
+    initialFocusedIndex: PropTypes.number,
 
-    /** The number of items in the list that this component is managing focus for. */
-    listLength: PropTypeUtils.wholeNumberPropType,
+    /** The number of items in the list that this component is managing focus for. Should be an integer >= 0 */
+    listLength: PropTypes.number,
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func,
