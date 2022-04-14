@@ -175,7 +175,7 @@ function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat
     if (!isChatRoomOrPolicyExpenseChat) {
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
-            searchTerms.push(personalDetail.login);
+            searchTerms.push(personalDetail.login.replace(/\./g, ''));
         });
     }
     if (report) {
@@ -335,6 +335,7 @@ function createOption(personalDetailList, report, {
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
     const searchWords = _.map(
         searchValue
+            .replace(/\./g, '')
             .replace(/,/g, ' ')
             .split(' '),
         word => word.trim(),
@@ -588,9 +589,9 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     let userToInvite = null;
-    if (searchValue
-        && recentReportOptions.length === 0
-        && personalDetailsOptions.length === 0
+    const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
+    if (searchValue && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
