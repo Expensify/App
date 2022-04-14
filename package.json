@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "scripts/react-native-web.sh && cd desktop && npm install",
     "clean": "react-native clean-project-auto",
-    "android": "npm run check-metro-bundler-port && react-native run-android",
+    "android": "npm run check-metro-bundler-port && source ~/.zshrc&& react-native run-android",
     "ios": "npm run check-metro-bundler-port && react-native run-ios",
     "ipad": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "ipad-sm": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
@@ -24,6 +24,7 @@
     "android-build": "fastlane android build",
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
+    "lint:fix" :"eslint . --fix",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
     "storybook-build": "build-storybook -o dist/docs",

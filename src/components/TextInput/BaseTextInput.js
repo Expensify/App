@@ -205,6 +205,7 @@ class BaseTextInput extends Component {
                 <View>
                     <View
                         style={[
+                            // this.props.height,
                             !this.props.multiline && styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
