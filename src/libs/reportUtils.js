@@ -6,7 +6,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 
-
 let sessionEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
