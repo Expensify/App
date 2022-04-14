@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Text as RNText} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -14,6 +14,7 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
+import Accessibility from '../../../styles/AccessibilityFontSize'
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -57,7 +58,7 @@ const WorkspaceBillsFirstSection = (props) => {
                         <TouchableOpacity
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
-                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                            <RNText style={[styles.textBlue,{fontSize:Accessibility().fontSizeNormal}]}>example.com@expensify.cash</RNText>
                         </TouchableOpacity>
                     ) : (
                         <CopyTextToClipboard

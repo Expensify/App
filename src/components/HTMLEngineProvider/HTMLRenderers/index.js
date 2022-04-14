@@ -11,7 +11,7 @@ export default {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
-
+    
     // Custom tag renderers
     edited: EditedRenderer,
 };
