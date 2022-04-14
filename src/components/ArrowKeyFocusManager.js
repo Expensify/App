@@ -112,13 +112,6 @@ class ArrowKeyFocusManager extends Component {
     }
 
     /**
-     * @returns {Number}
-     */
-    getFocusedIndex() {
-        return this.state.focusedIndex;
-    }
-
-    /**
      * Imperatively adjust the focused index.
      *
      * @param {Number} index
