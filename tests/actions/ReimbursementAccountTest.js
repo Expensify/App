@@ -33,6 +33,8 @@ Onyx.connect({
     callback: val => reimbursementAccount = val,
 });
 
+beforeAll(() => Onyx.init());
+
 beforeEach(() => Onyx.clear()
     .then(() => {
         NetworkStore.setHasReadRequiredDataFromStorage(true);
