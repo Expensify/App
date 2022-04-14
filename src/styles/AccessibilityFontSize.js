@@ -1,7 +1,7 @@
 import { PixelRatio } from "react-native";
 import variables from "./variables";
 const styles = () => {
-    console.log('PixelRatio now :',PixelRatio.getFontScale())
+    // console.log('PixelRatio now :',PixelRatio.getFontScale())
     // if (PixelRatio.getFontScale() > 1.35) {
     if (PixelRatio.getFontScale() > 1) {
         return {
@@ -59,13 +59,14 @@ const styles = () => {
             // lineHeightSmall: 20,
             lineHeightNormal: 21,
             lineHeightLarge: 18,
-            lineHeightXLarge: 20,
+            // lineHeightXLarge: 20,
+            lineHeightXLarge: 22,
             baseTextInputPaddingTop: 18,
             baseTextInputPaddingBottom: 5,
             inputHeight: 72,
             pickerIconTop: 26,
             formErrorLineHeight:23,
-            menuText: 17
+            communicationsLinkHeight: 30,
 
         }
     }
@@ -120,13 +121,12 @@ const styles = () => {
             lineHeightSmall: variables.lineHeightSmall,
             lineHeightNormal: variables.lineHeightNormal,
             lineHeightLarge: variables.lineHeightLarge,
-            lineHeightXXXLarge: variables.lineHeightXXXLarge,
             baseTextInputPaddingTop: variables.baseTextInputPaddingTop,
             baseTextInputPaddingBottom: variables.baseTextInputPaddingBottom,
             inputHeight: variables.inputHeight,
             pickerIconTop: variables.pickerIconTop,
             formErrorLineHeight:variables.formErrorLineHeight,
-            menuText: variables.menuText
+            communicationsLinkHeight: variables.communicationsLinkHeight,
         }
     }
 }
