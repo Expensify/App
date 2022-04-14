@@ -1546,14 +1546,14 @@ function renameReport(reportID, reportName) {
  * Get the title for a policyExpenseChat
  * @param {Object} report
  * @param {Object} policies must have Onyxkey prefix (i.e. 'policy_') for keys
+ * @returns {String}
  */
- function getPolicyExpenseChatTitle(report, policies) {
+function getPolicyExpenseChatTitle(report, policies) {
     if (report.isOwnPolicyExpenseChat) {
         return ReportUtils.getPolicyName(report, policies);
     }
     return PersonalDetails.getDisplayName(report.ownerEmail);
 }
-
 
 export {
     fetchAllReports,
