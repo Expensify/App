@@ -88,24 +88,9 @@ NetworkEvents.onResponse((queuedRequest, response) => {
                 // eslint-disable-next-line no-use-before-define
                 handleSuccess(queuedRequest, res);
             })
-            .catch((err) => {
-                if (queuedRequest.isDreamAPI) {
-                    // This is a fetch error so we should return a default error if it is not persist
-                    // Recursive replace error placeholder with a default errorKey
-                    const failData = JSON.parse(JSON.stringify(queuedRequest.failData).replace(new RegExp(CONST.ERROR.PLACEHOLDER, 'g'), 'defaultError'));
-                    _.each(failData, (val, key) => {
-                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                        Onyx.merge(key, val);
-                    });
-
-                    if (!queuedRequest.data.persist) {
-                        queuedRequest.reject(); // So any side effects can be handled
-                    }
-                } else if (queuedRequest.reject) {
-                    queuedRequest.reject(err);
-                } else {
-                    // do nothing
-                }
+            .catch(() => {
+                // eslint-disable-next-line no-use-before-define
+                handleError(queuedRequest, 'error.default');
             });
         return;
     }
@@ -128,15 +113,8 @@ function handleSuccess(queuedRequest, response) {
             }
         } else {
             // Recursive replace error placeholder with errorKey
-            const failData = JSON.parse(JSON.stringify(queuedRequest.failData).replace(new RegExp(CONST.ERROR.PLACEHOLDER, 'g'), response.data.errorKey));
-            _.each(failData, (val, key) => {
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.merge(key, val);
-            });
-
-            if (!queuedRequest.data.persist) {
-                queuedRequest.reject(); // Reject so we can perform a side effect
-            }
+            // eslint-disable-next-line no-use-before-define
+            handleError(queuedRequest, response.data.errorKey);
         }
 
         // Check to see if queuedRequest has a resolve method as this could be a persisted request which had it's promise handling logic stripped
@@ -144,6 +122,18 @@ function handleSuccess(queuedRequest, response) {
         queuedRequest.resolve(response);
     } else {
         // do nothing
+    }
+}
+
+function handleError(queuedRequest, errorKey) {
+    const failData = JSON.parse(JSON.stringify(queuedRequest.failData).replace(new RegExp(CONST.ERROR.PLACEHOLDER, 'g'), errorKey));
+    _.each(failData, (val, key) => {
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(key, val);
+    });
+
+    if (!queuedRequest.data.persist) {
+        queuedRequest.reject();
     }
 }
 
