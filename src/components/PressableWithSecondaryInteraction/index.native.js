@@ -1,7 +1,7 @@
+import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import {Pressable} from 'react-native';
-import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
 import HapticFeedback from '../../libs/HapticFeedback';

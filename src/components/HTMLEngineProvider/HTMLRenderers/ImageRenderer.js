@@ -57,7 +57,7 @@ const ImageRenderer = (props) => {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles(13).tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
                 </TouchableWithoutFocus>
