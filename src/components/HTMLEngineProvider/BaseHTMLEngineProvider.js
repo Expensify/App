@@ -1,5 +1,11 @@
 import _ from 'underscore';
+<<<<<<< HEAD
 import React, {useMemo, useRef, useState, useEffect} from 'react';
+=======
+import React, {
+    useMemo, useRef, useState, useEffect,
+} from 'react';
+>>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
@@ -46,8 +52,9 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 // costly invalidations and commits.
 const BaseHTMLEngineProvider = (props) => {
     const appState = useRef(AppState.currentState);
-    const [pixelRatio,setPixelRatio] = useState(PixelRatio.getFontScale())
+    const [pixelRatio, setPixelRatio] = useState(PixelRatio.getFontScale());
     useEffect(() => {
+<<<<<<< HEAD
         const subscription = AppState.addEventListener('change', nextAppState => {
           if (
             appState.current.match(/inactive|background/) 
@@ -57,12 +64,24 @@ const BaseHTMLEngineProvider = (props) => {
           }
     
           appState.current = nextAppState;
+=======
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (
+                appState.current.match(/inactive|background/)
+            && nextAppState === 'active'
+            ) {
+                setPixelRatio(PixelRatio.getFontScale());
+            }
+
+            appState.current = nextAppState;
+>>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
         });
-    
+
         return () => {
-          subscription.remove();
+            subscription.remove();
         };
-      }, []);
+    }, []);
+
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
 

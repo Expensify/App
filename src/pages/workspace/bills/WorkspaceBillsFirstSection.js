@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity, Text as RNText} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -14,7 +15,7 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
-import Accessibility from '../../../styles/AccessibilityFontSize'
+import Accessibility from '../../../styles/AccessibilityFontSize';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -58,7 +59,7 @@ const WorkspaceBillsFirstSection = (props) => {
                         <TouchableOpacity
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
-                            <RNText style={[styles.textBlue,{fontSize:Accessibility().fontSizeNormal}]}>example.com@expensify.cash</RNText>
+                            <RNText style={[styles.textBlue, {fontSize: Accessibility().fontSizeNormal}]}>example.com@expensify.cash</RNText>
                         </TouchableOpacity>
                     ) : (
                         <CopyTextToClipboard

@@ -16,7 +16,11 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+<<<<<<< HEAD
 import Accessibility from './AccessibilityFontSize'
+=======
+import Accessibility from './AccessibilityFontSize';
+>>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
 import getOperatingSystem from '../libs/getOperatingSystem';
 import CONST from '../CONST';
 
@@ -50,7 +54,7 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
-const webViewStyles = (fontSize,pixelRatio) => ({
+const webViewStyles = (fontSize, pixelRatio) => ({
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
     // styles in the below "tagStyles" instead. If you need to reuse those
@@ -75,7 +79,7 @@ const webViewStyles = (fontSize,pixelRatio) => ({
             fontSize,
         },
 
-        a: {...link,fontSize},
+        a: {...link, fontSize},
 
         ul: {
             maxWidth: '100%',
@@ -101,6 +105,7 @@ const webViewStyles = (fontSize,pixelRatio) => ({
             marginTop: 4,
             marginBottom: 4,
             fontSize,
+
             // Overwrite default HTML margin for blockquotes
             marginLeft: 0,
         },
@@ -123,7 +128,12 @@ const webViewStyles = (fontSize,pixelRatio) => ({
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
+<<<<<<< HEAD
             fontSize: pixelRatio>1? getOperatingSystem() === CONST.OS.IOS?55/pixelRatio:21/pixelRatio:13
+=======
+            // eslint-disable-next-line no-nested-ternary
+            fontSize: pixelRatio > 1 ? getOperatingSystem() === CONST.OS.IOS ? 55 / pixelRatio : 21 / pixelRatio : 13,
+>>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
         },
 
         img: {
@@ -141,12 +151,13 @@ const webViewStyles = (fontSize,pixelRatio) => ({
 
     baseFontStyle: {
         color: themeColors.text,
+
         // fontSize: Accessibility().fontSizeNormal,
         fontSize,
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
-})
+});
 
 const styles = {
     // Add all of our utility and helper styles
@@ -255,8 +266,9 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: Accessibility().fontSizeSmall,
+
         // lineHeight: Accessibility().lineHeightSmall,
-        lineHeight:20
+        lineHeight: 20,
     },
 
     textExtraSmallSupporting: {
@@ -661,10 +673,11 @@ const styles = {
 
     componentHeightLarge: {
         height: Accessibility().inputHeight,
+
         // height: variables.componentSizeLarge,
     },
-    textInputHeight:{
-        height: Accessibility().inputHeight
+    textInputHeight: {
+        height: Accessibility().inputHeight,
     },
 
     textInputContainer: {
@@ -682,6 +695,7 @@ const styles = {
         position: 'absolute',
         left: 11,
         top: 0,
+
         // top: 5,
         fontSize: Accessibility().fontSizeNormal,
         color: themeColors.textSupporting,
@@ -1104,6 +1118,7 @@ const styles = {
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
+
         // backgroundColor:'red'
         // maxWidth: 190,
 
@@ -1199,6 +1214,7 @@ const styles = {
     optionAlternateText: {
         height: 20,
         lineHeight: Accessibility().lineHeightXLarge,
+
         // lineHeight: 22,
     },
 
