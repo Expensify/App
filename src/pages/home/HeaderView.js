@@ -92,7 +92,7 @@ const HeaderView = (props) => {
     if (isChatRoom) {
         title = props.report.reportName;
     } else if (isPolicyExpenseChat) {
-        title = ReportUtils.getPolicyExpenseChatName(props.report);
+        title = Report.getPolicyExpenseChatTitle(props.report);
     } else {
         title = _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
     }
