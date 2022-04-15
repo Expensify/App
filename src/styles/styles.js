@@ -17,6 +17,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import overflowXHidden from './overflowXHidden';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -1343,7 +1344,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
-        overflowX: 'hidden',
+        ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
