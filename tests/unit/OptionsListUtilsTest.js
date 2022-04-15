@@ -119,7 +119,7 @@ describe('OptionsListUtils', () => {
 
         // Note: This reoprt is a defaultRoom without any messages in it
         11: {
-            chatType: "defaultRoom",
+            chatType: "policyAdmins",
             hasOutstandingIOU: false,
             isPinned: false,
             lastMessageTimestamp: 0,
@@ -644,7 +644,7 @@ describe('OptionsListUtils', () => {
                 );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
-                // unpinned report that has no lastMessageTimestamp
+                // unpinned report that has no lastMessageTimestamp and is not a policyExpenseChat or defaultRoom
                 expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
 
                 const numberOfPinnedReports = _.filter(results.recentReports, report => report.isPinned).length;
