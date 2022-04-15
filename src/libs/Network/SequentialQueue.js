@@ -61,6 +61,9 @@ function flush() {
     });
 }
 
+/**
+ * @returns {Boolean}
+ */
 function isRunning() {
     return isSequentialQueueRunning;
 }
