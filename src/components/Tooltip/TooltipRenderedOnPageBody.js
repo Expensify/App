@@ -37,17 +37,13 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     /** Number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number,
+    maxWidth: PropTypes.number.isRequired,
 
     /** Maximum number of lines to set on tooltip */
-    numberOfLines: PropTypes.number,
-
+    numberOfLines: PropTypes.number.isRequired,
 };
 
-const defaultProps = {
-    maxWidth: undefined,
-    numberOfLines: undefined,
-};
+const defaultProps = {};
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -58,8 +54,8 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            // Set maxWidth as initial so we can get width of word wrapped text
-            tooltipTextWidth: this.props.maxWidth,
+
+            tooltipTextWidth: undefined,
 
             // The width and height of the tooltip itself
             tooltipWidth: 0,
@@ -70,9 +66,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.maxWidth) {
-            return;
-        }
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
         });

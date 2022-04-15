@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Enable support for the absolute positioned native(View|Text) children. It will only work for single native child  */
@@ -38,8 +40,8 @@ const defaultProps = {
     shiftVertical: 0,
     containerStyles: [],
     text: '',
-    maxWidth: undefined,
-    numberOfLines: undefined,
+    maxWidth: variables.sideBarWidth,
+    numberOfLines: CONST.TOOLTIP_MAX_LINES,
 };
 
 export {
