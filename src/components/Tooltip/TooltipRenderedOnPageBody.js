@@ -54,7 +54,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-
+            // tooltipTextWidth will update with wrapped text offsetWidth based on maxWidth prop
             tooltipTextWidth: undefined,
 
             // The width and height of the tooltip itself
