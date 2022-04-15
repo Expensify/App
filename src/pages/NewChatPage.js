@@ -56,11 +56,7 @@ class NewChatPage extends Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
-            CONST.EMAIL.CONCIERGE,
-            CONST.EMAIL.RECEIPTS,
-            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-        ]);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
         const {
             recentReports,

@@ -324,6 +324,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
+        closeAccountError: 'Unable to close account',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -847,6 +848,7 @@ export default {
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Name',
