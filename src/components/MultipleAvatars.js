@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import variables from '../styles/variables';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
@@ -81,7 +80,7 @@ const MultipleAvatars = (props) => {
                             />
                         </Tooltip>
                     ) : (
-                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute numberOfLines={CONST.TOOLTIP_MAX_LINES} maxWidth={variables.sideBarWidth}>
+                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
                             <View
                                 style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
