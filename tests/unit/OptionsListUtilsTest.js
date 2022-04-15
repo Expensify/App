@@ -103,31 +103,31 @@ describe('OptionsListUtils', () => {
 
         // Note: This reoprt is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
         10: {
-            chatType: "policyExpenseChat",
+            chatType: 'policyExpenseChat',
             hasOutstandingIOU: false,
             isOwnPolicyExpenseChat: true,
             isPinned: false,
             lastMessageTimestamp: 0,
             lastVisitedTimestamp: 1610666739302,
             participants: ['test3@instantworkspace.com'],
-            policyID: "Whatever",
+            policyID: 'Whatever',
             reportID: 10,
-            reportName: "Someone's workspace",
+            reportName: 'Someone's workspace',
             unreadActionCount: 0,
             visibility: undefined,
         },
 
         // Note: This reoprt is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
         11: {
-            chatType: "policyAdmins",
+            chatType: 'policyAdmins',
             hasOutstandingIOU: false,
             isPinned: false,
             lastMessageTimestamp: 0,
             lastVisitedTimestamp: 1610666739302,
             participants: ['test3@instantworkspace.com'],
-            policyID: "Whatever",
+            policyID: 'Whatever',
             reportID: 11,
-            reportName: "#admins",
+            reportName: '#admins',
             unreadActionCount: 0,
             visibility: undefined,
         },
