@@ -54,9 +54,8 @@ class NewChatPage extends Component {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
-        this.openChatOrCreateGroup = this.openChatOrCreateGroup.bind(this);
-        this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
-        this.createNewChat = this.createNewChat.bind(this);
+        this.createChat = this.createChat.bind(this);
+        this.createGroup = this.createGroup.bind(this);
         this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
             CONST.EMAIL.CONCIERGE,
             CONST.EMAIL.RECEIPTS,
@@ -138,26 +137,6 @@ class NewChatPage extends Component {
     }
 
     /**
-     * Once all our options are selected this method will call the API and  create new chat between all selected users
-     * and the currently logged in user
-     *
-     * @param {Object} option
-     */
-    openChatOrCreateGroup(option) {
-        if (!this.props.isGroupChat) {
-            this.createNewChat(option);
-            return;
-        }
-
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
-            return;
-        }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
-    }
-
-    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
@@ -201,22 +180,29 @@ class NewChatPage extends Component {
     }
 
     /**
-     * Creates a new chat with the option
+     * Creates a new 1:1 chat with the option and the current user,
+     * or navigates to the existing chat if one with those participants already exists.
+     *
      * @param {Object} option
      */
-    createNewChat(option) {
+    createChat(option) {
         Report.fetchOrCreateChatReport([
             this.props.session.email,
             option.login,
         ]);
     }
 
-    toggleGroupOptionOrCreateChat(option) {
-        if (this.props.isGroupChat) {
-            return this.toggleOption(option);
+    /**
+     * Creates a new group chat with all the selected options and the current user,
+     * or navigates to the existing chat if one with those participants already exists.
+     */
+    createGroup() {
+        const userLogins = _.pluck(this.state.selectedOptions, 'login');
+        if (userLogins.length < 1) {
+            return;
         }
 
-        this.createNewChat(option);
+        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
     render() {
@@ -246,7 +232,7 @@ class NewChatPage extends Component {
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
                                     value={this.state.searchValue}
-                                    onSelectRow={this.toggleGroupOptionOrCreateChat}
+                                    onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
                                     onChangeText={(searchValue = '') => {
                                         const {
                                             recentReports,
@@ -274,7 +260,7 @@ class NewChatPage extends Component {
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     maxParticipantsReached={maxParticipantsReached}
-                                    onConfirmSelection={this.openChatOrCreateGroup}
+                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : this.createChat}
                                 />
                             )}
                         </View>
