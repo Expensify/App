@@ -52,4 +52,5 @@ export default {
     pickerIconTop: 16,
     formErrorLineHeight: 18,
     communicationsLinkHeight: 20,
+    alternateTextHeight: 20,
 };
