@@ -325,6 +325,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
+        closeAccountError: 'Unable to close account',
     },
     passwordPage: {
         changePassword: 'Change password',
