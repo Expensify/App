@@ -52,7 +52,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 /**
  *
  * @param {Number} maxWidth - Max-width for tooltip's wrapper.
- * @param {Number} [tooltipTextWidth] -  Max-width for tooltip's wrapper.
+ * @param {Number} [tooltipTextWidth] -  Tooltip's inner text width.
  * @returns {Object}
  */
 function setWrapperWidth(maxWidth, tooltipTextWidth) {
