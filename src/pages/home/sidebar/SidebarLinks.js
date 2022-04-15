@@ -185,12 +185,18 @@ class SidebarLinks extends React.Component {
         const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
 
         // Determines if the active report has a history of draft comments while active.
-        // If the message has been sent, set the flag to false. Do not rely on nextProps.reportsWithDraft, which may still carry true in this update cycle.
-        const hasDraftHistory = isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp ? false
+        let hasDraftHistory;
 
-            // If the flag was true, preserve the state even if there is currently no draft. Otherwise, update it.
-            : (isActiveReportSame && prevState.activeReport.hasDraftHistory)
-                || lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+        // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
+        // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
+        // Otherwise, update the flag from the prop value.
+        if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
+            hasDraftHistory = false;
+        } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
+            hasDraftHistory = true;
+        } else {
+            hasDraftHistory = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+        }
 
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
         const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
