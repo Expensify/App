@@ -101,7 +101,7 @@ describe('OptionsListUtils', () => {
             hasOutstandingIOU: true,
         },
 
-        // Note: This reoprt is a PolicyExpenseChat without any messages in it
+        // Note: This reoprt is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
         10: {
             chatType: "policyExpenseChat",
             hasOutstandingIOU: false,
@@ -117,7 +117,7 @@ describe('OptionsListUtils', () => {
             visibility: undefined,
         },
 
-        // Note: This reoprt is a defaultRoom without any messages in it
+        // Note: This reoprt is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
         11: {
             chatType: "policyAdmins",
             hasOutstandingIOU: false,
