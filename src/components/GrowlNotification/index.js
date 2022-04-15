@@ -1,10 +1,10 @@
-import {
-    Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
 import React, {Component} from 'react';
 import {
     View, Animated,
 } from 'react-native';
+import {
+    Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
