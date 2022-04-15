@@ -450,8 +450,9 @@ function getOptions(reports, personalDetails, activeReportID, {
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
 
-                // We make exceptions for nonarchived defaultRooms and policyExpenseChats so we can immediately
-                // highlight them in the LHN when they are created and have no messsages yet
+                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
+                // highlight them in the LHN when they are created and have no messsages yet. We do
+                // not give archived rooms this exception since they do not need to be higlihted.
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
