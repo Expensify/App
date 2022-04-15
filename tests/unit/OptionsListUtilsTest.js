@@ -112,7 +112,7 @@ describe('OptionsListUtils', () => {
             participants: ['test3@instantworkspace.com'],
             policyID: 'Whatever',
             reportID: 10,
-            reportName: 'Someone's workspace',
+            reportName: "Someone's workspace",
             unreadActionCount: 0,
             visibility: undefined,
         },
