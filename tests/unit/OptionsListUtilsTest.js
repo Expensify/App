@@ -100,6 +100,22 @@ describe('OptionsListUtils', () => {
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
+
+        // Note: This reoprt is a PolicyExpenseChat without any messages in it
+        10: {
+            chatType: "policyExpenseChat",
+            hasOutstandingIOU: false,
+            isOwnPolicyExpenseChat: true,
+            isPinned: false,
+            lastMessageTimestamp: 0,
+            lastVisitedTimestamp: 1610666739302,
+            participants: ['test3@instantworkspace.com'],
+            policyID: "Whatever",
+            reportID: 10,
+            reportName: "Someone's workspace",
+            unreadActionCount: 0,
+            visibility: undefined,
+        },
     };
 
     // And a set of personalDetails some with existing reports and some without
