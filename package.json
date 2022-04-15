@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.54-0",
+  "version": "1.1.55-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -24,7 +24,6 @@
     "android-build": "fastlane android build",
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
-    "lint:fix" :"eslint . --fix",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
     "storybook-build": "build-storybook -o dist/docs",

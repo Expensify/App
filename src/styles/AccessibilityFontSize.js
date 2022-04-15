@@ -60,6 +60,7 @@ const styles = () => {
             pickerIconTop: 26,
             formErrorLineHeight: 23,
             communicationsLinkHeight: 30,
+            alternateTextHeight: 22,
 
         };
     }
@@ -120,6 +121,7 @@ const styles = () => {
         pickerIconTop: variables.pickerIconTop,
         formErrorLineHeight: variables.formErrorLineHeight,
         communicationsLinkHeight: variables.communicationsLinkHeight,
+        alternateTextHeight: variables.alternateTextHeight,
     };
 };
 export default styles;

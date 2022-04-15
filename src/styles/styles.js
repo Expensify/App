@@ -16,11 +16,7 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-<<<<<<< HEAD
-import Accessibility from './AccessibilityFontSize'
-=======
 import Accessibility from './AccessibilityFontSize';
->>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
 import getOperatingSystem from '../libs/getOperatingSystem';
 import CONST from '../CONST';
 
@@ -128,12 +124,8 @@ const webViewStyles = (fontSize, pixelRatio) => ({
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
-<<<<<<< HEAD
-            fontSize: pixelRatio>1? getOperatingSystem() === CONST.OS.IOS?55/pixelRatio:21/pixelRatio:13
-=======
             // eslint-disable-next-line no-nested-ternary
             fontSize: pixelRatio > 1 ? getOperatingSystem() === CONST.OS.IOS ? 55 / pixelRatio : 21 / pixelRatio : 13,
->>>>>>> 13e133f37bd5dd5a7e99278f915aac19ab8e7017
         },
 
         img: {
@@ -266,9 +258,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: Accessibility().fontSizeSmall,
-
-        // lineHeight: Accessibility().lineHeightSmall,
-        lineHeight: 20,
+        lineHeight: Accessibility().lineHeightSmall,
     },
 
     textExtraSmallSupporting: {
@@ -1192,7 +1182,7 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 20,
+        height: Accessibility().alternateTextHeight,
         lineHeight: Accessibility().lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
@@ -1212,10 +1202,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 20,
+        height: Accessibility().alternateTextHeight,
         lineHeight: Accessibility().lineHeightXLarge,
-
-        // lineHeight: 22,
     },
 
     optionAlternateTextCompact: {
