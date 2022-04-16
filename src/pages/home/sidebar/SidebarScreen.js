@@ -76,7 +76,7 @@ class SidebarScreen extends Component {
      */
     openMenu() {
         this.setState({
-            isCreateMenuActive: true
+            isCreateMenuActive: true,
         });
     }
 
