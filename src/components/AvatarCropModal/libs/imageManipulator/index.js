@@ -1,7 +1,5 @@
 import _ from 'underscore';
 
-// import RNFetchBlob from 'rn-fetch-blob'
-
 function getContext(canvas) {
     return canvas.getContext('2d');
 }
