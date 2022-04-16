@@ -314,19 +314,6 @@ function setPassword(password, validateCode, accountID) {
 
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-
-            if (response.title !== CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
-                return;
-            }
-
-            const login = lodashGet(response, 'data.email', null);
-            Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
-
-            // The login might not be set if the user hits a url in a new session. We set it here to ensure calls to resendValidationLink() will succeed.
-            if (login) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
-            }
-            Navigation.navigate(ROUTES.HOME);
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
