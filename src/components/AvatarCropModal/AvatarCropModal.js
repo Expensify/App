@@ -8,6 +8,7 @@ import {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
@@ -209,7 +210,7 @@ const AvatarCropModal = memo((props) => {
                 : CONST.MODAL.MODAL_TYPE.CONFIRM}
             containerStyle={props.isSmallScreenWidth && styles.h100}
         >
-            <View style={[styles.pb5, props.isSmallScreenWidth && styles.pt4, styles.flex1]}>
+            <SafeAreaProvider style={[styles.pb5, styles.flex1]}>
                 <HeaderWithCloseButton
                     title={props.translate('avatarCropModal.title')}
                     onCloseButtonPress={props.onClose}
@@ -241,7 +242,7 @@ const AvatarCropModal = memo((props) => {
                     pressOnEnter
                     text={props.translate('common.save')}
                 />
-            </View>
+            </SafeAreaProvider>
         </Modal>
     );
 });

@@ -1,5 +1,7 @@
 import _ from 'underscore';
 
+// import RNFetchBlob from 'rn-fetch-blob'
+
 function getContext(canvas) {
     return canvas.getContext('2d');
 }
@@ -66,23 +68,14 @@ function crop(canvas, options) {
     return result;
 }
 
-function getResults(canvas, options) {
-    let base64;
-    if (options) {
-        const {format = 'png'} = options;
-        const quality = Math.min(1, Math.max(0, options.compress || 1));
-        base64 = canvas.toDataURL(`image/${format}`, quality);
-    } else {
-    // defaults to PNG with no loss
-        base64 = canvas.toDataURL();
-    }
-    return {
-        uri: base64,
-        width: canvas.width,
-        height: canvas.height,
-        base64,
-        size: ((base64.length * 4) + 2) / 3,
-    };
+function getResults(canvas) {
+    return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+            const file = new File([blob], 'fileName.jpg', {type: 'image/jpeg'});
+            file.uri = URL.createObjectURL(file);
+            resolve(file);
+        });
+    });
 }
 
 function loadImageAsync(uri) {
@@ -123,8 +116,7 @@ function imageManipulator(uri, actions, options) {
                 return canvas;
             }, originalCanvas);
 
-            const result = getResults(resultCanvas, options);
-            resolve(result);
+            getResults(resultCanvas, options).then(resolve);
         });
     });
 }
