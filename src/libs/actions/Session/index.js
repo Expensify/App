@@ -307,15 +307,14 @@ function setPassword(password, validateCode, accountID) {
         accountID,
     })
         .then((response) => {
-            if (response.jsonCode === 200) {
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 createTemporaryLogin(response.authToken, response.email);
                 return;
             }
 
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-        })
-        .catch((response) => {
+
             if (response.title !== CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
                 return;
             }
