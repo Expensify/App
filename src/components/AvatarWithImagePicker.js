@@ -78,7 +78,7 @@ class AvatarWithImagePicker extends React.Component {
             isMenuVisible: false,
             isMaxUploadSizeModalOpen: false,
             isAvatarCropModalOpen: false,
-            image: {},
+            image: null,
         };
     }
 
@@ -258,10 +258,10 @@ class AvatarWithImagePicker extends React.Component {
                     shouldShowCancelButton={false}
                 />
                 <AvatarCropModal
-                    onClose={() => this.setState({isAvatarCropModalOpen: false, image: {}})}
+                    onClose={() => this.setState({isAvatarCropModalOpen: false, image: null})}
                     isVisible={this.state.isAvatarCropModalOpen}
                     onCrop={image => this.updateAvatarImage(image)}
-                    imageUri={this.state.image.uri}
+                    imageUri={lodashGet(this.state.image, 'uri')}
                 />
             </View>
         );
