@@ -63,20 +63,18 @@ class SidebarScreen extends Component {
     }
 
     /**
+     * Method called when click on FAB button
+     */
+    openMenu() {
+        this.setState({ isCreateMenuActive: true });
+    }
+
+    /**
      * Method called when a Create Menu item is selected.
      */
     onCreateMenuItemSelected() {
         this.setState({
             isCreateMenuActive: false,
-        });
-    }
-
-    /**
-     * Method called when click on FAB button
-     */
-    openMenu() {
-        this.setState({
-            isCreateMenuActive: true,
         });
     }
 
@@ -94,10 +92,10 @@ class SidebarScreen extends Component {
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    hideCreateMenu() {
-        this.setState({
+     hideCreateMenu() {
+        this.setState(state => ({
             isCreateMenuActive: false,
-        });
+        }));
     }
 
     /**
@@ -112,16 +110,25 @@ class SidebarScreen extends Component {
         // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
-            <ScreenWrapper includePaddingBottom={false} style={[styles.sidebar]}>
+            <ScreenWrapper
+                includePaddingBottom={false}
+                style={[styles.sidebar]}
+            >
                 {({insets}) => (
                     <>
                         <View style={[styles.flex1]}>
-                            <SidebarLinks onLinkClick={this.startTimer} insets={insets} onAvatarClick={this.navigateToSettings} isSmallScreenWidth={this.props.isSmallScreenWidth} />
+                            <SidebarLinks
+                                onLinkClick={this.startTimer}
+                                insets={insets}
+                                onAvatarClick={this.navigateToSettings}
+                                isSmallScreenWidth={this.props.isSmallScreenWidth}
+                            />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.openMenu}
+
                             />
                         </View>
                         <PopoverMenu
@@ -141,54 +148,44 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
-                                    ? [
-                                        {
-                                            icon: Expensicons.Hashtag,
-                                            text: this.props.translate('sidebarScreen.newRoom'),
-                                            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
-                                        },
-                                    ]
-                                    : []),
-                                ...(Permissions.canUseIOUSend(this.props.betas)
-                                    ? [
-                                        {
-                                            icon: Expensicons.Send,
-                                            text: this.props.translate('iou.sendMoney'),
-                                            onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
-                                        },
-                                    ]
-                                    : []),
-                                ...(Permissions.canUseIOU(this.props.betas)
-                                    ? [
-                                        {
-                                            icon: Expensicons.MoneyCircle,
-                                            text: this.props.translate('iou.requestMoney'),
-                                            onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                                        },
-                                    ]
-                                    : []),
-                                ...(Permissions.canUseIOU(this.props.betas)
-                                    ? [
-                                        {
-                                            icon: Expensicons.Receipt,
-                                            text: this.props.translate('iou.splitBill'),
-                                            onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
-                                        },
-                                    ]
-                                    : []),
-                                ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies)
-                                    ? [
-                                        {
-                                            icon: Expensicons.NewWorkspace,
-                                            iconWidth: 46,
-                                            iconHeight: 40,
-                                            text: this.props.translate('workspace.new.newWorkspace'),
-                                            description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                            onSelected: () => Policy.createAndNavigate(),
-                                        },
-                                    ]
-                                    : []),
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
+                                    {
+                                        icon: Expensicons.Hashtag,
+                                        text: this.props.translate('sidebarScreen.newRoom'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseIOUSend(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.Send,
+                                        text: this.props.translate('iou.sendMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.MoneyCircle,
+                                        text: this.props.translate('iou.requestMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
+                                    {
+                                        icon: Expensicons.Receipt,
+                                        text: this.props.translate('iou.splitBill'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    },
+                                ] : []),
+                                ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                    {
+                                        icon: Expensicons.NewWorkspace,
+                                        iconWidth: 46,
+                                        iconHeight: 40,
+                                        text: this.props.translate('workspace.new.newWorkspace'),
+                                        description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                        onSelected: () => Policy.createAndNavigate(),
+                                    },
+                                ] : []),
                             ]}
                         />
                     </>
