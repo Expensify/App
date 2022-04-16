@@ -61,7 +61,6 @@ const AvatarCropModal = memo((props) => {
     const sliderLineWidth = containerSize - 105;
 
     const initializeImage = useCallback(() => {
-        rotation.value += 360; // needed to triger recalculation of image styles
         translateY.value = 0;
         translateX.value = 0;
         scale.value = 1;
@@ -75,6 +74,8 @@ const AvatarCropModal = memo((props) => {
         Image.getSize(props.imageUri, (width, height) => {
             imageHeight.value = height;
             imageWidth.value = width;
+            translateSlider.value += 0.01;
+            rotation.value += 360;
         });
     }, [props.imageUri, initializeImage]);
 
