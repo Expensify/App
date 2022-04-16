@@ -44,9 +44,10 @@ class SidebarScreen extends Component {
         super(props);
 
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
-        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
+        this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
+        this.openMenu = this.openMenu.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
@@ -58,14 +59,23 @@ class SidebarScreen extends Component {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        WelcomeAction.show({routes, toggleCreateMenu: this.toggleCreateMenu});
+        WelcomeAction.show({routes, hideCreateMenu: this.hideCreateMenu});
+    }
+
+    /**
+     * Method called when click on FAB button
+     */
+    openMenu() {
+        this.setState({ isCreateMenuActive: true });
     }
 
     /**
      * Method called when a Create Menu item is selected.
      */
     onCreateMenuItemSelected() {
-        this.toggleCreateMenu();
+        this.setState({
+            isCreateMenuActive: false,
+        });
     }
 
     /**
@@ -82,9 +92,9 @@ class SidebarScreen extends Component {
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleCreateMenu() {
+     hideCreateMenu() {
         this.setState(state => ({
-            isCreateMenuActive: !state.isCreateMenuActive,
+            isCreateMenuActive: false,
         }));
     }
 
@@ -117,11 +127,12 @@ class SidebarScreen extends Component {
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
-                                onPress={this.toggleCreateMenu}
+                                onPress={this.openMenu}
+
                             />
                         </View>
                         <PopoverMenu
-                            onClose={this.toggleCreateMenu}
+                            onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
                             onItemSelected={this.onCreateMenuItemSelected}
