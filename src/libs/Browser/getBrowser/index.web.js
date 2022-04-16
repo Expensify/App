@@ -1,4 +1,4 @@
-import CONST from '../../CONST';
+import CONST from '../../../CONST';
 
 /**
  * Fetch browser name from UA string

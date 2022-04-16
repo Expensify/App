@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import isMobile from '../isMobile';
+import * as Browser from '../Browser/Browser';
 
 /**
  * Is the virtual keyboard open?
@@ -22,7 +22,7 @@ function isOpen() {
  */
 function shouldAssumeIsOpen() {
     const isOpened = isOpen();
-    return _.isNull(isOpened) ? isMobile() : isOpened;
+    return _.isNull(isOpened) ? Browser.isMobile() : isOpened;
 }
 
 export default {

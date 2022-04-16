@@ -1,9 +1,9 @@
 import CONST from '../../../../CONST';
-import getBrowser from '../../../../libs/getBrowser';
+import * as Browser from '../../../../libs/Browser/Browser';
 import styles from '../../../../styles/styles';
 
 const pickerStylesWeb = () => {
-    if (CONST.BROWSER.FIREFOX === getBrowser()) {
+    if (CONST.BROWSER.FIREFOX === Browser.getBrowser()) {
         return {
             textIndent: -2,
         };
