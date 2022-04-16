@@ -60,18 +60,23 @@ const AvatarCropModal = memo((props) => {
     const containerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - 40 : variables.sideBarWidth - 40;
     const sliderLineWidth = containerSize - 105;
 
+    const initializeImage = useCallback(() => {
+        rotation.value += 360; // needed to triger recalculation of image styles
+        translateY.value = 0;
+        translateX.value = 0;
+        scale.value = 1;
+        rotation.value = 0;
+        translateSlider.value = 0;
+    }, []);
+
     useEffect(() => {
         if (!props.imageUri) { return; }
+        initializeImage();
         Image.getSize(props.imageUri, (width, height) => {
-            translateY.value = 0;
-            translateX.value = 0;
-            scale.value = 1;
-            rotation.value = 0;
-            translateSlider.value = 0;
             imageHeight.value = height;
             imageWidth.value = width;
         });
-    }, [props.imageUri]);
+    }, [props.imageUri, initializeImage]);
 
     const panGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
@@ -173,10 +178,6 @@ const AvatarCropModal = memo((props) => {
             imageWidth.value,
             imageHeight.value,
         ];
-    }, []);
-
-    const initializeImage = useCallback(() => {
-        rotation.value += 360; // needed to triger recalculation of image styles
     }, []);
 
     const handleCrop = useCallback(() => {
