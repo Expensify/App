@@ -28,9 +28,6 @@ function deleteDebitCard(fundID) {
             } else {
                 Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
             }
-        })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         });
 }
 
@@ -211,14 +208,14 @@ function transferWalletBalance(paymentMethod) {
     API.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
+                Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
+                return;
             }
+
             Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).catch(() => {
-            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
         });
 }
 

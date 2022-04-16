@@ -129,17 +129,19 @@ function processNetworkRequestQueue() {
             .catch((error) => {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
+
                 if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
 
                 if (queuedRequest.command !== 'Log') {
-                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
+                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', {error, command: queuedRequest.command});
                 } else {
                     console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }
 
-                queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
+                // Resolve with a special client-side jsonCode so API method handlers can identify this scenario
+                NetworkEvents.triggerResponse(queuedRequest, {jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
             });
     });
 

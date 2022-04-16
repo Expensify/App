@@ -297,13 +297,11 @@ function fetchIOUReport(iouReportID, chatReportID) {
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     }).then((response) => {
-        if (!response) {
+        if (!response || response.jsonCode !== 200) {
+            Log.hmmm('[Report] Failed to populate IOU Collection:', response.message);
             return;
         }
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
+
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
             // IOU data for a report will be missing when the IOU report has already been paid.
@@ -311,8 +309,6 @@ function fetchIOUReport(iouReportID, chatReportID) {
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
-    }).catch((error) => {
-        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 
@@ -360,7 +356,9 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
 
             // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
             if (jsonCode === 404 && shouldRedirectIfInaccessible) {
-                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
+                // eslint-disable-next-line no-use-before-define
+                handleInaccessibleReport();
+                return [];
             }
 
             return Promise.all(_.map(fetchedReports, (chatReport) => {
@@ -425,14 +423,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return simplifiedReports;
-        })
-        .catch((err) => {
-            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                return;
-            }
-
-            // eslint-disable-next-line no-use-before-define
-            handleInaccessibleReport();
         });
 }
 
@@ -1421,7 +1411,11 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportComment: htmlForNewComment,
         sequenceNumber,
     })
-        .catch(() => {
+        .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+
             // If it fails, reset Onyx
             actionToMerge[sequenceNumber] = originalReportAction;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
@@ -1517,9 +1511,10 @@ function createPolicyRoom(policyID, reportName, visibility) {
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(response.message);
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
                 return;
             }
+
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then(([{reportID}]) => {
@@ -1528,9 +1523,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
@@ -1545,16 +1537,14 @@ function renameReport(reportID, reportName) {
     API.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(response.message);
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
                 return;
             }
+
             Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
             // Update the report name so that the LHN and header display the updated name
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
-        })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }

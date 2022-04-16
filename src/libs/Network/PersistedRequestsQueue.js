@@ -3,10 +3,10 @@ import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
+import CONST from '../../CONST';
 
 let isPersistedRequestsQueueRunning = false;
 
