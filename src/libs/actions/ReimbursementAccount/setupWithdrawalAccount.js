@@ -208,6 +208,12 @@ function setupWithdrawalAccount(params) {
     const updatedACHData = mergeParamsWithLocalACHData(params);
     API.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.REQUEST_FAILED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
+                errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
+                return;
+            }
+
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...updatedACHData}});
             const currentStep = updatedACHData.currentStep;
             const responseACHData = lodashGet(response, 'achData', {});
@@ -253,11 +259,6 @@ function setupWithdrawalAccount(params) {
                 navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        })
-        .catch((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
-            console.error(response.stack);
-            errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
         });
 }
 

@@ -98,14 +98,14 @@ function processNetworkRequestQueue() {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
 
-                // Resolve the request with a special client-side jsonCode that indicates the request failed in flight
-                queuedRequest.resolve({jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
-
                 if (queuedRequest.command !== 'Log') {
                     NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
                 } else {
                     console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }
+
+                // Resolve with a special client-side jsonCode so API method handlers can identify this scenario
+                queuedRequest.resolve({jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
             });
     });
 

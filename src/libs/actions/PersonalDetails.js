@@ -289,8 +289,6 @@ function setPersonalDetails(details, shouldGrowl) {
             } else if (response.jsonCode === 401) {
                 Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
             }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
         });
 }
 
