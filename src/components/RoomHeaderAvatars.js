@@ -11,26 +11,26 @@ import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
-    avatarIcons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     /** Whether show large Avatars */
     shouldShowLargeAvatars: PropTypes.bool,
 };
 
 const defaultProps = {
-    avatarIcons: [],
+    icons: [],
     shouldShowLargeAvatars: false,
 };
 
 const RoomHeaderAvatars = (props) => {
-    if (!props.avatarIcons.length) {
+    if (!props.icons.length) {
         return null;
     }
 
-    if (props.avatarIcons.length === 1) {
+    if (props.icons.length === 1) {
         return (
             <Avatar
-                source={props.avatarIcons[0]}
+                source={props.icons[0]}
                 imageStyles={[styles.avatarLarge]}
                 fill={themeColors.iconSuccessFill}
                 size={CONST.AVATAR_SIZE.LARGE}
@@ -43,7 +43,7 @@ const RoomHeaderAvatars = (props) => {
             <View style={[styles.flexRow, styles.wAuto, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.leftSideLargeAvatar}>
                     <Avatar
-                        source={props.avatarIcons[1]}
+                        source={props.icons[1]}
                         imageStyles={[styles.avatarLarge]}
                         size={CONST.AVATAR_SIZE.LARGE}
                         fill={themeColors.iconSuccessFill}
@@ -51,7 +51,7 @@ const RoomHeaderAvatars = (props) => {
                 </View>
                 <View style={[styles.rightSideLargeAvatar, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
                     <Avatar
-                        source={props.avatarIcons[0]}
+                        source={props.icons[0]}
                         imageStyles={[styles.avatarLarge]}
                         size={CONST.AVATAR_SIZE.LARGE}
                     />
@@ -60,15 +60,15 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    const avatarIconsToDisplay = props.avatarIcons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
-                {_.map(avatarIconsToDisplay, (val, index) => (
+                {_.map(iconsToDisplay, (val, index) => (
                     <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
 
-                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.avatarIcons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
@@ -77,7 +77,7 @@ const RoomHeaderAvatars = (props) => {
                                     ]}
                                 />
                                 <Text style={styles.avatarInnerTextChat}>
-                                    {`+${props.avatarIcons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
+                                    {`+${props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
                                 </Text>
                             </>
                         )}

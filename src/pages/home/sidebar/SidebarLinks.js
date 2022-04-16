@@ -24,6 +24,7 @@ import participantPropTypes from '../../../components/participantPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -42,6 +43,9 @@ const propTypes = {
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
+
+    /** Reports having a draft */
+    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -81,9 +85,10 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
+    reportsWithDraft: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: OptionsListUtils.getDefaultAvatar(),
+        avatar: ReportUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -114,7 +119,17 @@ class SidebarLinks extends React.Component {
         return unreadReports;
     }
 
-    static shouldReorder(nextProps, orderedReports, currentlyViewedReportID, unreadReports) {
+    /**
+     * Returns true if the sidebar list should be re-ordered
+     *
+     * @param {Object} nextProps
+     * @param {Boolean} hasActiveDraftHistory
+     * @param {Array} orderedReports
+     * @param {String} currentlyViewedReportID
+     * @param {Array} unreadReports
+     * @returns {Boolean}
+     */
+    static shouldReorder(nextProps, hasActiveDraftHistory, orderedReports, currentlyViewedReportID, unreadReports) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
 
@@ -144,10 +159,9 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        // Do not re-order if the active report has a draft
-        if (nextProps.currentlyViewedReportID) {
-            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
-            return !hasActiveReportDraft;
+        // If there is an active report that either had or has a draft, we do not want to re-order the list
+        if (nextProps.currentlyViewedReportID && hasActiveDraftHistory) {
+            return false;
         }
 
         return true;
@@ -156,7 +170,11 @@ class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentlyViewedReportID: props.currentlyViewedReportID,
+            activeReport: {
+                reportID: props.currentlyViewedReportID,
+                hasDraftHistory: lodashGet(props.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${props.currentlyViewedReportID}`, false),
+                lastMessageTimestamp: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.lastMessageTimestamp`, 0),
+            },
             orderedReports: [],
             priorityMode: props.priorityMode,
             unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
@@ -164,7 +182,24 @@ class SidebarLinks extends React.Component {
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const isActiveReportSame = prevState.activeReport.reportID === nextProps.currentlyViewedReportID;
+        const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
+
+        // Determines if the active report has a history of draft comments while active.
+        let hasDraftHistory;
+
+        // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
+        // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
+        // Otherwise, update the flag from the prop value.
+        if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
+            hasDraftHistory = false;
+        } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
+            hasDraftHistory = true;
+        } else {
+            hasDraftHistory = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+        }
+
+        const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
         const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
 
         // Build the report options we want to show
@@ -187,7 +222,11 @@ class SidebarLinks extends React.Component {
         return {
             orderedReports,
             priorityMode: nextProps.priorityMode,
-            currentlyViewedReportID: nextProps.currentlyViewedReportID,
+            activeReport: {
+                reportID: nextProps.currentlyViewedReportID,
+                hasDraftHistory,
+                lastMessageTimestamp,
+            },
             unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
         };
     }

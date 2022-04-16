@@ -173,7 +173,7 @@ const OptionRow = (props) => {
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            avatarIcons={props.option.icons}
+                                            icons={props.option.icons}
                                             size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
