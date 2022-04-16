@@ -19,6 +19,7 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
+import * as ErrorUtils from '../../ErrorUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -240,15 +241,19 @@ function signIn(password, twoFactorAuthCode) {
         twoFactorAuthCode,
         email: credentials.login,
     })
-        .then(({authToken, email}) => {
-            createTemporaryLogin(authToken, email);
-        })
-        .catch((error) => {
-            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+        .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                createTemporaryLogin(response.authToken, response.email);
+                return;
+            }
+
+            const errorTranslationKey = ErrorUtils.getErrorKeyFromAuthenticateResponse(response);
+            if (errorTranslationKey === 'passwordForm.error.twoFactorAuthenticationEnabled') {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
                 return;
             }
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
+
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorTranslationKey), loading: false});
         });
 }
 
@@ -449,12 +454,13 @@ function validateEmail(accountID, validateCode) {
 const reauthenticatePusher = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting');
     API.reauthenticate('Push_Authenticate')
-        .then(Pusher.reconnect)
-        .catch(() => {
-            console.debug(
-                '[PusherConnectionManager]',
-                'Unable to re-authenticate Pusher because we are offline.',
-            );
+        .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                Pusher.reconnect();
+                return;
+            }
+
+            Log.hmmm('[PusherConnectionManager] Unable to reauthenticate and reconnect to Pusher', {message: response.message, jsonCode: response.jsonCode});
         });
 }, 5000, {trailing: false});
 

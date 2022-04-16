@@ -329,6 +329,7 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
+        REQUEST_FAILED: 0,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
