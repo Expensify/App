@@ -143,7 +143,7 @@ class Form extends React.Component {
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
-            const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+            const defaultValue = this.inputValues[inputID] || this.props.draftValues[inputID] || child.props.defaultValue;
             this.inputValues[inputID] = defaultValue;
 
             return React.cloneElement(child, {
