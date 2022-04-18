@@ -119,7 +119,6 @@ class OptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
         this.relatedTarget = null;
 
         this.state = {
@@ -129,6 +128,29 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            () => {
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+
+                if (!this.props.canSelectMultipleOptions) {
+                    return;
+                }
+
+                this.scrollToIndex(0);
+            },
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.state.allOptions[this.state.focusedIndex],
+        );
+
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -177,10 +199,13 @@ class OptionsSelector extends Component {
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeCTRLEnter) {
-            return;
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
         }
-        this.unsubscribeCTRLEnter();
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
     }
 
     /**
@@ -234,23 +259,6 @@ class OptionsSelector extends Component {
         this.props.onSelectRow(option);
     }
 
-    /**
-     * @param {Number} focusedIndex
-     */
-    selectFocusedIndex(focusedIndex) {
-        if (!this.state.allOptions[focusedIndex]) {
-            return;
-        }
-
-        this.selectRow(this.state.allOptions[focusedIndex]);
-
-        if (!this.props.canSelectMultipleOptions) {
-            return;
-        }
-
-        this.scrollToIndex(0);
-    }
-
     render() {
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
             ? this.props.translate('common.confirm')
@@ -263,8 +271,6 @@ class OptionsSelector extends Component {
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.updateFocusedIndex}
-                onEnterKeyPressed={this.selectFocusedIndex}
-                shouldEnterKeyEventBubble={focusedIndex => !this.state.allOptions[focusedIndex]}
             >
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5, styles.pv3]}>

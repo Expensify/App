@@ -150,13 +150,38 @@ class IOUConfirmationList extends Component {
         this.confirm = this.confirm.bind(this);
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
-        this.maybeToggleParticipant = this.maybeToggleParticipant.bind(this);
     }
 
     componentDidMount() {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            () => {
+                // This can happen when the search bar is highlighted instead of an option from the list
+                if (!this.allOptions[this.state.focusedIndex]) {
+                    return;
+                }
+
+                // If this is a 1:1 request, there's no participant we can toggle, so return early
+                if (!this.props.hasMultipleParticipants) {
+                    return;
+                }
+
+                if (!this.props.canModifyParticipants) {
+                    return;
+                }
+
+                this.toggleOption(this.allOptions[this.state.focusedIndex]);
+            },
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.props.hasMultipleParticipants || !this.allOptions[this.state.focusedIndex],
+        );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
@@ -169,10 +194,13 @@ class IOUConfirmationList extends Component {
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeCTRLEnter) {
-            return;
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
         }
-        this.unsubscribeCTRLEnter();
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
     }
 
     /**
@@ -410,27 +438,6 @@ class IOUConfirmationList extends Component {
         }
     }
 
-    /**
-     * @param {Number} index
-     */
-    maybeToggleParticipant(index) {
-        // This can happen when the search bar is highlighted instead of an option from the list
-        if (!this.allOptions[index]) {
-            return;
-        }
-
-        // If this is a 1:1 request, there's no participant we can toggle, so return early
-        if (!this.props.hasMultipleParticipants) {
-            return;
-        }
-
-        if (!this.props.canModifyParticipants) {
-            return;
-        }
-
-        this.toggleOption(this.allOptions[index]);
-    }
-
     render() {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
@@ -443,8 +450,6 @@ class IOUConfirmationList extends Component {
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.allOptions.length}
                 onFocusedIndexChanged={this.updateFocusedIndex}
-                onEnterKeyPressed={this.maybeToggleParticipant}
-                shouldEnterKeyEventBubble={focusedIndex => !this.props.hasMultipleParticipants || !this.allOptions[focusedIndex]}
             >
                 <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
                     <OptionsList
