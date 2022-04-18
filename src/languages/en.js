@@ -325,6 +325,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
+        closeAccountError: 'Unable to close account',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -457,6 +458,7 @@ export default {
         error: {
             incorrectPassword: 'Incorrect password. Please try again.',
             incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
+            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
             unableToResetPassword: 'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
@@ -847,6 +849,7 @@ export default {
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Name',
