@@ -759,5 +759,18 @@ describe('OptionsListUtils', () => {
         // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
         // also not be included
         expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 3);
+
+        // Now we call getSidebarOptions() with no search value and GSD priority mode
+        results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.GSD,
+        );
+
+        // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
+        // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
+        // also not be included
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 5);
     });
 });
