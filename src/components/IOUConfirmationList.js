@@ -144,9 +144,11 @@ class IOUConfirmationList extends Component {
         };
 
         this.allOptions = OptionsListUtils.flattenSections(this.state.sections);
+        this.state.focusedIndex = this.allOptions.length;
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.maybeToggleParticipant = this.maybeToggleParticipant.bind(this);
     }
@@ -352,6 +354,13 @@ class IOUConfirmationList extends Component {
     }
 
     /**
+     * @param {Number} index
+     */
+    updateFocusedIndex(index) {
+        this.setState({focusedIndex: index}, () => this.scrollToIndex(index));
+    }
+
+    /**
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
@@ -431,67 +440,63 @@ class IOUConfirmationList extends Component {
         const recipient = this.state.participants[0];
         return (
             <ArrowKeyFocusManager
-                initialFocusedIndex={this.allOptions.length}
-                listLength={this.allOptions.length + 1}
-                onFocusedIndexChanged={this.scrollToIndex}
+                focusedIndex={this.state.focusedIndex}
+                maxIndex={this.allOptions.length}
+                onFocusedIndexChanged={this.updateFocusedIndex}
                 onEnterKeyPressed={this.maybeToggleParticipant}
                 shouldEnterKeyEventBubble={focusedIndex => !this.props.hasMultipleParticipants || !this.allOptions[focusedIndex]}
             >
-                {({focusedIndex}) => (
-                    <>
-                        <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
-                            <OptionsList
-                                ref={e => this.list = e}
-                                sections={this.state.sections}
-                                focusedIndex={this.props.canModifyParticipants ? focusedIndex : null}
-                                hideAdditionalOptionStates
-                                forceTextUnreadStyle
-                                canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                                selectedOptions={this.getSelectedOptions()}
-                                onSelectRow={toggleOption}
-                                isDisabled={!this.props.canModifyParticipants}
-                                optionHoveredStyle={hoverStyle}
-                            />
-                        </ScrollView>
-                        <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                            <TextInput
-                                ref={el => this.textInput = el}
-                                label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                                value={this.props.comment}
-                                onChangeText={this.props.onUpdateComment}
-                                placeholder={this.props.translate('common.optional')}
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
-                        </View>
-                        <FixedFooter>
-                            {this.props.network.isOffline && (
-                                <Text style={[styles.formError, styles.pb2]}>
-                                    {this.props.translate('session.offlineMessage')}
-                                </Text>
-                            )}
-                            {shouldShowSettlementButton ? (
-                                <SettlementButton
-                                    isDisabled={shouldDisableButton}
-                                    isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                                    onPress={this.confirm}
-                                    shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                                    recipientPhoneNumber={recipient.phoneNumber}
-                                    enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                                    addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
-                                    addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                                    currency={this.props.iou.selectedCurrencyCode}
-                                />
-                            ) : (
-                                <ButtonWithMenu
-                                    isDisabled={shouldDisableButton}
-                                    isLoading={isLoading}
-                                    onPress={(_event, value) => this.confirm(value)}
-                                    options={this.splitOrRequestOptions}
-                                />
-                            )}
-                        </FixedFooter>
-                    </>
-                )}
+                <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
+                    <OptionsList
+                        ref={e => this.list = e}
+                        sections={this.state.sections}
+                        focusedIndex={this.props.canModifyParticipants ? this.state.focusedIndex : null}
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                        selectedOptions={this.getSelectedOptions()}
+                        onSelectRow={toggleOption}
+                        isDisabled={!this.props.canModifyParticipants}
+                        optionHoveredStyle={hoverStyle}
+                    />
+                </ScrollView>
+                <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
+                    <TextInput
+                        ref={el => this.textInput = el}
+                        label={this.props.translate('iOUConfirmationList.whatsItFor')}
+                        value={this.props.comment}
+                        onChangeText={this.props.onUpdateComment}
+                        placeholder={this.props.translate('common.optional')}
+                        placeholderTextColor={themeColors.placeholderText}
+                    />
+                </View>
+                <FixedFooter>
+                    {this.props.network.isOffline && (
+                        <Text style={[styles.formError, styles.pb2]}>
+                            {this.props.translate('session.offlineMessage')}
+                        </Text>
+                    )}
+                    {shouldShowSettlementButton ? (
+                        <SettlementButton
+                            isDisabled={shouldDisableButton}
+                            isLoading={this.props.iou.loading && !this.props.network.isOffline}
+                            onPress={this.confirm}
+                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                            recipientPhoneNumber={recipient.phoneNumber}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={this.props.iou.selectedCurrencyCode}
+                        />
+                    ) : (
+                        <ButtonWithMenu
+                            isDisabled={shouldDisableButton}
+                            isLoading={isLoading}
+                            onPress={(_event, value) => this.confirm(value)}
+                            options={this.splitOrRequestOptions}
+                        />
+                    )}
+                </FixedFooter>
             </ArrowKeyFocusManager>
         );
     }

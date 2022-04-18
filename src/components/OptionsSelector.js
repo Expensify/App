@@ -116,14 +116,15 @@ class OptionsSelector extends Component {
     constructor(props) {
         super(props);
 
+        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedIndex = this.selectFocusedIndex.bind(this);
-        this.focusManager = null;
         this.relatedTarget = null;
 
         this.state = {
             allOptions: OptionsListUtils.flattenSections(this.props.sections),
+            focusedIndex: 0,
         };
     }
 
@@ -132,11 +133,12 @@ class OptionsSelector extends Component {
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                if (!this.canSelectMultipleOptions && !this.focusedOption) {
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!this.canSelectMultipleOptions && !focusedOption) {
                     return;
                 }
 
-                this.props.onConfirmSelection(this.focusedOption);
+                this.props.onConfirmSelection(focusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
@@ -179,6 +181,13 @@ class OptionsSelector extends Component {
             return;
         }
         this.unsubscribeCTRLEnter();
+    }
+
+    /**
+     * @param {Number} index
+     */
+    updateFocusedIndex(index) {
+        this.setState({focusedIndex: index}, () => this.scrollToIndex(index));
     }
 
     /**
@@ -251,74 +260,67 @@ class OptionsSelector extends Component {
             : this.props.maxParticipantsReachedMessage;
         return (
             <ArrowKeyFocusManager
-                ref={el => this.focusManager = el}
-                listLength={this.props.canSelectMultipleOptions ? this.state.allOptions.length + 1 : this.state.allOptions.length}
-                onFocusedIndexChanged={this.scrollToIndex}
+                focusedIndex={this.state.focusedIndex}
+                maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
+                onFocusedIndexChanged={this.updateFocusedIndex}
                 onEnterKeyPressed={this.selectFocusedIndex}
                 shouldEnterKeyEventBubble={focusedIndex => !this.state.allOptions[focusedIndex]}
             >
-                {({focusedIndex}) => {
-                    this.focusedOption = this.state.allOptions[focusedIndex];
-                    return (
-                        <>
-                            <View style={[styles.flex1]}>
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <TextInput
-                                        ref={el => this.textInput = el}
-                                        value={this.props.value}
-                                        onChangeText={(text) => {
-                                            if (this.props.shouldFocusOnSelectRow) {
-                                                this.textInput.setNativeProps({selection: null});
-                                            }
-                                            this.props.onChangeText(text);
-                                        }}
-                                        placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                        onBlur={(e) => {
-                                            if (!this.props.shouldFocusOnSelectRow) {
-                                                return;
-                                            }
-                                            this.relatedTarget = e.relatedTarget;
-                                        }}
-                                        selectTextOnFocus
-                                    />
-                                </View>
-                                <OptionsList
-                                    ref={el => this.list = el}
-                                    optionHoveredStyle={styles.hoveredComponentBG}
-                                    onSelectRow={this.selectRow}
-                                    sections={this.props.sections}
-                                    focusedIndex={focusedIndex}
-                                    selectedOptions={this.props.selectedOptions}
-                                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                                    hideSectionHeaders={this.props.hideSectionHeaders}
-                                    headerMessage={this.props.headerMessage}
-                                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                                    showTitleTooltip={this.props.showTitleTooltip}
-                                />
-                            </View>
-                            {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
-                                <FixedFooter>
-                                    {this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage && (
-                                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
-                                            {defaultMaxParticipantsReachedMessage}
-                                        </Text>
-                                    )}
-                                    {defaultConfirmButtonText && (
-                                        <Button
-                                            success
-                                            style={[styles.w100]}
-                                            text={defaultConfirmButtonText}
-                                            onPress={this.props.onConfirmSelection}
-                                            pressOnEnter
-                                            enterKeyEventListenerPriority={1}
-                                        />
-                                    )}
-                                </FixedFooter>
-                            )}
-                        </>
-                    );
-                }}
+                <View style={[styles.flex1]}>
+                    <View style={[styles.ph5, styles.pv3]}>
+                        <TextInput
+                            ref={el => this.textInput = el}
+                            value={this.props.value}
+                            onChangeText={(text) => {
+                                if (this.props.shouldFocusOnSelectRow) {
+                                    this.textInput.setNativeProps({selection: null});
+                                }
+                                this.props.onChangeText(text);
+                            }}
+                            placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            onBlur={(e) => {
+                                if (!this.props.shouldFocusOnSelectRow) {
+                                    return;
+                                }
+                                this.relatedTarget = e.relatedTarget;
+                            }}
+                            selectTextOnFocus
+                        />
+                    </View>
+                    <OptionsList
+                        ref={el => this.list = el}
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        onSelectRow={this.selectRow}
+                        sections={this.props.sections}
+                        focusedIndex={this.state.focusedIndex}
+                        selectedOptions={this.props.selectedOptions}
+                        canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                        hideSectionHeaders={this.props.hideSectionHeaders}
+                        headerMessage={this.props.headerMessage}
+                        hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                        forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                        showTitleTooltip={this.props.showTitleTooltip}
+                    />
+                </View>
+                {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
+                    <FixedFooter>
+                        {this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage && (
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                                {defaultMaxParticipantsReachedMessage}
+                            </Text>
+                        )}
+                        {defaultConfirmButtonText && (
+                            <Button
+                                success
+                                style={[styles.w100]}
+                                text={defaultConfirmButtonText}
+                                onPress={this.props.onConfirmSelection}
+                                pressOnEnter
+                                enterKeyEventListenerPriority={1}
+                            />
+                        )}
+                    </FixedFooter>
+                )}
             </ArrowKeyFocusManager>
         );
     }

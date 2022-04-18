@@ -11,11 +11,11 @@ const propTypes = {
         PropTypes.node,
     ]).isRequired,
 
-    /** The initial focused index. Should be an integer >= -1 */
-    initialFocusedIndex: PropTypes.number,
+    /** The current focused index. */
+    focusedIndex: PropTypes.number.isRequired,
 
-    /** The number of items in the list that this component is managing focus for. Should be an integer >= 0 */
-    listLength: PropTypes.number,
+    /** The maximum index – provided so that the focus can be sent back to the beginning of the list when the end is reached. */
+    maxIndex: PropTypes.number.isRequired,
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func,
@@ -28,22 +28,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    initialFocusedIndex: 0,
-    listLength: 0,
     onFocusedIndexChanged: () => {},
     onEnterKeyPressed: undefined,
     shouldEnterKeyEventBubble: () => false,
 };
 
 class ArrowKeyFocusManager extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            focusedIndex: props.initialFocusedIndex,
-        };
-        this.setFocusedIndex = this.setFocusedIndex.bind(this);
-    }
-
     componentDidMount() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
@@ -52,12 +42,12 @@ class ArrowKeyFocusManager extends Component {
         if (this.props.onEnterKeyPressed) {
             this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
                 enterConfig.shortcutKey,
-                () => this.props.onEnterKeyPressed(this.state.focusedIndex),
+                () => this.props.onEnterKeyPressed(this.props.focusedIndex),
                 enterConfig.descriptionKey,
                 enterConfig.modifiers,
                 true,
                 () => {
-                    const shouldBubble = this.props.shouldEnterKeyEventBubble(this.state.focusedIndex);
+                    const shouldBubble = this.props.shouldEnterKeyEventBubble(this.props.focusedIndex);
                     if (!_.isBoolean(shouldBubble)) {
                         throw new Error('shouldEnterKeyEventBubble prop did not return a boolean');
                     }
@@ -67,37 +57,33 @@ class ArrowKeyFocusManager extends Component {
         }
 
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
-            if (this.props.listLength <= 1) {
+            if (this.props.maxIndex <= 1) {
                 return;
             }
 
-            this.setState((prevState) => {
-                let newFocusedIndex = prevState.focusedIndex - 1;
+            let newFocusedIndex = this.props.focusedIndex - 1;
 
-                // Wrap around to the bottom of the list
-                if (newFocusedIndex < 0) {
-                    newFocusedIndex = this.props.listLength - 1;
-                }
+            // Wrap around to the bottom of the list
+            if (newFocusedIndex < 0) {
+                newFocusedIndex = this.props.maxIndex;
+            }
 
-                return {focusedIndex: newFocusedIndex};
-            }, () => this.props.onFocusedIndexChanged(this.state.focusedIndex));
+            this.props.onFocusedIndexChanged(newFocusedIndex);
         }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
-            if (this.props.listLength <= 1) {
+            if (this.props.maxIndex <= 1) {
                 return;
             }
 
-            this.setState((prevState) => {
-                let newFocusedIndex = prevState.focusedIndex + 1;
+            let newFocusedIndex = this.props.focusedIndex + 1;
 
-                // Wrap around to the top of the list
-                if (newFocusedIndex > this.props.listLength - 1) {
-                    newFocusedIndex = 0;
-                }
+            // Wrap around to the top of the list
+            if (newFocusedIndex > this.props.maxIndex) {
+                newFocusedIndex = 0;
+            }
 
-                return {focusedIndex: newFocusedIndex};
-            }, () => this.props.onFocusedIndexChanged(this.state.focusedIndex));
+            this.props.onFocusedIndexChanged(newFocusedIndex)
         }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
     }
 
@@ -115,16 +101,9 @@ class ArrowKeyFocusManager extends Component {
         }
     }
 
-    /**
-     * @param {Number} index
-     */
-    setFocusedIndex(index) {
-        this.setState({focusedIndex: index});
-    }
-
     render() {
         return _.isFunction(this.props.children)
-            ? this.props.children({focusedIndex: this.state.focusedIndex})
+            ? this.props.children()
             : this.props.children;
     }
 }
