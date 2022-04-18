@@ -17,9 +17,6 @@ function init() {
     }));
 
     /**
-     * Events that happen on the pusher socket are used to determine if the app is online or offline.
-     * The offline setting is stored in Onyx so the rest of the app has access to it.
-     *
      * @params {string} eventName
      */
     Pusher.registerSocketEventCallback((eventName, error) => {
