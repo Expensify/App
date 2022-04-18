@@ -57,9 +57,11 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
+    let isChecked = props.defaultValue ? props.defaultValue : props.isChecked;
 
     function toggleCheckbox() {
-        props.onInputChange(!props.isChecked);
+        props.onInputChange(!isChecked);
+        isChecked = !isChecked;
     }
 
     if (!props.label && !LabelComponent) {
@@ -69,7 +71,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
         <>
             <View style={wrapperStyles}>
                 <Checkbox
-                    isChecked={props.isChecked}
+                    isChecked={isChecked}
                     onPress={toggleCheckbox}
                     label={props.label}
                     hasError={Boolean(props.errorText)}
