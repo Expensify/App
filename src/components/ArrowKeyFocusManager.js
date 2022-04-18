@@ -102,9 +102,7 @@ class ArrowKeyFocusManager extends Component {
     }
 
     render() {
-        return _.isFunction(this.props.children)
-            ? this.props.children()
-            : this.props.children;
+        return this.props.children;
     }
 }
 
