@@ -10,13 +10,10 @@ import * as FormUtils from '../libs/FormUtils';
 
 const propTypes = {
     /** Whether the checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: PropTypes.bool,
 
     /** Called when the checkbox or label is pressed */
-    onPress: PropTypes.func.isRequired,
-
-    /** Called when the checkbox or label is pressed */
-    onChange: PropTypes.func,
+    onInputChange: PropTypes.func.isRequired,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -46,7 +43,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onChange: () => {},
     isFormInput: false,
     inputID: undefined,
     style: [],
@@ -54,6 +50,7 @@ const defaultProps = {
     LabelComponent: undefined,
     errorText: '',
     shouldSaveDraft: false,
+    isChecked: false,
 };
 
 const CheckboxWithLabel = React.forwardRef((props, ref) => {
@@ -62,8 +59,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 
     function toggleCheckbox() {
-        props.onPress(!props.isChecked);
-        props.onChange(!props.isChecked);
+        props.onInputChange(!props.isChecked);
     }
 
     if (!props.label && !LabelComponent) {
