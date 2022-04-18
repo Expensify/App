@@ -30,6 +30,12 @@ const propTypes = {
     /** Indicates that the input is being used with the Form component */
     isFormInput: PropTypes.bool,
 
+    /** The default value for the checkbox */
+    defaultValue: PropTypes.bool,
+
+    /** React ref being forwarded to the Checkbox input */
+    forwardedRef: PropTypes.func,
+
     /**
      * The ID used to uniquely identify the input
      *
@@ -51,9 +57,11 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
+    defaultValue: false,
+    forwardedRef: () => {},
 };
 
-const CheckboxWithLabel = React.forwardRef((props, ref) => {
+const CheckboxWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
@@ -75,7 +83,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     onPress={toggleCheckbox}
                     label={props.label}
                     hasError={Boolean(props.errorText)}
-                    forwardedRef={ref}
+                    forwardedRef={props.forwardedRef}
                     isFormInput={props.isFormInput}
                     inputID={props.inputID}
                     shouldSaveDraft={props.shouldSaveDraft}
@@ -105,10 +113,13 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
             </InlineErrorText>
         </>
     );
-});
+};
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default CheckboxWithLabel;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <CheckboxWithLabel {...props} forwardedRef={ref} />
+));
