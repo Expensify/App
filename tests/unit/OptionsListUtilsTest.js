@@ -100,37 +100,6 @@ describe('OptionsListUtils', () => {
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
-
-        // Note: This reoprt is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
-        10: {
-            chatType: 'policyExpenseChat',
-            hasOutstandingIOU: false,
-            isOwnPolicyExpenseChat: true,
-            isPinned: false,
-            lastMessageTimestamp: 0,
-            lastVisitedTimestamp: 1610666739302,
-            participants: ['test3@instantworkspace.com'],
-            policyID: 'Whatever',
-            reportID: 10,
-            reportName: "Someone's workspace",
-            unreadActionCount: 0,
-            visibility: undefined,
-        },
-
-        // Note: This reoprt is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
-        11: {
-            chatType: 'policyAdmins',
-            hasOutstandingIOU: false,
-            isPinned: false,
-            lastMessageTimestamp: 0,
-            lastVisitedTimestamp: 1610666739302,
-            participants: ['test3@instantworkspace.com'],
-            policyID: 'Whatever',
-            reportID: 11,
-            reportName: '#admins',
-            unreadActionCount: 0,
-            visibility: undefined,
-        },
     };
 
     // And a set of personalDetails some with existing reports and some without
@@ -643,8 +612,8 @@ describe('OptionsListUtils', () => {
                     CONST.PRIORITY_MODE.DEFAULT,
                 );
 
-                // Then expect all of the reports to be shown, both multiple and single participant, except the
-                // unpinned reports that have no lastMessageTimestamp (excluding policyExpenseChats and defaultRooms)
+                // Then expect all of the reports to be shown both multiple and single participant except the
+                // unpinned report that has no lastMessageTimestamp
                 expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
 
                 const numberOfPinnedReports = _.filter(results.recentReports, report => report.isPinned).length;
@@ -674,9 +643,8 @@ describe('OptionsListUtils', () => {
                 const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
-                // report that has no lastMessageTimestamp, the chat with Thor who's message is read, and the
-                // empty policyExpenseChats and defaultRooms
-                expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_MORE_PINS) - 4);
+                // report that has no lastMessageTimestamp and the chat with Thor who's message is read
+                expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_MORE_PINS) - 2);
 
                 // That no personalDetails are shown
                 expect(results.personalDetails.length).toBe(0);
