@@ -712,7 +712,7 @@ describe('OptionsListUtils', () => {
                 statusNum: CONST.REPORT.STATUS.CLOSED,
             },
 
-            // Note: This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            // This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
             12: {
                 chatType: 'policyAdmins',
                 hasOutstandingIOU: false,
