@@ -756,6 +756,12 @@ describe('OptionsListUtils', () => {
         // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms
         expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 2);
 
+        expect(results.recentReports[0].isPolicyExpenseChat).toBe(true);
+        expect(results.recentReports[0].text).toBe("Someone's workspace");
+
+        expect(results.recentReports[1].isChatRoom).toBe(true);
+        expect(results.recentReports[1].text).toBe('#admins');
+
         // Now we call getSidebarOptions() with no search value and GSD priority mode
         results = OptionsListUtils.getSidebarOptions(
             reportsWithEmptyChatRooms,
@@ -764,9 +770,7 @@ describe('OptionsListUtils', () => {
             CONST.PRIORITY_MODE.GSD,
         );
 
-        // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
-        // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
-        // also not be included
+        // None of the chats should be here since they've all been read
         expect(results.recentReports.length).toBe(0);
     });
 });
