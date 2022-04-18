@@ -65,6 +65,8 @@ const CheckboxWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
+
+    // We keep track of the checkbox "state" in a local variable so that this component has an uncontrolled input interface
     let isChecked = props.defaultValue ? props.defaultValue : props.isChecked;
 
     function toggleCheckbox() {
