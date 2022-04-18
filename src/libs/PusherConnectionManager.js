@@ -1,7 +1,6 @@
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
-import CONST from '../CONST';
 
 function init() {
     /**
@@ -19,18 +18,11 @@ function init() {
     /**
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName, error) => {
+    Pusher.registerSocketEventCallback((eventName, data) => {
         switch (eventName) {
             case 'error':
-                if (error && error.type === 'PusherError' && error.data.code === 1006) {
-                    Log.hmmm('[PusherConnectionManager] Channels Error 1006', {error});
-                } else if (error && error.type === 'PusherError' && error.data.code === 4201) {
-                    Log.hmmm('[PusherConnectionManager] Pong reply not received', {error});
-                } else if (error && error.type === 'WebSocketError') {
-                    Log.hmmm('[PusherConnectionManager] WebSocketError', {error});
-                } else {
-                    Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
-                }
+                Log.info('[PusherConnectionManager] error event', false, {error: data});
+                Session.reauthenticatePusher();
                 break;
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event');
