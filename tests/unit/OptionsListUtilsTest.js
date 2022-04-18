@@ -643,8 +643,8 @@ describe('OptionsListUtils', () => {
                     CONST.PRIORITY_MODE.DEFAULT,
                 );
 
-                // Then expect all of the reports to be shown both multiple and single participant except the
-                // unpinned report that has no lastMessageTimestamp and is not a policyExpenseChat or defaultRoom
+                // Then expect all of the reports to be shown, both multiple and single participant, except the
+                // unpinned reports that have no lastMessageTimestamp (excluding policyExpenseChats and defaultRooms)
                 expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
 
                 const numberOfPinnedReports = _.filter(results.recentReports, report => report.isPinned).length;
@@ -675,7 +675,7 @@ describe('OptionsListUtils', () => {
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
                 // report that has no lastMessageTimestamp, the chat with Thor who's message is read, and the
-                // empty PolicyExpenseChats and DefaultRooms
+                // empty policyExpenseChats and defaultRooms
                 expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_MORE_PINS) - 4);
 
                 // That no personalDetails are shown
