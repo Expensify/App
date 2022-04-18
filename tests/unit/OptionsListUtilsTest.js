@@ -678,8 +678,6 @@ describe('OptionsListUtils', () => {
 
     it('getSidebarOptions() with empty policyExpenseChats and defaultRooms', () => {
         const reportsWithEmptyChatRooms = {
-            ...REPORTS,
-
             // This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
             10: {
                 chatType: 'policyExpenseChat',
@@ -755,10 +753,8 @@ describe('OptionsListUtils', () => {
             CONST.PRIORITY_MODE.DEFAULT,
         );
 
-        // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
-        // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
-        // also not be included
-        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 3);
+        // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 2);
 
         // Now we call getSidebarOptions() with no search value and GSD priority mode
         results = OptionsListUtils.getSidebarOptions(
@@ -771,6 +767,6 @@ describe('OptionsListUtils', () => {
         // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
         // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
         // also not be included
-        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 5);
+        expect(results.recentReports.length).toBe(0);
     });
 });
