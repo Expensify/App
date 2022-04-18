@@ -680,7 +680,7 @@ describe('OptionsListUtils', () => {
         const reportsWithEmptyChatRooms = {
             ...REPORTS,
 
-            // Note: This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
+            // This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
             10: {
                 chatType: 'policyExpenseChat',
                 hasOutstandingIOU: false,
@@ -696,8 +696,26 @@ describe('OptionsListUtils', () => {
                 visibility: undefined,
             },
 
-            // Note: This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            // This is an archived version of the above policyExpenseChat
             11: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 11,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+
+            // Note: This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            12: {
                 chatType: 'policyAdmins',
                 hasOutstandingIOU: false,
                 isPinned: false,
@@ -705,10 +723,27 @@ describe('OptionsListUtils', () => {
                 lastVisitedTimestamp: 1610666739302,
                 participants: ['test3@instantworkspace.com'],
                 policyID: 'Whatever',
-                reportID: 11,
+                reportID: 12,
                 reportName: '#admins',
                 unreadActionCount: 0,
                 visibility: undefined,
+            },
+
+            // This is an archived version of the above defaultRoom
+            13: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 13,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
             },
         };
 
@@ -723,6 +758,6 @@ describe('OptionsListUtils', () => {
         // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
         // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
         // also not be included
-        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 1);
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 3);
     });
 });
