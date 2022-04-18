@@ -2,6 +2,22 @@ import _ from 'underscore';
 import EventEmitter from 'events';
 
 /**
+ * Validate that an event exists in a scope and return its EventEmitter.
+ *
+ * @param {Object<String, EventEmitter>} eventEmitters
+ * @param {String} eventName
+ * @returns {EventEmitter}
+ * @throws {Error}
+ */
+function getEventEmitter(eventEmitters, eventName) {
+    const emitter = eventEmitters[eventName];
+    if (!emitter) {
+        throw new Error(`The ${eventName} event does not exist in the ${this.name} event scope`);
+    }
+    return emitter;
+}
+
+/**
  * A general-purpose set of event emitters.
  */
 export default class EventScope {
@@ -22,24 +38,18 @@ export default class EventScope {
      * @param {*} [eventData] – arbitrary arguments to pass to event handler(s) for this event
      */
     emit(eventName, ...eventData) {
-        const emitter = this.eventEmitters[eventName];
-        if (!emitter) {
-            throw new Error(`The ${eventName} network event does not exist in the ${this.name} event scope`);
-        }
+        const emitter = getEventEmitter(this.eventEmitters, eventName);
         emitter.emit(eventName, ...eventData);
     }
 
     /**
-     * Setup a handler for an event.
+     * Set up a handler for an event.
      *
      * @param {String} eventName
      * @param {Function} callback
      */
     on(eventName, callback) {
-        const emitter = this.eventEmitters[eventName];
-        if (!emitter) {
-            throw new Error(`The ${eventName} network event does not exist in the ${this.name} event scope`);
-        }
+        const emitter = getEventEmitter(this.eventEmitters, eventName);
         emitter.on(eventName, callback);
     }
 }
