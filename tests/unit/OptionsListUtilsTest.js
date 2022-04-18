@@ -675,4 +675,54 @@ describe('OptionsListUtils', () => {
                 // Spider-Man report name is last report and has unread message
                 expect(results.recentReports[8].login).toBe('peterparker@expensify.com');
             }));
+
+    it('getSidebarOptions() with empty policyExpenseChats and defaultRooms', () => {
+        const reportsWithEmptyChatRooms = {
+            ...REPORTS,
+
+            // Note: This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
+            10: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 10,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+
+            // Note: This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            11: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 11,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+        };
+
+        // First we call getSidebarOptions() with no search value and default priority mode
+        let results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.DEFAULT,
+        );
+
+        // Then expect all of the reports to be shown except the unpinned reports that have no lastMessageTimestamp
+        // and are not policyExpenseChats or defaultRooms. The archived policyExpenseChats and defaultRooms should
+        // also not be included
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 1);
+    });
 });
