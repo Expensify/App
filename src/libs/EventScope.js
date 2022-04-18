@@ -4,7 +4,7 @@ import EventEmitter from 'events';
 /**
  * A general-purpose set of event emitters.
  */
-export default class EventBus {
+export default class EventScope {
     /**
      * @param {String} name – the name of the event scope
      * @param {Array<String>} events – all the event names within this event bus
@@ -24,7 +24,7 @@ export default class EventBus {
     emit(eventName, ...eventData) {
         const emitter = this.eventEmitters[eventName];
         if (!emitter) {
-            throw new Error(`The ${eventName} network event does not exist in the ${this.name} EventBus`);
+            throw new Error(`The ${eventName} network event does not exist in the ${this.name} event scope`);
         }
         emitter.emit(eventName, ...eventData);
     }
@@ -38,7 +38,7 @@ export default class EventBus {
     on(eventName, callback) {
         const emitter = this.eventEmitters[eventName];
         if (!emitter) {
-            throw new Error(`The ${eventName} network event does not exist in the ${this.name} EventBus`);
+            throw new Error(`The ${eventName} network event does not exist in the ${this.name} event scope`);
         }
         emitter.on(eventName, callback);
     }

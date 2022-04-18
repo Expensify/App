@@ -3,9 +3,9 @@
  * It helps avoid circular dependencies and by setting up event triggers and subscribers.
  */
 import CONST from '../../CONST';
-import EventBus from '../EventBus';
+import EventScope from '../EventScope';
 
-class NetworkEvents extends EventBus {
+class NetworkEvents extends EventScope {
     constructor() {
         // This class is a singleton
         if (NetworkEvents.instance) {
