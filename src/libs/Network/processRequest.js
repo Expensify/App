@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import HttpUtils from '../HttpUtils';
 import enhanceParameters from './enhanceParameters';
-import * as NetworkEvents from './NetworkEvents';
+import NetworkEvents from './NetworkEvents';
 import * as PersistedRequests from '../actions/PersistedRequests';
 
 /**
@@ -15,7 +15,7 @@ function logRequestDetails(request, parameters) {
         return;
     }
 
-    NetworkEvents.getLogger().info('Making API request', false, {
+    NetworkEvents.logger.info('Making API request', false, {
         command: request.command,
         type: request.type,
         shouldUseSecure: request.shouldUseSecure,
@@ -43,7 +43,7 @@ export default function processRequest(request) {
             if (persisted) {
                 PersistedRequests.remove(request);
             }
-            NetworkEvents.triggerResponse(request, response);
+            NetworkEvents.emit(CONST.NETWORK.EVENTS.RESPONSE, request, response);
             return response;
         })
         .catch((error) => {
@@ -56,10 +56,10 @@ export default function processRequest(request) {
             // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                NetworkEvents.getLogger().info('[Network] Request canceled', false, request);
+                NetworkEvents.logger.info('[Network] Request canceled', false, request);
             } else {
                 // If we get any error that is not "Failed to fetch" create GitHub issue so we can handle it. These requests will not be retried.
-                NetworkEvents.getLogger().alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
+                NetworkEvents.logger.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request`, {
                     command: request.command,
                     error: error.message,
                 });

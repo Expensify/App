@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
-import * as NetworkEvents from './NetworkEvents';
+import NetworkEvents from './NetworkEvents';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
@@ -29,9 +29,9 @@ function process() {
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .catch((error) => {
             const retryCount = PersistedRequests.incrementRetries(request);
-            NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            NetworkEvents.logger.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
             if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
+                NetworkEvents.logger.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                 PersistedRequests.remove(request);
             }
         }));
@@ -66,7 +66,7 @@ function flush() {
 }
 
 // Flush the queue when the connection resumes
-NetworkEvents.onConnectivityResumed(flush);
+NetworkEvents.on(CONST.NETWORK.EVENTS.CONNECTIVITY_RESUMED, flush);
 
 export {
     // eslint-disable-next-line import/prefer-default-export

@@ -11,7 +11,7 @@ import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import * as NetworkStore from './Network/NetworkStore';
 import enhanceParameters from './Network/enhanceParameters';
-import * as NetworkEvents from './Network/NetworkEvents';
+import NetworkEvents from './Network/NetworkEvents';
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -48,10 +48,10 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 }
 
 // We set the logger for Network here so that we can avoid a circular dependency
-NetworkEvents.registerLogHandler(() => Log);
+NetworkEvents.logger = Log;
 
 // Handle response event sent by the Network
-NetworkEvents.onResponse((queuedRequest, response) => {
+NetworkEvents.on(CONST.NETWORK.EVENTS.RESPONSE, (queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
         Log.info('Finished API request', false, {
             command: queuedRequest.command,

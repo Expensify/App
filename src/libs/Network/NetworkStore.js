@@ -2,7 +2,8 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as NetworkEvents from './NetworkEvents';
+import CONST from '../../CONST';
+import NetworkEvents from './NetworkEvents';
 
 let credentials;
 let authToken;
@@ -58,7 +59,7 @@ Onyx.connect({
 
         // Client becomes online emit connectivity resumed event
         if (isOffline && !network.isOffline) {
-            NetworkEvents.triggerConnectivityResumed();
+            NetworkEvents.emit(CONST.NETWORK.EVENTS.CONNECTIVITY_RESUMED);
         }
 
         isOffline = network.isOffline;

@@ -6,7 +6,7 @@ import CONST from '../../CONST';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import RetryCounter from '../RetryCounter';
 import * as NetworkStore from './NetworkStore';
-import * as NetworkEvents from './NetworkEvents';
+import NetworkEvents from './NetworkEvents';
 import * as PersistedRequestsQueue from './PersistedRequestsQueue';
 import processRequest from './processRequest';
 import {version} from '../../../package.json';
@@ -52,7 +52,7 @@ function retryFailedRequest(queuedRequest, error) {
     }
 
     const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
-    NetworkEvents.getLogger().info('[Network] A retryable request failed', false, {
+    NetworkEvents.logger.info('[Network] A retryable request failed', false, {
         retryCount,
         command: queuedRequest.command,
         error: error.message,
@@ -63,7 +63,7 @@ function retryFailedRequest(queuedRequest, error) {
         return true;
     }
 
-    NetworkEvents.getLogger().info('[Network] Request was retried too many times with no success. No more retries left');
+    NetworkEvents.logger.info('[Network] Request was retried too many times with no success. No more retries left');
     return false;
 }
 
@@ -128,13 +128,13 @@ function processNetworkRequestQueue() {
         processRequest(queuedRequest)
             .catch((error) => {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
-                NetworkEvents.triggerRecheckNeeded();
+                NetworkEvents.emit(CONST.NETWORK.EVENTS.RECHECK_CONNECTION);
                 if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
 
                 if (queuedRequest.command !== 'Log') {
-                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
+                    NetworkEvents.logger.hmmm('[Network] Handled error when making request', error);
                 } else {
                     console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }

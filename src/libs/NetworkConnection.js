@@ -4,7 +4,7 @@ import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
 import * as NetworkActions from './actions/Network';
-import * as NetworkEvents from './Network/NetworkEvents';
+import NetworkEvents from './Network/NetworkEvents';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
@@ -127,7 +127,7 @@ function recheckNetworkConnection() {
     subscribeToNetInfo();
 }
 
-NetworkEvents.onRecheckNeeded(recheckNetworkConnection);
+NetworkEvents.on(CONST.NETWORK.EVENTS.RECHECK_CONNECTION, recheckNetworkConnection);
 
 export default {
     setOfflineStatus,

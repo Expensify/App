@@ -319,6 +319,12 @@ const CONST = {
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
     },
     NETWORK: {
+        EVENTS: {
+            CONNECTIVITY_RESUMED: 'connectivity-resumed',
+            RESPONSE: 'response',
+            RECHECK_CONNECTION: 'recheck-connection',
+            SETUP_LOG_HANDLER: 'setup-log-handler',
+        },
         METHOD: {
             POST: 'post',
         },
