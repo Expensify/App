@@ -445,21 +445,6 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
-/**
- * Get card style for cardStyleInterpolator
- * @param {Boolean} isSmallScreenWidth
- * @param {Number} screenWidth
- * @returns {Object}
- */
-function getCardStyle(isSmallScreenWidth, screenWidth) {
-    return {
-        position: 'fixed',
-        width: isSmallScreenWidth ? screenWidth : variables.sideBarWidth,
-        right: 0,
-        height: '100%',
-    };
-}
-
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -487,5 +472,4 @@ export {
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
     getPaddingLeft,
-    getCardStyle,
 };
