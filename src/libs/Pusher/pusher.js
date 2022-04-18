@@ -214,7 +214,7 @@ function subscribe(
                 onResubscribe();
             });
 
-            channel.bind('pusher:subscription_error', (data) => {
+            channel.bind('pusher:subscription_error', (data = {}) => {
                 const {type, error, status} = data;
                 Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                     channelName,
