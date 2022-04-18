@@ -16,8 +16,8 @@ const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
-    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = lodashGet(props.tnode, 'domNode.children[0].data', '');
+    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+    const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
     const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
@@ -64,7 +64,7 @@ const AnchorRenderer = (props) => {
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={{...props.style, ...parentStyle}}
             key={props.key}
-            fileName={fileName}
+            displayName={displayName}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>

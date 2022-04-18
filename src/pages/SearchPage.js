@@ -90,18 +90,22 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        const sections = [
-            {
+        const sections = [];
+        if (this.state.recentReports.length > 0) {
+            sections.push(({
                 data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset: 0,
-            },
-            {
+            }));
+        }
+
+        if (this.state.personalDetails.length > 0) {
+            sections.push(({
                 data: this.state.personalDetails,
                 shouldShow: true,
                 indexOffset: this.state.recentReports.length,
-            },
-        ];
+            }));
+        }
 
         if (this.state.userToInvite) {
             sections.push(({
@@ -173,7 +177,7 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
                                     sections={sections}

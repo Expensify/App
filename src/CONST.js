@@ -215,11 +215,19 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
+                CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                IOU: 'IOU',
                 RENAMED: 'RENAMED',
             },
+        },
+        ARCHIVE_REASON: {
+            DEFAULT: 'default',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_MERGED: 'accountMerged',
+            REMOVED_FROM_POLICY: 'removedFromPolicy',
+            POLICY_DELETED: 'policyDeleted',
         },
         ERROR: {
             INACCESSIBLE_REPORT: 'Report not found',
@@ -244,6 +252,13 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        STATUS: {
+            OPEN: 0,
+            SUBMITTED: 1,
+            CLOSED: 2,
+            APPROVED: 3,
+            REIMBURSED: 4,
         },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
@@ -290,6 +305,7 @@ const CONST = {
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
+        SPINNER_TIMEOUT: 15 * 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -299,6 +315,8 @@ const CONST = {
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
+        FAILED_TO_FETCH: 'Failed to fetch',
+        ENSURE_BUGBOT: 'ENSURE_BUGBOT',
     },
     NETWORK: {
         METHOD: {
@@ -308,10 +326,9 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
-    HTTP_STATUS_CODE: {
+    JSON_CODE: {
         SUCCESS: 200,
-        BAD_REQUEST: 400,
-        UNAUTHORIZED: 401,
+        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -362,6 +379,8 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
     },
+
+    ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -431,6 +450,7 @@ const CONST = {
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
+            ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
@@ -443,8 +463,8 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
-            ONFIDO: 'OnfidoStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
