@@ -270,7 +270,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onChange={(values) => {
+                                onInputChange={(values) => {
                                     const renamedFields = {
                                         street: 'addressStreet',
                                         state: 'addressState',
