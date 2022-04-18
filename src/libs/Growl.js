@@ -1,9 +1,14 @@
 import React from 'react';
 import CONST from '../CONST';
-import createOnReadyTask from './createOnReadyTask';
+import EventScope from './EventScope';
 
 const growlRef = React.createRef();
-const [isGrowlReady, setIsReady] = createOnReadyTask();
+const READY = 'ready';
+const GrowlEvents = new EventScope('Growl', [READY]);
+
+function setIsReady() {
+    GrowlEvents.emit(READY);
+}
 
 /**
  * Show the growl notification
@@ -13,7 +18,7 @@ const [isGrowlReady, setIsReady] = createOnReadyTask();
  * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
-    isGrowlReady().then(() => growlRef.current.show(bodyText, type, duration));
+    GrowlEvents.once(READY, () => growlRef.current.show(bodyText, type, duration));
 }
 
 /**
