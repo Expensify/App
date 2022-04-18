@@ -474,7 +474,8 @@ function authenticatePusher(socketID, channelName, callback) {
     })
         .then((response) => {
             if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                callback(new Error(response.jsonCode), {auth: ''});
+                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
+                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
@@ -482,8 +483,8 @@ function authenticatePusher(socketID, channelName, callback) {
             }
 
             if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for some reason other than expired session');
-                callback(new Error(response.jsonCode), {auth: ''});
+                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
+                callback(new Error(`Pusher failed to authenticate because code: ${response.jsonCode} message: ${response.message}`), {auth: ''});
                 return;
             }
 
@@ -495,8 +496,8 @@ function authenticatePusher(socketID, channelName, callback) {
             callback(null, response);
         })
         .catch((error) => {
-            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, message: error.message});
-            callback(new Error(error.message), {auth: ''});
+            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
+            callback(new Error('Push_Authenticate request failed'), {auth: ''});
         });
 }
 

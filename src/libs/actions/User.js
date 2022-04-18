@@ -305,7 +305,7 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info(
+            Log.hmmm(
                 '[User] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
@@ -318,7 +318,14 @@ function subscribeToUserEvents() {
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    });
+    })
+        .catch((error) => {
+            Log.hmmm(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
+            );
+        });
 }
 
 /**
