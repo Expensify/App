@@ -42,7 +42,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             return response.json();
         })
         .then((response) => {
-            // Auth is down
+            // Auth is down or timed out while making a request
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
                 throw new HttpsError({
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
@@ -51,15 +51,6 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                     jsonCode: CONST.JSON_CODE.EXP_ERROR,
                 });
             }
-
-            // We got a 500 jsonCode. This may indicate the server experienced some internal failure. It's unknown if the request was valid so we'll retry.
-            if (response.jsonCode === CONST.JSON_CODE.INTERNAL_FAILURE) {
-                throw new HttpsError({
-                    jsonCode: CONST.JSON_CODE.INTERNAL_FAILURE,
-                    message: response.message,
-                });
-            }
-
             return response;
         });
 }
