@@ -464,7 +464,7 @@ const reauthenticatePusher = _.throttle(() => {
  * @param {Function} callback
  */
 function authenticatePusher(socketID, channelName, callback) {
-    Log.info('[PusherConnectionManager] Attempting to authorize Pusher', false, {channelName});
+    Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     API.Push_Authenticate({
         socket_id: socketID,
@@ -472,30 +472,31 @@ function authenticatePusher(socketID, channelName, callback) {
         shouldRetry: false,
         forceNetworkRequest: true,
     })
-        .then((data) => {
-            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                callback(true, 'Expensify session expired');
+        .then((response) => {
+            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                callback(new Error(response.jsonCode), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
                 return;
             }
 
-            if (data.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Log.hmmm('[PusherConnectionManager] Unable to authenticate Pusher for some reason other than expired session');
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for some reason other than expired session');
+                callback(new Error(response.jsonCode), {auth: ''});
                 return;
             }
 
             Log.info(
-                '[PusherConnectionManager] Pusher authenticated successfully',
+                '[PusherAuthorizer] Pusher authenticated successfully',
                 false,
                 {channelName},
             );
-            callback(false, data);
+            callback(null, response);
         })
         .catch((error) => {
-            Log.hmmm('[PusherConnectionManager] Unhandled error: ', {channelName, message: error.message});
-            callback(true, error.message);
+            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, message: error.message});
+            callback(new Error(error.message), {auth: ''});
         });
 }
 
