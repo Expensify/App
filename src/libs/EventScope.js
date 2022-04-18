@@ -52,4 +52,20 @@ export default class EventScope {
         const emitter = getEventEmitter(this.eventEmitters, eventName);
         emitter.on(eventName, callback);
     }
+
+    /**
+     * Set up a one-time handler for an event. Useful when you're waiting for something to be ready to do something.
+     *
+     * @example
+     *
+     * MyEventScope.once('ready', doSomething());
+     * MyEventScope.emit('ready'); // doSomething() will now execute
+     *
+     * @param {String} eventName
+     * @param {Function} callback
+     */
+    once(eventName, callback) {
+        const emitter = getEventEmitter(this.eventEmitters, eventName);
+        emitter.once(eventName, callback);
+    }
 }
