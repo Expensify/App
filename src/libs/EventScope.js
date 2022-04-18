@@ -47,10 +47,12 @@ export default class EventScope {
      *
      * @param {String} eventName
      * @param {Function} callback
+     * @returns {Function} cleanup function to remove this listener
      */
     on(eventName, callback) {
         const emitter = getEventEmitter(this.eventEmitters, eventName);
         emitter.on(eventName, callback);
+        return () => emitter.removeListener(eventName, callback);
     }
 
     /**
@@ -63,9 +65,11 @@ export default class EventScope {
      *
      * @param {String} eventName
      * @param {Function} callback
+     * @returns {Function} cleanup function to remove this listener
      */
     once(eventName, callback) {
         const emitter = getEventEmitter(this.eventEmitters, eventName);
         emitter.once(eventName, callback);
+        return () => emitter.removeListener(eventName, callback);
     }
 }
