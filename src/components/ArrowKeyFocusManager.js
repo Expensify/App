@@ -83,7 +83,7 @@ class ArrowKeyFocusManager extends Component {
                 newFocusedIndex = 0;
             }
 
-            this.props.onFocusedIndexChanged(newFocusedIndex)
+            this.props.onFocusedIndexChanged(newFocusedIndex);
         }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
     }
 
