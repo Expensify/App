@@ -14,7 +14,6 @@ class NetworkEvents extends EventScope {
         super(CONST.NETWORK.EVENTS);
         NetworkEvents.instance = this;
 
-        // eslint-disable-next-line no-console
         this.logger = {
             info: () => {},
             alert: () => {},
