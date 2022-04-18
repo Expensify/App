@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {Component} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
@@ -19,42 +18,16 @@ const propTypes = {
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func,
-
-    /** A callback executed when the enter key is pressed. */
-    onEnterKeyPressed: PropTypes.func,
-
-    /** Should the enter key event bubble? */
-    shouldEnterKeyEventBubble: PropTypes.func,
 };
 
 const defaultProps = {
     onFocusedIndexChanged: () => {},
-    onEnterKeyPressed: undefined,
-    shouldEnterKeyEventBubble: () => false,
 };
 
 class ArrowKeyFocusManager extends Component {
     componentDidMount() {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
-
-        if (this.props.onEnterKeyPressed) {
-            this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
-                enterConfig.shortcutKey,
-                () => this.props.onEnterKeyPressed(this.props.focusedIndex),
-                enterConfig.descriptionKey,
-                enterConfig.modifiers,
-                true,
-                () => {
-                    const shouldBubble = this.props.shouldEnterKeyEventBubble(this.props.focusedIndex);
-                    if (!_.isBoolean(shouldBubble)) {
-                        throw new Error('shouldEnterKeyEventBubble prop did not return a boolean');
-                    }
-                    return shouldBubble;
-                },
-            );
-        }
 
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
             if (this.props.maxIndex <= 1) {
@@ -88,10 +61,6 @@ class ArrowKeyFocusManager extends Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeEnterKey) {
-            this.unsubscribeEnterKey();
-        }
-
         if (this.unsubscribeArrowUpKey) {
             this.unsubscribeArrowUpKey();
         }
