@@ -14,12 +14,11 @@ import {
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
-import Text from '../components/Text';
+import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /* Onyx Props */
@@ -122,29 +121,24 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
-                    {_.isEmpty(error) ? (
-                        <>
-                            <View style={[styles.mb4]}>
-                                <NewPasswordForm
-                                    password={this.state.password}
-                                    updatePassword={password => this.setState({password})}
-                                    updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                                    onSubmitEditing={this.validateAndSubmitForm}
-                                />
-                            </View>
-                            <View>
-                                <Button
-                                    success
-                                    style={[styles.mb2]}
-                                    text={buttonText}
-                                    isLoading={this.props.account.loading || this.props.userSignUp.isValidatingEmail}
-                                    onPress={this.validateAndSubmitForm}
-                                    isDisabled={!this.state.isFormValid}
-                                />
-                            </View>
-                        </>
-                    )
-                        : (<Text>{error}</Text>)}
+                    <View style={[styles.mb4]}>
+                        <NewPasswordForm
+                            password={this.state.password}
+                            updatePassword={password => this.setState({password})}
+                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                        />
+                    </View>
+                    <View>
+                        <FormAlertWithSubmitButton
+                            buttonText={buttonText}
+                            isLoading={this.props.account.loading || this.props.userSignUp.isValidatingEmail}
+                            onSubmit={this.validateAndSubmitForm}
+                            containerStyles={[styles.mb2, styles.mh0]}
+                            message={error}
+                            isAlertVisible={!_.isEmpty(error)}
+                        />
+                    </View>
                 </SignInPageLayout>
             </SafeAreaView>
         );
