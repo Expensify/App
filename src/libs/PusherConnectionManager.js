@@ -39,6 +39,7 @@ function init() {
                 Log.info('[PusherConnectionManager] disconnected event');
                 break;
             default:
+                Log.info('[PusherConnectionManager] unhandled event', false, {eventName});
                 break;
         }
     });
