@@ -1,7 +1,7 @@
 import CONST from '../../CONST';
 
 /**
- * Fetch browser name from UA string and returns the browser name
+ * Fetch browser name from UA string
  *
  * @return {String} e.g. Chrome
  */
@@ -31,8 +31,7 @@ function getBrowser() {
 }
 
 /**
- * Allows us to identify whether the platform is mobile.
- *
+ * Whether the platform is a mobile browser.
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
  *
  * @returns {Boolean}
