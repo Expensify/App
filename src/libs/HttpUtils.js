@@ -49,7 +49,14 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
-    _.each(data, (val, key) => formData.append(key, val));
+    _.each(data, (val, key) => {
+        // Do not send undefined request parameters to our API. They will be processed as strings of 'undefined'.
+        if (_.isUndefined(val)) {
+            return;
+        }
+
+        formData.append(key, val);
+    });
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (shouldUseSecure && shouldUseSecureStaging) {
