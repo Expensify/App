@@ -515,7 +515,7 @@ function subscribeToPolicyEvents() {
     _.each(allPolicies, (policy, key) => {
         const pusherChannelName = `public-policyEditor-${policy.id}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            const policyWithoutEmployee = _.clone(policy)
+            const policyWithoutEmployee = _.clone(policy);
             policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
 
             // Remove the members from the policy
