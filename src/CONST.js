@@ -319,6 +319,7 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
+        MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },

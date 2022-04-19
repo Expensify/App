@@ -6,6 +6,7 @@ import * as NetworkEvents from './NetworkEvents';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
+import CONST from '../../CONST';
 
 let isPersistedRequestsQueueRunning = false;
 
@@ -27,9 +28,12 @@ function process() {
 
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .catch((error) => {
-            // If a persisted request fails in flight we won't retry it again
-            NetworkEvents.getLogger().info('Persisted request failed', false, {command: request.command, error: error.message});
-            PersistedRequests.remove(request);
+            const retryCount = PersistedRequests.incrementRetries(request);
+            NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
+                PersistedRequests.remove(request);
+            }
         }));
 
     // Do a recursive call in case the queue is not empty after processing the current batch
