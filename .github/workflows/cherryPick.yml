@@ -203,7 +203,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Auto-merge the PR
-        # Important: only auto-merge if there was no merge conflict!
+        # Important: only auto-merge if there was no merge conflict and the PR is mergable (not blocked by a missing status check)!
         if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         run: gh pr merge --merge --delete-branch
         env:
