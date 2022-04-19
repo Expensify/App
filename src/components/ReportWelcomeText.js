@@ -15,6 +15,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import Tooltip from './Tooltip';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -125,13 +126,17 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
-                    {_.map(displayNamesWithTooltips, ({displayName, pronouns, login}, index) => (
+                    {_.map(displayNamesWithTooltips, ({
+                        displayName, pronouns, login, tooltip,
+                    }, index) => (
                         <Text key={displayName}>
-                            <Pressable onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(login))}>
-                                <Text style={[styles.textStrong]}>
-                                    {displayName}
-                                </Text>
-                            </Pressable>
+                            <Tooltip text={tooltip}>
+                                <Pressable onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(login))}>
+                                    <Text style={[styles.textStrong]}>
+                                        {displayName}
+                                    </Text>
+                                </Pressable>
+                            </Tooltip>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                             {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
                             {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
