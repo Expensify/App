@@ -342,9 +342,6 @@ export default {
     confirmationScreen: {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set, keep your new password safe.',
-        set2FAPartOne: 'Set up',
-        set2FAPartTwo: 'two-factor authentication',
-        set2FAPartThree: 'for additional account security.',
         gotIt: 'Got it',
     },
     addPayPalMePage: {
