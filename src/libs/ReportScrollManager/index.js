@@ -19,6 +19,11 @@ function scrollToIndex(index, isEditing) {
     flatListRef.current.scrollToIndex(index);
 }
 
+function scrollToInvertedIndex(index, isEditing, maxIndex) {
+    index.index = maxIndex - index.index;
+    flatListRef.current.scrollToIndex(index);
+}
+
 /**
  * Scroll to the bottom of the flatlist.
  *
@@ -34,5 +39,6 @@ function scrollToBottom() {
 export {
     flatListRef,
     scrollToIndex,
+    scrollToInvertedIndex,
     scrollToBottom,
 };

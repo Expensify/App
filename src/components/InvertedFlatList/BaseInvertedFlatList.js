@@ -4,6 +4,7 @@ import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 import * as CollectionUtils from '../../libs/CollectionUtils';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -73,7 +74,7 @@ class BaseInvertedFlatList extends Component {
         // at the last size we have recorded (if any)
         const lastMeasuredItem = CollectionUtils.lastItem(this.sizeMap);
 
-        return {
+        const returnValues = {
             // We haven't measured this so we must return the minimum row height
             length: this.props.initialRowHeight,
 
@@ -85,6 +86,12 @@ class BaseInvertedFlatList extends Component {
                 : lastMeasuredItem.offset + this.props.initialRowHeight,
             index,
         };
+
+        const html = data[returnValues.index].action.message[0].html;
+        console.log(`over here 1: ${_.isUndefined(lastMeasuredItem)}, ${this.props.initialRowHeight}`);
+        console.log(`over here 2: ${returnValues.index}, ${returnValues.length}, ${returnValues.offset}. ${html}`);
+
+        return returnValues;
     }
 
     /**
@@ -133,7 +140,6 @@ class BaseInvertedFlatList extends Component {
                 </View>
             );
         }
-
         return this.props.renderItem({item, index});
     }
 

@@ -156,6 +156,8 @@ class ReportActionsView extends React.Component {
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
             this.copySelectionToClipboard();
         }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
+
+        window.scrollRef = ReportScrollManager;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -568,6 +570,8 @@ class ReportActionsView extends React.Component {
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+        const test = this.sortedReportActions;
+        debugger;
 
         return (
             <>
