@@ -66,8 +66,8 @@ const ReportActionItemSingle = (props) => {
         <View style={props.wrapperStyles}>
             <Pressable
                 style={styles.alignSelfStart}
-                onPressIn={() => ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
+                onPressIn={ControlSelection.block}
+                onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(props.action.actorEmail)}
             >
                 <Tooltip text={props.action.actorEmail}>
@@ -82,8 +82,8 @@ const ReportActionItemSingle = (props) => {
                     <View style={[styles.chatItemMessageHeader]}>
                         <Pressable
                             style={[styles.flexShrink1]}
-                            onPressIn={() => ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
+                            onPressIn={ControlSelection.block}
+                            onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(props.action.actorEmail)}
                         >
                             {_.map(personArray, (fragment, index) => (
