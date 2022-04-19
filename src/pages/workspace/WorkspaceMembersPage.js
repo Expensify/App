@@ -214,8 +214,9 @@ class WorkspaceMembersPage extends React.Component {
                     />
                     <View style={styles.flex1}>
                         <OptionRow
+                            onSelectRow={() => this.toggleUser(item.login)}
                             forceTextUnreadStyle
-                            isDisabled
+                            isDisabled={!canBeRemoved}
                             option={{
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),
