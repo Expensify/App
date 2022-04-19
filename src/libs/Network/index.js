@@ -135,13 +135,13 @@ function processNetworkRequestQueue() {
                 }
 
                 if (queuedRequest.command !== 'Log') {
-                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', error);
+                    NetworkEvents.getLogger().hmmm('[Network] Handled error when making request', {error, command: queuedRequest.command});
                 } else {
                     console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
                 }
 
                 // Resolve with a special client-side jsonCode so API method handlers can identify this scenario
-                queuedRequest.resolve({jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
+                NetworkEvents.triggerResponse(queuedRequest, {jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
             });
     });
 

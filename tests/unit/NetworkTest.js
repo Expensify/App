@@ -63,8 +63,8 @@ test('failing to reauthenticate while offline should not log out user', () => {
         .then(() => {
             expect(isOffline).toBe(null);
 
-            // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError('Failed to fetch'))));
+            // Mock fetch() so that it throws a TypeError to simulate a bad network connection and a request that failed in flight
+            global.fetch = jest.fn().mockRejectedValueOnce(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
             const actualXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn();
@@ -92,14 +92,12 @@ test('failing to reauthenticate while offline should not log out user', () => {
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                 }));
 
-            // This should first trigger re-authentication and then an API is offline error
+            // This should first trigger re-authentication and the Authenticate request should throw an error
             API.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
                     expect(isOffline).toBe(false);
-
-                    // Advance the network request queue by 1 second so that it can realize it's back online
                     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
                     return waitForPromisesToResolve();
                 })
@@ -364,7 +362,7 @@ test('requests should resume when we are online', () => {
         });
 });
 
-test('persisted request should not be cleared until a backend response occurs', () => {
+test('persisted request should not be cleared until they succeed', () => {
     // We're setting up xhr handler that will resolve calls programmatically
     const xhrCalls = [];
     const promises = [];
@@ -467,9 +465,10 @@ test('test bad response will log alert', () => {
 });
 
 test('test Failed to fetch error for requests not flagged with shouldRetry will throw API OFFLINE error', () => {
-    // Setup xhr handler that rejects once with a 502 Bad Gateway
+    // Setup xhr handler that rejects once with Failed to fetch
     global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new Error(CONST.ERROR.FAILED_TO_FETCH))));
 
+    const onSuccess = jest.fn();
     const onRejected = jest.fn();
 
     // Given we have a request made while online
@@ -477,14 +476,15 @@ test('test Failed to fetch error for requests not flagged with shouldRetry will 
         .then(() => {
             // When network calls with are made
             Network.post('mock command', {param1: 'value1', shouldRetry: false})
+                .then(onSuccess)
                 .catch(onRejected);
 
             return waitForPromisesToResolve();
         })
         .then(() => {
-            const error = onRejected.mock.calls[0][0];
-            expect(onRejected).toHaveBeenCalled();
-            expect(error.message).toBe(CONST.ERROR.API_OFFLINE);
+            const response = onSuccess.mock.calls[0][0];
+            expect(onRejected).not.toHaveBeenCalled();
+            expect(response).toEqual({jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
         });
 });
 
@@ -520,5 +520,31 @@ test('persisted request can trigger reauthentication for anything retryable', ()
             expect(commandName1).toBe('Mock');
             expect(commandName2).toBe('Authenticate');
             expect(commandName3).toBe('Mock');
+        });
+});
+
+test('Network.post() / API methods will not throw errors and cannot be caught with a .catch()', () => {
+    const MockCommand = () => Network.post('MockCommand');
+    jest.spyOn(HttpUtils, 'xhr')
+        .mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+
+    function waitForMainQueueToProcess(numberOfTicks) {
+        return _.reduce([...new Array(numberOfTicks)], promise => promise.then(() => {
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        }), Promise.resolve());
+    }
+
+    const onSuccess = jest.fn();
+    const onFail = jest.fn();
+
+    MockCommand()
+        .then(onSuccess)
+        .catch(onFail);
+
+    return waitForMainQueueToProcess(CONST.NETWORK.MAX_REQUEST_RETRIES)
+        .then(() => {
+            expect(onSuccess.mock.calls[0][0]).toEqual({jsonCode: CONST.JSON_CODE.REQUEST_FAILED});
+            expect(onFail).not.toHaveBeenCalled();
         });
 });
