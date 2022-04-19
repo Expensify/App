@@ -1,5 +1,5 @@
 import CONST from '../../../../CONST';
-import * as Browser from '../../../../libs/Browser/Browser';
+import * as Browser from '../../../../libs/Browser';
 import styles from '../../../../styles/styles';
 
 const pickerStylesWeb = () => {

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import * as Browser from '../Browser/Browser';
+import * as Browser from '../Browser';
 
 /**
  * Is the virtual keyboard open?

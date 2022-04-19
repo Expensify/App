@@ -2,7 +2,7 @@
 import Str from 'expensify-common/lib/str';
 import smoothscrollPolyfill from 'smoothscroll-polyfill';
 import CONST from '../../CONST';
-import * as Browser from '../Browser/Browser';
+import * as Browser from '../Browser';
 
 const userAgent = navigator.userAgent.toLowerCase();
 
