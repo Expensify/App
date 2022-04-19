@@ -44,9 +44,10 @@ class SidebarScreen extends Component {
         super(props);
 
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
-        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
+        this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
+        this.showCreateMenu = this.showCreateMenu.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
@@ -58,14 +59,23 @@ class SidebarScreen extends Component {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        WelcomeAction.show({routes, toggleCreateMenu: this.toggleCreateMenu});
+        WelcomeAction.show({routes, hideCreateMenu: this.hideCreateMenu});
     }
 
     /**
      * Method called when a Create Menu item is selected.
      */
     onCreateMenuItemSelected() {
-        this.toggleCreateMenu();
+        this.hideCreateMenu();
+    }
+
+    /**
+     * Method called when we click the floating action button
+     */
+    showCreateMenu() {
+        this.setState({
+            isCreateMenuActive: true,
+        });
     }
 
     /**
@@ -76,16 +86,14 @@ class SidebarScreen extends Component {
     }
 
     /**
-     * Method called when we click the floating action button
-     * will trigger the animation
      * Method called either when:
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleCreateMenu() {
-        this.setState(state => ({
-            isCreateMenuActive: !state.isCreateMenuActive,
-        }));
+    hideCreateMenu() {
+        this.setState({
+            isCreateMenuActive: false,
+        });
     }
 
     /**
@@ -117,11 +125,11 @@ class SidebarScreen extends Component {
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
-                                onPress={this.toggleCreateMenu}
+                                onPress={this.showCreateMenu}
                             />
                         </View>
                         <PopoverMenu
-                            onClose={this.toggleCreateMenu}
+                            onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
                             onItemSelected={this.onCreateMenuItemSelected}
