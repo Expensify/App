@@ -129,9 +129,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
 
-        // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-        this.maxCommentLength = 60_000;
-
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
@@ -374,7 +371,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (!trimmedComment || trimmedComment.length > this.maxCommentLength) {
+        if (!trimmedComment || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -404,7 +401,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > this.maxCommentLength;
+        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
             <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
@@ -610,7 +607,7 @@ class ReportActionCompose extends React.Component {
                     </View>
                     {hasExceededMaxCommentLength && (
                         <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
-                            {`${this.comment.length}/${this.maxCommentLength}`}
+                            {`${this.comment.length}/${CONST.MAX_COMMENT_LENGTH}`}
                         </Text>
                     )}
                 </View>
