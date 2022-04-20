@@ -609,7 +609,7 @@ class ReportActionCompose extends React.Component {
                         ) : <ReportTypingIndicator reportID={this.props.reportID} />}
                     </View>
                     {hasExceededMaxCommentLength && (
-                        <Text style={[styles.textMicro, styles.textDanger]}>
+                        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
                             {this.props.translate('reportActionCompose.maxCommentLengthReached')}
                         </Text>
                     )}
