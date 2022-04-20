@@ -252,6 +252,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const PERSONAL_DETAILS_WITH_PERIODS = {
+        ...PERSONAL_DETAILS,
+
+        'barry.allen@expensify.com': {
+            displayName: 'The Flash',
+            login: 'barry.allen@expensify.com',
+        },
+    };
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -291,6 +300,13 @@ describe('OptionsListUtils', () => {
         // Then we get both values with the pinned value still on top
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
+
+        // When we filter again but provide a searchValue that should match with periods
+        results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+
+        // Then we expect to have the personal detail with period filtered
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].text).toBe('The Flash');
     });
 
     it('getNewChatOptions()', () => {
@@ -469,6 +485,13 @@ describe('OptionsListUtils', () => {
         // Then we should have no options or personal details at all but there should be a userToInvite
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).not.toBe(null);
+
+        // When we add a search term for which exist options for it excluding its period.
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
+
+        // Then we will have an options at all and there should be a userToInvite too.
+        expect(results.recentReports.length).toBe(1);
         expect(results.userToInvite).not.toBe(null);
 
         // When we add a search term for which no options exist and the searchValue itself
@@ -674,4 +697,102 @@ describe('OptionsListUtils', () => {
                 // Spider-Man report name is last report and has unread message
                 expect(results.recentReports[++index].login).toBe('peterparker@expensify.com');
             }));
+
+    it('getSidebarOptions() with empty policyExpenseChats and defaultRooms', () => {
+        const reportsWithEmptyChatRooms = {
+            // This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
+            10: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 10,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+
+            // This is an archived version of the above policyExpenseChat
+            11: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 11,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+
+            // This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            12: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 12,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+
+            // This is an archived version of the above defaultRoom
+            13: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 13,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        };
+
+        // First we call getSidebarOptions() with no search value and default priority mode
+        let results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.DEFAULT,
+        );
+
+        // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 2);
+
+        expect(results.recentReports[0].isPolicyExpenseChat).toBe(true);
+        expect(results.recentReports[0].text).toBe("Someone's workspace");
+
+        expect(results.recentReports[1].isChatRoom).toBe(true);
+        expect(results.recentReports[1].text).toBe('#admins');
+
+        // Now we call getSidebarOptions() with no search value and GSD priority mode
+        results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.GSD,
+        );
+
+        // None of the chats should be here since they've all been read
+        expect(results.recentReports.length).toBe(0);
+    });
 });
