@@ -153,9 +153,13 @@ class ReportActionsView extends React.Component {
         Report.fetchActions(this.props.reportID);
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
-            this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(
+            copyShortcutConfig.shortcutKey,
+            this.copySelectionToClipboard,
+            copyShortcutConfig.descriptionKey,
+            copyShortcutConfig.modifiers,
+            false,
+        );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -276,7 +280,7 @@ class ReportActionsView extends React.Component {
         Report.updateLastReadActionID(this.props.reportID);
     }
 
-    copySelectionToClipboard = () => {
+    copySelectionToClipboard() {
         const selectionMarkdown = SelectionScraper.getAsMarkdown();
 
         Clipboard.setString(selectionMarkdown);
