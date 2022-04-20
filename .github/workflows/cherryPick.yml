@@ -211,7 +211,7 @@ jobs:
 
       - name: 'Announces a CP failure in the #announce Slack room'
         uses: 8398a7/action-slack@v3
-        if: ${{ failure() }}
+        if: ${{ failure() || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         with:
           status: custom
           custom_payload: |
