@@ -610,7 +610,7 @@ class ReportActionCompose extends React.Component {
                     </View>
                     {hasExceededMaxCommentLength && (
                         <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
-                            {this.props.translate('reportActionCompose.maxCommentLengthReached')}
+                            {`${this.comment.length}/${this.maxCommentLength}`}
                         </Text>
                     )}
                 </View>
