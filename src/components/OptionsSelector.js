@@ -2,11 +2,13 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import OptionsList from './OptionsList';
 import Text from './Text';
+import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -15,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
 import ArrowKeyFocusManager from './ArrowKeyFocusManager';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
@@ -46,6 +49,9 @@ const propTypes = {
 
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
+
+    /** Label to display for the text input */
+    textInputLabel: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -89,12 +95,25 @@ const propTypes = {
     /** Function to execute if the confirm button is pressed */
     onConfirmSelection: PropTypes.func,
 
+    /** If true, the text input will be below the options in the selector, not above. */
+    shouldTextInputAppearBelowOptions: PropTypes.bool,
+
+    /** If true, a message will display in the footer if the app is offline. */
+    shouldShowOfflineMessage: PropTypes.bool,
+
+    /** Custom content to display in the footer instead of the default button. */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Hover style for options in the OptionsList */
+    optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
     onSelectRow: () => {},
+    textInputLabel: '',
     placeholderText: '',
     selectedOptions: [],
     headerMessage: '',
@@ -109,6 +128,10 @@ const defaultProps = {
     maxParticipantsReached: false,
     maxParticipantsReachedMessage: undefined,
     onConfirmSelection: () => {},
+    shouldTextInputAppearBelowOptions: false,
+    shouldShowOfflineMessage: false,
+    footerContent: undefined,
+    optionHoveredStyle: styles.hoveredComponentBG,
 };
 
 class OptionsSelector extends Component {
@@ -122,8 +145,8 @@ class OptionsSelector extends Component {
 
         this.state = {
             allOptions: OptionsListUtils.flattenSections(this.props.sections),
-            focusedIndex: 0,
         };
+        this.state.focusedIndex = this.props.shouldTextInputAppearBelowOptions ? this.state.allOptions.length : 0;
     }
 
     componentDidMount() {
@@ -258,9 +281,32 @@ class OptionsSelector extends Component {
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
             ? this.props.translate('common.confirm')
             : this.props.confirmButtonText;
+        const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const defaultMaxParticipantsReachedMessage = _.isUndefined(this.props.maxParticipantsReachedMessage)
             ? this.props.translate('common.maxParticipantsReached', {count: this.props.selectedOptions.length})
             : this.props.maxParticipantsReachedMessage;
+        const shouldShowMaxParticipantsMessage = this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage;
+        const textInput = (
+            <TextInput
+                ref={el => this.textInput = el}
+                value={this.props.value}
+                label={this.props.textInputLabel}
+                onChangeText={(text) => {
+                    if (this.props.shouldFocusOnSelectRow) {
+                        this.textInput.setNativeProps({selection: null});
+                    }
+                    this.props.onChangeText(text);
+                }}
+                placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                onBlur={(e) => {
+                    if (!this.props.shouldFocusOnSelectRow) {
+                        return;
+                    }
+                    this.relatedTarget = e.relatedTarget;
+                }}
+                selectTextOnFocus
+            />
+        );
         return (
             <ArrowKeyFocusManager
                 focusedIndex={this.state.focusedIndex}
@@ -268,29 +314,14 @@ class OptionsSelector extends Component {
                 onFocusedIndexChanged={this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
-                    <View style={[styles.ph5, styles.pv3]}>
-                        <TextInput
-                            ref={el => this.textInput = el}
-                            value={this.props.value}
-                            onChangeText={(text) => {
-                                if (this.props.shouldFocusOnSelectRow) {
-                                    this.textInput.setNativeProps({selection: null});
-                                }
-                                this.props.onChangeText(text);
-                            }}
-                            placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onBlur={(e) => {
-                                if (!this.props.shouldFocusOnSelectRow) {
-                                    return;
-                                }
-                                this.relatedTarget = e.relatedTarget;
-                            }}
-                            selectTextOnFocus
-                        />
-                    </View>
+                    {!this.props.shouldTextInputAppearBelowOptions && (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            {textInput}
+                        </View>
+                    )}
                     <OptionsList
                         ref={el => this.list = el}
-                        optionHoveredStyle={styles.hoveredComponentBG}
+                        optionHoveredStyle={this.props.optionHoveredStyle}
                         onSelectRow={this.selectRow}
                         sections={this.props.sections}
                         focusedIndex={this.state.focusedIndex}
@@ -302,15 +333,25 @@ class OptionsSelector extends Component {
                         forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                         showTitleTooltip={this.props.showTitleTooltip}
                     />
+                    {this.props.shouldTextInputAppearBelowOptions && (
+                        <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
+                            {textInput}
+                        </View>
+                    )}
                 </View>
                 {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
                     <FixedFooter>
-                        {this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage && (
+                        {shouldShowMaxParticipantsMessage && (
                             <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
                                 {defaultMaxParticipantsReachedMessage}
                             </Text>
                         )}
-                        {defaultConfirmButtonText && (
+                        {!shouldShowMaxParticipantsMessage && this.props.shouldShowOfflineMessage && this.props.network.isOffline && (
+                            <Text style={[styles.formError, styles.pb2]}>
+                                {this.props.translate('session.offlineMessage')}
+                            </Text>
+                        )}
+                        {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
                                 style={[styles.w100]}
@@ -320,6 +361,7 @@ class OptionsSelector extends Component {
                                 enterKeyEventListenerPriority={1}
                             />
                         )}
+                        {this.props.footerContent}
                     </FixedFooter>
                 )}
             </ArrowKeyFocusManager>
@@ -329,4 +371,11 @@ class OptionsSelector extends Component {
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default withLocalize(OptionsSelector);
+export default compose(
+    withLocalize,
+    withOnyx({
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+    }),
+)(OptionsSelector);
