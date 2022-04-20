@@ -318,7 +318,7 @@ class DebitCardPage extends Component {
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
-                                onPress={() => {
+                                onInputChange={() => {
                                     this.setState(prevState => ({
                                         acceptedTerms: !prevState.acceptedTerms,
                                         errors: {

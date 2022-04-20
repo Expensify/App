@@ -400,7 +400,13 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !isDefaultRoom;
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
+
+                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
+                // highlight them in the LHN when they are created and have no messsages yet. We do
+                // not give archived rooms this exception since they do not need to be higlihted.
+                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
+
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
@@ -426,7 +432,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
-        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
+        if (logins.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
