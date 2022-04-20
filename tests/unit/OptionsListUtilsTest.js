@@ -453,7 +453,7 @@ describe('OptionsListUtils', () => {
         // even though the currently logged in user matches they should not show.
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
-        expect(results.personalDetails[0].login).toBe('peterparker@expensify.com');
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
         expect(results.recentReports[0].text).toBe('Captain America');
         expect(results.recentReports[1].text).toBe('Mister Sinister');
         expect(results.recentReports[2].text).toBe('Black Panther');
@@ -465,7 +465,7 @@ describe('OptionsListUtils', () => {
         // even though the currently logged in user matches they should not show.
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
-        expect(results.personalDetails[0].login).toBe('reedrichards@expensify.com');
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
         expect(results.recentReports[0].text).toBe('Mister Sinister');
         expect(results.recentReports[1].text).toBe('Captain America');
 
@@ -752,7 +752,7 @@ describe('OptionsListUtils', () => {
 
         // And logins with no single participant reports will show up in personalDetails
         expect(results.personalDetails.length).toBe(4);
-        expect(results.personalDetails[0].login).toBe('peterparker@expensify.com');
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
         // When we search for an option that matches things in both personalDetails and reports
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '.com', [], [], false);
@@ -763,7 +763,7 @@ describe('OptionsListUtils', () => {
 
         // And logins with no single participant reports will show up in personalDetails
         expect(results.personalDetails.length).toBe(4);
-        expect(results.personalDetails[0].login).toBe('reedrichards@expensify.com');
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
         // When we provide no selected options to getNewChatOptions()
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS);
