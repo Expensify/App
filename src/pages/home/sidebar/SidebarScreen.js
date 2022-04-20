@@ -43,7 +43,6 @@ class SidebarScreen extends Component {
     constructor(props) {
         super(props);
 
-        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
         this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
@@ -60,13 +59,6 @@ class SidebarScreen extends Component {
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
         WelcomeAction.show({routes, hideCreateMenu: this.hideCreateMenu});
-    }
-
-    /**
-     * Method called when a Create Menu item is selected.
-     */
-    onCreateMenuItemSelected() {
-        this.hideCreateMenu();
     }
 
     /**
@@ -132,7 +124,7 @@ class SidebarScreen extends Component {
                             onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
-                            onItemSelected={this.onCreateMenuItemSelected}
+                            onItemSelected={this.hideCreateMenu}
                             fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
