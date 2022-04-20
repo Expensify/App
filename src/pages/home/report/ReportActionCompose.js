@@ -401,6 +401,10 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
+
+        const commentLength = this.props.comment.length;
+        const hasReachedCharLimit = commentLength > 3;
+
         return (
             <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
                 {shouldShowReportRecipientLocalTime
@@ -411,6 +415,7 @@ class ReportActionCompose extends React.Component {
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow,
+                    hasReachedCharLimit && styles.borderColorDanger,
                 ]}
                 >
                     <AttachmentModal
@@ -565,7 +570,7 @@ class ReportActionCompose extends React.Component {
                             <TouchableOpacity
                                 style={[
                                     styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                    (this.state.isCommentEmpty || hasReachedCharLimit) ? styles.buttonDisable : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
@@ -573,7 +578,7 @@ class ReportActionCompose extends React.Component {
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                                 onMouseDown={e => e.preventDefault()}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || hasReachedCharLimit}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
@@ -583,24 +588,31 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                {this.props.network.isOffline ? (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <View style={[
-                            styles.chatItemComposeSecondaryRowOffset,
-                            styles.flexRow,
-                            styles.alignItemsCenter]}
-                        >
-                            <Icon
-                                src={Expensicons.Offline}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </Text>
-                        </View>
+                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
+                    <View>
+                        {this.props.network.isOffline ? (
+                            <View style={[
+                                styles.chatItemComposeSecondaryRowOffset,
+                                styles.flexRow,
+                                styles.alignItemsCenter]}
+                            >
+                                <Icon
+                                    src={Expensicons.Offline}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                />
+                                <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                                </Text>
+                            </View>
+                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
                     </View>
-                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
+                    {hasReachedCharLimit && (
+                        <Text style={[styles.textMicro, styles.textDanger]}>
+                            {this.props.translate('reportActionCompose.charLimitReached', {commentLength})}
+                        </Text>
+                    )}
+                </View>
             </View>
         );
     }

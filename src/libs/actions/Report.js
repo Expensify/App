@@ -1085,7 +1085,6 @@ function addAction(reportID, text, file) {
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
     const commentText = text.length < 10000 ? parser.replace(text) : text;
-
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 

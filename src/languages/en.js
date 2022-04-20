@@ -159,6 +159,7 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
+        charLimitReached: ({commentLength}) => `You have reached the character limit (${commentLength}/60000)`,
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
