@@ -128,6 +128,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.maxCommentLength = 60_000;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -370,8 +371,8 @@ class ReportActionCompose extends React.Component {
 
         const trimmedComment = this.comment.trim();
 
-        // Don't submit empty comments
-        if (!trimmedComment) {
+        // Don't submit empty comments or comments that exceed the character limit
+        if (!trimmedComment || trimmedComment.length > this.maxCommentLength) {
             return;
         }
 
@@ -401,9 +402,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-
-        const commentLength = this.props.comment.length;
-        const hasReachedCharLimit = commentLength > 3;
+        const hasExceededMaxCommentLength = this.comment.length > this.maxCommentLength;
 
         return (
             <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
@@ -415,7 +414,7 @@ class ReportActionCompose extends React.Component {
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow,
-                    hasReachedCharLimit && styles.borderColorDanger,
+                    hasExceededMaxCommentLength && styles.borderColorDanger,
                 ]}
                 >
                     <AttachmentModal
@@ -570,7 +569,7 @@ class ReportActionCompose extends React.Component {
                             <TouchableOpacity
                                 style={[
                                     styles.chatItemSubmitButton,
-                                    (this.state.isCommentEmpty || hasReachedCharLimit) ? styles.buttonDisable : styles.buttonSuccess,
+                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? styles.buttonDisable : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
@@ -578,7 +577,7 @@ class ReportActionCompose extends React.Component {
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                                 onMouseDown={e => e.preventDefault()}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || hasReachedCharLimit}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
@@ -607,9 +606,9 @@ class ReportActionCompose extends React.Component {
                             </View>
                         ) : <ReportTypingIndicator reportID={this.props.reportID} />}
                     </View>
-                    {hasReachedCharLimit && (
+                    {hasExceededMaxCommentLength && (
                         <Text style={[styles.textMicro, styles.textDanger]}>
-                            {this.props.translate('reportActionCompose.charLimitReached', {commentLength})}
+                            {this.props.translate('reportActionCompose.maxCommentLengthReached')}
                         </Text>
                     )}
                 </View>
