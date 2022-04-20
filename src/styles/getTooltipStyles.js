@@ -50,18 +50,19 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
+ * Generate wrapper's width using text offsetWidth based on maxWidth prop
  *
  * @param {Number} maxWidth - Max-width for tooltip's wrapper.
  * @param {Number} [tooltipTextWidth] -  Tooltip's inner text width.
  * @returns {Object}
  */
-function setWrapperWidth(maxWidth, tooltipTextWidth) {
+function getWrapperWidth(maxWidth, tooltipTextWidth) {
     if (!tooltipTextWidth || tooltipTextWidth >= maxWidth) {
         return {maxWidth};
     }
 
     // Add horizontal padding to the text width to get the wrapper width.
-    //  tooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
+    // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
     return {
         maxWidth: tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1,
     };
@@ -131,7 +132,7 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            ...setWrapperWidth(maxWidth, tooltipTextWidth),
+            ...getWrapperWidth(maxWidth, tooltipTextWidth),
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.

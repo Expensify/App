@@ -43,8 +43,6 @@ const propTypes = {
     numberOfLines: PropTypes.number.isRequired,
 };
 
-const defaultProps = {};
-
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
 // We also update the state on layout changes which will be triggered often.
@@ -66,6 +64,11 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidMount() {
+        // Is unneccesary to get new wrapper width if text is not longer enough to fit more than one line
+        if (this.textRef.getClientRects().length <= 1) {
+            return;
+        }
+
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
         });
@@ -122,6 +125,5 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 }
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
-TooltipRenderedOnPageBody.defaultProps = defaultProps;
 
 export default TooltipRenderedOnPageBody;

@@ -25,7 +25,6 @@ class Tooltip extends PureComponent {
             // The width and height of the wrapper view
             wrapperWidth: 0,
             wrapperHeight: 0,
-
         };
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
