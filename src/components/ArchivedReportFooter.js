@@ -28,12 +28,18 @@ const propTypes = {
 
     /** The archived report */
     report: PropTypes.shape({
-        /** The policy this report used to be attached to */
-        oldPolicyName: PropTypes.string,
+        /** The policy this report is attached to */
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** Personal details of all users */
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+
+    /** The list of policies the user has access to. */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+    })).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -63,7 +69,7 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${props.report.oldPolicyName}</strong>`,
+                policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
         />
@@ -79,6 +85,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ArchivedReportFooter);
