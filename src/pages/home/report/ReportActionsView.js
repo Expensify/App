@@ -348,7 +348,6 @@ class ReportActionsView extends React.Component {
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
-        debugger;
     }
 
     /**
@@ -486,8 +485,9 @@ class ReportActionsView extends React.Component {
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.toggleMarker();
-        ReportScrollManager.scrollToIndex({animated: true, index: 90, viewPosition: 1});
+        // ReportScrollManager.scrollToIndex({animated: true, index: 90, viewPosition: 1});
         // ReportScrollManager.scrollToIndex({animated: true, index: 80, viewOffset: -400, viewPosition: 0});
+        // window.scrollRef.scrollToInvertedIndex({index: 56, viewOffset: -50}, 90);
     }
 
     /**
@@ -571,7 +571,7 @@ class ReportActionsView extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         const test = this.sortedReportActions;
-        debugger;
+        console.log(`over here length: ${test.length}`);
 
         return (
             <>

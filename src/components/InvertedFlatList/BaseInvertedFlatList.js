@@ -73,6 +73,7 @@ class BaseInvertedFlatList extends Component {
         // item yet. However, we can still calculate the offset by looking
         // at the last size we have recorded (if any)
         const lastMeasuredItem = CollectionUtils.lastItem(this.sizeMap);
+        const lastMeasuredOffsetIsEmpty = lodashGet(lastMeasuredItem, 'offset', 0) === 0;
 
         const returnValues = {
             // We haven't measured this so we must return the minimum row height
@@ -81,15 +82,16 @@ class BaseInvertedFlatList extends Component {
             // Offset will either be based on the lastMeasuredItem or the index +
             // initialRowHeight since we can only assume that all previous items
             // have not yet been measured
-            offset: _.isUndefined(lastMeasuredItem)
+            offset: lastMeasuredOffsetIsEmpty
                 ? this.props.initialRowHeight * index
                 : lastMeasuredItem.offset + this.props.initialRowHeight,
             index,
         };
 
         const html = data[returnValues.index].action.message[0].html;
-        console.log(`over here 1: ${_.isUndefined(lastMeasuredItem)}, ${this.props.initialRowHeight}`);
-        console.log(`over here 2: ${returnValues.index}, ${returnValues.length}, ${returnValues.offset}. ${html}`);
+        console.log(`over here 1: isundefined: ${_.isUndefined(lastMeasuredItem)}, rowheight: ${this.props.initialRowHeight}`);
+        console.log(`over here 2. InvertedIndex: ${returnValues.index}, index: ${data[returnValues.index].index}`);
+        console.log(`over here 3. Length: ${returnValues.length}, Offset: ${returnValues.offset}. html: ${html}`);
 
         return returnValues;
     }
@@ -101,6 +103,10 @@ class BaseInvertedFlatList extends Component {
      * @param {Number} index
      */
     measureItemLayout(nativeEvent, index) {
+        if (index == 33 || index == 34) {
+            debugger;
+            console.log('here');
+        }
         const computedHeight = nativeEvent.layout.height;
 
         // We've already measured this item so we don't need to
@@ -119,6 +125,8 @@ class BaseInvertedFlatList extends Component {
             length: computedHeight,
             offset: previousLength + previousOffset,
         };
+
+        console.log(`over here sizemap: ${index}, ${this.sizeMap[index].length}, ${this.sizeMap[index].offset}`);
     }
 
     /**

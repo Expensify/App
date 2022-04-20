@@ -19,8 +19,9 @@ function scrollToIndex(index, isEditing) {
     flatListRef.current.scrollToIndex(index);
 }
 
-function scrollToInvertedIndex(index, isEditing, maxIndex) {
+function scrollToInvertedIndex(index, maxIndex) {
     index.index = maxIndex - index.index;
+    console.log(`over here Scrolling to index: ${index.index}`);
     flatListRef.current.scrollToIndex(index);
 }
 
