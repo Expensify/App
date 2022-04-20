@@ -1,0 +1,80 @@
+name: Build iOS
+
+# This workflow is run when any tag is published
+on:
+  push:
+    tags:
+      - '*'
+  release:
+    types: [created]
+
+env:
+  SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
+  DEVELOPER_DIR: /Applications/Xcode_13.2.1.app/Contents/Developer
+
+jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
+  iOS:
+    name: Build iOS
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
+      - name: Install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
+
+      - name: Install gems
+        run: bundle install
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install node packages
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
+
+      - uses: actions/cache@v2
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+
+      - name: Install cocoapods
+        run: cd ios && pod install
