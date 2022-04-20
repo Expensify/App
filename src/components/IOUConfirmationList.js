@@ -1,27 +1,20 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import Text from './Text';
-import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import OptionsList from './OptionsList';
+import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
-import FixedFooter from './FixedFooter';
-import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import ArrowKeyFocusManager from './ArrowKeyFocusManager';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
@@ -439,49 +432,27 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
-        const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
-        const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = this.state.selectedParticipants.length === 0 || this.props.network.isOffline;
-        const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
         return (
-            <ArrowKeyFocusManager
-                focusedIndex={this.state.focusedIndex}
-                maxIndex={this.allOptions.length}
-                onFocusedIndexChanged={this.updateFocusedIndex}
-            >
-                <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
-                    <OptionsList
-                        ref={e => this.list = e}
-                        sections={this.state.sections}
-                        focusedIndex={this.props.canModifyParticipants ? this.state.focusedIndex : null}
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        selectedOptions={this.getSelectedOptions()}
-                        onSelectRow={toggleOption}
-                        isDisabled={!this.props.canModifyParticipants}
-                        optionHoveredStyle={hoverStyle}
-                    />
-                </ScrollView>
-                <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <TextInput
-                        ref={el => this.textInput = el}
-                        label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                        value={this.props.comment}
-                        onChangeText={this.props.onUpdateComment}
-                        placeholder={this.props.translate('common.optional')}
-                        placeholderTextColor={themeColors.placeholderText}
-                    />
-                </View>
-                <FixedFooter>
-                    {this.props.network.isOffline && (
-                        <Text style={[styles.formError, styles.pb2]}>
-                            {this.props.translate('session.offlineMessage')}
-                        </Text>
-                    )}
-                    {shouldShowSettlementButton ? (
+            <OptionsSelector
+                sections={this.state.sections}
+                value={this.props.comment}
+                onSelectRow={this.props.canModifyParticipants ? this.toggleOption : undefined}
+                onChangeText={this.props.onUpdateComment}
+                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
+                placeholderText={this.props.translate('common.optional')}
+                selectedOptions={this.getSelectedOptions()}
+                canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                hideAdditionalOptionStates
+                forceTextUnreadStyle
+                autoFocus
+                shouldTextInputAppearBelowOptions
+                shouldShowOfflineMessage
+                optionHoveredStyle={this.props.canModifyParticipants ? styles.hoveredComponentBG : {}}
+                footerContent={shouldShowSettlementButton
+                    ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
                             isLoading={this.props.iou.loading && !this.props.network.isOffline}
@@ -496,13 +467,12 @@ class IOUConfirmationList extends Component {
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
+                            isLoading={this.props.iou.loading && !this.props.network.isOffline}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}
-                </FixedFooter>
-            </ArrowKeyFocusManager>
+            />
         );
     }
 }
