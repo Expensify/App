@@ -104,16 +104,16 @@ class BaseInvertedFlatList extends Component {
      */
     measureItemLayout(nativeEvent, index) {
         if (index == 33 || index == 34) {
-            debugger;
             console.log('here');
         }
         const computedHeight = nativeEvent.layout.height;
+        debugger;
 
         // We've already measured this item so we don't need to
         // measure it again.
-        if (this.sizeMap[index]) {
-            return;
-        }
+        // if (this.sizeMap[index]) {
+        //     return;
+        // }
 
         const previousItem = this.sizeMap[index - 1] || {};
 
@@ -126,7 +126,7 @@ class BaseInvertedFlatList extends Component {
             offset: previousLength + previousOffset,
         };
 
-        console.log(`over here sizemap: ${index}, ${this.sizeMap[index].length}, ${this.sizeMap[index].offset}`);
+        console.log(`over here sizemap: ${index}, ${JSON.stringify(nativeEvent.layout)}`);
     }
 
     /**

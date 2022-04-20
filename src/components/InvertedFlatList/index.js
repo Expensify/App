@@ -65,7 +65,6 @@ class InvertedFlatList extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={el => this.list = el}
-                shouldMeasureItems
                 contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
             />
         );
