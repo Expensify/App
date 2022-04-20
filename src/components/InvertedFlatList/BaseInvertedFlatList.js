@@ -96,22 +96,39 @@ class BaseInvertedFlatList extends Component {
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
 
+        // Unclear why but some items will read 0 for height when onLayout runs
+        if (computedHeight === 0) {
+            return;
+        }
+
         // We've already measured this item so we don't need to
         // measure it again.
         if (this.sizeMap[index]) {
             return;
         }
 
-        const previousItem = this.sizeMap[index - 1] || {};
-
-        // If there is no previousItem this can mean we haven't yet measured
-        // the previous item or that we are at index 0 and there is no previousItem
-        const previousLength = previousItem.length || 0;
-        const previousOffset = previousItem.offset || 0;
         this.sizeMap[index] = {
             length: computedHeight,
-            offset: previousLength + previousOffset,
         };
+
+        if (_.size(this.sizeMap) === this.props.data.length) {
+            // All items have been measured so update the offset now that we have all heights
+            for (let i = 0; i < this.props.data.length; i++) {
+                const previousItem = this.sizeMap[i - 1] || {};
+
+                if (i === 0) {
+                    // Kind of hard to explain this one, but since we are using a "contentContainerStyle"
+                    // we need to add the "padding: 16" to the height of the first item so that all other items
+                    // can scroll correctly
+                    this.sizeMap[0].length = this.sizeMap[0].length + 16;
+                }
+
+                // // If there is no previousItem we are at index 0 and there is no previousItem
+                const previousLength = previousItem.length || 0;
+                const previousOffset = previousItem.offset || 0;
+                this.sizeMap[i].offset = previousLength + previousOffset;
+            }
+        }
     }
 
     /**
