@@ -311,7 +311,13 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    JSON_CODE: {
+        SUCCESS: 200,
+        NOT_AUTHENTICATED: 407,
+        EXP_ERROR: 666,
+    },
     ERROR: {
+        XHR_FAILED: 'xhrFailed',
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
@@ -319,6 +325,22 @@ const CONST = {
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
         PUSHER_ERROR: 'PusherError',
         WEB_SOCKET_ERROR: 'WebSocketError',
+        NETWORK_REQUEST_FAILED: 'Network request failed',
+        SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
+        FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
+        IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
+        IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
+        IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_LOAD_FAILED: 'Load failed',
+        SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
+        GATEWAY_TIMEOUT: 'Gateway Timeout',
+        EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+    },
+    ERROR_TYPE: {
+        SOCKET: 'Expensify\\Auth\\Error\\Socket',
+    },
+    ERROR_TITLE: {
+        SOCKET: 'Issue connecting to database',
     },
     NETWORK: {
         METHOD: {
@@ -327,10 +349,6 @@ const CONST = {
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-    },
-    JSON_CODE: {
-        SUCCESS: 200,
-        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
