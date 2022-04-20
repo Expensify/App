@@ -114,6 +114,7 @@ class BaseInvertedFlatList extends Component {
         if (_.size(this.sizeMap) === this.props.data.length) {
             // All items have been measured so update the offset now that we have all heights
             for (let i = 0; i < this.props.data.length; i++) {
+                // If there is no previousItem we are at index 0 and there is no previousItem
                 const previousItem = this.sizeMap[i - 1] || {};
 
                 if (i === 0) {
@@ -123,7 +124,6 @@ class BaseInvertedFlatList extends Component {
                     this.sizeMap[0].length = this.sizeMap[0].length + 16;
                 }
 
-                // // If there is no previousItem we are at index 0 and there is no previousItem
                 const previousLength = previousItem.length || 0;
                 const previousOffset = previousItem.offset || 0;
                 this.sizeMap[i].offset = previousLength + previousOffset;
