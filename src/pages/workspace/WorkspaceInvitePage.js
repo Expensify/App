@@ -75,7 +75,6 @@ class WorkspaceInvitePage extends React.Component {
             '',
             [],
             this.getExcludedUsers(),
-            false,
         );
         this.state = {
             searchValue: '',
@@ -200,7 +199,6 @@ class WorkspaceInvitePage extends React.Component {
                 prevState.searchValue,
                 [],
                 this.getExcludedUsers(),
-                false,
             );
 
             return {
@@ -284,7 +282,6 @@ class WorkspaceInvitePage extends React.Component {
                                             searchValue,
                                             [],
                                             this.getExcludedUsers(),
-                                            false,
                                         );
                                         this.setState({
                                             searchValue,

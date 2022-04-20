@@ -472,12 +472,15 @@ function getOptions(reports, personalDetails, activeReportID, {
         }));
     });
 
-    const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
     ));
+
+    // PersonalDetails should be ordered Alphabetically by default acording to issue #8220
+    allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
@@ -615,7 +618,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             return 0;
         }], ['asc']);
     }
-
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
