@@ -66,6 +66,7 @@ class SearchPage extends Component {
             props.personalDetails,
             '',
             props.betas,
+            true,
         );
 
         this.state = {
@@ -125,6 +126,7 @@ class SearchPage extends Component {
             this.props.personalDetails,
             this.state.searchValue.trim(),
             this.props.betas,
+            true,
         );
         this.setState({
             userToInvite,
