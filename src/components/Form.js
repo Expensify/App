@@ -22,6 +22,7 @@ const propTypes = {
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
 
+    /** children node */
     children: PropTypes.node.isRequired,
 
     /* Onyx Props */
