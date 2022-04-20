@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
@@ -20,13 +21,20 @@ function init() {
      * @params {string} eventName
      */
     Pusher.registerSocketEventCallback((eventName, error) => {
+        const errorType = lodashGet(error, 'type');
+        const code = lodashGet(error, 'data.code');
         switch (eventName) {
             case 'error':
-                if (error && error.type === 'PusherError' && error.data.code === 1006) {
+                if (errorType === CONST.ERROR.PUSHER_ERROR && code === 1006) {
+                    // 1006 code happens when a websocket connection is closed. There may or may not be a reason attached indicating why the connection was closed.
+                    // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
                     Log.hmmm('[PusherConnectionManager] Channels Error 1006', {error});
-                } else if (error && error.type === 'PusherError' && error.data.code === 4201) {
+                } else if (errorType === CONST.ERROR.PUSHER_ERROR && code === 4201) {
+                    // This means the connection was closed because Pusher did not recieve a reply from the client when it pinged them for a response
+                    // https://pusher.com/docs/channels/library_auth_reference/pusher-websockets-protocol/#4200-4299
                     Log.hmmm('[PusherConnectionManager] Pong reply not received', {error});
-                } else if (error && error.type === 'WebSocketError') {
+                } else if (errorType === CONST.ERROR.WEB_SOCKET_ERROR) {
+                    // It's not clear why some errors are wrapped in a WebSocketError type - this error could mean different things depending on the contents.
                     Log.hmmm('[PusherConnectionManager] WebSocketError', {error});
                 } else {
                     Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});

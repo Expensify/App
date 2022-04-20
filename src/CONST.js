@@ -317,6 +317,8 @@ const CONST = {
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
     },
     NETWORK: {
         METHOD: {
