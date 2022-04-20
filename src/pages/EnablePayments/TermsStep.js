@@ -76,7 +76,7 @@ class TermsStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb4, styles.mt4]}
                         isChecked={this.state.hasAcceptedDisclosure}
-                        onPress={this.toggleDisclosure}
+                        onInputChange={this.toggleDisclosure}
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')}`}
@@ -88,7 +88,7 @@ class TermsStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
-                        onPress={this.togglePrivacyPolicy}
+                        onInputChange={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <>
                                 <Text>
