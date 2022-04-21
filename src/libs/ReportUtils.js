@@ -398,15 +398,15 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
             const longName = displayName || loginWithoutSMSDomain;
             const longNameLocalized = Str.isSMSLogin(longName) ? LocalePhoneNumber.toLocalPhone(preferredLocale, longName) : longName;
             const shortName = firstName || longNameLocalized;
-            let finalPronounts = pronouns;
+            let finalPronouns = pronouns;
             if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                finalPronounts = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+                finalPronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
             }
             return {
                 displayName: isMultipleParticipantReport ? shortName : longNameLocalized,
                 tooltip: loginWithoutSMSDomain,
-                pronouns: finalPronounts,
+                pronouns: finalPronouns,
             };
         },
     );
