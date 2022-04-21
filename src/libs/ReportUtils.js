@@ -388,7 +388,10 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {{displayName: String, firstName: String, login: String}} participant
+ * @param {Object} participant
+ * @param {String} participant.displayName
+ * @param {String} participant.firstName
+ * @param {String} participant.login
  * @param {Boolean} [useShortForm]
  * @returns {String}
  */
@@ -410,7 +413,7 @@ function getDisplayNameForParticipant(participant, useShortForm = false) {
 /**
  * @param {Object} participants
  * @param {Boolean} isMultipleParticipantReport
- * @returns {Array<{displayName: String, tooltip: String, pronouns: ?String}>}
+ * @returns {Array}
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(
