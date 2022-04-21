@@ -72,7 +72,7 @@ All forms should define an order in which the inputs should be filled out, and u
 
 Additionally, pressing the enter key on any focused field should submit the form.
 
-Note: This doesn't apply to the multiline fields, pressing enter on multiline fields shouldn't submit the form
+Note: This doesn't apply to the multiline fields. To keep the browser behavior consistent, pressing enter on the multiline should not be intercepted. It should follow the default browser behavior (such as adding a newline).
 
 ### Modifying User Input on Change
 
