@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
 
@@ -12,6 +13,17 @@ let sessionEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => sessionEmail = val ? val.email : null,
+});
+
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        preferredLocale = val;
+    },
 });
 
 /**
@@ -370,6 +382,34 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     return _.map(sortedParticipants, item => item.avatar);
 }
 
+/**
+ *
+ * @param {Array<{displayName: String, firstName: String, login: String, pronouns: ?String}>} participants
+ * @param {Boolean} isMultipleParticipantReport
+ * @returns {Array<{displayName: String, tooltip: String, pronouns: ?String}>}
+ */
+function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
+    return _.map(
+        participants,
+        ({displayName, firstName, login, pronouns}) => {
+            const loginWithoutSMSDomain = Str.removeSMSDomain(login);
+            const longName = displayName || loginWithoutSMSDomain;
+            const longNameLocalized = Str.isSMSLogin(longName) ? LocalePhoneNumber.toLocalPhone(preferredLocale, longName) : longName;
+            const shortName = firstName || longNameLocalized;
+            let finalPronounts = pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                finalPronounts = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
+            return {
+                displayName: isMultipleParticipantReport ? shortName : longNameLocalized,
+                tooltip: loginWithoutSMSDomain,
+                pronouns: finalPronounts,
+            };
+        },
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isDeletedAction,
@@ -395,4 +435,5 @@ export {
     getDefaultAvatar,
     getIcons,
     getRoomWelcomeMessage,
+    getDisplayNamesWithTooltips,
 };
