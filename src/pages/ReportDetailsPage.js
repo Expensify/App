@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -108,16 +107,9 @@ class ReportDetailsPage extends Component {
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
-        const displayNamesWithTooltips = _.map(
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
             OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
-            ({displayName, firstName, login}) => {
-                const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
-
-                return {
-                    displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                    tooltip: Str.removeSMSDomain(login),
-                };
-            },
+            isMultipleParticipant,
         );
         return (
             <ScreenWrapper>

@@ -7,7 +7,6 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
@@ -23,6 +22,7 @@ import Text from './Text';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import CONST from '../CONST';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -113,21 +113,9 @@ const OptionRow = (props) => {
         : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
-    const displayNamesWithTooltips = _.map(
 
-        // We only create tooltips for the first 10 users or so since some reports have hundreds of users causing
-        // performance to degrade.
-        (props.option.participantsList || []).slice(0, 10),
-        ({displayName, firstName, login}) => {
-            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
-
-            return {
-                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                tooltip: Str.removeSMSDomain(login),
-            };
-        },
-    );
-
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (

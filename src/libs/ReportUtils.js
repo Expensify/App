@@ -391,7 +391,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(
         participants,
-        ({displayName, firstName, login, pronouns}) => {
+        ({
+            displayName, firstName, login, pronouns,
+        }) => {
             const loginWithoutSMSDomain = Str.removeSMSDomain(login);
             const longName = displayName || loginWithoutSMSDomain;
             const longNameLocalized = Str.isSMSLogin(longName) ? LocalePhoneNumber.toLocalPhone(preferredLocale, longName) : longName;
