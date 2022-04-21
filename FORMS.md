@@ -21,15 +21,19 @@ Labels and hints are enabled by passing the appropriate props to each input:
 
 ### Character Limits
 
-If a field has a character limit we should give that field a max limit and let the user know how many characters there are left outside of the input and below it. This is done by passing the maxLength prop to TextInput.
+If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
 <TextInput
     maxLength={20}
 />
 ```
+Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
+The phone number can be formatted in different ways 
 
-![char-limit](https://user-images.githubusercontent.com/22219519/156266959-945c6d26-be9b-426b-9399-98d31ea214c9.png)
+- 2109400803
+- +12109400803
+- (210)-940-0803
 
 ### Native Keyboards
 
@@ -66,7 +70,9 @@ All forms should define an order in which the inputs should be filled out, and u
 3. Add an event listener to the page/component we are creating and update the tab index state on tab/shift + tab key press
 4. Set focus to the input with that tab index.
 
-Additionally, ressing the enter key on any focused field should submit the form.
+Additionally, pressing the enter key on any focused field should submit the form.
+
+Note: This doesn't apply to the multiline fields, pressing enter on multiline fields shouldn't submit the form
 
 ### Modifying User Input on Change
 
