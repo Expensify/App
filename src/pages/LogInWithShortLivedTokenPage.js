@@ -13,6 +13,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Boolean flag set when Onyx finishes clearing */
+    isOnyxDoneClearing: PropTypes.bool,
+
     /** The parameters needed to authenticate with a short lived token are in the URL */
     route: PropTypes.shape({
         /** The name of the route */
@@ -46,6 +49,7 @@ const propTypes = {
 
 const defaultProps = {
     betas: null,
+    isOnyxDoneClearing: false,
     route: {
         params: {},
     },
@@ -54,17 +58,11 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-
-        const isUserSignedIn = this.props.session && this.props.session.authToken;
-        if (!isUserSignedIn) {
-            Log.info('[LoginWithShortLivedTokenPage] User not signed in - signing in with short lived token');
-            Session.signInWithShortLivedToken(email, shortLivedToken);
+        if (this.signInIfNeeded()) {
             return;
         }
 
-        if (this.signOutIfNeeded(email)) {
+        if (this.signOutIfNeeded()) {
             return;
         }
 
@@ -73,6 +71,16 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
+        // We need to wait for Onyx to finish clearing before signing in because
+        // it will re-initialize with the initialKeyStates, which can notify
+        // subscribers with an out of date value causing the user to be signed
+        // out again. See https://github.com/Expensify/react-native-onyx/issues/125
+        if (!this.props.isOnyxDoneClearing) {
+            return;
+        }
+        if (this.signInIfNeeded()) {
+            return;
+        }
         this.navigateToExitRoute();
     }
 
@@ -99,15 +107,31 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     /**
+     * Sign the user in if needed.
+     * @returns {Boolean} isSigningIn Whether we are currently signing in
+     */
+    signInIfNeeded() {
+        const email = lodashGet(this.props.route.params, 'email', '');
+        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+        const isUserSignedIn = this.props.session && this.props.session.authToken;
+        if (isUserSignedIn) {
+            return false;
+        }
+        Log.info('[LoginWithShortLivedTokenPage] User not signed in - signing in with short lived token');
+        Session.signInWithShortLivedToken(email, shortLivedToken);
+        return true;
+    }
+
+    /**
      * If the user is trying to transition with a different account than the one
      * they are currently signed in as we will sign them out, clear Onyx,
      * and cancel all network requests. This component will mount again from
      * PublicScreens and since they are no longer signed in, a request will be
      * made to sign them in with their new account.
-     * @param {String} email The user's email passed as a route param.
-     * @returns {Boolean}
+     * @returns {Boolean} isSigningOut Whether we are currently signing out
      */
-    signOutIfNeeded(email) {
+    signOutIfNeeded() {
+        const email = lodashGet(this.props.route.params, 'email', '');
         if (this.props.session && this.props.session.email === email) {
             return false;
         }
@@ -128,6 +152,9 @@ LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isOnyxDoneClearing: {
+        key: ONYXKEYS.IS_ONYX_DONE_CLEARING,
     },
     session: {
         key: ONYXKEYS.SESSION,
