@@ -23,9 +23,6 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Are we loading payments from the server? */
-    isLoadingPayments: PropTypes.bool,
-
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
@@ -79,7 +76,6 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
-    isLoadingPayments: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
