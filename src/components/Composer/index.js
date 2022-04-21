@@ -348,6 +348,7 @@ class Composer extends React.Component {
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <RNTextInput
+                autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
