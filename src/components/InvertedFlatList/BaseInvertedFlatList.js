@@ -26,12 +26,15 @@ const propTypes = {
 
     /** Should we remove the clipped sub views? */
     shouldRemoveClippedSubviews: PropTypes.bool,
+
+    measurementPadding: PropTypes.number,
 };
 
 const defaultProps = {
     data: [],
     shouldMeasureItems: false,
     shouldRemoveClippedSubviews: false,
+    measurementPadding: 0,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -101,8 +104,7 @@ class BaseInvertedFlatList extends Component {
             return;
         }
 
-        // We've already measured this item so we don't need to
-        // measure it again.
+        // We've already measured this item so we don't need to measure it again.
         if (this.sizeMap[index]) {
             return;
         }
@@ -117,11 +119,8 @@ class BaseInvertedFlatList extends Component {
                 // If there is no previousItem we are at index 0 and there is no previousItem
                 const previousItem = this.sizeMap[i - 1] || {};
 
-                if (i === 0) {
-                    // Kind of hard to explain this one, but since we are using a "contentContainerStyle"
-                    // we need to add the "padding: 16" to the height of the first item so that all other items
-                    // can scroll correctly
-                    this.sizeMap[0].length = this.sizeMap[0].length + 16;
+                if (i === 0 && this.props.measurementPadding) {
+                    this.sizeMap[0].length += this.props.measurementPadding;
                 }
 
                 const previousLength = previousItem.length || 0;

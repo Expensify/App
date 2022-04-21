@@ -602,6 +602,7 @@ class ReportActionsView extends React.Component {
                     onLayout={this.recordTimeToMeasureItemLayout}
                     onScroll={this.trackScroll}
                     extraData={extraData}
+                    measurementPadding={shouldShowReportRecipientLocalTime ? 0 : styles.chatContentScrollView.paddingVertical}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
