@@ -83,10 +83,15 @@ function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
 }
 
+function setOnyxDoneClearing() {
+    Onyx.set(ONYXKEYS.IS_ONYX_DONE_CLEARING, true);
+}
+
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getLocale,
     triggerUpdateAvailable,
+    setOnyxDoneClearing,
 };
