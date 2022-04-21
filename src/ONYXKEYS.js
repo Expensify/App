@@ -25,6 +25,9 @@ export default {
     // Boolean flag set when workspace is being created
     IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
+    // Boolean flag set when Onyx finishes clearing
+    IS_ONYX_DONE_CLEARING: 'isOnyxDoneClearing',
+
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
