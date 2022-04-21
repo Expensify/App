@@ -474,8 +474,9 @@ class ReportActionsView extends React.Component {
      * Hide the new MarkerBadge
      */
     hideMarker() {
-        this.setState({isMarkerActive: false}, () => {
-            this.setState({localUnreadActionCount: 0});
+        this.setState({
+            isMarkerActive: false,
+            localUnreadActionCount: 0,
         });
     }
 
