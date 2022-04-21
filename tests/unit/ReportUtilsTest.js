@@ -90,20 +90,24 @@ describe('ReportUtils', () => {
     });
 
     describe('getTitle', () => {
-        test('1:1 DM with displayName', () => {
-            expect(ReportUtils.getTitle({
-                participants: ['ragnar@vikings.net'],
-            }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
-        });
-        test('1:1 DM no displayName', () => {
-            expect(ReportUtils.getTitle({
-                participants: ['floki@vikings.net'],
-            }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
-        });
-        test('1:1 DM SMS', () => {
-            expect(ReportUtils.getTitle({
-                participants: ['+12223334444@expensify.sms'],
-            }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
+        describe('1:1 DM', () => {
+            test('with displayName', () => {
+                expect(ReportUtils.getTitle({
+                    participants: ['ragnar@vikings.net'],
+                }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
+            });
+
+            test('no displayName', () => {
+                expect(ReportUtils.getTitle({
+                    participants: ['floki@vikings.net'],
+                }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
+            });
+
+            test('SMS', () => {
+                expect(ReportUtils.getTitle({
+                    participants: ['+12223334444@expensify.sms'],
+                }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
+            });
         });
 
         test('Group DM', () => {
@@ -112,47 +116,83 @@ describe('ReportUtils', () => {
             }, participantsPersonalDetails)).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
         });
 
-        test('Active policy room', () => {
-            expect(ReportUtils.getTitle({
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                reportName: '#VikingChat',
-            })).toBe('#VikingChat');
+        describe('Policy room', () => {
+            test('Active', () => {
+                expect(ReportUtils.getTitle({
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    reportName: '#VikingChat',
+                })).toBe('#VikingChat');
+            });
+
+            test('Archived', () => {
+                const archivedPolicyRoom = {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    reportName: '#VikingChat',
+                };
+
+                expect(ReportUtils.getTitle(archivedPolicyRoom)).toBe('#VikingChat (archived)');
+
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    .then(() => expect(ReportUtils.getTitle(archivedPolicyRoom)).toBe('#VikingChat (archivado)'));
+            });
         });
 
-        test('Archived policy room', () => {
-            const archivedPolicyRoom = {
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                reportName: '#VikingChat',
-            };
+        describe('PolicyExpenseChat', () => {
+            describe('Active', () => {
+                test('as member', () => {
+                    expect(ReportUtils.getTitle({
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        policyID: policy.policyID,
+                        isOwnPolicyExpenseChat: true,
+                    }, {}, policies)).toBe(policy.name);
+                });
 
-            expect(ReportUtils.getTitle(archivedPolicyRoom)).toBe('#VikingChat (archived)');
+                test('as admin', () => {
+                    expect(ReportUtils.getTitle({
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        policyID: policy.policyID,
+                        isOwnPolicyExpenseChat: false,
+                        ownerEmail: 'ragnar@vikings.net',
+                    }, participantsPersonalDetails, policies)).toBe('Ragnar Lothbrok');
+                });
+            });
 
-            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                .then(() => expect(ReportUtils.getTitle(archivedPolicyRoom)).toBe('#VikingChat (archivado)'));
-        });
+            describe('Archived', () => {
+                const baseArchivedPolicyExpenseChat = {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ownerEmail: 'ragnar@vikings.net',
+                    policyID: policy.policyID,
+                    oldPolicyName: policy.name,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
 
-        test('Active PolicyExpenseChat', () => {
-            expect(ReportUtils.getTitle({
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: policy.policyID,
-            }, {}, policies)).toBe(policy.name);
-        });
+                test('as member', () => {
+                    const memberArchivedPolicyExpenseChat = {
+                        ...baseArchivedPolicyExpenseChat,
+                        isOwnPolicyExpenseChat: true,
+                    };
 
-        test('Archived PolicyExpenseChat', () => {
-            const archivedPolicyExpenseChat = {
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: policy.policyID,
-                oldPolicyName: policy.name,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            };
+                    expect(ReportUtils.getTitle(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
-            expect(ReportUtils.getTitle(archivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                        .then(() => expect(ReportUtils.getTitle(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                });
 
-            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                .then(() => expect(ReportUtils.getTitle(archivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                test('as admin', () => {
+                    const adminArchivedPolicyExpenseChat = {
+                        ...baseArchivedPolicyExpenseChat,
+                        isOwnPolicyExpenseChat: false,
+                    };
+
+                    expect(ReportUtils.getTitle(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archived)');
+
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                        .then(() => expect(ReportUtils.getTitle(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archivado)'));
+                });
+            });
         });
     });
 });

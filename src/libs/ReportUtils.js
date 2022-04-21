@@ -386,7 +386,28 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 }
 
 /**
+ * Get the displayName for a single report participant.
  *
+ * @param {{displayName: String, firstName: String, login: String}} participant
+ * @param {Boolean} [useShortForm]
+ * @returns {String}
+ */
+function getDisplayNameForParticipant(participant, useShortForm = false) {
+    if (!participant) {
+        return '';
+    }
+
+    const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
+    let longName = participant.displayName || loginWithoutSMSDomain;
+    if (Str.isSMSLogin(longName)) {
+        longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
+    }
+    const shortName = participant.firstName || longName;
+
+    return useShortForm ? shortName : longName;
+}
+
+/**
  * @param {Array<{displayName: String, firstName: String, login: String, pronouns: ?String}>} participants
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array<{displayName: String, tooltip: String, pronouns: ?String}>}
@@ -394,22 +415,20 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(
         participants,
-        ({
-            displayName, firstName, login, pronouns,
-        }) => {
-            const loginWithoutSMSDomain = Str.removeSMSDomain(login);
-            const longName = displayName || loginWithoutSMSDomain;
-            const longNameLocalized = Str.isSMSLogin(longName) ? LocalePhoneNumber.toLocalPhone(preferredLocale, longName) : longName;
-            const shortName = firstName || longNameLocalized;
-            let finalPronouns = pronouns;
+        (participant) => {
+            const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
+            const tooltip = Str.removeSMSDomain(participant.login);
+
+            let pronouns = participant.pronouns;
             if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                finalPronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
             }
+
             return {
-                displayName: isMultipleParticipantReport ? shortName : longNameLocalized,
-                tooltip: loginWithoutSMSDomain,
-                pronouns: finalPronouns,
+                displayName,
+                tooltip,
+                pronouns,
             };
         },
     );
@@ -430,7 +449,9 @@ function getTitle(report, personalDetailsForParticipants = {}, policies = {}) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        title = getPolicyName(report, policies);
+        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.reportName;
+        title = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
     if (isArchivedRoom(report)) {
