@@ -157,7 +157,10 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-
+                onKeyDown={(event) => {
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
+                    event.target.blur();
+                }}
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (

@@ -356,18 +356,16 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-
 function setPreferredSkinTone(skinTone) {
-    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 }
 
 /**
