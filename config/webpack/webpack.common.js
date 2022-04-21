@@ -6,8 +6,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 const _ = require('underscore');
+const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
     'react-native-animatable',
