@@ -4,7 +4,6 @@ import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 import * as CollectionUtils from '../../libs/CollectionUtils';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -73,27 +72,19 @@ class BaseInvertedFlatList extends Component {
         // item yet. However, we can still calculate the offset by looking
         // at the last size we have recorded (if any)
         const lastMeasuredItem = CollectionUtils.lastItem(this.sizeMap);
-        const lastMeasuredOffsetIsEmpty = lodashGet(lastMeasuredItem, 'offset', 0) === 0;
 
-        const returnValues = {
+        return {
             // We haven't measured this so we must return the minimum row height
             length: this.props.initialRowHeight,
 
             // Offset will either be based on the lastMeasuredItem or the index +
             // initialRowHeight since we can only assume that all previous items
             // have not yet been measured
-            offset: lastMeasuredOffsetIsEmpty
+            offset: _.isUndefined(lastMeasuredItem)
                 ? this.props.initialRowHeight * index
                 : lastMeasuredItem.offset + this.props.initialRowHeight,
             index,
         };
-
-        const html = data[returnValues.index].action.message[0].html;
-        console.log(`over here 1: isundefined: ${_.isUndefined(lastMeasuredItem)}, rowheight: ${this.props.initialRowHeight}`);
-        console.log(`over here 2. InvertedIndex: ${returnValues.index}, index: ${data[returnValues.index].index}`);
-        console.log(`over here 3. Length: ${returnValues.length}, Offset: ${returnValues.offset}. html: ${html}`);
-
-        return returnValues;
     }
 
     /**
@@ -103,30 +94,41 @@ class BaseInvertedFlatList extends Component {
      * @param {Number} index
      */
     measureItemLayout(nativeEvent, index) {
-        if (index == 33 || index == 34) {
-            console.log('here');
-        }
         const computedHeight = nativeEvent.layout.height;
-        debugger;
+
+        // Unclear why but some items will read 0 for height when onLayout runs
+        if (computedHeight === 0) {
+            return;
+        }
 
         // We've already measured this item so we don't need to
         // measure it again.
-        // if (this.sizeMap[index]) {
-        //     return;
-        // }
+        if (this.sizeMap[index]) {
+            return;
+        }
 
-        const previousItem = this.sizeMap[index - 1] || {};
-
-        // If there is no previousItem this can mean we haven't yet measured
-        // the previous item or that we are at index 0 and there is no previousItem
-        const previousLength = previousItem.length || 0;
-        const previousOffset = previousItem.offset || 0;
         this.sizeMap[index] = {
             length: computedHeight,
-            offset: previousLength + previousOffset,
         };
 
-        console.log(`over here sizemap: ${index}, ${JSON.stringify(nativeEvent.layout)}`);
+        if (_.size(this.sizeMap) === this.props.data.length) {
+            // All items have been measured so update the offset now that we have all heights
+            for (let i = 0; i < this.props.data.length; i++) {
+                // If there is no previousItem we are at index 0 and there is no previousItem
+                const previousItem = this.sizeMap[i - 1] || {};
+
+                if (i === 0) {
+                    // Kind of hard to explain this one, but since we are using a "contentContainerStyle"
+                    // we need to add the "padding: 16" to the height of the first item so that all other items
+                    // can scroll correctly
+                    this.sizeMap[0].length = this.sizeMap[0].length + 16;
+                }
+
+                const previousLength = previousItem.length || 0;
+                const previousOffset = previousItem.offset || 0;
+                this.sizeMap[i].offset = previousLength + previousOffset;
+            }
+        }
     }
 
     /**
@@ -148,6 +150,7 @@ class BaseInvertedFlatList extends Component {
                 </View>
             );
         }
+
         return this.props.renderItem({item, index});
     }
 
