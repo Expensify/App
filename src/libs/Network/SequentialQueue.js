@@ -23,7 +23,8 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => processRequest(request)
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => processRequest(request, true)
+        .then(() => PersistedRequests.remove(request))
         .catch((error) => {
             const retryCount = PersistedRequests.incrementRetries(request);
             NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});

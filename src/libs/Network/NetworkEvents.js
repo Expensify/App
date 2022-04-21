@@ -8,7 +8,7 @@ import createCallback from '../createCallback';
 
 const [getLogger, registerLogHandler] = createCallback();
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const [triggerResponse, onResponse] = createCallback();
+const [triggerAuthTokenExpired, onAuthTokenExpired] = createCallback();
 const [triggerRecheckNeeded, onRecheckNeeded] = createCallback();
 
 /**
@@ -25,8 +25,8 @@ export {
     getLogger,
     triggerConnectivityResumed,
     onConnectivityResumed,
-    onResponse,
-    triggerResponse,
+    onAuthTokenExpired,
+    triggerAuthTokenExpired,
     triggerRecheckNeeded,
     onRecheckNeeded,
     startRecheckTimeoutTimer,
