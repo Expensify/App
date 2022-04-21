@@ -7,6 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
+const _ = require('underscore');
 
 const includeModules = [
     'react-native-animatable',
@@ -24,8 +25,8 @@ const includeModules = [
 
 // Try to read pusher suffix from local php file. If it doesn't exist, just save an empty string.
 const phpConfigFile = readFileSync('../Web-Expensify/_config.local.php', 'utf8');
-const pusherSuffixRow = phpConfigFile.split('\n').find(row => row.indexOf('PUSHER_DEV_SUFFIX') > -1);
-const pusherSuffix = pusherSuffixRow ? '-' + pusherSuffixRow.replace(/[';)]/g, '').split(' ')[1] : '';
+const pusherSuffixRow = _.find(phpConfigFile.split('\n'), row => row.indexOf('PUSHER_DEV_SUFFIX') > -1);
+const pusherSuffix = pusherSuffixRow ? `-${pusherSuffixRow.replace(/[';)]/g, '').split(' ')[1]}` : '';
 
 /**
  * Get a production grade config for web or desktop
