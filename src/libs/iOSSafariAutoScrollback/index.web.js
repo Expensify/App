@@ -2,7 +2,7 @@
 import Str from 'expensify-common/lib/str';
 import smoothscrollPolyfill from 'smoothscroll-polyfill';
 import CONST from '../../CONST';
-import getBrowser from '../getBrowser';
+import * as Browser from '../Browser';
 
 const userAgent = navigator.userAgent.toLowerCase();
 
@@ -73,7 +73,7 @@ function stopWaitingForScroll() {
 }
 
 export default function () {
-    if (!getBrowser() === CONST.BROWSER.SAFARI || !Str.contains(userAgent, 'iphone os 1')) {
+    if (!Browser.getBrowser() === CONST.BROWSER.SAFARI || !Str.contains(userAgent, 'iphone os 1')) {
         return;
     }
     smoothscrollPolyfill.polyfill();

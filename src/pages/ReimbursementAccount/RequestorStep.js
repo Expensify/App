@@ -213,7 +213,7 @@ class RequestorStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
-                            onPress={() => {
+                            onInputChange={() => {
                                 this.setState((prevState) => {
                                     const newState = {isControllingOfficer: !prevState.isControllingOfficer};
                                     BankAccounts.updateReimbursementAccountDraft(newState);
