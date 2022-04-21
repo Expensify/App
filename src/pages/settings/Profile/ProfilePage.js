@@ -298,7 +298,7 @@ class ProfilePage extends Component {
                         <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
-                            onPress={this.setAutomaticTimezone}
+                            onInputChange={this.setAutomaticTimezone}
                         />
                     </ScrollView>
                     <FixedFooter>

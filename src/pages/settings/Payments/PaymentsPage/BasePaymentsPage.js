@@ -279,7 +279,6 @@ class BasePaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                             actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
                                 ? this.state.selectedPaymentMethodType
@@ -439,10 +438,6 @@ export default compose(
         },
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
-        },
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

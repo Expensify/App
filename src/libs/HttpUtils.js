@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import HttpsError from './Errors/HttpsError';
 
 let shouldUseSecureStaging = false;
 Onyx.connect({
@@ -32,10 +33,25 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
     })
         .then((response) => {
             if (!response.ok) {
-                throw Error(response.statusText);
+                throw new HttpsError({
+                    message: response.statusText,
+                    status: response.status,
+                });
             }
 
             return response.json();
+        })
+        .then((response) => {
+            // Auth is down or timed out while making a request
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
+                throw new HttpsError({
+                    message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                    type: CONST.ERROR_TYPE.SOCKET,
+                    title: CONST.ERROR_TITLE.SOCKET,
+                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                });
+            }
+            return response;
         });
 }
 
