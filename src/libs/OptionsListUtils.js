@@ -99,12 +99,12 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array} logins
  * @param {Object} personalDetails
- * @returns {Array}
+ * @returns {Object}
  */
 function getPersonalDetailsForLogins(logins, personalDetails) {
-    return _.map(logins, (login) => {
+    const personalDetailsForLogins = {};
+    _.each(logins, (login) => {
         let personalDetail = personalDetails[login];
-
         if (!personalDetail) {
             personalDetail = {
                 login,
@@ -112,9 +112,9 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
-
-        return personalDetail;
+        personalDetailsForLogins[login] = personalDetail;
     });
+    return personalDetailsForLogins;
 }
 
 /**
@@ -207,7 +207,7 @@ function createOption(logins, personalDetails, report, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const personalDetailList = getPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailList = _.values(getPersonalDetailsForLogins(logins, personalDetails));
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];

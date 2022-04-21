@@ -408,7 +408,7 @@ function getDisplayNameForParticipant(participant, useShortForm = false) {
 }
 
 /**
- * @param {Array<{displayName: String, firstName: String, login: String, pronouns: ?String}>} participants
+ * @param {Object} participants
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array<{displayName: String, tooltip: String, pronouns: ?String}>}
  */
