@@ -1,4 +1,5 @@
 const path = require('path');
+const {readFileSync} = require('fs');
 const {IgnorePlugin, DefinePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -20,6 +21,11 @@ const includeModules = [
     'react-native-flipper',
     'react-native-google-places-autocomplete',
 ].join('|');
+
+// Try to read pusher suffix from local php file. If it doesn't exist, just save an empty string.
+const phpConfigFile = readFileSync('../Web-Expensify/_config.local.php', 'utf8');
+const pusherSuffixRow = phpConfigFile.split('\n').find(row => row.indexOf('PUSHER_DEV_SUFFIX') > -1);
+const pusherSuffix = pusherSuffixRow ? '-' + pusherSuffixRow.replace(/[';)]/g, '').split(' ')[1] : '';
 
 /**
  * Get a production grade config for web or desktop
@@ -66,9 +72,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         new IgnorePlugin(/^\.\/locale$/, /moment$/),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
-            __REACT_WEB_CONFIG__: JSON.stringify(
-                dotenv.config({path: envFile}).parsed,
-            ),
+            __REACT_WEB_CONFIG__: JSON.stringify({
+                ...dotenv.config({path: envFile}).parsed,
+                pusherSuffix,
+            }),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
