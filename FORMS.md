@@ -29,7 +29,7 @@ If a field has a character limit we should give that field a max limit. This is 
 />
 ```
 Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
-The phone number can be formatted in different ways 
+The phone number can be formatted in different ways.
 
 - 2109400803
 - +12109400803
