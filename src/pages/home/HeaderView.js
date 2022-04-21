@@ -29,6 +29,9 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
+    /** The ID of the report */
+    reportID: PropTypes.number.isRequired,
+
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
@@ -41,9 +44,6 @@ const propTypes = {
 
         /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** ID of the report */
-        reportID: PropTypes.number,
 
         /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
@@ -127,7 +127,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (isChatRoom || isPolicyExpenseChat) {
-                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
+                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.reportID));
                                 }
                                 if (participants.length === 1) {
                                     return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
