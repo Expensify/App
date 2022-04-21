@@ -80,9 +80,7 @@ const HeaderView = (props) => {
     );
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = (isChatRoom || isPolicyExpenseChat)
-        ? props.report.reportName
-        : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const title = ReportUtils.getTitle(props.report, props.policies);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
