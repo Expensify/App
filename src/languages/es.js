@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -322,9 +324,10 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
+        closeAccountError: 'No se pudo cerrar tu cuenta',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -457,6 +460,7 @@ export default {
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
             unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
@@ -849,6 +853,7 @@ export default {
             pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Nombre',

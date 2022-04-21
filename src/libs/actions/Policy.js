@@ -11,6 +11,7 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
+import * as Pusher from '../Pusher/pusher';
 
 const allPolicies = {};
 Onyx.connect({
@@ -21,6 +22,13 @@ Onyx.connect({
         }
 
         allPolicies[key] = {...allPolicies[key], ...val};
+    },
+});
+let sessionEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        sessionEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -500,6 +508,34 @@ function updateLastAccessedWorkspace(policyID) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
+/**
+ * Subscribe to public-policyEditor-[policyID] events.
+ */
+function subscribeToPolicyEvents() {
+    _.each(allPolicies, (policy, key) => {
+        const pusherChannelName = `public-policyEditor-${policy.id}`;
+        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
+            const policyWithoutEmployee = _.clone(policy);
+            policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
+
+            // Remove the members from the policy
+            Onyx.set(key, policyWithoutEmployee);
+
+            // Refetch the policy expense chats to update their state
+            if (!_.isEmpty(policyExpenseChatIDs)) {
+                Report.fetchChatReportsByIDs(policyExpenseChatIDs);
+            }
+
+            // Remove the default chats if we are one of the users getting removed
+            if (removedEmails.includes(sessionEmail) && !_.isEmpty(defaultRoomChatIDs)) {
+                _.each(defaultRoomChatIDs, (chatID) => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
+                });
+            }
+        });
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -517,4 +553,5 @@ export {
     setCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
+    subscribeToPolicyEvents,
 };
