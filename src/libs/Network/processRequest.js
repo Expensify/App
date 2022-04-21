@@ -20,12 +20,10 @@ function logRequestDetails(request, parameters) {
         command: request.command,
         shouldUseSecure: request.shouldUseSecure,
     };
-
     if (request.command === 'Get') {
         logParams.returnValueList = parameters.returnValueList;
         logParams.nvpNames = parameters.nvpNames;
     }
-
     NetworkEvents.getLogger().info('Making API request', false, logParams);
 }
 
