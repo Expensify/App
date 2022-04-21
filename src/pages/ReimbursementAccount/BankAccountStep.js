@@ -224,7 +224,7 @@ class BankAccountStep extends React.Component {
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
                             success
-                            xLarge
+                            extraLarge
                         />
                         {this.props.isPlaidDisabled && (
                             <Text style={[styles.formError, styles.mh5]}>

@@ -216,7 +216,7 @@ class PaymentMethodList extends Component {
                     iconStyles={item.iconStyles}
                     success={item.success}
                     shouldShowRightIcon={item.shouldShowRightIcon}
-                    xLarge
+                    extraLarge
                 />
             );
         }

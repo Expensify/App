@@ -124,7 +124,7 @@ class WorkspaceBankAccountPage extends React.Component {
                         style={[styles.mh3, styles.mt2]}
                         iconStyles={[styles.mr5]}
                         shouldShowRightIcon
-                        xLarge
+                        extraLarge
                         success
                     />
                     <MenuItem

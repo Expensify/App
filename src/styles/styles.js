@@ -381,9 +381,9 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    buttonXLarge: {
+    buttonExtraLarge: {
         borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeXLarge,
+        height: variables.componentSizeExtraLarge,
         paddingTop: 12,
         paddingRight: 18,
         paddingBottom: 12,
@@ -412,7 +412,7 @@ const styles = {
         textAlign: 'center',
     },
 
-    buttonXLargeText: {
+    buttonExtraLargeText: {
         fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,

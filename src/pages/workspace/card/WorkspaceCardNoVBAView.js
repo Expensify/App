@@ -43,7 +43,7 @@ const WorkspaceCardNoVBAView = props => (
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}
             shouldShowRightIcon
-            xLarge
+            extraLarge
             success
         />
     </Section>

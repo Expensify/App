@@ -37,7 +37,7 @@ const WorkspaceInvoicesNoVBAView = props => (
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}
                 shouldShowRightIcon
-                xLarge
+                extraLarge
                 success
             />
         </Section>

@@ -246,7 +246,7 @@ class ValidationStep extends React.Component {
                             style={[styles.mt4, styles.mh3]}
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
-                            xLarge
+                            extraLarge
                             success
                         />
                         <MenuItem
