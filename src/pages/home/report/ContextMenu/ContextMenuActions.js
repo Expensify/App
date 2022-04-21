@@ -8,6 +8,9 @@ import * as ReportUtils from '../../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
+import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
+import fileDownload from '../../../../libs/fileDownload';
+import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -27,6 +30,26 @@ const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        textTranslateKey: 'common.download',
+        icon: Expensicons.Download,
+        successTextTranslateKey: 'common.download',
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction) => {
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const isAttachment = _.has(reportAction, 'isAttachment')
+                ? reportAction.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
+            return isAttachment;
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const html = lodashGet(message, 'html', '');
+            let {sourceURL, originalFileName} = getAttachmentDetails(html);
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
+            fileDownload(sourceURL, originalFileName);
+        },
+    },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Clipboard,
