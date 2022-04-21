@@ -439,14 +439,13 @@ function getTitle(report, personalDetailsForParticipants = {}, policies = {}) {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = report.participants;
-    if (!participants) {
+    if (!_.has(report, 'participants')) {
         return '';
     }
 
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
+        _.isEmpty(personalDetailsForParticipants) ? report.participants : personalDetailsForParticipants,
+        report.participants.length > 1,
     );
     return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
