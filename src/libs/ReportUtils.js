@@ -8,6 +8,7 @@ import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
+import * as OptionsListUtils from './OptionsListUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -24,6 +25,12 @@ Onyx.connect({
         }
         preferredLocale = val;
     },
+});
+
+let personalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => personalDetails = val,
 });
 
 /**
@@ -412,6 +419,36 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
     );
 }
 
+/**
+ * Get the title for a report.
+ *
+ * @param {Object} report
+ * @param {Object} [policies]
+ * @returns {String}
+ */
+function getTitle(report, policies = {}) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+        const personalDetailsForLogins = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        const displayNamesWithTooltips = getDisplayNamesWithTooltips(personalDetailsForLogins, report.participants.length > 1);
+        return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    }
+
+    let title;
+    if (isChatRoom(report)) {
+        title = report.reportName;
+    }
+
+    if (isPolicyExpenseChat(report)) {
+        title = getPolicyName(report, policies);
+    }
+
+    if (isArchivedRoom(report)) {
+        title += ` (${Localize.translateLocal('common.archived')})`;
+    }
+
+    return title;
+}
+
 export {
     getReportParticipantsTitle,
     isDeletedAction,
@@ -438,4 +475,5 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getTitle,
 };
