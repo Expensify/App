@@ -99,7 +99,7 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array} logins
  * @param {Object} personalDetails
- * @returns {Object}
+ * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForLogins(logins, personalDetails) {
     const personalDetailsForLogins = {};
