@@ -112,7 +112,7 @@ export default {
         const plainTextMessage = Str.htmlDecode((_.find(message, f => f.type === 'COMMENT') || {}).text);
 
         push({
-            title: `New message from ${plainTextPerson}`,
+            title: plainTextPerson,
             body: plainTextMessage,
             delay: 0,
             onClick,
