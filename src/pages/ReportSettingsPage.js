@@ -9,7 +9,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';

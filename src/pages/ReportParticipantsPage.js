@@ -16,7 +16,7 @@ import ROUTES from '../ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
