@@ -8,7 +8,6 @@ import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
-import * as OptionsListUtils from './OptionsListUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -25,12 +24,6 @@ Onyx.connect({
         }
         preferredLocale = val;
     },
-});
-
-let personalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
 });
 
 /**
@@ -423,16 +416,11 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a report.
  *
  * @param {Object} report
+ * @param {Object} [personalDetailsForParticipants]
  * @param {Object} [policies]
  * @returns {String}
  */
-function getTitle(report, policies = {}) {
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-        const personalDetailsForLogins = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        const displayNamesWithTooltips = getDisplayNamesWithTooltips(personalDetailsForLogins, report.participants.length > 1);
-        return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
-    }
-
+function getTitle(report, personalDetailsForParticipants = {}, policies = {}) {
     let title;
     if (isChatRoom(report)) {
         title = report.reportName;
@@ -446,7 +434,21 @@ function getTitle(report, policies = {}) {
         title += ` (${Localize.translateLocal('common.archived')})`;
     }
 
-    return title;
+    if (title) {
+        return title;
+    }
+
+    // Not a room or PolicyExpenseChat, generate title from participants
+    const participants = report.participants;
+    if (!participants) {
+        return '';
+    }
+
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
+        participants.length > 1,
+    );
+    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
 
 export {

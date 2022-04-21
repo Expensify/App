@@ -73,14 +73,12 @@ const HeaderView = (props) => {
     }
 
     const participants = lodashGet(props.report, 'participants', []);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        isMultipleParticipant,
-    );
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = ReportUtils.getTitle(props.report, props.policies);
+    const title = ReportUtils.getTitle(props.report, participantPersonalDetails, props.policies);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);

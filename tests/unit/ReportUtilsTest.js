@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -33,7 +34,6 @@ const policies = {
 
 Onyx.init({keys: ONYXKEYS});
 
-beforeAll(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails).then(waitForPromisesToResolve));
 beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
@@ -93,23 +93,23 @@ describe('ReportUtils', () => {
         test('1:1 DM with displayName', () => {
             expect(ReportUtils.getTitle({
                 participants: ['ragnar@vikings.net'],
-            })).toBe('Ragnar Lothbrok');
+            }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
         });
         test('1:1 DM no displayName', () => {
             expect(ReportUtils.getTitle({
                 participants: ['floki@vikings.net'],
-            })).toBe('floki@vikings.net');
+            }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
         });
         test('1:1 DM SMS', () => {
             expect(ReportUtils.getTitle({
                 participants: ['+12223334444@expensify.sms'],
-            })).toBe('2223334444');
+            }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getTitle({
-                participants: ['ragnar@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            })).toBe('Ragnar, Lagertha, 2223334444');
+                participants: ['ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
+            }, participantsPersonalDetails)).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
         });
 
         test('Active policy room', () => {
@@ -137,7 +137,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getTitle({
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID: policy.policyID,
-            }, policies)).toBe(policy.name);
+            }, {}, policies)).toBe(policy.name);
         });
 
         test('Archived PolicyExpenseChat', () => {
@@ -149,10 +149,10 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
 
-            expect(ReportUtils.getTitle(archivedPolicyExpenseChat, [])).toBe('Vikings Policy (archived)');
+            expect(ReportUtils.getTitle(archivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
             return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                .then(() => expect(ReportUtils.getTitle(archivedPolicyExpenseChat, [])).toBe('Vikings Policy (archivado)'));
+                .then(() => expect(ReportUtils.getTitle(archivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
         });
     });
 });
