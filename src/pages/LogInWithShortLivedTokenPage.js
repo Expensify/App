@@ -57,6 +57,13 @@ const defaultProps = {
 };
 
 class LogInWithShortLivedTokenPage extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isSigningIn: false,
+        };
+    }
+
     componentDidMount() {
         // We need to wait for Onyx to finish clearing before signing in because
         // it will re-initialize with the initialKeyStates, which can notify
@@ -65,11 +72,9 @@ class LogInWithShortLivedTokenPage extends Component {
         if (!this.props.isOnyxDoneClearing) {
             return;
         }
-
         if (this.signInIfNeeded()) {
             return;
         }
-
         if (this.signOutIfNeeded()) {
             return;
         }
@@ -80,6 +85,9 @@ class LogInWithShortLivedTokenPage extends Component {
 
     componentDidUpdate() {
         if (!this.props.isOnyxDoneClearing) {
+            return;
+        }
+        if (this.state.isSigningIn) {
             return;
         }
         if (this.signInIfNeeded()) {
@@ -122,6 +130,7 @@ class LogInWithShortLivedTokenPage extends Component {
             return false;
         }
         Log.info('[LoginWithShortLivedTokenPage] User not signed in - signing in with short lived token');
+        this.setState({isSigningIn: true});
         Session.signInWithShortLivedToken(email, shortLivedToken);
         return true;
     }
