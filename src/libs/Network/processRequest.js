@@ -16,12 +16,17 @@ function logRequestDetails(request, parameters) {
         return;
     }
 
-    NetworkEvents.getLogger().info('Making API request', false, {
+    const logParams = {
         command: request.command,
-        type: request.type,
         shouldUseSecure: request.shouldUseSecure,
-        rvl: parameters.returnValueList,
-    });
+    };
+
+    if (request.command === 'Get') {
+        logParams.returnValueList = parameters.returnValueList;
+        logParams.nvpNames = parameters.nvpNames;
+    }
+
+    NetworkEvents.getLogger().info('Making API request', false, logParams);
 }
 
 /**
