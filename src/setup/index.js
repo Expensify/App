@@ -4,6 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import * as App from '../libs/actions/App';
 
 export default function () {
     /*
@@ -35,6 +36,10 @@ export default function () {
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
     });
+
+    // We need to set IS_ONYX_DONE_CLEARING outside of the initial key states, because
+    // initial key states are set within Onyx.clear.
+    App.setOnyxDoneClearing();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
