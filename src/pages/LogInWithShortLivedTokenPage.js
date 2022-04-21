@@ -58,6 +58,14 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
+        // We need to wait for Onyx to finish clearing before signing in because
+        // it will re-initialize with the initialKeyStates, which can notify
+        // subscribers with an out of date value causing the user to be signed
+        // out again. See https://github.com/Expensify/react-native-onyx/issues/125
+        if (!this.props.isOnyxDoneClearing) {
+            return;
+        }
+
         if (this.signInIfNeeded()) {
             return;
         }
@@ -71,10 +79,6 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
-        // We need to wait for Onyx to finish clearing before signing in because
-        // it will re-initialize with the initialKeyStates, which can notify
-        // subscribers with an out of date value causing the user to be signed
-        // out again. See https://github.com/Expensify/react-native-onyx/issues/125
         if (!this.props.isOnyxDoneClearing) {
             return;
         }
