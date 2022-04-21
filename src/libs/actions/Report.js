@@ -18,6 +18,7 @@ import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
 import * as API from '../API';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
@@ -719,7 +720,7 @@ function updateReportPinnedState(reportID, isPinned) {
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}`;
+    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -730,7 +731,7 @@ function getReportChannelName(reportID) {
  * @param {Boolean} isChunked
  */
 function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
      * @param {Object} pushJSON
@@ -771,7 +772,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
