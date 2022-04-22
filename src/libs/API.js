@@ -9,65 +9,18 @@ import Log from './Log';
 import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import * as NetworkStore from './Network/NetworkStore';
-import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkEvents from './Network/NetworkEvents';
-import processRequest from './Network/processRequest';
-
-/**
- * Function used to handle expired auth tokens. It re-authenticates with the API and
- * then replays the original request
- *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {Boolean} isFromSequentialQueue
- * @returns {Promise}
- */
-function reauthenticateAndRetryRequest(originalCommand, originalParameters, isFromSequentialQueue) {
-    // When the authentication process is running, and more API requests will be requeued and they will
-    // be performed after authentication is done.
-    // Note: It's not possible to reach this code if this request originated in the SequentialQueue.
-    if (NetworkStore.getIsAuthenticating()) {
-        return Network.post(originalCommand, originalParameters);
-    }
-
-    // Prevent any more requests from being processed while authentication happens
-    NetworkStore.setIsAuthenticating(true);
-
-    // eslint-disable-next-line no-use-before-define
-    return reauthenticate(originalCommand)
-        .then(() => {
-            // Now that the API is authenticated, make the original request again with the new authToken
-            const params = enhanceParameters(originalCommand, originalParameters);
-
-            // If this is from the sequential queue bypass the main queue and run immediately
-            if (isFromSequentialQueue) {
-                return processRequest({
-                    command: originalCommand,
-                    data: params,
-                    type: CONST.NETWORK.METHOD.POST,
-                }, true);
-            }
-
-            return Network.post(originalCommand, params);
-        })
-        .catch(() => {
-            // If we're in the SequentialQueue we do not want to put this request back into the main queue so we'll throw an error that can be handled by the SequentialQueue itself.
-            if (isFromSequentialQueue) {
-                throw new Error(CONST.ERROR.UNABLE_TO_REAUTHENTICATE);
-            }
-
-            // If the request did not succeed because of a networking issue or the server did not respond requeue the
-            // original request.
-            return Network.post(originalCommand, originalParameters);
-        });
-}
 
 // We set the logger for Network here so that we can avoid a circular dependency
 NetworkEvents.registerLogHandler(() => Log);
 
-// When an authToken expires we handle it from inside API so we can access the reauthenticate and Network.post() methods
-NetworkEvents.onAuthTokenExpired((queuedRequest, onSuccess, onFailure, isFromSequentialQueue) => {
-    reauthenticateAndRetryRequest(queuedRequest.command, queuedRequest.data, isFromSequentialQueue)
+// When an authToken expires we handle it from inside API so we can access the reauthenticate method
+NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
+    // Prevent any more requests from being processed while authentication happens
+    NetworkStore.setIsAuthenticating(true);
+
+    // eslint-disable-next-line no-use-before-define
+    reauthenticate(commandName)
         .then(onSuccess)
         .catch(onFailure);
 });

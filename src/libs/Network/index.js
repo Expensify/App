@@ -126,7 +126,24 @@ function processNetworkRequestQueue() {
         }
 
         processRequest(queuedRequest)
+            .then((response) => {
+                if (response.jsonCode === CONST.JSON_CODE.REAUTHENTICATED) {
+                    // Replay the original request with new authToken as we are now authenticated
+                    networkRequestQueue.push(queuedRequest);
+                    processNetworkRequestQueue();
+                    return;
+                }
+
+                queuedRequest.resolve(response);
+            })
             .catch((error) => {
+                if (error.message === CONST.ERROR.UNABLE_TO_REAUTHENTICATE || error.message === CONST.ERROR.ALREADY_AUTHENTICATING) {
+                    // Replay the original request when we are not able to reauthenticate for a networking reason or we are already authenticating
+                    networkRequestQueue.push(queuedRequest);
+                    processNetworkRequestQueue();
+                    return;
+                }
+
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkEvents.triggerRecheckNeeded();
                 if (retryFailedRequest(queuedRequest, error)) {

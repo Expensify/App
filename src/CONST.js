@@ -314,6 +314,7 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
+        REAUTHENTICATED: 1,
         EXP_ERROR: 666,
     },
     ERROR: {
@@ -333,7 +334,8 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
-        UNABLE_TO_REAUTHENTICATE: 'Unable to reathenticate while processing sequential queue request',
+        UNABLE_TO_REAUTHENTICATE: 'Unable to reauthenticate',
+        ALREADY_AUTHENTICATING: 'Already authenticating',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',

@@ -92,7 +92,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                 }));
 
-            // This should first trigger re-authentication and then an API is offline error
+            // This should first trigger re-authentication and then a Failed to fetch
             API.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
