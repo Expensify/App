@@ -567,7 +567,7 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        let actionIndex = _.findIndex(this.sortedReportActions, (
+        const actionIndex = _.findIndex(this.sortedReportActions, (
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
