@@ -442,7 +442,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @param {Object} [policies]
  * @returns {String}
  */
-function getTitle(report, personalDetailsForParticipants = {}, policies = {}) {
+function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let title;
     if (isChatRoom(report)) {
         title = report.reportName;
@@ -500,5 +500,5 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    getTitle,
+    getReportName,
 };
