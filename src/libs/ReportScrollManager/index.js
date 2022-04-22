@@ -43,6 +43,6 @@ function scrollToBottom() {
 export {
     flatListRef,
     scrollToIndex,
-    scrollToInvertedIndex,
+    scrollToSequenceNumber,
     scrollToBottom,
 };

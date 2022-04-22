@@ -44,6 +44,8 @@ const propTypes = {
     /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
+    reportActionID: PropTypes.number.isRequired,
+
     /* Onyx Props */
 
     /** The report currently being looked at */
@@ -505,6 +507,7 @@ class ReportActionsView extends React.Component {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
+        console.log('over here done measuring');
     }
 
     /**
@@ -562,6 +565,8 @@ class ReportActionsView extends React.Component {
         if (!_.size(this.props.reportActions)) {
             return null;
         }
+
+        console.log(`over here actionID: ${this.props.reportActionID}`);
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist

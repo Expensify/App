@@ -26,6 +26,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -168,6 +169,7 @@ class ReportActionItem extends Component {
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
+                            <Text>{`:: INDEX ${this.props.index} ::`}</Text>
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered

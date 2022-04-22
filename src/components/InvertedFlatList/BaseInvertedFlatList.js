@@ -63,6 +63,8 @@ class BaseInvertedFlatList extends Component {
     getItemLayout(data, index) {
         const size = this.sizeMap[index];
 
+        // console.log(`over here getItemLayout. Index: ${index}`);
+
         if (size) {
             return {
                 length: size.length,
@@ -99,6 +101,8 @@ class BaseInvertedFlatList extends Component {
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
 
+        console.log(`over here measureItemLayout. Index: ${index}`);
+
         // Unclear why but some items will read 0 for height when onLayout runs
         if (computedHeight === 0) {
             return;
@@ -126,6 +130,7 @@ class BaseInvertedFlatList extends Component {
                 const previousLength = previousItem.length || 0;
                 const previousOffset = previousItem.offset || 0;
                 this.sizeMap[i].offset = previousLength + previousOffset;
+                console.log(`over here measuring. Index: ${i}, SizeMap: ${JSON.stringify(this.sizeMap[i])}`);
             }
         }
     }
@@ -143,6 +148,7 @@ class BaseInvertedFlatList extends Component {
      */
     renderItem({item, index}) {
         if (this.props.shouldMeasureItems) {
+
             return (
                 <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
                     {this.props.renderItem({item, index})}

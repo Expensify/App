@@ -164,7 +164,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionID() {
         const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID, 10);
+        return Number.parseInt(params.reportActionID || 0, 10);
     }
 
     render() {
@@ -183,8 +183,6 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const test = this.getReportActionID();
-        console.log(`over here test: ${test}`);
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
@@ -201,6 +199,7 @@ class ReportScreen extends React.Component {
                     {!this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}
+                            reportActionID={this.getReportActionID()}
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
