@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View} from 'react-native';
+import {View, Pressable} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
@@ -132,12 +132,11 @@ const LongTermsForm = () => (
 
         <View style={styles.flexRow}>
             <Icon style={styles.flex1} src={Expensicons.Printer} />
-            <Text
-                style={[styles.link, styles.ml1]}
-                onPress={() => Link.openExternalLink(CONST.FEES_URL)}
-            >
-                {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-            </Text>
+            <Pressable onPress={() => Link.openExternalLink(CONST.FEES_URL)}>
+                <Text style={[styles.link, styles.ml1]}>
+                    {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
+                </Text>
+            </Pressable>
         </View>
     </>
 );
