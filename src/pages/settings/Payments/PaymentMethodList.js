@@ -118,8 +118,8 @@ class PaymentMethodList extends Component {
      */
     getFilteredPaymentMethods() {
 
-        //filter non-billing cards
-        const filteredCardList = _.filter(this.props.cardList, (card) => !card.additionalData.isBillingCard);
+        // filter non-billing cards
+        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
 
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
