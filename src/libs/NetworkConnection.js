@@ -113,6 +113,9 @@ function onReconnect(callback) {
     reconnectionCallbacks.push(callback);
 }
 
+/**
+ * Refresh NetInfo state.
+ */
 function recheckNetworkConnection() {
     if (hasPendingNetworkCheck) {
         return;
@@ -120,11 +123,7 @@ function recheckNetworkConnection() {
 
     Log.info('[NetworkConnection] recheck NetInfo');
     hasPendingNetworkCheck = true;
-
-    if (unsubscribeFromNetInfo) {
-        unsubscribeFromNetInfo();
-    }
-    subscribeToNetInfo();
+    NetInfo.refresh();
 }
 
 NetworkEvents.onRecheckNeeded(recheckNetworkConnection);
