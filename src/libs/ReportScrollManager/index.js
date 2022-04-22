@@ -19,12 +19,11 @@ function scrollToIndex(index, isEditing) {
     flatListRef.current.scrollToIndex(index);
 }
 
-function scrollToSequenceNumber(sequenceNumber, maxIndex) {
+function scrollToReportActionID(sequenceNumber, maxIndex) {
     const index = {
         index: maxIndex - sequenceNumber,
         viewPosition: 0.5,
     };
-    console.log(`over here Scrolling to index: ${index.index}`);
     flatListRef.current.scrollToIndex(index);
 }
 
@@ -43,6 +42,6 @@ function scrollToBottom() {
 export {
     flatListRef,
     scrollToIndex,
-    scrollToSequenceNumber,
+    scrollToReportActionID,
     scrollToBottom,
 };

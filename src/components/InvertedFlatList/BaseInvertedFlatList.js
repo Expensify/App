@@ -28,6 +28,8 @@ const propTypes = {
     shouldRemoveClippedSubviews: PropTypes.bool,
 
     measurementPadding: PropTypes.number,
+
+    onMeasurementEnd: PropTypes.func,
 };
 
 const defaultProps = {
@@ -35,6 +37,7 @@ const defaultProps = {
     shouldMeasureItems: false,
     shouldRemoveClippedSubviews: false,
     measurementPadding: 0,
+    onMeasurementEnd: () => {},
 };
 
 class BaseInvertedFlatList extends Component {
@@ -101,8 +104,6 @@ class BaseInvertedFlatList extends Component {
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
 
-        console.log(`over here measureItemLayout. Index: ${index}`);
-
         // Unclear why but some items will read 0 for height when onLayout runs
         if (computedHeight === 0) {
             return;
@@ -130,8 +131,8 @@ class BaseInvertedFlatList extends Component {
                 const previousLength = previousItem.length || 0;
                 const previousOffset = previousItem.offset || 0;
                 this.sizeMap[i].offset = previousLength + previousOffset;
-                console.log(`over here measuring. Index: ${i}, SizeMap: ${JSON.stringify(this.sizeMap[i])}`);
             }
+            this.props.onMeasurementEnd();
         }
     }
 

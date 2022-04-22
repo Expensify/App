@@ -120,6 +120,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
+        this.scrollToReportActionIDAttempt = 0;
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
@@ -130,6 +131,7 @@ class ReportActionsView extends React.Component {
         this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
+        this.scrollToReportActionID = this.scrollToReportActionID.bind(this);
     }
 
     componentDidMount() {
@@ -166,6 +168,7 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
             this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            this.scrollToReportActionIDAttempt = 0;
             return true;
         }
 
@@ -507,7 +510,6 @@ class ReportActionsView extends React.Component {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-        console.log('over here done measuring');
     }
 
     /**
@@ -560,13 +562,36 @@ class ReportActionsView extends React.Component {
         );
     }
 
+    scrollToReportActionID() {
+        if (this.props.reportActionID === 0) {
+            return;
+        }
+
+        let actionIndex = _.findIndex(this.sortedReportActions, (
+            ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
+        ));
+
+        // Check if reportID is deleted
+        const test = this.props.reportActions;
+
+        // Continue scroll back if actionIndex is -1
+        debugger;
+        console.log(`over here 1 attempt: ${this.scrollToReportActionIDAttempt}`);
+        if (actionIndex === -1 && this.scrollToReportActionIDAttempt < 3) {
+            ++this.scrollToReportActionIDAttempt;
+            console.log(`over here 2 attempt: ${this.scrollToReportActionIDAttempt}`);
+            this.loadMoreChats();
+        } else {
+            console.log(`over here scrollToIndex: ${actionIndex}`);
+            ReportScrollManager.scrollToIndex({index: actionIndex});
+        }
+    }
+
     render() {
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
         }
-
-        console.log(`over here actionID: ${this.props.reportActionID}`);
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -603,6 +628,7 @@ class ReportActionsView extends React.Component {
                     onScroll={this.trackScroll}
                     extraData={extraData}
                     measurementPadding={shouldShowReportRecipientLocalTime ? 0 : styles.chatContentScrollView.paddingVertical}
+                    onMeasurementEnd={this.scrollToReportActionID}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
