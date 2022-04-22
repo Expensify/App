@@ -142,9 +142,10 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  *
  * @param {Object} fullReport
  * @param {String} chatType
+ * @param {String} oldPolicyName
  * @return {String}
  */
-function getChatReportName(fullReport, chatType) {
+function getChatReportName(fullReport, chatType, oldPolicyName) {
     if (ReportUtils.isDefaultRoom({chatType})) {
         return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
@@ -167,7 +168,7 @@ function getChatReportName(fullReport, chatType) {
             statusNum: fullReport.status,
         });
         const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
-            ? fullReport.oldPolicyName
+            ? oldPolicyName
             : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
         return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
     }
@@ -209,16 +210,16 @@ function getSimplifiedReportObject(report) {
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report, chatType)
+        ? getChatReportName(report, chatType, oldPolicyName)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
