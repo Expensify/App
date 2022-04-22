@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -322,9 +324,10 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
+        closeAccountError: 'No se pudo cerrar tu cuenta',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',

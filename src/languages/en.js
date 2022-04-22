@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'You missed the party in ',
+        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -325,6 +327,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
+        closeAccountError: 'Unable to close account',
     },
     passwordPage: {
         changePassword: 'Change password',

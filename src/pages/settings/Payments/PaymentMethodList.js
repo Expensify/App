@@ -21,9 +21,6 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Are we loading payments from the server? */
-    isLoadingPayments: PropTypes.bool,
-
     /** Is the payment options menu open / active? */
     isAddPaymentMenuActive: PropTypes.bool,
 
@@ -80,7 +77,6 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
-    isLoadingPayments: false,
     isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
@@ -121,7 +117,10 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
+        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
+        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -164,7 +163,6 @@ class PaymentMethodList extends Component {
             icon: Expensicons.Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
-            disabled: this.props.isLoadingPayments,
             iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });

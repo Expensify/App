@@ -44,7 +44,7 @@ const propTypes = {
     value: PropTypes.string,
 
     /** A callback function when the value of this field has changed */
-    onChange: PropTypes.func.isRequired,
+    onInputChange: PropTypes.func.isRequired,
 
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -113,7 +113,7 @@ const AddressSearch = (props) => {
         if (_.size(values) === 0) {
             return;
         }
-        props.onChange(values);
+        props.onInputChange(values);
     };
 
     return (
@@ -176,7 +176,7 @@ const AddressSearch = (props) => {
                         autoComplete: 'off',
                         onChangeText: (text) => {
                             if (skippedFirstOnChangeTextRef.current) {
-                                props.onChange({street: text});
+                                props.onInputChange({street: text});
                             } else {
                                 skippedFirstOnChangeTextRef.current = true;
                             }
