@@ -117,7 +117,6 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-
         // filter non-billing cards
         const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
 
