@@ -37,7 +37,7 @@ const SignInPageLayout = (props) => {
 
     const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
 
-    const graphicLayout = () => (
+    const graphicLayout = (
         <Pressable
             style={[
                 styles.flex1,
@@ -64,7 +64,7 @@ const SignInPageLayout = (props) => {
     if (props.isMediumScreenWidth) {
         return (
             <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
-                {graphicLayout(props.isMediumScreenWidth)}
+                {graphicLayout}
                 <View style={styles.flex1}>
                     {content}
                 </View>
@@ -76,7 +76,7 @@ const SignInPageLayout = (props) => {
         <View style={[styles.flex1, styles.signInPageInner]}>
             <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
                 {content}
-                {graphicLayout(props.isMediumScreenWidth)}
+                {graphicLayout}
             </View>
         </View>
     );
