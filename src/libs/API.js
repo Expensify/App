@@ -14,17 +14,6 @@ import * as NetworkEvents from './Network/NetworkEvents';
 // We set the logger for Network here so that we can avoid a circular dependency
 NetworkEvents.registerLogHandler(() => Log);
 
-// When an authToken expires we handle it from inside API so we can access the reauthenticate method
-NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
-    // Prevent any more requests from being processed while authentication happens
-    NetworkStore.setIsAuthenticating(true);
-
-    // eslint-disable-next-line no-use-before-define
-    reauthenticate(commandName)
-        .then(onSuccess)
-        .catch(onFailure);
-});
-
 /**
  * @param {Object} parameters
  * @param {Boolean} [parameters.useExpensifyLogin]
@@ -156,6 +145,17 @@ function reauthenticate(command = '') {
             });
         });
 }
+
+// When an authToken expires we handle it from inside API so we can access the reauthenticate method
+NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
+    // Prevent any more requests from being processed while authentication happens
+    NetworkStore.setIsAuthenticating(true);
+
+    // eslint-disable-next-line no-use-before-define
+    reauthenticate(commandName)
+        .then(onSuccess)
+        .catch(onFailure);
+});
 
 /**
  * @param {Object} parameters
