@@ -42,6 +42,7 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+    REPORT_WITH_ACTION_ID: 'r/:reportID/actionID/:reportActionID',
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,

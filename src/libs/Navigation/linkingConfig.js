@@ -19,6 +19,7 @@ export default {
                 initialRouteName: SCREENS.REPORT,
                 screens: {
                     // Report route
+                    [SCREENS.REPORT_WITH_ACTION_ID]: ROUTES.REPORT_WITH_ACTION_ID,
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                     [SCREENS.LOADING]: ROUTES.REPORT,
                 },
