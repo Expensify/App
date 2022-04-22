@@ -146,14 +146,14 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @return {String}
  */
 function getChatReportName(fullReport, chatType, oldPolicyName) {
+    const isArchivedRoom = ReportUtils.isArchivedRoom({
+        chatType,
+        stateNum: fullReport.state,
+        statusNum: fullReport.status,
+    });
+
     if (ReportUtils.isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        })
-            ? ` (${Localize.translateLocal('common.deleted')})`
-            : '')}`;
+        return `#${fullReport.reportName}${isArchivedRoom ? ` (${Localize.translateLocal('common.deleted')})` : ''}`;
     }
 
     // For a basic policy room, return its original name
@@ -162,11 +162,6 @@ function getChatReportName(fullReport, chatType, oldPolicyName) {
     }
 
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        const isArchivedRoom = ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        });
         const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
             ? oldPolicyName
             : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
