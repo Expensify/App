@@ -21,10 +21,10 @@ function init() {
      * @params {string} eventName
      */
     Pusher.registerSocketEventCallback((eventName, error) => {
-        const errorType = lodashGet(error, 'type');
-        const code = lodashGet(error, 'data.code');
         switch (eventName) {
-            case 'error':
+            case 'error': {
+                const errorType = lodashGet(error, 'type');
+                const code = lodashGet(error, 'data.code');
                 if (errorType === CONST.ERROR.PUSHER_ERROR && code === 1006) {
                     // 1006 code happens when a websocket connection is closed. There may or may not be a reason attached indicating why the connection was closed.
                     // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
@@ -40,6 +40,7 @@ function init() {
                     Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
                 }
                 break;
+            }
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event');
                 break;
