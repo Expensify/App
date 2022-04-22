@@ -64,6 +64,11 @@ const MainDrawerNavigator = (props) => {
                     component: ReportScreen,
                     initialParams,
                 },
+                {
+                    name: SCREENS.REPORT_WITH_ACTION_ID,
+                    component: ReportScreen,
+                    initialParams,
+                },
             ]}
             isMainScreen
         />

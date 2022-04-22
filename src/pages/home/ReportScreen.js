@@ -29,6 +29,8 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
+            reportActionID: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -155,6 +157,16 @@ class ReportScreen extends React.Component {
         Report.updateCurrentlyViewedReportID(reportID);
     }
 
+    /**
+     * Get the currently viewed report ID as number
+     *
+     * @returns {Number}
+     */
+    getReportActionID() {
+        const params = this.props.route.params;
+        return Number.parseInt(params.reportActionID, 10);
+    }
+
     render() {
         if (!this.props.isSidebarLoaded) {
             return null;
@@ -171,6 +183,8 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
+        const test = this.getReportActionID();
+        console.log(`over here test: ${test}`);
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
