@@ -880,7 +880,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
-            deleteConfirmation: 'Are you sure?'
+            deleteConfirmation: 'Are you sure?',
         },
     },
     getAssistancePage: {
