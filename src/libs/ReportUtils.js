@@ -416,25 +416,22 @@ function getDisplayNameForParticipant(participant, useShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
-    return _.map(
-        participants,
-        (participant) => {
-            const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
-            const tooltip = Str.removeSMSDomain(participant.login);
+    return _.map(participants, (participant) => {
+        const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
+        const tooltip = Str.removeSMSDomain(participant.login);
 
-            let pronouns = participant.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-            }
+        let pronouns = participant.pronouns;
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+        }
 
-            return {
-                displayName,
-                tooltip,
-                pronouns,
-            };
-        },
-    );
+        return {
+            displayName,
+            tooltip,
+            pronouns,
+        };
+    });
 }
 
 /**
