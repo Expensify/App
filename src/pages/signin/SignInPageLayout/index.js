@@ -35,34 +35,48 @@ const SignInPageLayout = (props) => {
         </SignInPageContent>
     );
 
+    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
+
+    const graphicLayout = () => (
+        <Pressable
+            style={[
+                styles.flex1,
+                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
+            ]}
+            onPress={() => {
+                Link.openExternalLink(backgroundStyle.redirectUri);
+            }}
+            disabled={!hasRedirect}
+        >
+            <SVGImage
+                width="100%"
+                height="100%"
+                src={backgroundStyle.backgroundImageUri}
+                resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
+            />
+        </Pressable>
+    );
+
     if (props.isSmallScreenWidth) {
         return content;
     }
 
-    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
+    if (props.isMediumScreenWidth) {
+        return (
+            <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
+                {graphicLayout(props.isMediumScreenWidth)}
+                <View style={styles.flex1}>
+                    {content}
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.flex1, styles.signInPageInner]}>
             <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
                 {content}
-                <Pressable
-                    style={[
-                        styles.flexGrow1,
-                        StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-                        props.isMediumScreenWidth && styles.alignItemsCenter,
-                    ]}
-                    onPress={() => {
-                        Link.openExternalLink(backgroundStyle.redirectUri);
-                    }}
-                    disabled={!hasRedirect}
-                >
-                    <SVGImage
-                        width="100%"
-                        height="100%"
-                        src={backgroundStyle.backgroundImageUri}
-                        resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
-                    />
-                </Pressable>
+                {graphicLayout(props.isMediumScreenWidth)}
             </View>
         </View>
     );
