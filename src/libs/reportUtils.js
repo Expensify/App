@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+import * as Expensicons from '../components/Icon/Expensicons';
+import md5 from './md5';
 
 let sessionEmail;
 Onyx.connect({
@@ -54,7 +56,6 @@ function sortReportsByLastVisited(reports) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
@@ -70,7 +71,6 @@ function canEditReportAction(reportAction) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
@@ -177,6 +177,19 @@ function isArchivedRoom(report) {
 }
 
 /**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyName(report, policies) {
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
@@ -190,17 +203,13 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
-    }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
         return Localize.translateLocal('workspace.common.workspace');
     }
-    return lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
+    }
+    return getPolicyName(report, policiesMap);
 }
 
 /**
@@ -212,14 +221,12 @@ function getChatRoomSubtitle(report, policiesMap) {
 
 function getRoomWelcomeMessage(report, policiesMap) {
     const welcomeMessage = {};
+    const workspaceName = getPolicyName(report, policiesMap);
 
-    const workspaceName = lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
-
-    if (isAdminRoom(report)) {
+    if (isArchivedRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAnnounceRoom(report)) {
@@ -301,6 +308,71 @@ function formatReportLastMessageText(lastMessageText) {
     return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
+/**
+ * Helper method to return a default avatar
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getDefaultAvatar(login = '') {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
+/**
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @param {Object} policies
+ * @param {*} [defaultIcon]
+ * @returns {Array<*>}
+ */
+function getIcons(report, personalDetails, policies, defaultIcon = null) {
+    if (!report) {
+        return [defaultIcon || getDefaultAvatar()];
+    }
+    if (isArchivedRoom(report)) {
+        return [Expensicons.DeletedRoomAvatar];
+    }
+    if (isAdminRoom(report)) {
+        return [Expensicons.AdminRoomAvatar];
+    }
+    if (isAnnounceRoom(report)) {
+        return [Expensicons.AnnounceRoomAvatar];
+    }
+    if (isChatRoom(report)) {
+        return [Expensicons.ActiveRoomAvatar];
+    }
+    if (isPolicyExpenseChat(report)) {
+        const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+        ]) || Expensicons.Workspace;
+
+        // Return the workspace avatar if the user is the owner of the policy expense chat
+        if (report.isOwnPolicyExpenseChat) {
+            return [policyExpenseChatAvatarSource];
+        }
+
+        // If the user is an admin, return avatar source of the other participant of the report
+        // (their workspace chat) and the avatar source of the workspace
+        return [
+            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            policyExpenseChatAvatarSource,
+        ];
+    }
+
+    // Return avatar sources for Group chats
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
+    })).sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
+}
+
 export {
     getReportParticipantsTitle,
     isDeletedAction,
@@ -315,6 +387,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getPolicyName,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
@@ -322,5 +395,7 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    getDefaultAvatar,
+    getIcons,
     getRoomWelcomeMessage,
 };

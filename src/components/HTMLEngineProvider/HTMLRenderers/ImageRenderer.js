@@ -4,7 +4,8 @@ import Config from '../../../CONFIG';
 import PreviewAttachmentModal from '../../PreviewAttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import TouchableWithoutFocus from '../../TouchableWithoutFocus';
+import PressableWithoutFocus from '../../PressableWithoutFocus';
+import CONST from '../../../CONST';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -14,7 +15,7 @@ const ImageRenderer = (props) => {
     //     - Chat Attachment images
     //
     //           Images uploaded by the user via the app or email.
-    //           These have a full-sized image `htmlAttribs['data-expensify-source']`
+    //           These have a full-sized image `htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]`
     //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
     //           an authToken added to them in order to control who
     //           can see the images.
@@ -26,11 +27,11 @@ const ImageRenderer = (props) => {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const originalFileName = htmlAttribs['data-name'];
     let previewSource = htmlAttribs.src;
     let source = isAttachment
-        ? htmlAttribs['data-expensify-source']
+        ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
         : htmlAttribs.src;
 
     // Update the image URL so the images can be accessed depending on the config environment
@@ -50,7 +51,7 @@ const ImageRenderer = (props) => {
             originalFileName={originalFileName}
         >
             {({show}) => (
-                <TouchableWithoutFocus
+                <PressableWithoutFocus
                     style={styles.noOutline}
                     onPress={show}
                 >
@@ -59,7 +60,7 @@ const ImageRenderer = (props) => {
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
-                </TouchableWithoutFocus>
+                </PressableWithoutFocus>
             )}
         </PreviewAttachmentModal>
     );

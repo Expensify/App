@@ -26,7 +26,7 @@ const propTypes = {
     buttonText: PropTypes.string.isRequired,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsLinkPressed: PropTypes.func.isRequired,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     /** Error message to display above button */
     message: PropTypes.string,
@@ -49,6 +49,7 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
+    onFixTheErrorsLinkPressed: () => {},
 };
 
 const FormAlertWithSubmitButton = (props) => {

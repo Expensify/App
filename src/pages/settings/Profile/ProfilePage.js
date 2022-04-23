@@ -8,7 +8,6 @@ import moment from 'moment-timezone';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
@@ -29,6 +28,7 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
+import * as ReportUtils from '../../../libs/reportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,16 +56,19 @@ const defaultProps = {
     loginList: [],
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
 
         this.state = {
             firstName: props.myPersonalDetails.firstName,
@@ -78,7 +81,7 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
+            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
             isAvatarChanged: false,
         };
 
@@ -152,7 +155,7 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
     }
 
     /**
@@ -250,7 +253,7 @@ class ProfilePage extends Component {
                         <View style={styles.mb6}>
                             <Picker
                                 label={this.props.translate('profilePage.preferredPronouns')}
-                                onChange={(pronouns) => {
+                                onInputChange={(pronouns) => {
                                     const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
                                     this.setState({
                                         pronouns: hasSelfSelectedPronouns ? '' : pronouns,
@@ -288,7 +291,7 @@ class ProfilePage extends Component {
                         <View style={styles.mb3}>
                             <Picker
                                 label={this.props.translate('profilePage.timezone')}
-                                onChange={selectedTimezone => this.setState({selectedTimezone})}
+                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
@@ -297,7 +300,7 @@ class ProfilePage extends Component {
                         <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
-                            onPress={this.setAutomaticTimezone}
+                            onInputChange={this.setAutomaticTimezone}
                         />
                     </ScrollView>
                     <FixedFooter>

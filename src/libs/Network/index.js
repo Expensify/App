@@ -7,8 +7,9 @@ import * as PersistedRequests from '../actions/PersistedRequests';
 import RetryCounter from '../RetryCounter';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
-import * as PersistedRequestsQueue from './PersistedRequestsQueue';
+import * as SequentialQueue from './SequentialQueue';
 import processRequest from './processRequest';
+import {version} from '../../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -35,7 +36,7 @@ function canMakeRequest(request) {
 
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    return request.data.forceNetworkRequest === true || !NetworkStore.getIsAuthenticating();
+    return request.data.forceNetworkRequest === true || (!NetworkStore.getIsAuthenticating() && !SequentialQueue.isRunning());
 }
 
 /**
@@ -149,7 +150,7 @@ function processNetworkRequestQueue() {
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
-    PersistedRequestsQueue.flush();
+    SequentialQueue.flush();
 
     // Start main queue and process once every n ms delay
     setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
@@ -181,6 +182,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             ...data,
             shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
+            appversion: version,
         };
 
         // Add the request to a queue of actions to perform

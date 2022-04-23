@@ -60,11 +60,7 @@ class NewChatPage extends Component {
         this.createGroup = this.createGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
-            CONST.EMAIL.CONCIERGE,
-            CONST.EMAIL.RECEIPTS,
-            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-        ]);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
         const {
             recentReports,
@@ -235,7 +231,7 @@ class NewChatPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <>
                                     <OptionsSelector
