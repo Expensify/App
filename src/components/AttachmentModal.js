@@ -25,12 +25,6 @@ import TextWithEllipsis from './TextWithEllipsis';
  */
 
 const propTypes = {
-    /** Determines title of the modal header depending on if we are uploading an attachment or not */
-    isUploadingAttachment: PropTypes.bool,
-
-    /** Determines title of the modal header depending on if we are viewing a profile picture or not */
-    isProfilePicture: PropTypes.bool,
-
     /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
@@ -49,18 +43,24 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
 
+    /** Determines if download Button should be shown or not */
+    allowDownload: PropTypes.bool,
+
+    /** Title shown in the header of the modal */
+    headerTitle: PropTypes.string,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    isUploadingAttachment: false,
-    isProfilePicture: false,
     sourceURL: null,
     onConfirm: null,
     originalFileName: null,
     isAuthTokenRequired: false,
+    allowDownload: false,
+    headerTitle: null,
     onModalHide: () => {},
 };
 
@@ -150,14 +150,6 @@ class AttachmentModal extends PureComponent {
 
         const {fileName, fileExtension} = this.splitExtensionFromFileName();
 
-        let headerTitle = '';
-        if (this.props.isProfilePicture) {
-            headerTitle = this.props.displayName;
-        } else {
-            headerTitle = this.props.isUploadingAttachment
-                ? this.props.translate('reportActionCompose.sendAttachment')
-                : this.props.translate('common.attachment');
-        }
         return (
             <>
                 <Modal
@@ -170,9 +162,9 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={headerTitle}
+                        title={this.props.headerTitle}
                         shouldShowBorderBottom
-                        shouldShowDownloadButton={!this.props.isUploadingAttachment && !this.props.isProfilePicture}
+                        shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={(

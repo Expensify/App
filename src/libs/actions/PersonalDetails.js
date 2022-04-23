@@ -100,7 +100,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
-        const avatarHighResolution = details.avatar || OptionsListUtils.getDefaultAvatar(login);
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,

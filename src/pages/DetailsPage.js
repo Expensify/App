@@ -20,7 +20,7 @@ import * as ReportUtils from '../libs/reportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
-import AttachmentModal from '../components/AttachmentModal';
+import PreviewAttachmentModal from '../components/PreviewAttachmentModal';
 import TouchableWithoutFocus from '../components/TouchableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 
@@ -100,7 +100,7 @@ const DetailsPage = (props) => {
                 {details ? (
                     <ScrollView>
                         <View style={styles.pageWrapper}>
-                            <AttachmentModal
+                            <PreviewAttachmentModal
                                 sourceURL={details.avatarHighResolution}
                                 isAuthTokenRequired
                                 displayName={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
@@ -118,7 +118,7 @@ const DetailsPage = (props) => {
                                         />
                                     </TouchableWithoutFocus>
                                 )}
-                            </AttachmentModal>
+                            </PreviewAttachmentModal>
                             {details.displayName && (
                                 <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
