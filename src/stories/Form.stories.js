@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
+import StatePicker from '../components/StatePicker';
 import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
@@ -97,6 +98,12 @@ const Template = (args) => {
                 ]}
                 isFormInput
             />
+            <StatePicker
+                inputID="pickState"
+                containerStyles={[styles.mt4]}
+                shouldSaveDraft
+                isFormInput
+            />
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
@@ -164,6 +171,9 @@ const defaultArgs = {
         if (!values.pickAnotherFruit) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
+        if (!values.pickState) {
+            errors.pickState = 'Please select a state';
+        }
         if (!values.checkbox) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
@@ -198,6 +208,7 @@ InputError.args = {
         accountNumber: '',
         pickFruit: '',
         pickAnotherFruit: '',
+        pickState: '',
         checkbox: false,
     },
 };

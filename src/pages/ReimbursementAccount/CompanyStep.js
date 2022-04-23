@@ -287,8 +287,9 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <StatePicker
                             label={this.props.translate('companyStep.incorporationState')}
-                            onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                            onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                             value={this.state.incorporationState}
+                            errorText={this.getErrorText('incorporationState')}
                             hasError={this.getErrors().incorporationState}
                         />
                     </View>
