@@ -45,7 +45,7 @@ const TestToolMenu = props => (
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Secure Staging Server">
             <Switch
-                isOn={props.user.shouldUseSecureStaging}
+                isOn={props.user.shouldUseSecureStaging || false}
                 onToggle={() => User.setShouldUseSecureStaging(!props.user.shouldUseSecureStaging)}
             />
         </TestToolRow>
@@ -53,7 +53,7 @@ const TestToolMenu = props => (
         {/* When toggled all network requests will fail. */}
         <TestToolRow title="Simulate failing network requests">
             <Switch
-                isOn={props.network.shouldFailAllRequests}
+                isOn={props.network.shouldFailAllRequests || false}
                 onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
             />
         </TestToolRow>
