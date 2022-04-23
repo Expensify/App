@@ -5,6 +5,12 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
+const REPORT_TYPE_CHAT = {
+    reportNameValuePairs: {
+        type: CONST.REPORT.TYPE.CHAT,
+    },
+};
+
 const currentUserEmail = 'bjorn@vikings.net';
 const participantsPersonalDetails = {
     'ragnar@vikings.net': {
@@ -95,18 +101,21 @@ describe('ReportUtils', () => {
         describe('1:1 DM', () => {
             test('with displayName', () => {
                 expect(ReportUtils.getReportName({
+                    ...REPORT_TYPE_CHAT,
                     participants: [currentUserEmail, 'ragnar@vikings.net'],
                 }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
             });
 
             test('no displayName', () => {
                 expect(ReportUtils.getReportName({
+                    ...REPORT_TYPE_CHAT,
                     participants: [currentUserEmail, 'floki@vikings.net'],
                 }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
             });
 
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
+                    ...REPORT_TYPE_CHAT,
                     participants: [currentUserEmail, '+12223334444@expensify.sms'],
                 }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
             });
@@ -114,12 +123,14 @@ describe('ReportUtils', () => {
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
+                ...REPORT_TYPE_CHAT,
                 participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
             }, participantsPersonalDetails)).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
         });
 
         describe('Default Policy Room', () => {
             const baseAdminsRoom = {
+                ...REPORT_TYPE_CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: 'admins',
             };
@@ -144,6 +155,7 @@ describe('ReportUtils', () => {
 
         describe('User-Created Policy Room', () => {
             const baseUserCreatedRoom = {
+                ...REPORT_TYPE_CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: 'VikingsChat',
             };
@@ -170,6 +182,7 @@ describe('ReportUtils', () => {
             describe('Active', () => {
                 test('as member', () => {
                     expect(ReportUtils.getReportName({
+                        ...REPORT_TYPE_CHAT,
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: true,
@@ -178,6 +191,7 @@ describe('ReportUtils', () => {
 
                 test('as admin', () => {
                     expect(ReportUtils.getReportName({
+                        ...REPORT_TYPE_CHAT,
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: false,
@@ -188,6 +202,7 @@ describe('ReportUtils', () => {
 
             describe('Archived', () => {
                 const baseArchivedPolicyExpenseChat = {
+                    ...REPORT_TYPE_CHAT,
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerEmail: 'ragnar@vikings.net',
                     policyID: policy.policyID,

@@ -443,23 +443,27 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {String}
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
-    let title;
+    if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
+        return report.reportName || '';
+    }
+
+    let formattedName;
     if (isChatRoom(report)) {
-        title = `#${report.reportName}`;
+        formattedName = `#${report.reportName}`;
     }
 
     if (isPolicyExpenseChat(report)) {
         const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.reportName;
-        title = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
     if (isArchivedRoom(report)) {
-        title += ` (${Localize.translateLocal('common.archived')})`;
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
-    if (title) {
-        return title;
+    if (formattedName) {
+        return formattedName;
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
