@@ -2491,6 +2491,10 @@ const styles = {
     closeAccountMessageInput: {
         height: 153,
     },
+
+    userSelectText: {
+        userSelect: 'text',
+    },
 };
 
 export default styles;
