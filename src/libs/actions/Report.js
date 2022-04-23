@@ -755,7 +755,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
@@ -883,7 +883,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 

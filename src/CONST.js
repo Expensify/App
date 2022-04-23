@@ -323,6 +323,8 @@ const CONST = {
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
         SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
         FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
