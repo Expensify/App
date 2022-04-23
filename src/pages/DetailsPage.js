@@ -21,7 +21,7 @@ import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import PreviewAttachmentModal from '../components/PreviewAttachmentModal';
-import TouchableWithoutFocus from '../components/TouchableWithoutFocus';
+import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 
 const matchType = PropTypes.shape({
@@ -107,7 +107,7 @@ const DetailsPage = (props) => {
                                 isProfilePicture
                             >
                                 {({show}) => (
-                                    <TouchableWithoutFocus
+                                    <PressableWithoutFocus
                                         style={styles.noOutline}
                                         onPress={show}
                                     >
@@ -116,7 +116,7 @@ const DetailsPage = (props) => {
                                             imageStyles={[styles.avatarLarge]}
                                             source={details.avatar}
                                         />
-                                    </TouchableWithoutFocus>
+                                    </PressableWithoutFocus>
                                 )}
                             </PreviewAttachmentModal>
                             {details.displayName && (
