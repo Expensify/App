@@ -42,8 +42,8 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Whether this is an IOU split and belongs to a group report */
-    isGroupSplit: PropTypes.bool.isRequired,
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -62,7 +62,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
-        isGroupSplit={props.isGroupSplit}
+        isIOUAttachedToExistingChatReport={props.isIOUAttachedToExistingChatReport}
     />
 );
 
