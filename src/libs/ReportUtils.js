@@ -445,7 +445,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let title;
     if (isChatRoom(report)) {
-        title = report.reportName;
+        title = `#${report.reportName}`;
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -463,13 +463,10 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    if (!_.has(report, 'participants')) {
-        return '';
-    }
-
+    const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? report.participants : personalDetailsForParticipants,
-        report.participants.length > 1,
+        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
+        participants.length > 1,
     );
     return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
