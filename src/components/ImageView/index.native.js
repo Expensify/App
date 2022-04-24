@@ -78,8 +78,8 @@ class ImageView extends PureComponent {
 
             // Resize small images to fit the screen. Else resize the smaller dimension to avoid resize issue on Android - https://github.com/Expensify/App/pull/7660#issuecomment-1071622163
             if (imageHeight < containerHeight && imageWidth < containerWidth) {
-                imageHeight *= aspectRatio;
-                imageWidth *= aspectRatio;
+                // imageHeight *= aspectRatio;
+                // imageWidth *= aspectRatio;
             } else if (imageHeight > imageWidth) {
                 imageHeight *= aspectRatio;
             } else {

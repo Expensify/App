@@ -48,12 +48,12 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
+        if (this.canUseTouchScreen) {
+            return;
+        }
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
@@ -129,22 +129,16 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
-        let width = imageWidth;
-        let height = imageHeight;
+        const width = imageWidth;
+        const height = imageHeight;
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
         // return if image not loaded yet
-        if (imageHeight <= 0 || containerHeight <= 0) {
+        if (imageHeight <= 0) {
             return;
         }
 
-        // Fit the image to container size if image small than container.
-        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
-        if (aspectRatio > 1) {
-            width *= (aspectRatio);
-            height *= (aspectRatio);
-        }
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
@@ -243,7 +237,9 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return (
                 <View
+                    ref={el => this.scrollableRef = el}
                     style={[styles.imageViewContainer, styles.overflowHidden]}
+                    onLayout={this.onContainerLayoutChanged}
                 >
                     <Image
                         source={{uri: this.props.url}}
@@ -251,7 +247,7 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]}
-                        resizeMode="contain"
+                        resizeMode={this.state.zoomScale >= 1 ? 'center' : 'contain'}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
