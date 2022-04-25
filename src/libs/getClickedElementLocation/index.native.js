@@ -6,8 +6,8 @@
  */
 function getClickedElementLocation(nativeEvent) {
     return {
-        bottom: nativeEvent.pageY - nativeEvent.locationY,
-        left: nativeEvent.pageX - nativeEvent.locationX,
+        bottom: nativeEvent.absolutePosition.y + nativeEvent.absolutePosition.height,
+        left: nativeEvent.absolutePosition.x,
     };
 }
 

@@ -41,43 +41,63 @@ const defaultProps = {
     interactive: true,
 };
 
-const MenuItem = props => (
-    <Pressable
-        onPress={(e) => {
-            if (props.disabled) {
-                return;
-            }
-
-            props.onPress(e);
-        }}
-        style={({hovered, pressed}) => ([
-            styles.popoverMenuItem,
-            StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
-            ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
-        ])}
-        disabled={props.disabled}
-    >
-        {({hovered, pressed}) => (
-            <>
-                <View style={[styles.flexRow, styles.pointerEventsNone]}>
-                    {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
-                        <View
-                            style={[
-                                styles.popoverMenuIcon,
-                                ...props.iconStyles,
-                            ]}
-                        >
-                            <Icon
-                                src={props.icon}
-                                width={props.iconWidth}
-                                height={props.iconHeight}
-                                fill={props.iconFill || StyleUtils.getIconFillColor(
-                                    getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
-                                )}
-                            />
-                        </View>
-                    )}
-                    {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
+const MenuItem = (props) => {
+    let position = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    };
+    return (
+        <Pressable
+            ref={(el) => {
+                if (el == null) {
+                    return;
+                }
+                el.measureInWindow((x, y, width, height) => {
+                    position = {
+                        x,
+                        y,
+                        width,
+                        height,
+                    };
+                });
+            }}
+            onPress={(e) => {
+                if (props.disabled) {
+                    return;
+                }
+                e.nativeEvent.absolutePosition = position;
+                props.onPress(e);
+            }}
+            style={({hovered, pressed}) => ([
+                styles.popoverMenuItem,
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+                ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
+            ])}
+            disabled={props.disabled}
+        >
+            {({hovered, pressed}) => (
+                <>
+                    <View style={[styles.flexRow, styles.pointerEventsNone]}>
+                        {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
+                            <View
+                                style={[
+                                    styles.popoverMenuIcon,
+                                    ...props.iconStyles,
+                                ]}
+                            >
+                                <Icon
+                                    src={props.icon}
+                                    width={props.iconWidth}
+                                    height={props.iconHeight}
+                                    fill={props.iconFill || StyleUtils.getIconFillColor(
+                                        getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                    )}
+                                />
+                            </View>
+                        )}
+                        {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
@@ -89,52 +109,53 @@ const MenuItem = props => (
                                 source={props.icon}
                             />
                         </View>
-                    )}
-                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text
-                            style={[
-                                styles.popoverMenuText,
-                                styles.ml3,
-                                (props.interactive && props.disabled ? styles.disabledText : undefined),
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {props.title}
-                        </Text>
-                        {props.description && (
-                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
-                                {props.description}
-                            </Text>
                         )}
-                    </View>
-                </View>
-                <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                    {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-
-                    {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                    {(props.subtitle || props.subtitle === 0) && (
-                        <View style={[styles.justifyContentCenter, styles.mr1]}>
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                             <Text
-                                style={styles.textLabelSupporting}
+                                style={[
+                                    styles.popoverMenuText,
+                                    styles.ml3,
+                                    (props.interactive && props.disabled ? styles.disabledText : undefined),
+                                ]}
+                                numberOfLines={1}
                             >
-                                {props.subtitle}
+                                {props.title}
                             </Text>
+                            {props.description && (
+                                <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                                    {props.description}
+                                </Text>
+                            )}
                         </View>
-                    )}
-                    {props.shouldShowRightIcon && (
-                        <View style={styles.popoverMenuIcon}>
-                            <Icon
-                                src={props.iconRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
-                            />
-                        </View>
-                    )}
-                    {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
-                </View>
-            </>
-        )}
-    </Pressable>
-);
+                    </View>
+                    <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                        {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
+
+                        {/* Since subtitle can be of type number, we should allow 0 to be shown */}
+                        {(props.subtitle || props.subtitle === 0) && (
+                            <View style={[styles.justifyContentCenter, styles.mr1]}>
+                                <Text
+                                    style={styles.textLabelSupporting}
+                                >
+                                    {props.subtitle}
+                                </Text>
+                            </View>
+                        )}
+                        {props.shouldShowRightIcon && (
+                            <View style={styles.popoverMenuIcon}>
+                                <Icon
+                                    src={props.iconRight}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
+                                />
+                            </View>
+                        )}
+                        {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
+                    </View>
+                </>
+            )}
+        </Pressable>
+    );
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
