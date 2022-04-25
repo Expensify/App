@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseForm from './BaseForm';
+import FormElement from '../FormElement';
 
 class Form extends React.Component {
     componentDidMount() {
@@ -16,7 +16,7 @@ class Form extends React.Component {
 
     render() {
         return (
-            <BaseForm
+            <FormElement
                 ref={el => this.form = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}

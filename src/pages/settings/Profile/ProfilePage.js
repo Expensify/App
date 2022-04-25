@@ -56,10 +56,13 @@ const defaultProps = {
     loginList: [],
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {

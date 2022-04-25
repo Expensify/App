@@ -324,6 +324,8 @@ const CONST = {
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
         SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
         FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
@@ -419,7 +421,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
 
-    COMPOSER_MAX_HEIGHT: 116,
+    COMPOSER_MAX_HEIGHT: 125,
 
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
@@ -679,6 +681,9 @@ const CONST = {
             this.EMAIL.ADMIN,
         ];
     },
+
+    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
+    MAX_COMMENT_LENGTH: 60_000,
 };
 
 export default CONST;
