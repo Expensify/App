@@ -8,10 +8,9 @@ import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 
 /**
- * This method will indirectly call API.reauthenticate() and is set up to avoid a circular dependency.
- * Calls made from the main queue and sequential queue can then each use the same reauthentication flow.
+ * Indirectly calls API.reauthenticate(). Calls made from the main queue and sequential queue can then each use the same reauthentication flow.
  *
- * This method will:
+ * Scenarios that can happen:
  *
  * 1. Throw a "missing credentials" error if the credentials we need to reauthenticate are not yet available or corrupted somehow.
  * 2. Resolve the original response from the request that returned jsonCode 407 (for non-retryable requests)
