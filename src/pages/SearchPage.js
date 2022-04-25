@@ -16,7 +16,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -91,18 +90,22 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        const sections = [
-            {
+        const sections = [];
+        if (this.state.recentReports.length > 0) {
+            sections.push(({
                 data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset: 0,
-            },
-            {
+            }));
+        }
+
+        if (this.state.personalDetails.length > 0) {
+            sections.push(({
                 data: this.state.personalDetails,
                 shouldShow: true,
                 indexOffset: this.state.recentReports.length,
-            },
-        ];
+            }));
+        }
 
         if (this.state.userToInvite) {
             sections.push(({
@@ -175,19 +178,17 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    sections={sections}
-                                    value={this.state.searchValue}
-                                    onSelectRow={this.selectReport}
-                                    onChangeText={this.onChangeText}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    showTitleTooltip
-                                />
-                            )}
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={this.onChangeText}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
+                                shouldShowOptions={didScreenTransitionEnd}
+                            />
                         </View>
                         <KeyboardSpacer />
                     </>

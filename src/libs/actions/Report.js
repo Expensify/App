@@ -22,7 +22,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -155,9 +154,19 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    // For a basic policy room or a Policy Expense chat, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType}) || ReportUtils.isPolicyExpenseChat({chatType})) {
+    // For a basic policy room, return its original name
+    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
         return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
+    }
+
+    if (ReportUtils.isPolicyExpenseChat({chatType})) {
+        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (${Localize.translateLocal('common.archived')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -183,7 +192,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
+    const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     let lastMessageText = null;
@@ -236,6 +245,7 @@ function getSimplifiedReportObject(report) {
         oldPolicyName,
         visibility,
         isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
+        lastMessageHtml: lastActionMessage,
     };
 }
 
@@ -629,7 +639,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
         loading: false,
     };
 
@@ -745,7 +755,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
@@ -797,8 +807,17 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.setDidTapNotification();
-        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        if (Navigation.canNavigate('navigate')) {
+            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                Navigation.goBack();
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        } else {
+            // Navigation container is not yet ready, use deeplinking to open to correct report instead
+            Navigation.setDidTapNotification();
+            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+        }
     });
 }
 
@@ -864,7 +883,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 
@@ -1062,9 +1081,10 @@ function fetchAllReports(
  * @param {File} [file]
  */
 function addAction(reportID, text, file) {
-    // Convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = parser.replace(text);
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 
@@ -1234,10 +1254,11 @@ function deleteReportComment(reportID, reportAction) {
  *
  * @param {Number} reportID
  * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ * @param {Boolean} [manuallyMarked] If the user manually marked this as unread, we need to tell the API
  *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
  *  is last read (meaning that the entire report history has been read)
  */
-function updateLastReadActionID(reportID, sequenceNumber) {
+function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false) {
     // If report data is loading, we can't update the last read sequence number because it is obsolete
     if (isReportDataLoading) {
         return;
@@ -1263,6 +1284,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     API.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
+        markAsUnread: manuallyMarked,
     });
 }
 
@@ -1506,11 +1528,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
-
-            // Make sure the report has its icons set
-            const report = allReports[reportID];
-            const icons = OptionsListUtils.getReportIcons(report, {});
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {

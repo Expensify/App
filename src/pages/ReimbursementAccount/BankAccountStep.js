@@ -302,7 +302,7 @@ class BankAccountStep extends React.Component {
                         <CheckboxWithLabel
                             style={styles.mt4}
                             isChecked={this.state.hasAcceptedTerms}
-                            onPress={this.toggleTerms}
+                            onInputChange={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     <Text>

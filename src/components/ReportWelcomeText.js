@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as Localize from '../libs/Localize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -91,7 +90,7 @@ const ReportWelcomeText = (props) => {
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                     </Text>
                     <Text style={[styles.textStrong]}>
-                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
+                        {ReportUtils.getPolicyName(props.report, props.policies)}
                     </Text>
                     <Text>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
