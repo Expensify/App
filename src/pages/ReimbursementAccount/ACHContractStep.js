@@ -185,7 +185,7 @@ class ACHContractStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2]}
                         isChecked={this.state.ownsMoreThan25Percent}
-                        onPress={() => this.toggleCheckbox('ownsMoreThan25Percent')}
+                        onInputChange={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
@@ -196,7 +196,7 @@ class ACHContractStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2]}
                         isChecked={this.state.hasOtherBeneficialOwners}
-                        onPress={() => {
+                        onInputChange={() => {
                             this.setState((prevState) => {
                                 const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
                                 const newState = {
@@ -259,7 +259,7 @@ class ACHContractStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mt4]}
                         isChecked={this.state.acceptTermsAndConditions}
-                        onPress={() => this.toggleCheckbox('acceptTermsAndConditions')}
+                        onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
@@ -274,7 +274,7 @@ class ACHContractStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mt4]}
                         isChecked={this.state.certifyTrueInformation}
-                        onPress={() => this.toggleCheckbox('certifyTrueInformation')}
+                        onInputChange={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
