@@ -22,7 +22,7 @@ class Datepicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: props.value ? moment(props.value).toDate() : new Date(),
+            selectedDate: props.defaultValue ? moment(props.defaultValue).toDate() : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -66,12 +66,12 @@ class Datepicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const dateAsText = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <>
                 <TextInput
                     label={this.props.label}
-                    value={dateAsText}
+                    defaultValue={dateAsText}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
