@@ -24,6 +24,7 @@ class BasePicker extends React.Component {
     }
 
     executeOnCloseAndOnBlur() {
+        // Picker's onClose is not executed on Web and Desktop, so props.onClose has to be called with onBlur callback.
         this.props.onClose();
 
         if (this.props.onBlur) {
