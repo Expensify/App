@@ -278,7 +278,7 @@ class CompanyStep extends React.Component {
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
                             onInputChange={this.clearDateErrorsAndSetValue}
-                            value={this.state.incorporationDate}
+                            defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                             maximumDate={new Date()}
