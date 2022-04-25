@@ -249,7 +249,6 @@ class DebitCardPage extends Component {
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                         value={this.state.expirationDate}
-                                        maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                         onChangeText={this.addOrRemoveSlashToExpiryDate}
