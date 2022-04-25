@@ -228,11 +228,10 @@ function createOption(logins, personalDetails, report, {
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (isPolicyExpenseChat && isArchivedRoom) {
-        const reportClosedAction = ReportActions.getLastAction(report.reportID);
-        const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        const archiveReason = lodashGet(ReportActions.getLastAction(report.reportID), 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: `<strong>${lastActorDetails.displayName}</strong>`,
-            policyName: `<strong>${ReportUtils.getPolicyName(report, policies)}</strong>`,
+            displayName: lastActorDetails.displayName,
+            policyName: ReportUtils.getPolicyName(report, policies),
         });
     }
 
