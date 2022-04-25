@@ -23,6 +23,7 @@ const story = {
         AddressSearch,
         CheckboxWithLabel,
         Picker,
+        StatePicker,
     },
 };
 
@@ -98,11 +99,13 @@ const Template = (args) => {
                 ]}
                 isFormInput
             />
-            <StatePicker
-                inputID="pickState"
-                shouldSaveDraft
-                isFormInput
-            />
+            <View style={styles.mt4}>
+                <StatePicker
+                    inputID="pickState"
+                    shouldSaveDraft
+                    isFormInput
+                />
+            </View>
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}

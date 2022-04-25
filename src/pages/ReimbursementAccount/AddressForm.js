@@ -70,7 +70,7 @@ const AddressForm = props => (
             <View style={[styles.flex1]}>
                 <StatePicker
                     value={props.values.state}
-                    onChange={value => props.onFieldChange({state: value})}
+                    onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
             </View>

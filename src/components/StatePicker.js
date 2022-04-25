@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React,{forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {CONST} from 'expensify-common/lib/CONST';
 import Picker from './Picker';
@@ -31,7 +31,7 @@ const propTypes = {
     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
     */
     inputID: props => FormUtils.validateInputIDProps(props),
-    
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
@@ -40,7 +40,7 @@ const propTypes = {
 
     /** Error text to display */
     errorText: PropTypes.string,
-   
+
     ...withLocalizePropTypes,
 };
 
@@ -49,11 +49,15 @@ const defaultProps = {
     value: undefined,
     errorText: '',
     shouldSaveDraft: false,
+    isFormInput: false,
+    inputID: undefined,
+    onBlur: () => {},
 };
 
 const StatePicker = forwardRef((props, ref) => (
     <Picker
         ref={ref}
+        inputID={props.inputID}
         placeholder={{value: '', label: '-'}}
         items={STATES}
         onInputChange={props.onInputChange}
