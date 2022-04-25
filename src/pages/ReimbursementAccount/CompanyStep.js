@@ -290,7 +290,6 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                             value={this.state.incorporationState}
                             errorText={this.getErrorText('incorporationState')}
-                            hasError={this.getErrors().incorporationState}
                         />
                     </View>
                     <CheckboxWithLabel
