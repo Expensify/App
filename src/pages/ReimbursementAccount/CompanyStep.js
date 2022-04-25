@@ -142,7 +142,7 @@ class CompanyStep extends React.Component {
             errors.website = true;
         }
 
-        if (!/^\d{9}$/.test(this.state.companyTaxID.replace(/\D/g,''))) {
+        if (!/^\d{9}$/.test(this.state.companyTaxID.replace(/\D/g, ''))) {
             errors.companyTaxID = true;
         }
 
@@ -176,7 +176,7 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(/\D/g,'')});
+        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(/\D/g, '')});
     }
 
     render() {
