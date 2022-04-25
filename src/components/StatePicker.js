@@ -15,7 +15,7 @@ const propTypes = {
     /** The label for the field */
     label: PropTypes.string,
 
-    /** A callback method that is called when the value changes and it received the selected value as an argument */
+    /** A callback method that is called when the value changes and it receives the selected value as an argument. */
     onInputChange: PropTypes.func.isRequired,
 
     /** The value that needs to be selected */
