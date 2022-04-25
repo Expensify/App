@@ -189,6 +189,7 @@ function getChatReportName(fullReport, chatType, oldPolicyName) {
 function getSimplifiedReportObject(report) {
     const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const lastActionType = lodashGet(report, ['lastActionType'], '');
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -228,6 +229,7 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
+        lastActionType,
         lastVisitedTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
