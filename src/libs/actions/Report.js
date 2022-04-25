@@ -755,7 +755,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
@@ -883,7 +883,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 
@@ -1081,9 +1081,10 @@ function fetchAllReports(
  * @param {File} [file]
  */
 function addAction(reportID, text, file) {
-    // Convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = parser.replace(text);
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 

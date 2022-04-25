@@ -223,7 +223,10 @@ function getRoomWelcomeMessage(report, policiesMap) {
     const welcomeMessage = {};
     const workspaceName = getPolicyName(report, policiesMap);
 
-    if (isAdminRoom(report)) {
+    if (isArchivedRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAnnounceRoom(report)) {
