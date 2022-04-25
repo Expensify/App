@@ -50,11 +50,11 @@ class Datepicker extends React.Component {
 
     /**
      * Accept the current spinner changes, close the spinner and propagate the change
-     * to the parent component (props.onChange)
+     * to the parent component (props.onInputChange)
      */
     selectDate() {
         this.setState({isPickerVisible: false});
-        this.props.onChange(this.state.selectedDate);
+        this.props.onInputChange(this.state.selectedDate);
     }
 
     /**
