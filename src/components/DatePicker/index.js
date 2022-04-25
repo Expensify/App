@@ -1,5 +1,6 @@
 import React from 'react';
 import moment from 'moment';
+import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';

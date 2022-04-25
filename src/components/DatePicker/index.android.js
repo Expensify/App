@@ -1,6 +1,7 @@
 import React from 'react';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
