@@ -6,7 +6,7 @@ import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 
-class DatePicker extends React.Component {
+class Datepicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -20,14 +20,6 @@ class DatePicker extends React.Component {
 
     /**
      * @param {Event} event
-     */
-    showPicker(event) {
-        this.setState({isPickerVisible: true});
-        event.preventDefault();
-    }
-
-    /**
-     * @param {Event} event
      * @param {Date} selectedDate
      */
     setDate(event, selectedDate) {
@@ -36,6 +28,14 @@ class DatePicker extends React.Component {
         }
 
         this.setState({isPickerVisible: false});
+    }
+
+    /**
+     * @param {Event} event
+     */
+    showPicker(event) {
+        this.setState({isPickerVisible: true});
+        event.preventDefault();
     }
 
     render() {
@@ -57,7 +57,7 @@ class DatePicker extends React.Component {
                         if (!this.props.innerRef) {
                             return;
                         }
-    
+
                         if (_.isFunction(this.props.innerRef)) {
                             this.props.innerRef(input);
                         }
@@ -76,8 +76,8 @@ class DatePicker extends React.Component {
     }
 }
 
-DatePicker.propTypes = propTypes;
-DatePicker.defaultProps = defaultProps;
+Datepicker.propTypes = propTypes;
+Datepicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */

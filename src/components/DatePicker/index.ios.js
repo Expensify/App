@@ -84,7 +84,7 @@ class Datepicker extends React.Component {
                         if (!this.props.innerRef) {
                             return;
                         }
-    
+
                         if (_.isFunction(this.props.innerRef)) {
                             this.props.innerRef(input);
                         }
