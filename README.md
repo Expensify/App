@@ -160,7 +160,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 ```js
 function signIn(password, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.Authenticate({
+    Authentication.Authenticate({
         ...defaultParams,
         password,
         twoFactorAuthCode,
