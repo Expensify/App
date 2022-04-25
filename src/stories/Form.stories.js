@@ -167,7 +167,7 @@ const defaultArgs = {
             errors.accountNumber = 'Please enter an account number';
         }
         if (!values.dob) {
-            errors.accountNumber = 'Please enter your date of birth';
+            errors.dob = 'Please enter your date of birth';
         }
         if (!values.pickFruit) {
             errors.pickFruit = 'Please select a fruit';
