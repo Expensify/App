@@ -119,8 +119,7 @@ class CompanyStep extends React.Component {
      * @param {String} value
      */
     clearDateErrorsAndSetValue(value) {
-        this.clearError('incorporationDate');
-        this.clearError('incorporationDateFuture');
+        this.clearErrors(['incorporationDate', 'incorporationDateFuture']);
         this.setValue({incorporationDate: value});
     }
 
