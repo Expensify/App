@@ -75,7 +75,6 @@ class Datepicker extends React.Component {
                 onInputChange={this.setDate}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
-                hasError={this.props.hasError}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
                 disabled={this.props.disabled}
