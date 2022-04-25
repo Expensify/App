@@ -69,7 +69,16 @@ class Datepicker extends React.Component {
         return (
             <TextInput
                 forceActiveLabel={!canUseTouchScreen()}
-                ref={input => this.inputRef = input}
+                ref={(input) => {
+                    this.inputRef = input;
+                    if (!this.props.innerRef) {
+                        return;
+                    }
+
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(input);
+                    }
+                }}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onInputChange={this.setDate}
@@ -86,4 +95,7 @@ class Datepicker extends React.Component {
 Datepicker.propTypes = datePickerPropTypes;
 Datepicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(Datepicker);
+export default withWindowDimensions(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <Datepicker {...props} innerRef={ref} />
+)));

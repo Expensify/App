@@ -51,6 +51,15 @@ class DatePicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
+                    ref={(input) => {
+                        if (!this.props.innerRef) {
+                            return;
+                        }
+    
+                        if (_.isFunction(this.props.innerRef)) {
+                            this.props.innerRef(input);
+                        }
+                    }}
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
@@ -68,4 +77,7 @@ class DatePicker extends React.Component {
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default DatePicker;
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <Datepicker {...props} innerRef={ref} />
+));
