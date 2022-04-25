@@ -93,7 +93,7 @@ const IdentityForm = (props) => {
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
                 value={props.values.dob}
-                onChange={value => props.onFieldChange({dob: value})}
+                onInputChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
                 maximumDate={new Date()}
             />
