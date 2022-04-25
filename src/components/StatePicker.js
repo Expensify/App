@@ -46,7 +46,7 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
-    value: '',
+    value: undefined,
     errorText: '',
     shouldSaveDraft: false,
 };
@@ -59,10 +59,8 @@ const StatePicker = forwardRef((props, ref) => (
         onInputChange={props.onInputChange}
         value={props.value}
         label={props.label || props.translate('common.state')}
-        hasError={props.hasError}
         errorText={props.errorText}
         onBlur={props.onBlur}
-        containerStyles={props.containerStyles}
         isFormInput={props.isFormInput}
         shouldSaveDraft={props.shouldSaveDraft}
     />

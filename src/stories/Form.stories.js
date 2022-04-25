@@ -100,7 +100,6 @@ const Template = (args) => {
             />
             <StatePicker
                 inputID="pickState"
-                containerStyles={[styles.mt4]}
                 shouldSaveDraft
                 isFormInput
             />
