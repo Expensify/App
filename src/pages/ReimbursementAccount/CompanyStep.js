@@ -262,7 +262,6 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <Picker

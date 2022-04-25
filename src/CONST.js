@@ -86,7 +86,6 @@ const CONST = {
             PENDING: 'PENDING',
         },
         MAX_LENGTH: {
-            TAX_ID_NUMBER: 9,
             SSN: 4,
             ZIP_CODE: 5,
         },
