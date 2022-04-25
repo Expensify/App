@@ -62,7 +62,6 @@ class Datepicker extends React.Component {
      * @param {Date} selectedDate
      */
     updateLocalDate(event, selectedDate) {
-        this.props.onInputChange(selectedDate);
         this.setState({selectedDate});
     }
 
@@ -80,13 +79,14 @@ class Datepicker extends React.Component {
                     editable={false}
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
-                    ref={(input) => {
+                    ref={(el) => {
+                        this.textInput = el;
                         if (!this.props.innerRef) {
                             return;
                         }
 
                         if (_.isFunction(this.props.innerRef)) {
-                            this.props.innerRef(input);
+                            this.props.innerRef(el);
                         }
                     }}
                 />

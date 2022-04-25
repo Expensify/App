@@ -70,14 +70,14 @@ class Datepicker extends React.Component {
         return (
             <TextInput
                 forceActiveLabel={!canUseTouchScreen()}
-                ref={(input) => {
-                    this.inputRef = input;
+                ref={(el) => {
+                    this.inputRef = el;
                     if (!this.props.innerRef) {
                         return;
                     }
 
                     if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(input);
+                        this.props.innerRef(el);
                     }
                 }}
                 onFocus={this.showDatepicker}
