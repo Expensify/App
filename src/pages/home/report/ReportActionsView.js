@@ -39,6 +39,7 @@ import {withPersonalDetails} from '../../../components/OnyxProvider';
 import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -79,6 +80,9 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Information about the network */
+    network: networkPropTypes,
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -95,6 +99,7 @@ const defaultProps = {
     isLoadingReportActions: false,
     isLoadingReportData: false,
     personalDetails: {},
+    network: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -150,7 +155,7 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
-        Report.fetchActions(this.props.reportID);
+        this.fetchData();
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
         this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
@@ -167,6 +172,10 @@ class ReportActionsView extends React.Component {
 
         // If the new marker has changed places, update the component.
         if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
+            return true;
+        }
+
+        if (nextProps.network.isOffline !== this.props.network.isOffline) {
             return true;
         }
 
@@ -202,6 +211,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
+
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
         if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
@@ -291,6 +304,10 @@ class ReportActionsView extends React.Component {
      */
     keyExtractor(item) {
         return `${item.action.sequenceNumber}${item.action.clientID}`;
+    }
+
+    fetchData() {
+        Report.fetchActions(this.props.reportID);
     }
 
     /**
@@ -618,6 +635,10 @@ export default compose(
         },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
+            initWithStoredValues: false,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
             initWithStoredValues: false,
         },
     }),

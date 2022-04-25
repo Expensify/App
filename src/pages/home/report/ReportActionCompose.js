@@ -44,6 +44,7 @@ import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -87,10 +88,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({

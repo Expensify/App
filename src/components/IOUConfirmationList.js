@@ -20,6 +20,7 @@ import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -93,10 +94,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes,
 
     /** Current user session */
     session: PropTypes.shape({

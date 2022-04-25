@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -43,6 +42,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -80,10 +80,7 @@ const modalScreenListeners = {
 
 const propTypes = {
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes,
 
     ...windowDimensionsPropTypes,
 };
