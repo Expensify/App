@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
+import * as ReportActions from './actions/ReportActions';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -221,10 +222,19 @@ function createOption(logins, personalDetails, report, {
     const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && !isArchivedRoom && hasMultipleParticipants && lastActorDetails
+    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
+
+    if (isPolicyExpenseChat && isArchivedRoom) {
+        const reportClosedAction = ReportActions.getLastAction(report.reportID);
+        const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+            displayName: `<strong>${lastActorDetails.displayName}</strong>`,
+            policyName: `<strong>${ReportUtils.getPolicyName(report, policies)}</strong>`,
+        });
+    }
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
