@@ -11,6 +11,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
 import * as Expensicons from './Icon/Expensicons';
+import colors from '../styles/colors';
 
 const propTypes = {
     /** The text for the button label */
@@ -103,7 +104,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: '#fff',
+    iconFill: colors.white,
     iconStyles: [],
     isLoading: false,
     isDisabled: false,
