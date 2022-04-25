@@ -163,7 +163,7 @@ const OptionRow = (props) => {
                             {
                                 !_.isEmpty(props.option.icons)
                                 && (
-                                    props.option.shouldShowSubscript ? (
+                                    props.option.shouldShowSubscript && props.option.icons.length > 1 ? (
                                         <SubscriptAvatar
                                             mainAvatar={props.option.icons[0]}
                                             secondaryAvatar={props.option.icons[1]}

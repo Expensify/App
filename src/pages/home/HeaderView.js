@@ -136,7 +136,7 @@ const HeaderView = (props) => {
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            {shouldShowSubscript ? (
+                            {shouldShowSubscript && icons.length > 1 ? (
                                 <SubscriptAvatar
                                     mainAvatar={icons[0]}
                                     secondaryAvatar={icons[1]}
