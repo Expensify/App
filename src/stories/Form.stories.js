@@ -26,8 +26,6 @@ const story = {
 };
 
 const Template = (args) => {
-    const [isChecked, setIsChecked] = useState(args.draftValues.checkbox);
-
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
@@ -101,10 +99,7 @@ const Template = (args) => {
             />
             <CheckboxWithLabel
                 inputID="checkbox"
-                isChecked={isChecked}
-                defaultValue={isChecked}
                 style={[styles.mb4, styles.mt5]}
-                onPress={() => { setIsChecked(prev => !prev); }}
                 isFormInput
                 shouldSaveDraft
                 LabelComponent={() => (

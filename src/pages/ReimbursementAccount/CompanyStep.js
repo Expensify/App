@@ -294,7 +294,7 @@ class CompanyStep extends React.Component {
                     </View>
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
-                        onPress={() => {
+                        onInputChange={() => {
                             this.setState((prevState) => {
                                 const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
                                 BankAccounts.updateReimbursementAccountDraft(newState);
