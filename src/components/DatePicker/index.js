@@ -16,7 +16,7 @@ class Datepicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.setDate = this.setDate.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
 
         /* We're using uncontrolled input otherwise it wont be possible to
@@ -40,15 +40,15 @@ class Datepicker extends React.Component {
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text
      */
-    raiseDateChange(text) {
+    setDate(text) {
         if (!text) {
-            this.props.onChange(null);
+            this.props.onInputChange(null);
             return;
         }
 
         const asMoment = moment(text);
         if (asMoment.isValid()) {
-            this.props.onChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     }
 
@@ -72,7 +72,7 @@ class Datepicker extends React.Component {
                 ref={input => this.inputRef = input}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
-                onChangeText={this.raiseDateChange}
+                onInputChange={this.setDate}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 hasError={this.props.hasError}

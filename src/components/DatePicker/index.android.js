@@ -14,7 +14,7 @@ class DatePicker extends React.Component {
         };
 
         this.showPicker = this.showPicker.bind(this);
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.setDate = this.setDate.bind(this);
     }
 
     /**
@@ -29,9 +29,9 @@ class DatePicker extends React.Component {
      * @param {Event} event
      * @param {Date} selectedDate
      */
-    raiseDateChange(event, selectedDate) {
+    setDate(event, selectedDate) {
         if (event.type === 'set') {
-            this.props.onChange(selectedDate);
+            this.props.onInputChange(selectedDate);
         }
 
         this.setState({isPickerVisible: false});
@@ -57,7 +57,7 @@ class DatePicker extends React.Component {
                     <RNDatePicker
                         value={this.props.value ? moment(this.props.value).toDate() : new Date()}
                         mode="date"
-                        onChange={this.raiseDateChange}
+                        onChange={this.setDate}
                         maximumDate={this.props.maximumDate}
                     />
                 )}

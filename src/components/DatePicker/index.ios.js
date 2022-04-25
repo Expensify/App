@@ -61,6 +61,7 @@ class Datepicker extends React.Component {
      * @param {Date} selectedDate
      */
     updateLocalDate(event, selectedDate) {
+        this.props.onInputChange(selectedDate);
         this.setState({selectedDate});
     }
 
