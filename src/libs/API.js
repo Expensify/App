@@ -96,6 +96,9 @@ function Authenticate(parameters) {
  * @returns {Promise}
  */
 function reauthenticate(command = '') {
+    // Prevent any more requests from being processed while authentication happens
+    NetworkStore.setIsAuthenticating(true);
+
     const credentials = NetworkStore.getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
@@ -148,10 +151,6 @@ function reauthenticate(command = '') {
 
 // When an authToken expires we handle it from inside API so we can access the reauthenticate method
 NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
-    // Prevent any more requests from being processed while authentication happens
-    NetworkStore.setIsAuthenticating(true);
-
-    // eslint-disable-next-line no-use-before-define
     reauthenticate(commandName)
         .then(onSuccess)
         .catch(onFailure);
