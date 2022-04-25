@@ -57,15 +57,14 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @returns {Object}
  */
 function getWrapperWidth(maxWidth, tooltipTextWidth) {
-    if (!tooltipTextWidth || tooltipTextWidth >= maxWidth) {
-        return {maxWidth};
+    if (tooltipTextWidth && tooltipTextWidth < maxWidth) {
+        return {
+            // Add horizontal padding to the text width to get the wrapper width.
+            // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
+            width: tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1,
+        };
     }
-
-    // Add horizontal padding to the text width to get the wrapper width.
-    // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    return {
-        maxWidth: tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1,
-    };
+    return {width: maxWidth};
 }
 
 /**
