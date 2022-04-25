@@ -120,7 +120,10 @@ function recheckNetworkConnection() {
 
     Log.info('[NetworkConnection] recheck NetInfo');
     hasPendingNetworkCheck = true;
-    unsubscribeFromNetInfo();
+
+    if (unsubscribeFromNetInfo) {
+        unsubscribeFromNetInfo();
+    }
     subscribeToNetInfo();
 }
 
