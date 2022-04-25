@@ -64,11 +64,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidMount() {
-        // Is unneccesary to get new wrapper width if text is not longer enough to fit more than one line
-        if (this.textRef.getClientRects().length <= 1) {
-            return;
-        }
-
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
         });
