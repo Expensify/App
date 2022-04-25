@@ -90,6 +90,15 @@ function removeAllPersistableRequestsFromMainQueue() {
 }
 
 /**
+ * @param {Object} request
+ */
+function replayRequest(request) {
+    networkRequestQueue.push(request);
+    // eslint-disable-next-line no-use-before-define
+    processNetworkRequestQueue();
+}
+
+/**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
@@ -129,18 +138,16 @@ function processNetworkRequestQueue() {
             .then((response) => {
                 if (response.jsonCode === CONST.JSON_CODE.REAUTHENTICATED) {
                     // Replay the original request with new authToken as we are now authenticated
-                    networkRequestQueue.push(queuedRequest);
-                    processNetworkRequestQueue();
+                    replayRequest(queuedRequest);
                     return;
                 }
 
                 queuedRequest.resolve(response);
             })
             .catch((error) => {
-                if (error.message === CONST.ERROR.UNABLE_TO_REAUTHENTICATE || error.message === CONST.ERROR.ALREADY_AUTHENTICATING) {
-                    // Replay the original request when we are not able to reauthenticate for a networking reason or we are already authenticating
-                    networkRequestQueue.push(queuedRequest);
-                    processNetworkRequestQueue();
+                if (_.contains([CONST.ERROR.MISSING_CREDENTIALS, CONST.ERROR.UNABLE_TO_REAUTHENTICATE, CONST.ERROR.ALREADY_AUTHENTICATING], error.message)) {
+                    // Replay the original request when we are not able to reauthenticate
+                    replayRequest(queuedRequest);
                     return;
                 }
 

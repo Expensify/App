@@ -17,7 +17,8 @@ let isSequentialQueueRunning = false;
 function makeSequentialRequest(request) {
     return processRequest(request)
         .then((response) => {
-            // We successfully reauthenticated replay the original request
+            // When a request requires reauthentication and successfully reauthenticates we will see a special jsonCode.
+            // This tells us that we need to replay the original request again with the updated authToken.
             if (response.jsonCode === CONST.JSON_CODE.REAUTHENTICATED) {
                 return makeSequentialRequest(request);
             }
@@ -25,7 +26,9 @@ function makeSequentialRequest(request) {
             PersistedRequests.remove(request);
         })
         .catch((error) => {
-            // This should not happen since the sequential queue makes blocking calls to Authenticate
+            // If we already have an authenticate call running and we reach this code something is wrong because the sequential queue
+            // makes blocking calls to authenticate. When one request requires re-authentication we will re-authenticate and complete that request
+            // before making the next.
             if (error === CONST.ERROR.ALREADY_AUTHENTICATING) {
                 NetworkEvents.getLogger().alert('Failed to process sequential queue request because we are already authenticating');
                 return;
