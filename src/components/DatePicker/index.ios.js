@@ -78,6 +78,7 @@ class Datepicker extends React.Component {
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
+                    onBlur={this.props.onBlur}
                     ref={(input) => {
                         if (!this.props.innerRef) {
                             return;
