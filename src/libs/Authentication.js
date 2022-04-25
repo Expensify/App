@@ -150,7 +150,24 @@ NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
         .catch(onFailure);
 });
 
+/**
+ * Reauthentication middleware
+ *
+ * @param {Promise} requestPromise
+ * @returns {Promise}
+ */
+function reauthenticateAndRetry(requestPromise) {
+    return requestPromise
+        .then((response) => {
+            return response;
+        })
+        .catch((error) => {
+            throw error;
+        });
+}
+
 export {
     reauthenticate,
     Authenticate,
+    reauthenticateAndRetry,
 };
