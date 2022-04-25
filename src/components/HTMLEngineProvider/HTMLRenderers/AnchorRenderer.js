@@ -8,9 +8,11 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
 import Text from '../../Text';
 import CONST from '../../../CONST';
+import CONFIG from '../../../CONFIG';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
+import * as Link from '../../../libs/actions/Link';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -22,14 +24,15 @@ const AnchorRenderer = (props) => {
     const attrHref = htmlAttribs.href || '';
     const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+    const oldDotPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (internalExpensifyPath) {
+    if (internalExpensifyPath || oldDotPath) {
         return (
             <Text
                 style={styles.link}
-                onPress={() => Navigation.navigate(internalExpensifyPath)}
+                onPress={() => (internalExpensifyPath ? Navigation.navigate(internalExpensifyPath) : Link.openOldDotLink(oldDotPath))}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
