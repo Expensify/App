@@ -268,7 +268,7 @@ class CompanyStep extends React.Component {
                         <Picker
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
-                            onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
+                            onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
                             hasError={this.getErrors().incorporationType}

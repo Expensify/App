@@ -255,19 +255,14 @@ function signIn(password, twoFactorAuthCode) {
 /**
  * Uses a short lived authToken to continue a user's session from OldDot
  *
- * @param {String} accountID
  * @param {String} email
  * @param {String} shortLivedToken
  * @param {String} exitTo
  */
-function signInWithShortLivedToken(accountID, email, shortLivedToken) {
+function signInWithShortLivedToken(email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     createTemporaryLogin(shortLivedToken, email).then((response) => {
-        Onyx.merge(ONYXKEYS.SESSION, {
-            accountID,
-            email,
-        });
         if (response.jsonCode === 200) {
             User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});

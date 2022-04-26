@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
+import Picker from '../components/Picker';
 import AddressSearch from '../components/AddressSearch';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
@@ -16,7 +17,12 @@ import Text from '../components/Text';
 const story = {
     title: 'Components/Form',
     component: Form,
-    subcomponents: {TextInput, AddressSearch, CheckboxWithLabel},
+    subcomponents: {
+        TextInput,
+        AddressSearch,
+        CheckboxWithLabel,
+        Picker,
+    },
 };
 
 const Template = (args) => {
@@ -48,6 +54,49 @@ const Template = (args) => {
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
+                isFormInput
+            />
+            <View>
+                <Picker
+                    label="Fruit"
+                    inputID="pickFruit"
+                    containerStyles={[styles.mt4]}
+                    shouldSaveDraft
+                    items={[
+                        {
+                            label: 'Select a Fruit',
+                            value: '',
+                        },
+                        {
+                            label: 'Orange',
+                            value: 'orange',
+                        },
+                        {
+                            label: 'Apple',
+                            value: 'apple',
+                        },
+                    ]}
+                    isFormInput
+                />
+            </View>
+            <Picker
+                label="Another Fruit"
+                inputID="pickAnotherFruit"
+                containerStyles={[styles.mt4]}
+                items={[
+                    {
+                        label: 'Select a Fruit',
+                        value: '',
+                    },
+                    {
+                        label: 'Orange',
+                        value: 'orange',
+                    },
+                    {
+                        label: 'Apple',
+                        value: 'apple',
+                    },
+                ]}
                 isFormInput
             />
             <CheckboxWithLabel
@@ -114,6 +163,12 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.pickFruit) {
+            errors.pickFruit = 'Please select a fruit';
+        }
+        if (!values.pickAnotherFruit) {
+            errors.pickAnotherFruit = 'Please select a fruit';
+        }
         if (!values.checkbox) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
@@ -132,6 +187,8 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        pickFruit: 'orange',
+        pickAnotherFruit: 'apple',
         checkbox: false,
     },
 };
@@ -139,7 +196,17 @@ const defaultArgs = {
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
 ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
-InputError.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: '', checkbox: false}};
+InputError.args = {
+    ...defaultArgs,
+    draftValues: {
+        routingNumber: '',
+        accountNumber: '',
+        pickFruit: '',
+        pickAnotherFruit: '',
+        checkbox: false,
+    },
+};
+
 WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;

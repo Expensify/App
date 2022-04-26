@@ -181,7 +181,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                 items={this.unitItems}
                                 value={this.state.unitValue}
-                                onChange={value => this.setUnit(value)}
+                                onInputChange={value => this.setUnit(value)}
                             />
                         </View>
                     </View>

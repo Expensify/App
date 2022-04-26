@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            This issue either has unchecked QA steps or has not yet been marked with the `:shipit:` emoji of approval.
+            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
             Reopening!
 
   # Update the production branch to trigger the production deploy.

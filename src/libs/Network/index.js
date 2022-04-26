@@ -9,6 +9,7 @@ import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as PersistedRequestsQueue from './PersistedRequestsQueue';
 import processRequest from './processRequest';
+import {version} from '../../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -181,6 +182,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             ...data,
             shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
+            appversion: version,
         };
 
         // Add the request to a queue of actions to perform
