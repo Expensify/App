@@ -7,10 +7,18 @@ import * as Network from './Network';
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
-// Setup API middlewares
+// Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
+
+// Logging - Logs request details and errors.
 Request.use(Middleware.Logging);
+
+// Recheck - Sets a timeout timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
 Request.use(Middleware.Recheck);
+
+// Reauthentication - Handles jsonCode 407 which indicates and expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 Request.use(Middleware.Reauthentication);
+
+// Retry - Handles retrying any failed requests.
 Request.use(Middleware.Retry);
 
 /**

@@ -34,7 +34,14 @@ function logRequestDetails(message, request, response = {}) {
     Log.info(message, false, logParams);
 }
 
-export default (response, request) => {
+/**
+ * Logging middleware
+ *
+ * @param {Promise} response
+ * @param {Object} request
+ * @returns {Promise}
+ */
+function Logging(response, request) {
     logRequestDetails('Making API request', request);
     return response
         .then((data) => {
@@ -97,4 +104,6 @@ export default (response, request) => {
 
             throw new Error(CONST.ERROR.XHR_FAILED);
         });
-};
+}
+
+export default Logging;

@@ -10,7 +10,11 @@ function startRecheckTimeoutTimer() {
     return () => clearTimeout(timerID);
 }
 
-export default (response) => {
+/**
+ * @param {Promise} response
+ * @returns {Promise}
+ */
+function Recheck(response) {
     // When the request goes past a certain amount of time we trigger a re-check of the connection
     const cancelRequestTimeoutTimer = startRecheckTimeoutTimer();
     return response
@@ -20,4 +24,6 @@ export default (response) => {
             throw error;
         })
         .finally(() => cancelRequestTimeoutTimer());
-};
+}
+
+export default Recheck;

@@ -14,7 +14,7 @@ import * as Request from '../Request';
  * @param {Boolean} isFromSequentialQueue
  * @returns {Promise}
  */
-export default function (response, request, isFromSequentialQueue) {
+function Reauthentication(response, request, isFromSequentialQueue) {
     return response
         .then((data) => {
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
@@ -82,3 +82,5 @@ export default function (response, request, isFromSequentialQueue) {
             request.resolve(data);
         });
 }
+
+export default Reauthentication;
