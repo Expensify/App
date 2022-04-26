@@ -16,6 +16,8 @@ import * as Session from '../../src/libs/actions/Session';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import Log from '../../src/libs/Log';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as MainQueue from '../../src/libs/Network/MainQueue';
+import * as AuthenticationUtils from '../../src/libs/AuthenticationUtils';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -35,7 +37,7 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     HttpUtils.xhr = originalXHR;
     PersistedRequests.clear();
-    Network.clearRequestQueue();
+    MainQueue.clear();
     return Onyx.clear().then(waitForPromisesToResolve);
 });
 
@@ -271,7 +273,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
         expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(true);
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
-        // When we run processNetworkRequestQueue in the setInterval of Network.js
+        // When we run MainQueue.process() in the setInterval of Network.js
         jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 
         // Then we should expect a retry of the network request
@@ -622,7 +624,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             Network.post('Push_Authenticate', {content: 'value1'});
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
             expect(NetworkStore.getIsOffline()).toBe(false);
-            expect(NetworkStore.getIsAuthenticating()).toBe(false);
+            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
             return waitForPromisesToResolve();
         })
         .then(() => {
@@ -630,7 +632,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             expect(PersistedRequests.getAll().length).toBe(1);
             expect(NetworkStore.getIsOffline()).toBe(true);
             expect(SequentialQueue.isRunning()).toBe(false);
-            expect(NetworkStore.getIsAuthenticating()).toBe(false);
+            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
 
             // We should only have a single call at this point as the main queue is stopped since we've gone offline
             expect(xhr.mock.calls.length).toBe(1);
@@ -673,6 +675,6 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             expect(NetworkStore.getAuthToken()).toBe('newToken');
 
             // We are no longer authenticating
-            expect(NetworkStore.getIsAuthenticating()).toBe(false);
+            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
         });
 });

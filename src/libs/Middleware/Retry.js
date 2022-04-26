@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import RetryCounter from '../RetryCounter';
 import * as PersistedRequests from '../actions/PersistedRequests';
-import * as Network from '../Network';
+import * as MainQueue from '../Network/MainQueue';
 import Log from '../Log';
 import CONST from '../../CONST';
 
@@ -28,7 +28,7 @@ function retryFailedRequest(queuedRequest, error) {
     });
 
     if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
-        Network.pushToMainQueue(queuedRequest);
+        MainQueue.push(queuedRequest);
         return true;
     }
 

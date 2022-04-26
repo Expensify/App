@@ -8,7 +8,6 @@ let credentials;
 let authToken;
 let currentUserEmail;
 let hasReadRequiredData = false;
-let isAuthenticating = false;
 let isOffline = false;
 
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
@@ -89,13 +88,6 @@ function setAuthToken(newAuthToken) {
 }
 
 /**
- * @returns {Object}
- */
-function getCredentials() {
-    return credentials;
-}
-
-/**
  * @returns {String}
  */
 function getCurrentUserEmail() {
@@ -109,29 +101,12 @@ function hasReadRequiredDataFromStorage() {
     return hasReadRequiredData;
 }
 
-/**
- * @param {Boolean} value
- */
-function setIsAuthenticating(value) {
-    isAuthenticating = value;
-}
-
-/**
- * @returns {Boolean}
- */
-function getIsAuthenticating() {
-    return isAuthenticating;
-}
-
 export {
     getAuthToken,
     setAuthToken,
-    getCredentials,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     setHasReadRequiredDataFromStorage,
-    setIsAuthenticating,
-    getIsAuthenticating,
     getIsOffline,
     onConnectivityResumed,
 };
