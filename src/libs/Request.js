@@ -12,7 +12,7 @@ let middlewares = [];
  * @param {Boolean} request.shouldUseSecure
  * @returns {Promise}
  */
-function call(request) {
+function makeXHR(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
 }
@@ -22,11 +22,11 @@ function call(request) {
  * @param {Boolean} [isFromSequentialQueue]
  * @returns {Promise}
  */
-function process(request, isFromSequentialQueue = false) {
+function processWithMiddleware(request, isFromSequentialQueue = false) {
     return _.reduce(
         middlewares,
         (last, middleware) => middleware(last, request, isFromSequentialQueue),
-        call(request),
+        makeXHR(request),
     );
 }
 
@@ -43,6 +43,6 @@ function clearMiddlewares() {
 
 export {
     clearMiddlewares,
-    process,
+    processWithMiddleware,
     use,
 };

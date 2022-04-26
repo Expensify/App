@@ -22,7 +22,7 @@ test('Request.use() can register a middleware and it will run', () => {
         data: {authToken: 'testToken', persist: true},
     };
 
-    Request.process(request, true);
+    Request.processWithMiddleware(request, true);
     return waitForPromisesToResolve()
         .then(() => {
             const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls[0];
@@ -57,7 +57,7 @@ test('Request.use() can register two middlewares. They can pass a response to th
     };
 
     const catchHandler = jest.fn();
-    Request.process(request).catch(catchHandler);
+    Request.processWithMiddleware(request).catch(catchHandler);
     return waitForPromisesToResolve()
         .then(() => {
             expect(catchHandler).toHaveBeenCalled();

@@ -85,7 +85,7 @@ function Authenticate(parameters) {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  *
- * @param {String} [command] command name for loggin purposes
+ * @param {String} [command] command name for logging purposes
  * @returns {Promise}
  */
 function reauthenticate(command = '') {

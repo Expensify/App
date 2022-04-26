@@ -1,11 +1,11 @@
 import Logging from './Logging';
 import Reauthentication from './Reauthentication';
-import Recheck from './Recheck';
+import RecheckConnection from './RecheckConnection';
 import Retry from './Retry';
 
 export {
     Logging,
     Reauthentication,
-    Recheck,
+    RecheckConnection,
     Retry,
 };

@@ -106,7 +106,7 @@ function process() {
             return;
         }
 
-        Request.process(queuedRequest);
+        Request.processWithMiddleware(queuedRequest);
     });
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some

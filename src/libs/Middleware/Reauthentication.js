@@ -67,7 +67,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 return Authentication.reauthenticate(request.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue) {
-                            return Request.process(request, true);
+                            return Request.processWithMiddleware(request, true);
                         }
 
                         MainQueue.replay(request);
