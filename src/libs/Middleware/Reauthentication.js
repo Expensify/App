@@ -75,6 +75,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                             throw new Error('Unable to reauthenticate sequential queue request because we failed to reauthenticate');
                         }
 
+                        // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
                         Network.replayRequest(request);
                     });
             }
