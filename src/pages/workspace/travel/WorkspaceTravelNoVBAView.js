@@ -9,6 +9,7 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -22,19 +23,20 @@ const WorkspaceTravelNoVBAView = props => (
         <Section
             title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
             icon={Illustrations.JewelBoxYellow}
-            menuItems={[
-                {
-                    title: props.translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
-                    icon: Expensicons.Bank,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.ArrowRight,
-                },
-            ]}
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
             </View>
+            <Button
+                text={props.translate('workspace.common.bankAccount')}
+                onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID))}
+                icon={Expensicons.Bank}
+                style={[styles.mt4]}
+                iconStyles={[styles.mr5]}
+                shouldShowRightIcon
+                extraLarge
+                success
+            />
         </Section>
     </>
 );

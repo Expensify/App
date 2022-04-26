@@ -162,6 +162,13 @@ class ReportActionsView extends React.Component {
         }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
 
         window.scrollRef = ReportScrollManager;
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(
+            copyShortcutConfig.shortcutKey,
+            this.copySelectionToClipboard,
+            copyShortcutConfig.descriptionKey,
+            copyShortcutConfig.modifiers,
+            false,
+        );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -283,7 +290,7 @@ class ReportActionsView extends React.Component {
         Report.updateLastReadActionID(this.props.reportID);
     }
 
-    copySelectionToClipboard = () => {
+    copySelectionToClipboard() {
         const selectionMarkdown = SelectionScraper.getAsMarkdown();
 
         Clipboard.setString(selectionMarkdown);
@@ -477,8 +484,9 @@ class ReportActionsView extends React.Component {
      * Hide the new MarkerBadge
      */
     hideMarker() {
-        this.setState({isMarkerActive: false}, () => {
-            this.setState({localUnreadActionCount: 0});
+        this.setState({
+            isMarkerActive: false,
+            localUnreadActionCount: 0,
         });
     }
 
