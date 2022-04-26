@@ -1010,7 +1010,7 @@ function fetchAllReports(
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
-                return fetchChatReportsByIDs(reportIDs);
+                return API.GetChats({reportIDList: reportIDs});
             }
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);

@@ -351,6 +351,17 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.reportIDList
+ * @returns {Promise}
+ */
+function GetChats(parameters) {
+    const commandName = 'Get_Chats';
+    requireParameters(['reportIDList'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Returns a short lived authToken for this account
  * @returns {Promise}
  */
@@ -1137,6 +1148,7 @@ export {
     DeleteBankAccount,
     Get,
     GetAccountStatus,
+    GetChats,
     GetShortLivedAuthToken,
     GetStatementPDF,
     GetIOUReport,
