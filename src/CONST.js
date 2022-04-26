@@ -336,9 +336,6 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
-        UNABLE_TO_REAUTHENTICATE: 'Unable to reauthenticate',
-        ALREADY_AUTHENTICATING: 'Already authenticating',
-        MISSING_CREDENTIALS: 'Missing credentials required for authentication',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
