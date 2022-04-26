@@ -119,7 +119,7 @@ function DeleteLogin(parameters) {
 function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters, shouldUseSecure);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
 }
 
 /**
@@ -650,7 +650,7 @@ function BankAccount_Create(parameters) {
 function BankAccount_Validate(parameters) {
     const commandName = 'ValidateBankAccount';
     requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
 }
 
 /**
@@ -688,7 +688,11 @@ function BankAccount_SetupWithdrawal(parameters) {
     const additionalData = _.pick(parameters, allowedParameters);
 
     requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, {additionalData: JSON.stringify(additionalData)}, CONST.NETWORK.METHOD.POST, true);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData)},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
 }
 
 /**
