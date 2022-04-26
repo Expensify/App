@@ -14,7 +14,7 @@ import CONST from '../CONST';
 // Logging - Logs request details and errors.
 Request.use(Middleware.Logging);
 
-// Recheck - Sets a  timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
+// RecheckConnection - Sets a  timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
 Request.use(Middleware.RecheckConnection);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
