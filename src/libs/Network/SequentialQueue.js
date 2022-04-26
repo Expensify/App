@@ -9,14 +9,6 @@ import * as Request from '../Request';
 let isSequentialQueueRunning = false;
 
 /**
- * @param {Object} request
- * @returns {Promise}
- */
-function makeSequentialRequest(request) {
-    return Request.process(request, true);
-}
-
-/**
  * This method will get any persisted requests and fire them off in sequence to retry them.
  *
  * @returns {Promise}
@@ -29,7 +21,7 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => makeSequentialRequest(request)), Promise.resolve());
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => Request.process(request, true)), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
