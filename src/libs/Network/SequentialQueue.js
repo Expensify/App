@@ -2,8 +2,6 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
-import * as NetworkEvents from './NetworkEvents';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
@@ -15,15 +13,7 @@ let isSequentialQueueRunning = false;
  * @returns {Promise}
  */
 function makeSequentialRequest(request) {
-    return Request.process(request, true)
-        .catch((error) => {
-            const retryCount = PersistedRequests.incrementRetries(request);
-            NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-            if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
-                PersistedRequests.remove(request);
-            }
-        });
+    return Request.process(request, true);
 }
 
 /**
@@ -77,7 +67,7 @@ function isRunning() {
 }
 
 // Flush the queue when the connection resumes
-NetworkEvents.onConnectivityResumed(flush);
+NetworkStore.onConnectivityResumed(flush);
 
 export {
     flush,

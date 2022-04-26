@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as NetworkEvents from './NetworkEvents';
+import createCallback from '../createCallback';
 
 let credentials;
 let authToken;
@@ -10,6 +10,8 @@ let currentUserEmail;
 let hasReadRequiredData = false;
 let isAuthenticating = false;
 let isOffline = false;
+
+const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
 
 /**
  * @param {Boolean} val
@@ -58,7 +60,7 @@ Onyx.connect({
 
         // Client becomes online emit connectivity resumed event
         if (isOffline && !network.isOffline) {
-            NetworkEvents.triggerConnectivityResumed();
+            triggerConnectivityResumed();
         }
 
         isOffline = network.isOffline;
@@ -131,4 +133,5 @@ export {
     setIsAuthenticating,
     getIsAuthenticating,
     getIsOffline,
+    onConnectivityResumed,
 };

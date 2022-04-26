@@ -3,18 +3,14 @@ import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
-import * as NetworkEvents from './Network/NetworkEvents';
 import * as Network from './Network';
-import Log from './Log';
 import * as Middleware from './Middleware';
 
 // Setup API middlewares
 Request.use(Middleware.Logging);
 Request.use(Middleware.Recheck);
 Request.use(Middleware.Reauthentication);
-
-// Setup log in Network lib
-NetworkEvents.registerLogHandler(() => Log);
+Request.use(Middleware.Retry);
 
 /**
  * @param {Object} parameters
