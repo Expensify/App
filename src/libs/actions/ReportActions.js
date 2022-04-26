@@ -111,14 +111,9 @@ function getLastVisibleMessageText(reportID) {
     );
 }
 
-function getLastAction(reportID) {
-    return _.last(reportActions[reportID]);
-}
-
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
-    getLastAction,
     getLastVisibleMessageText,
 };
