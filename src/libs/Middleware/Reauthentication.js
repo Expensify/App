@@ -17,6 +17,11 @@ import * as Request from '../Request';
 function Reauthentication(response, request, isFromSequentialQueue) {
     return response
         .then((data) => {
+            if (NetworkStore.getIsOffline()) {
+                // If we are offline and somehow handling this response we do not want to reauthenticate
+                throw new Error('Unable to reauthenticate because we are offline');
+            }
+
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 const credentials = NetworkStore.getCredentials();
 
@@ -47,10 +52,8 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // We are already authenticating
                 if (NetworkStore.getIsAuthenticating()) {
                     if (isFromSequentialQueue) {
-                        // This can happen if we are already in the process of authenticating via the main queue and then
-                        // the sequential queue gets flushed (e.g. because we went offline while we were authenticating, queued some requests
-                        // and then came back online which triggers the sequential queue to flush).
-                        // I think the solution is to maybe only ever have one call to Authenticate happening at any time no matter who calls it.
+                        // This should not be possible in theory. If we go offline while we are Authenticating or handling a response with a 407 jsonCode then isAuthenticating should be
+                        // set to false. If it does then we will throw an error so the request can be retried.
                         throw new Error('Cannot complete sequential request because we are already authenticating');
                     }
 
