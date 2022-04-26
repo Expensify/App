@@ -21,9 +21,14 @@ function logRequestDetails(message, request, response = {}) {
         shouldUseSecure: request.shouldUseSecure,
     };
 
-    const rvl = lodashGet(request, 'data.returnValueList');
-    if (rvl) {
-        logParams.rvl = rvl;
+    const returnValueList = lodashGet(request, 'data.returnValueList');
+    if (returnValueList) {
+        logParams.returnValueList = returnValueList;
+    }
+
+    const nvpNames = lodashGet(request, 'data.nvpNames');
+    if (nvpNames) {
+        logParams.nvpNames = nvpNames;
     }
 
     if (response) {

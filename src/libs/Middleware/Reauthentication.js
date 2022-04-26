@@ -47,9 +47,11 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // We are already authenticating
                 if (NetworkStore.getIsAuthenticating()) {
                     if (isFromSequentialQueue) {
-                        // The only way this can happen is if we are already authenticating via the main queue while the sequential queue is running.
-                        // Main queue requests should be blocked until the sequential queue finishes so it's unlikely that one would be happening.
-                        throw new Error('Unable to authenticate sequential queue request because we are already authenticating');
+                        // This can happen if we are already in the process of authenticating via the main queue and then
+                        // the sequential queue gets flushed (e.g. because we went offline while we were authenticating, queued some requests
+                        // and then came back online which triggers the sequential queue to flush).
+                        // I think the solution is to maybe only ever have one call to Authenticate happening at any time no matter who calls it.
+                        throw new Error('Cannot complete sequential request because we are already authenticating');
                     }
 
                     Network.replayRequest(request);
