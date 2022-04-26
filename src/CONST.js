@@ -314,7 +314,6 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
-        REAUTHENTICATED: 1,
         EXP_ERROR: 666,
     },
     ERROR: {
