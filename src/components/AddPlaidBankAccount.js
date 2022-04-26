@@ -121,15 +121,19 @@ class AddPlaidBankAccount extends React.Component {
         }, inputKey);
     }
 
-    componentDidMount() {
+    componentDidMount(prevProps) {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
             return;
         }
 
-        BankAccounts.clearPlaidBankAccountsAndToken();
-        BankAccounts.fetchPlaidLinkToken();
+        // If we are offline, just return
+        if (prevProps.network.isOffline === this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     componentWillUnmount() {
@@ -156,6 +160,11 @@ class AddPlaidBankAccount extends React.Component {
         if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
             return this.props.plaidLinkOAuthToken;
         }
+    }
+
+    fetchData() {
+        BankAccounts.clearPlaidBankAccountsAndToken();
+        BankAccounts.fetchPlaidLinkToken();
     }
 
     /**
