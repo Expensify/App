@@ -6,24 +6,24 @@ import Config from '../../CONFIG';
  * @param {String} html
  * @returns {Object}
  */
-const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}\s*=\s*"(.+?)"`, "i");
-const SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\s*=\s*"(.+?)"`, "i");
-const ORIGINAL_FILENAME_REGEX = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}\s*=\s*"(.+?)"`, "i");
+const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');
+const SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}*=*"(.+?)"`, 'i');
+const ORIGINAL_FILENAME_REGEX = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}*=*"(.+?)"`, 'i');
 
 export default function getAttachmentName(html) {
     if (!html) {
         return {
             previewSourceURL: null,
             sourceURL: null,
-            originalFileName: null
+            originalFileName: null,
         };
     }
     let previewSourceURL = html.match(PREVIEW_SOURCE_REGEX)[1];
     let sourceURL = html.match(SOURCE_REGEX)[1];
-    let originalFileName = html.match(ORIGINAL_FILENAME_REGEX)[1];
+    const originalFileName = html.match(ORIGINAL_FILENAME_REGEX)[1];
 
     // Update the image URL so the images can be accessed depending on the config environment
-     previewSourceURL = previewSourceURL.replace(
+    previewSourceURL = previewSourceURL.replace(
         Config.EXPENSIFY.EXPENSIFY_URL,
         Config.EXPENSIFY.URL_API_ROOT,
     );
@@ -34,6 +34,6 @@ export default function getAttachmentName(html) {
     return {
         previewSourceURL,
         sourceURL,
-        originalFileName
-    }
+        originalFileName,
+    };
 }

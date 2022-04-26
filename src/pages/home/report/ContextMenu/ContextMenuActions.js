@@ -34,7 +34,7 @@ export default [
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
-        successIcon: Expensicons.Checkmark,
+        successIcon: Expensicons.Download,
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment')
@@ -45,7 +45,9 @@ export default [
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
-            let {sourceURL, originalFileName} = getAttachmentDetails(html);
+            const attachmentDetails = getAttachmentDetails(html);
+            const {originalFileName} = attachmentDetails;
+            let {sourceURL} = attachmentDetails;
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             fileDownload(sourceURL, originalFileName);
         },
