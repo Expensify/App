@@ -130,15 +130,16 @@ ActiveClientManager.isReady().then(() => {
  *
  * @param {String} command
  * @param {*} [data]
+ * @param {String} [type]
  * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, shouldUseSecure = false) {
+function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
         const request = {
             command,
             data,
-            type: CONST.NETWORK.METHOD.POST,
+            type,
             resolve,
             reject,
             shouldUseSecure,

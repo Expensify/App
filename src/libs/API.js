@@ -5,6 +5,7 @@ import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
 import * as Middleware from './Middleware';
+import CONST from '../CONST';
 
 // Setup API middlewares
 Request.use(Middleware.Logging);
@@ -18,7 +19,7 @@ Request.use(Middleware.Retry);
  */
 function AddBillingCard(parameters) {
     const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, true);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -564,14 +565,14 @@ function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
         firstName,
         lastName,
         dob,
-    }, true);
+    }, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
  * @returns {Promise}
  */
 function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), true);
+    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -586,7 +587,7 @@ function Plaid_GetLinkToken() {
 function Wallet_Activate(parameters) {
     const commandName = 'Wallet_Activate';
     requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, parameters, true);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -599,7 +600,7 @@ function Wallet_Activate(parameters) {
 function BankAccount_Get(parameters) {
     const commandName = 'BankAccount_Get';
     requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
-    return Network.post(commandName, parameters, true);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -643,7 +644,7 @@ function BankAccount_Create(parameters) {
         'setupType',
         'additionalData',
     ], parameters, commandName);
-    return Network.post(commandName, parameters, true);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 function BankAccount_Validate(parameters) {
@@ -687,7 +688,7 @@ function BankAccount_SetupWithdrawal(parameters) {
     const additionalData = _.pick(parameters, allowedParameters);
 
     requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, {additionalData: JSON.stringify(additionalData)}, true);
+    return Network.post(commandName, {additionalData: JSON.stringify(additionalData)}, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
