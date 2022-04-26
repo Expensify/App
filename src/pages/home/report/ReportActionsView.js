@@ -111,6 +111,7 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.appStateChangeListener = null;
+        this.actionIndexID = -1;
 
         this.didLayout = false;
 
@@ -566,6 +567,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
+                isSelected={index === this.actionIndexID}
             />
         );
     }
@@ -575,7 +577,7 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const actionIndex = _.findIndex(this.sortedReportActions, (
+        this.actionIndexID = _.findIndex(this.sortedReportActions, (
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
@@ -583,15 +585,11 @@ class ReportActionsView extends React.Component {
         const test = this.props.reportActions;
 
         // Continue scroll back if actionIndex is -1
-        debugger;
-        console.log(`over here 1 attempt: ${this.scrollToReportActionIDAttempt}`);
-        if (actionIndex === -1 && this.scrollToReportActionIDAttempt < 3) {
+        if (this.actionIndexID === -1 && this.scrollToReportActionIDAttempt < 3) {
             ++this.scrollToReportActionIDAttempt;
-            console.log(`over here 2 attempt: ${this.scrollToReportActionIDAttempt}`);
             this.loadMoreChats();
-        } else {
-            console.log(`over here scrollToIndex: ${actionIndex}`);
-            ReportScrollManager.scrollToIndex({index: actionIndex});
+        } else if (this.actionIndexID !== -1) {
+            ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
         }
     }
 

@@ -53,12 +53,15 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    isSelected: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    isSelected: false,
 };
 
 class ReportActionItem extends Component {
@@ -73,12 +76,18 @@ class ReportActionItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.isSelected) {
+            debugger;
+            console.log('over here shouldUpdate');
+        }
+
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action)
+            || !_.isEqual(this.props.isSelected, nextProps.isSelected)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
 
@@ -120,6 +129,8 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        console.log('over here render');
+
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.reportID} />;
         }
