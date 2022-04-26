@@ -2,7 +2,7 @@ import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 
-const middlewares = [];
+let middlewares = [];
 
 /**
  * @param {Object} request
@@ -37,7 +37,12 @@ function use(middleware) {
     middlewares.push(middleware);
 }
 
+function clearMiddlewares() {
+    middlewares = [];
+}
+
 export {
+    clearMiddlewares,
     process,
     use,
 };
