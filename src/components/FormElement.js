@@ -1,8 +1,8 @@
 import React, {forwardRef} from 'react';
 import {View} from 'react-native';
-import * as ComponentUtils from '../../libs/ComponentUtils';
+import * as ComponentUtils from '../libs/ComponentUtils';
 
-const BaseForm = forwardRef((props, ref) => (
+const FormElement = forwardRef((props, ref) => (
     <View
         accessibilityRole={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
         accessibilityAutoComplete="on"
@@ -12,5 +12,5 @@ const BaseForm = forwardRef((props, ref) => (
     />
 ));
 
-BaseForm.displayName = 'BaseForm';
-export default BaseForm;
+FormElement.displayName = 'BaseForm';
+export default FormElement;

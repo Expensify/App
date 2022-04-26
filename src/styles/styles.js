@@ -16,6 +16,8 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import pointerEventsNone from './pointerEventsNone';
+import overflowXHidden from './overflowXHidden';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -379,6 +381,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonExtraLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeExtraLarge,
+        paddingTop: 12,
+        paddingRight: 18,
+        paddingBottom: 12,
+        paddingLeft: 18,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         fontFamily: fontFamily.GTA_BOLD,
@@ -395,6 +407,13 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonExtraLargeText: {
+        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -550,7 +569,7 @@ const styles = {
         iconContainer: {
             top: 8,
             right: 9,
-            pointerEvents: 'none',
+            ...pointerEventsNone,
         },
         icon: {
             width: variables.iconSizeExtraSmall,
@@ -1342,7 +1361,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
-        overflowX: 'hidden',
+        ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
@@ -1666,9 +1685,7 @@ const styles = {
         borderColor: themeColors.border,
     },
 
-    pointerEventsNone: {
-        pointerEvents: 'none',
-    },
+    pointerEventsNone,
 
     headerBar: {
         overflow: 'hidden',

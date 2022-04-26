@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
+import * as CollectionUtils from './CollectionUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -73,6 +74,18 @@ Onyx.connect({
         }
 
         iouReports[key] = iouReport;
+    },
+});
+
+const lastReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        lastReportActions[reportID] = _.last(_.toArray(actions));
     },
 });
 
@@ -221,17 +234,25 @@ function createOption(logins, personalDetails, report, {
     const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && !isArchivedRoom && hasMultipleParticipants && lastActorDetails
+    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
+
+    if (isPolicyExpenseChat && isArchivedRoom) {
+        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+            displayName: lastActorDetails.displayName,
+            policyName: ReportUtils.getPolicyName(report, policies),
+        });
+    }
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = (isArchivedRoom && report.isOwnPolicyExpenseChat) ? report.oldPolicyName : lodashGet(report, ['reportName'], '');
+        text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
@@ -270,7 +291,7 @@ function createOption(logins, personalDetails, report, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom,
-        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
+        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
         isPolicyExpenseChat,
     };
 }
@@ -400,7 +421,13 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !isDefaultRoom;
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
+
+                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
+                // highlight them in the LHN when they are created and have no messsages yet. We do
+                // not give archived rooms this exception since they do not need to be higlihted.
+                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
+
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
@@ -426,7 +453,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
-        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
+        if (logins.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
