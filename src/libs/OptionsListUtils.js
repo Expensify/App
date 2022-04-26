@@ -10,6 +10,7 @@ import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as ReportActions from './actions/ReportActions';
+import * as CollectionUtils from './CollectionUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -74,6 +75,18 @@ Onyx.connect({
         }
 
         iouReports[key] = iouReport;
+    },
+});
+
+const reportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActions[reportID] = _.toArray(actions);
     },
 });
 
