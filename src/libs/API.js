@@ -8,7 +8,6 @@ import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
-
 // Logging - Logs request details and errors.
 Request.use(Middleware.Logging);
 

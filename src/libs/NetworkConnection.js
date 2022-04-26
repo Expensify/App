@@ -12,7 +12,7 @@ import CONST from '../CONST';
 let unsubscribeFromNetInfo;
 let unsubscribeFromAppState;
 let isOffline = false;
-let hasPendingNetworkCheck = true;
+let hasPendingNetworkCheck = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -72,9 +72,6 @@ function subscribeToNetInfo() {
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
         setOfflineStatus(state.isInternetReachable === false);
-
-        // When internet state is indeterminate a check is already running. Set the flag to prevent duplicate checks
-        hasPendingNetworkCheck = state.isInternetReachable === null;
     });
 }
 
@@ -112,6 +109,9 @@ function onReconnect(callback) {
     reconnectionCallbacks.push(callback);
 }
 
+/**
+ * Refresh NetInfo state.
+ */
 function recheckNetworkConnection() {
     if (hasPendingNetworkCheck) {
         return;
@@ -119,11 +119,8 @@ function recheckNetworkConnection() {
 
     Log.info('[NetworkConnection] recheck NetInfo');
     hasPendingNetworkCheck = true;
-
-    if (unsubscribeFromNetInfo) {
-        unsubscribeFromNetInfo();
-    }
-    subscribeToNetInfo();
+    NetInfo.refresh()
+        .finally(() => hasPendingNetworkCheck = false);
 }
 
 export default {

@@ -17,7 +17,6 @@ function logRequestDetails(message, request, response = {}) {
 
     const logParams = {
         command: request.command,
-        type: request.type,
         shouldUseSecure: request.shouldUseSecure,
     };
 
