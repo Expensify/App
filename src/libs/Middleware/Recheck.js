@@ -1,5 +1,5 @@
 import CONST from '../../CONST';
-import * as NetworkConnection from '../NetworkConnection';
+import NetworkConnection from '../NetworkConnection';
 
 /**
  * @returns {Function} cancel timer

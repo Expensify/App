@@ -75,9 +75,9 @@ export default function (response, request, isFromSequentialQueue) {
 
             if (isFromSequentialQueue) {
                 PersistedRequests.remove(request);
+                return data;
             }
 
             request.resolve(data);
-            return data;
         });
 }
