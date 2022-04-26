@@ -48,12 +48,12 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
-        });
         if (this.canUseTouchScreen) {
             return;
         }
+        Image.getSize(this.props.url, (width, height) => {
+            this.setImageRegion(width, height);
+        });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
@@ -133,11 +133,6 @@ class ImageView extends PureComponent {
         const height = imageHeight;
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
-
-        // return if image not loaded yet
-        if (imageHeight <= 0) {
-            return;
-        }
 
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
@@ -237,9 +232,7 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return (
                 <View
-                    ref={el => this.scrollableRef = el}
                     style={[styles.imageViewContainer, styles.overflowHidden]}
-                    onLayout={this.onContainerLayoutChanged}
                 >
                     <Image
                         source={{uri: this.props.url}}
@@ -247,7 +240,7 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]}
-                        resizeMode={this.state.zoomScale >= 1 ? 'center' : 'contain'}
+                        resizeMode="center"
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />

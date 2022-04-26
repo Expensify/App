@@ -76,9 +76,9 @@ class ImageView extends PureComponent {
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            if ((imageHeight > containerHeight || imageWidth > containerWidth) && imageHeight > imageWidth) {
+            if (imageHeight > imageWidth) {
                 imageHeight *= aspectRatio;
-            } else if (imageHeight > containerHeight || imageWidth > containerWidth) {
+            } else {
                 imageWidth *= aspectRatio;
             }
 
