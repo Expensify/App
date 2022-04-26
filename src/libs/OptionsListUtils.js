@@ -77,7 +77,7 @@ Onyx.connect({
     },
 });
 
-const reportActions = {};
+const lastReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -85,7 +85,7 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActions[reportID] = _.toArray(actions);
+        lastReportActions[reportID] = _.last(_.toArray(actions));
     },
 });
 
@@ -240,7 +240,7 @@ function createOption(logins, personalDetails, report, {
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lodashGet(_.last(reportActions[report.reportID]), 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: lastActorDetails.displayName,
             policyName: ReportUtils.getPolicyName(report, policies),
