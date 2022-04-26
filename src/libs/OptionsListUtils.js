@@ -9,7 +9,6 @@ import CONST from '../CONST';
 import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
-import * as ReportActions from './actions/ReportActions';
 import * as CollectionUtils from './CollectionUtils';
 
 /**
@@ -241,7 +240,7 @@ function createOption(logins, personalDetails, report, {
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lodashGet(ReportActions.getLastAction(report.reportID), 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        const archiveReason = lodashGet(_.last(reportActions[report.reportID]), 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: lastActorDetails.displayName,
             policyName: ReportUtils.getPolicyName(report, policies),
