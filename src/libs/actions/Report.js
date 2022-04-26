@@ -1521,7 +1521,8 @@ function createPolicyRoom(policyID, reportName, visibility) {
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
-        .then(([{reportID}]) => {
+        .then((chatReports) => {
+            const reportID = lodashGet(_.first(_.values(chatReports)), 'reportID', '');
             if (!reportID) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
