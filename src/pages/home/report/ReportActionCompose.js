@@ -19,7 +19,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import * as Report from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
-import UploadAttachmentModal from '../../../components/UploadAttachmentModal';
+import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -413,8 +413,8 @@ class ReportActionCompose extends React.Component {
                     styles.flexRow,
                 ]}
                 >
-                    <UploadAttachmentModal
-                        isUploadingAttachment
+                    <AttachmentModal
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -552,7 +552,7 @@ class ReportActionCompose extends React.Component {
                                 />
                             </>
                         )}
-                    </UploadAttachmentModal>
+                    </AttachmentModal>
                     {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge}

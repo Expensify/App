@@ -162,7 +162,7 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={this.props.headerTitle}
+                        title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}

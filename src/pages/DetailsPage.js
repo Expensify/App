@@ -20,7 +20,7 @@ import * as ReportUtils from '../libs/reportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
-import PreviewAttachmentModal from '../components/PreviewAttachmentModal';
+import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 
@@ -100,11 +100,10 @@ const DetailsPage = (props) => {
                 {details ? (
                     <ScrollView>
                         <View style={styles.pageWrapper}>
-                            <PreviewAttachmentModal
+                            <AttachmentModal
+                                headerTitle={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
                                 sourceURL={details.avatarHighResolution}
                                 isAuthTokenRequired
-                                displayName={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                isProfilePicture
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
@@ -118,7 +117,7 @@ const DetailsPage = (props) => {
                                         />
                                     </PressableWithoutFocus>
                                 )}
-                            </PreviewAttachmentModal>
+                            </AttachmentModal>
                             {details.displayName && (
                                 <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}

@@ -1,7 +1,7 @@
 import React from 'react';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Config from '../../../CONFIG';
-import PreviewAttachmentModal from '../../PreviewAttachmentModal';
+import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
@@ -45,7 +45,8 @@ const ImageRenderer = (props) => {
     );
 
     return (
-        <PreviewAttachmentModal
+        <AttachmentModal
+            allowDownload
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
@@ -62,7 +63,7 @@ const ImageRenderer = (props) => {
                     />
                 </PressableWithoutFocus>
             )}
-        </PreviewAttachmentModal>
+        </AttachmentModal>
     );
 };
 
