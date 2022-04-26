@@ -43,6 +43,12 @@ const propTypes = {
 
     /** Size of a picker component */
     size: PropTypes.oneOf(['normal', 'small']),
+
+    /** Callback executed when on click or tap on Picker */
+    onFocus: PropTypes.func.isRequired,
+
+    /** Callback executed when close Picker's menu options or click outside of Picker */
+    onBlur: PropTypes.func.isRequired,
 };
 const defaultProps = {
     disabled: false,

@@ -7,6 +7,7 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
 import * as FormUtils from '../../libs/FormUtils';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Picker label */
@@ -37,6 +38,12 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
+
+    /** Callback executed when on click or tap on Picker */
+    onFocus: PropTypes.func,
+
+    /** Callback executed when close options menu or click outside of Picker */
+    onBlur: PropTypes.func,
 };
 
 const defaultProps = {
@@ -48,6 +55,8 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     value: undefined,
+    onFocus: undefined,
+    onBlur: undefined,
 };
 
 class Picker extends PureComponent {
@@ -56,6 +65,28 @@ class Picker extends PureComponent {
         this.state = {
             isOpen: false,
         };
+
+        this.defaultEvent = {
+            onFocus: () => {
+                this.setState({isOpen: true});
+            },
+            onBlur: () => {
+                this.setState({isOpen: false});
+            },
+        };
+
+        this.pickerEvent = this.pickerEvent.bind(this);
+    }
+
+    pickerEvent(event) {
+        if (this.props[event]) {
+            return () => {
+                this.defaultEvent[event]();
+                this.props[event]();
+            };
+        }
+
+        return this.defaultEvent[event];
     }
 
     render() {
@@ -73,8 +104,8 @@ class Picker extends PureComponent {
                         <Text style={[styles.pickerLabel, styles.textLabelSupporting]}>{this.props.label}</Text>
                     )}
                     <BasePicker
-                        onOpen={() => this.setState({isOpen: true})}
-                        onClose={() => this.setState({isOpen: false})}
+                        onFocus={this.pickerEvent(CONST.PICKER_EVENT.FOCUS)}
+                        onBlur={this.pickerEvent(CONST.PICKER_EVENT.BLUR)}
                         disabled={this.props.isDisabled}
                         focused={this.state.isOpen}
                         errorText={this.props.errorText}

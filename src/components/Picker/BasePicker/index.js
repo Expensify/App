@@ -15,21 +15,11 @@ class BasePicker extends React.Component {
         };
 
         this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
-        this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
     }
 
     updateSelectedValueAndExecuteOnChange(value) {
         this.props.onInputChange(value);
         this.setState({selectedValue: value});
-    }
-
-    executeOnCloseAndOnBlur() {
-        // Picker's onClose is not executed on Web and Desktop, so props.onClose has to be called with onBlur callback.
-        this.props.onClose();
-
-        if (this.props.onBlur) {
-            this.props.onBlur();
-        }
     }
 
     render() {
@@ -45,11 +35,11 @@ class BasePicker extends React.Component {
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug
-                onOpen={this.props.onOpen}
-                onClose={this.props.onClose}
+                onOpen={this.props.onFocus}
+                onClose={this.props.onBlur}
                 pickerProps={{
-                    onFocus: this.props.onOpen,
-                    onBlur: this.executeOnCloseAndOnBlur,
+                    onFocus: this.props.onFocus,
+                    onBlur: this.props.onBlur,
                     ref: this.props.innerRef,
                 }}
             />
