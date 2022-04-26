@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Pressable} from 'react-native';
+import {Platform, Pressable} from 'react-native';
 import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import SelectionScraper from '../../libs/SelectionScraper';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
@@ -31,7 +31,8 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {Object} e
      */
     callSecondaryInteractionWithMappedEvent(e) {
-        if (e.nativeEvent.state !== State.ACTIVE) {
+        const isHoverableDevice = ((Platform.OS === 'web') || (Platform.OS === 'windows') || (Platform.OS === 'macos'));
+        if ((e.nativeEvent.state !== State.ACTIVE) || isHoverableDevice) {
             return;
         }
 
@@ -73,7 +74,7 @@ class PressableWithSecondaryInteraction extends Component {
                     onPressOut={this.props.onPressOut}
                     onPress={this.props.onPress}
                     ref={el => this.pressableRef = el}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultPressableProps}
                 >
                     {this.props.children}
