@@ -5,7 +5,6 @@ import * as SequentialQueue from './SequentialQueue';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import HttpUtils from '../HttpUtils';
 import * as Request from '../Request';
-import * as AuthenticationUtils from '../AuthenticationUtils';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -29,7 +28,7 @@ function canMakeRequest(request) {
 
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    return request.data.forceNetworkRequest === true || (!AuthenticationUtils.isAuthenticating() && !SequentialQueue.isRunning());
+    return request.data.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
 }
 
 /**
@@ -75,7 +74,7 @@ function replay(request) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function process() {
-    if (NetworkStore.getIsOffline()) {
+    if (NetworkStore.isOffline()) {
         if (!networkRequestQueue.length) {
             return;
         }

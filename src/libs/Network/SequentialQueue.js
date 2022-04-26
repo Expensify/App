@@ -17,7 +17,7 @@ function process() {
     const persistedRequests = PersistedRequests.getAll();
 
     // This sanity check is also a recursion exit point
-    if (NetworkStore.getIsOffline() || _.isEmpty(persistedRequests)) {
+    if (NetworkStore.isOffline() || _.isEmpty(persistedRequests)) {
         return Promise.resolve();
     }
 

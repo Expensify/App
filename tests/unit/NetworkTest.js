@@ -17,7 +17,6 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import Log from '../../src/libs/Log';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as AuthenticationUtils from '../../src/libs/AuthenticationUtils';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -623,16 +622,16 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
             Network.post('Push_Authenticate', {content: 'value1'});
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-            expect(NetworkStore.getIsOffline()).toBe(false);
-            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
+            expect(NetworkStore.isOffline()).toBe(false);
+            expect(NetworkStore.isAuthenticating()).toBe(false);
             return waitForPromisesToResolve();
         })
         .then(() => {
             Network.post('MockCommand', {persist: true});
             expect(PersistedRequests.getAll().length).toBe(1);
-            expect(NetworkStore.getIsOffline()).toBe(true);
+            expect(NetworkStore.isOffline()).toBe(true);
             expect(SequentialQueue.isRunning()).toBe(false);
-            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
+            expect(NetworkStore.isAuthenticating()).toBe(false);
 
             // We should only have a single call at this point as the main queue is stopped since we've gone offline
             expect(xhr.mock.calls.length).toBe(1);
@@ -654,7 +653,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             expect(PersistedRequests.getAll().length).toBe(0);
 
             // We are not offline anymore
-            expect(NetworkStore.getIsOffline()).toBe(false);
+            expect(NetworkStore.isOffline()).toBe(false);
 
             // First call to xhr is the Push_Authenticate request that could not call Authenticate because we went offline
             const [firstCommand] = xhr.mock.calls[0];
@@ -675,6 +674,6 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             expect(NetworkStore.getAuthToken()).toBe('newToken');
 
             // We are no longer authenticating
-            expect(AuthenticationUtils.isAuthenticating()).toBe(false);
+            expect(NetworkStore.isAuthenticating()).toBe(false);
         });
 });

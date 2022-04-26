@@ -6,7 +6,6 @@ import CONFIG from '../CONFIG';
 import redirectToSignIn from './actions/SignInRedirect';
 import CONST from '../CONST';
 import Log from './Log';
-import * as AuthenticationUtils from './AuthenticationUtils';
 
 /**
  * @param {Object} parameters
@@ -91,9 +90,9 @@ function Authenticate(parameters) {
  */
 function reauthenticate(command = '') {
     // Prevent any more requests from being processed while authentication happens
-    AuthenticationUtils.setIsAuthenticating(true);
+    NetworkStore.setIsAuthenticating(true);
 
-    const credentials = AuthenticationUtils.getCredentials();
+    const credentials = NetworkStore.getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -119,12 +118,12 @@ function reauthenticate(command = '') {
 
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
-            AuthenticationUtils.setIsAuthenticating(false);
+            NetworkStore.setIsAuthenticating(false);
         })
 
         .catch((error) => {
             // If authentication fails, then the network can be unpaused
-            AuthenticationUtils.setIsAuthenticating(false);
+            NetworkStore.setIsAuthenticating(false);
 
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will

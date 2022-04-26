@@ -8,7 +8,8 @@ let credentials;
 let authToken;
 let currentUserEmail;
 let hasReadRequiredData = false;
-let isOffline = false;
+let offline = false;
+let authenticating = false;
 
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
 
@@ -58,19 +59,26 @@ Onyx.connect({
         }
 
         // Client becomes online emit connectivity resumed event
-        if (isOffline && !network.isOffline) {
+        if (offline && !network.isOffline) {
             triggerConnectivityResumed();
         }
 
-        isOffline = network.isOffline;
+        offline = network.isOffline;
     },
 });
 
 /**
+ * @returns {Object}
+ */
+function getCredentials() {
+    return credentials;
+}
+
+/**
  * @returns {Boolean}
  */
-function getIsOffline() {
-    return isOffline;
+function isOffline() {
+    return offline;
 }
 
 /**
@@ -101,12 +109,29 @@ function hasReadRequiredDataFromStorage() {
     return hasReadRequiredData;
 }
 
+/**
+ * @returns {Boolean}
+ */
+function isAuthenticating() {
+    return authenticating;
+}
+
+/**
+ * @param {Boolean} val
+ */
+function setIsAuthenticating(val) {
+    authenticating = val;
+}
+
 export {
     getAuthToken,
     setAuthToken,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     setHasReadRequiredDataFromStorage,
-    getIsOffline,
+    isOffline,
     onConnectivityResumed,
+    isAuthenticating,
+    setIsAuthenticating,
+    getCredentials,
 };
