@@ -196,6 +196,7 @@ const defaultArgs = {
         accountNumber: '1111222233331111',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
+        pickState: 'AL',
         checkbox: false,
     },
 };
