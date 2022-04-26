@@ -142,7 +142,7 @@ class CompanyStep extends React.Component {
             errors.website = true;
         }
 
-        if (!/^\d{9}$/.test(this.state.companyTaxID.replace(/\D/g, ''))) {
+        if (!ValidationUtils.isValidTaxID(this.state.companyTaxID)) {
             errors.companyTaxID = true;
         }
 
