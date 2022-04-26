@@ -6,7 +6,7 @@ import * as NetworkEvents from './NetworkEvents';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
-import processRequest from './processRequest';
+import * as Request from '../Request';
 
 let isSequentialQueueRunning = false;
 
@@ -15,25 +15,8 @@ let isSequentialQueueRunning = false;
  * @returns {Promise}
  */
 function makeSequentialRequest(request) {
-    return processRequest(request)
-        .then((response) => {
-            // When a request requires reauthentication and successfully reauthenticates we will see a special jsonCode.
-            // This tells us that we need to replay the original request again with the updated authToken.
-            if (response.jsonCode === CONST.JSON_CODE.REAUTHENTICATED) {
-                return makeSequentialRequest(request);
-            }
-
-            PersistedRequests.remove(request);
-        })
+    return Request.process(request, true)
         .catch((error) => {
-            // If we already have an authenticate call running and we reach this code something is wrong because the sequential queue
-            // makes blocking calls to authenticate. When one request requires re-authentication we will re-authenticate and complete that request
-            // before making the next.
-            if (error === CONST.ERROR.ALREADY_AUTHENTICATING) {
-                NetworkEvents.getLogger().alert('Failed to process sequential queue request because we are already authenticating');
-                return;
-            }
-
             const retryCount = PersistedRequests.incrementRetries(request);
             NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
             if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {

@@ -347,6 +347,10 @@ test('requests should resume when we are online', () => {
             Network.post('mock command', {param2: 'value2', persist: true});
             return waitForPromisesToResolve();
         })
+        .then(() => {
+            const persisted = PersistedRequests.getAll();
+            expect(persisted).toHaveLength(2);
+        })
 
         // When we resume connectivity
         .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))

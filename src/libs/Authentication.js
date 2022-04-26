@@ -1,7 +1,6 @@
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
-import * as NetworkEvents from './Network/NetworkEvents';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import CONFIG from '../CONFIG';
 import redirectToSignIn from './actions/SignInRedirect';
@@ -143,31 +142,7 @@ function reauthenticate(command = '') {
         });
 }
 
-// When an authToken expires we handle it from inside API so we can access the reauthenticate method
-NetworkEvents.onAuthTokenExpired((commandName, onSuccess, onFailure) => {
-    reauthenticate(commandName)
-        .then(onSuccess)
-        .catch(onFailure);
-});
-
-/**
- * Reauthentication middleware
- *
- * @param {Promise} requestPromise
- * @returns {Promise}
- */
-function reauthenticateAndRetry(requestPromise) {
-    return requestPromise
-        .then((response) => {
-            return response;
-        })
-        .catch((error) => {
-            throw error;
-        });
-}
-
 export {
     reauthenticate,
     Authenticate,
-    reauthenticateAndRetry,
 };

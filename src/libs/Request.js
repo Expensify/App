@@ -1,17 +1,33 @@
 import _ from 'underscore';
-import CONST from '../CONST';
-import * as Network from './Network';
+import HttpUtils from './HttpUtils';
+import enhanceParameters from './Network/enhanceParameters';
 
 const middlewares = [];
 
 /**
- * @param {String} commandName
- * @param {Object} parameters
- * @param {Boolean} [shouldUseSecure]
+ * @param {Object} request
+ * @param {String} request.command
+ * @param {Object} request.data
+ * @param {String} request.type
+ * @param {Boolean} request.shouldUseSecure
  * @returns {Promise}
  */
-function call(commandName, parameters = {}, shouldUseSecure = false) {
-    return _.reduce(middlewares, (last, middleware) => middleware(last), Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure));
+function call(request) {
+    const finalParameters = enhanceParameters(request.command, request.data);
+    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+}
+
+/**
+ * @param {Object} request
+ * @param {Boolean} [isFromSequentialQueue]
+ * @returns {Promise}
+ */
+function process(request, isFromSequentialQueue = false) {
+    return _.reduce(
+        middlewares,
+        (last, middleware) => middleware(last, request, isFromSequentialQueue),
+        call(request),
+    );
 }
 
 /**
@@ -22,6 +38,6 @@ function use(middleware) {
 }
 
 export {
-    call,
+    process,
     use,
 };

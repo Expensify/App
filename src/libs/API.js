@@ -2,11 +2,19 @@ import _ from 'underscore';
 import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
-import * as Authentication from './Authentication';
 import * as Request from './Request';
+import * as NetworkEvents from './Network/NetworkEvents';
+import * as Network from './Network';
+import Log from './Log';
+import * as Middleware from './Middleware';
 
-// Setup Authentication middleware
-Request.use(Authentication.reauthenticateAndRetry);
+// Setup API middlewares
+Request.use(Middleware.Logging);
+Request.use(Middleware.Recheck);
+Request.use(Middleware.Reauthentication);
+
+// Setup log in Network lib
+NetworkEvents.registerLogHandler(() => Log);
 
 /**
  * @param {Object} parameters
@@ -14,7 +22,7 @@ Request.use(Authentication.reauthenticateAndRetry);
  */
 function AddBillingCard(parameters) {
     const commandName = 'User_AddBillingCard';
-    return Request.call(commandName, parameters, true);
+    return Network.post(commandName, parameters, true);
 }
 
 /**
@@ -26,7 +34,7 @@ function AddBillingCard(parameters) {
 function ChangePassword(parameters) {
     const commandName = 'ChangePassword';
     requireParameters(['password'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -38,7 +46,7 @@ function CreateChatReport(parameters) {
     const commandName = 'CreateChatReport';
     requireParameters(['emailList'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -51,7 +59,7 @@ function User_SignUp(parameters) {
     requireParameters([
         'email',
     ], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -74,7 +82,7 @@ function CreateLogin(parameters) {
         'partnerUserID',
         'partnerUserSecret',
     ], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -85,7 +93,7 @@ function CreateLogin(parameters) {
 function DeleteFund(parameters) {
     const commandName = 'DeleteFund';
     requireParameters(['fundID'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -102,7 +110,7 @@ function DeleteLogin(parameters) {
         parameters, commandName);
 
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
-    return Request.call(commandName, {...parameters, canCancel: false});
+    return Network.post(commandName, {...parameters, canCancel: false});
 }
 
 /**
@@ -114,7 +122,7 @@ function DeleteLogin(parameters) {
 function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Request.call(commandName, parameters, shouldUseSecure);
+    return Network.post(commandName, parameters, shouldUseSecure);
 }
 
 /**
@@ -126,7 +134,7 @@ function Get(parameters, shouldUseSecure = false) {
 function GetAccountStatus(parameters) {
     const commandName = 'GetAccountStatus';
     requireParameters(['email'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -135,7 +143,7 @@ function GetAccountStatus(parameters) {
  */
 function GetShortLivedAuthToken() {
     const commandName = 'GetShortLivedAuthToken';
-    return Request.call(commandName);
+    return Network.post(commandName);
 }
 
 /**
@@ -146,7 +154,7 @@ function GetShortLivedAuthToken() {
 function GetIOUReport(parameters) {
     const commandName = 'GetIOUReport';
     requireParameters(['debtorEmail'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -163,7 +171,7 @@ function GetFullPolicy(policyID) {
         returnValueList: 'policyList',
         policyIDList: policyID,
     };
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -174,7 +182,7 @@ function GetPolicySummaryList() {
     const parameters = {
         returnValueList: 'policySummaryList',
     };
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -182,7 +190,7 @@ function GetPolicySummaryList() {
  */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
-    return Request.call(commandName);
+    return Network.post(commandName);
 }
 
 /**
@@ -195,7 +203,7 @@ function Graphite_Timer(parameters) {
     const commandName = 'Graphite_Timer';
     requireParameters(['name', 'value'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -208,7 +216,7 @@ function Graphite_Timer(parameters) {
 function PayIOU(parameters) {
     const commandName = 'PayIOU';
     requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -220,7 +228,7 @@ function PayIOU(parameters) {
 function PayWithWallet(parameters) {
     const commandName = 'PayWithWallet';
     requireParameters(['reportID'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -232,7 +240,7 @@ function PersonalDetails_GetForEmails(parameters) {
     const commandName = 'PersonalDetails_GetForEmails';
     requireParameters(['emailList'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -244,7 +252,7 @@ function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -257,7 +265,7 @@ function PreferredLocale_Update(parameters) {
     const commandName = 'PreferredLocale_Update';
     requireParameters(['name', 'value'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -270,7 +278,7 @@ function Push_Authenticate(parameters) {
     const commandName = 'Push_Authenticate';
     requireParameters(['socket_id', 'channel_name'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -282,7 +290,7 @@ function Push_Authenticate(parameters) {
 function RejectTransaction(parameters) {
     const commandName = 'RejectTransaction';
     requireParameters(['reportID', 'transactionID'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -297,7 +305,7 @@ function Report_AddComment(parameters) {
     const commandName = 'Report_AddComment';
     requireParameters(['reportComment', 'reportID', 'clientID'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -309,7 +317,7 @@ function Report_GetHistory(parameters) {
     const commandName = 'Report_GetHistory';
     requireParameters(['reportID'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -322,7 +330,7 @@ function Report_TogglePinned(parameters) {
     const commandName = 'Report_TogglePinned';
     requireParameters(['reportID', 'pinnedValue'],
         parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -335,7 +343,7 @@ function Report_TogglePinned(parameters) {
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';
     requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -347,7 +355,7 @@ function Report_EditComment(parameters) {
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
     requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -360,7 +368,7 @@ function Report_UpdateLastRead(parameters) {
 function Report_UpdateNotificationPreference(parameters) {
     const commandName = 'Report_UpdateNotificationPreference';
     requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -371,7 +379,7 @@ function Report_UpdateNotificationPreference(parameters) {
 function ResendValidateCode(parameters) {
     const commandName = 'ResendValidateCode';
     requireParameters(['email'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -383,7 +391,7 @@ function ResendValidateCode(parameters) {
 function SetNameValuePair(parameters) {
     const commandName = 'SetNameValuePair';
     requireParameters(['name', 'value'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -394,7 +402,7 @@ function SetNameValuePair(parameters) {
 function ResetPassword(parameters) {
     const commandName = 'ResetPassword';
     requireParameters(['email'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -407,7 +415,7 @@ function ResetPassword(parameters) {
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -420,7 +428,7 @@ function SetPassword(parameters) {
 function SetWalletLinkedAccount(parameters) {
     const commandName = 'SetWalletLinkedAccount';
     requireParameters(['password'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -431,7 +439,7 @@ function SetWalletLinkedAccount(parameters) {
 function UpdateAccount(parameters) {
     const commandName = 'UpdateAccount';
     requireParameters(['subscribed'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -441,14 +449,14 @@ function UpdateAccount(parameters) {
  */
 function User_Delete(parameters) {
     const commandName = 'User_Delete';
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
  * @returns {Promise}
  */
 function User_GetBetas() {
-    return Request.call('User_GetBetas');
+    return Network.post('User_GetBetas');
 }
 
 /**
@@ -460,7 +468,7 @@ function User_GetBetas() {
 function User_IsFromPublicDomain(parameters) {
     const commandName = 'User_IsFromPublicDomain';
     requireParameters(['email'], parameters, commandName);
-    return Request.call(commandName, {
+    return Network.post(commandName, {
         ...{requireCertainty: true},
         ...parameters,
     });
@@ -474,7 +482,7 @@ function User_IsFromPublicDomain(parameters) {
 function User_ReopenAccount(parameters) {
     const commandName = 'User_ReopenAccount';
     requireParameters(['email'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -486,7 +494,7 @@ function User_ReopenAccount(parameters) {
 function User_SecondaryLogin_Send(parameters) {
     const commandName = 'User_SecondaryLogin_Send';
     requireParameters(['email', 'password'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -497,7 +505,7 @@ function User_SecondaryLogin_Send(parameters) {
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
     requireParameters(['file'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -509,7 +517,7 @@ function User_UploadAvatar(parameters) {
 function ValidateEmail(parameters) {
     const commandName = 'ValidateEmail';
     requireParameters(['accountID', 'validateCode'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -525,7 +533,7 @@ function ValidateEmail(parameters) {
 function CreateIOUTransaction(parameters) {
     const commandName = 'CreateIOUTransaction';
     requireParameters(['comment', 'debtorEmail', 'currency', 'amount'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -542,7 +550,7 @@ function CreateIOUTransaction(parameters) {
 function CreateIOUSplit(parameters) {
     const commandName = 'CreateIOUSplit';
     requireParameters(['splits', 'currency', 'amount', 'reportID'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -552,7 +560,7 @@ function CreateIOUSplit(parameters) {
  * @returns {Promise}
  */
 function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
-    return Request.call('Wallet_GetOnfidoSDKToken', {
+    return Network.post('Wallet_GetOnfidoSDKToken', {
         // We need to pass this so we can request a token with the correct referrer
         // This value comes from a cross-platform module which returns true for native
         // platforms and false for non-native platforms.
@@ -567,7 +575,7 @@ function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
  * @returns {Promise}
  */
 function Plaid_GetLinkToken() {
-    return Request.call('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), true);
+    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), true);
 }
 
 /**
@@ -582,7 +590,7 @@ function Plaid_GetLinkToken() {
 function Wallet_Activate(parameters) {
     const commandName = 'Wallet_Activate';
     requireParameters(['currentStep'], parameters, commandName);
-    return Request.call(commandName, parameters, true);
+    return Network.post(commandName, parameters, true);
 }
 
 /**
@@ -595,7 +603,7 @@ function Wallet_Activate(parameters) {
 function BankAccount_Get(parameters) {
     const commandName = 'BankAccount_Get';
     requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
-    return Request.call(commandName, parameters, true);
+    return Network.post(commandName, parameters, true);
 }
 
 /**
@@ -610,7 +618,7 @@ function Policy_Employees_Merge(parameters) {
     requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
 
     // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
-    return Request.call(commandName, {...parameters, returnPersonalDetails: true});
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
 /**
@@ -639,13 +647,13 @@ function BankAccount_Create(parameters) {
         'setupType',
         'additionalData',
     ], parameters, commandName);
-    return Request.call(commandName, parameters, true);
+    return Network.post(commandName, parameters, true);
 }
 
 function BankAccount_Validate(parameters) {
     const commandName = 'ValidateBankAccount';
     requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -683,7 +691,7 @@ function BankAccount_SetupWithdrawal(parameters) {
     const additionalData = _.pick(parameters, allowedParameters);
 
     requireParameters(['currentStep'], parameters, commandName);
-    return Request.call(commandName, {additionalData: JSON.stringify(additionalData)}, true);
+    return Network.post(commandName, {additionalData: JSON.stringify(additionalData)}, true);
 }
 
 /**
@@ -695,7 +703,7 @@ function BankAccount_SetupWithdrawal(parameters) {
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
     requireParameters(['bankAccountID'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -710,7 +718,7 @@ function Mobile_GetConstants(parameters) {
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
-    return Request.call(commandName, finalParameters);
+    return Network.post(commandName, finalParameters);
 }
 
 /**
@@ -721,7 +729,7 @@ function Mobile_GetConstants(parameters) {
  */
 function GetLocalCurrency(parameters) {
     const commandName = 'GetLocalCurrency';
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -735,7 +743,7 @@ function GetCurrencyList() {
  * @returns {Promise}
  */
 function User_IsUsingExpensifyCard() {
-    return Request.call('User_IsUsingExpensifyCard', {});
+    return Network.post('User_IsUsingExpensifyCard', {});
 }
 
 /**
@@ -746,7 +754,7 @@ function User_IsUsingExpensifyCard() {
  */
 function Policy_Create(parameters) {
     const commandName = 'Policy_Create';
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -758,7 +766,7 @@ function Policy_Create(parameters) {
 function Policy_CustomUnit_Update(parameters) {
     const commandName = 'Policy_CustomUnit_Update';
     requireParameters(['policyID', 'customUnit'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -771,7 +779,7 @@ function Policy_CustomUnit_Update(parameters) {
 function Policy_CustomUnitRate_Update(parameters) {
     const commandName = 'Policy_CustomUnitRate_Update';
     requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -781,7 +789,7 @@ function Policy_CustomUnitRate_Update(parameters) {
  */
 function Policy_Delete(parameters) {
     const commandName = 'Policy_Delete';
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -793,7 +801,7 @@ function Policy_Delete(parameters) {
 function Policy_Employees_Remove(parameters) {
     const commandName = 'Policy_Employees_Remove';
     requireParameters(['policyID', 'emailList'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -808,7 +816,7 @@ function Policy_Employees_Remove(parameters) {
 function Inbox_CallUser(parameters) {
     const commandName = 'Inbox_CallUser';
     requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -817,7 +825,7 @@ function Inbox_CallUser(parameters) {
  */
 function Inbox_CallUser_WaitTime() {
     const commandName = 'Inbox_CallUser_WaitTime';
-    return Request.call(commandName);
+    return Network.post(commandName);
 }
 
 /**
@@ -828,7 +836,7 @@ function Inbox_CallUser_WaitTime() {
 function GetReportSummaryList(parameters) {
     const commandName = 'Get';
     requireParameters(['reportIDList'], parameters, commandName);
-    return Request.call(commandName, {...parameters, returnValueList: 'reportSummaryList'});
+    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
 }
 
 /**
@@ -840,7 +848,7 @@ function GetReportSummaryList(parameters) {
 function UpdatePolicy(parameters) {
     const commandName = 'UpdatePolicy';
     requireParameters(['policyID', 'value'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -853,7 +861,7 @@ function UpdatePolicy(parameters) {
 function CreatePolicyRoom(parameters) {
     const commandName = 'CreatePolicyRoom';
     requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -866,7 +874,7 @@ function CreatePolicyRoom(parameters) {
 function RenameReport(parameters) {
     const commandName = 'RenameReport';
     requireParameters(['reportID', 'reportName'], parameters, commandName);
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -881,7 +889,7 @@ function TransferWalletBalance(parameters) {
     if (!parameters.bankAccountID && !parameters.fundID) {
         throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
     }
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -892,7 +900,7 @@ function TransferWalletBalance(parameters) {
  */
 function GetStatementPDF(parameters) {
     const commandName = 'GetStatementPDF';
-    return Request.call(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 export {

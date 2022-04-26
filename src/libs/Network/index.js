@@ -8,7 +8,7 @@ import RetryCounter from '../RetryCounter';
 import * as NetworkStore from './NetworkStore';
 import * as NetworkEvents from './NetworkEvents';
 import * as SequentialQueue from './SequentialQueue';
-import processRequest from './processRequest';
+import * as Request from '../Request';
 import {version} from '../../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -134,25 +134,8 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        processRequest(queuedRequest)
-            .then((response) => {
-                if (response.jsonCode === CONST.JSON_CODE.REAUTHENTICATED) {
-                    // Replay the original request with new authToken as we are now authenticated
-                    replayRequest(queuedRequest);
-                    return;
-                }
-
-                queuedRequest.resolve(response);
-            })
+        Request.process(queuedRequest)
             .catch((error) => {
-                if (_.contains([CONST.ERROR.MISSING_CREDENTIALS, CONST.ERROR.UNABLE_TO_REAUTHENTICATE, CONST.ERROR.ALREADY_AUTHENTICATING], error.message)) {
-                    // Replay the original request when we are not able to reauthenticate
-                    replayRequest(queuedRequest);
-                    return;
-                }
-
-                // Because we ran into an error we assume we might be offline and do a "connection" health test
-                NetworkEvents.triggerRecheckNeeded();
                 if (retryFailedRequest(queuedRequest, error)) {
                     return;
                 }
@@ -185,16 +168,15 @@ ActiveClientManager.isReady().then(() => {
  *
  * @param {String} command
  * @param {*} [data]
- * @param {String} [type]
  * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+function post(command, data = {}, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
         const request = {
             command,
             data,
-            type,
+            type: CONST.NETWORK.METHOD.POST,
             resolve,
             reject,
             shouldUseSecure,
@@ -237,4 +219,5 @@ function clearRequestQueue() {
 export {
     post,
     clearRequestQueue,
+    replayRequest,
 };
