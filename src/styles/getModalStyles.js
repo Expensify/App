@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
@@ -83,7 +84,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -114,7 +115,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
