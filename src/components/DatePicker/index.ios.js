@@ -17,7 +17,7 @@ const datepickerPropTypes = {
     ...withLocalizePropTypes,
 };
 
-class Datepicker extends React.Component {
+class DatePicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -123,8 +123,8 @@ class Datepicker extends React.Component {
     }
 }
 
-Datepicker.propTypes = datepickerPropTypes;
-Datepicker.defaultProps = defaultProps;
+DatePicker.propTypes = datepickerPropTypes;
+DatePicker.defaultProps = defaultProps;
 
 /**
  * We're applying localization here because we present a modal (with buttons) ourselves
@@ -134,5 +134,5 @@ Datepicker.defaultProps = defaultProps;
  */
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Datepicker {...props} innerRef={ref} />
+    <DatePicker {...props} innerRef={ref} />
 )));

@@ -6,7 +6,7 @@ import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 
-class Datepicker extends React.Component {
+class DatePicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -73,10 +73,10 @@ class Datepicker extends React.Component {
     }
 }
 
-Datepicker.propTypes = propTypes;
-Datepicker.defaultProps = defaultProps;
+DatePicker.propTypes = propTypes;
+DatePicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Datepicker {...props} innerRef={ref} />
+    <DatePicker {...props} innerRef={ref} />
 ));
