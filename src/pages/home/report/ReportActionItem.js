@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import {View, Animated} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -73,12 +73,12 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
+        this.animatedBackgroundColor = new Animated.Value(0);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.isSelected) {
-            debugger;
-            console.log('over here shouldUpdate');
+            console.log(`over here shouldUpdate: ${this.props.reportID}`);
         }
 
         return this.props.displayAsGroup !== nextProps.displayAsGroup
@@ -92,12 +92,31 @@ class ReportActionItem extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        console.log(`over here didUpdate 1: ${this.props.reportID}`);
+        if (!prevProps.isSelected && this.props.isSelected) {
+            this.animateBackground();
+        }
+
         if (prevProps.draftMessage || !this.props.draftMessage) {
             return;
         }
+        console.log(`over here didUpdate 2: ${this.props.reportID}`);
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
         this.textInput.focus();
+    }
+
+    animateBackground() {
+        console.log('over here Time to animate');
+        Animated.timing(this.animatedBackgroundColor, {
+            toValue: 1,
+            duration: 0,
+        }).start(() => {
+            Animated.timing(this.animatedBackgroundColor, {
+                toValue: 0,
+                duration: 2500,
+            }).start();
+        });
     }
 
     /**
@@ -162,6 +181,17 @@ class ReportActionItem extends Component {
                     />
                 );
         }
+
+        const interpolatedBackgroundColor = this.animatedBackgroundColor.interpolate(
+            {
+                inputRange: [0, 1],
+                outputRange: ["#FFFFFF", "#ffe4c4"],
+            },
+        );
+        const animatedBackgroundStyle = {
+            backgroundColor: interpolatedBackgroundColor,
+        };
+
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
@@ -176,7 +206,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
-                        <View>
+                        <Animated.View style={animatedBackgroundStyle}>
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
@@ -211,7 +241,7 @@ class ReportActionItem extends Component {
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
-                        </View>
+                        </Animated.View>
                     )}
                 </Hoverable>
             </PressableWithSecondaryInteraction>
