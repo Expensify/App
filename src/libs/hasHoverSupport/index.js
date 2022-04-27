@@ -4,7 +4,9 @@
  * @returns {Boolean}
  */
 
-const hasHoverSupport = () => true;
+import * as Browser from '../Browser';
+
+const hasHoverSupport = () => !Browser.isMobile();
 
 export default hasHoverSupport;
 
