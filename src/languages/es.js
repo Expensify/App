@@ -884,6 +884,7 @@ export default {
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
         },
     },
     getAssistancePage: {

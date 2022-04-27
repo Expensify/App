@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONFIG from '../../CONFIG';
+import getPlatform from '../getPlatform';
 import * as NetworkStore from './NetworkStore';
 
 /**
@@ -39,6 +40,10 @@ export default function enhanceParameters(command, parameters) {
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
+
+    // In addition to the referer (ecash), we pass the platform to help differentiate what device type
+    // is sending the request.
+    finalParameters.platform = getPlatform();
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
