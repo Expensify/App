@@ -84,6 +84,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+
+            // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
             shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
@@ -115,6 +117,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+
+            // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
             shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
