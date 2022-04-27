@@ -25,6 +25,8 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
 import CONST from '../../CONST';
+import Button from '../../components/Button';
+import MenuItem from '../../components/MenuItem';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -232,25 +234,27 @@ class ValidationStep extends React.Component {
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBlue}
-                            menuItems={[
-                                {
-                                    title: this.props.translate('validationStep.letsChatCTA'),
-                                    icon: Expensicons.ChatBubble,
-                                    onPress: Report.navigateToConciergeChat,
-                                    shouldShowRightIcon: true,
-                                },
-                                {
-                                    title: this.props.translate('workspace.bankAccount.noLetsStartOver'),
-                                    icon: Expensicons.RotateLeft,
-                                    shouldShowRightIcon: true,
-                                    onPress: BankAccounts.requestResetFreePlanBankAccount,
-                                },
-                            ]}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
                             </Text>
                         </Section>
+                        <Button
+                            text={this.props.translate('validationStep.letsChatCTA')}
+                            onPress={Report.navigateToConciergeChat}
+                            icon={Expensicons.ChatBubble}
+                            style={[styles.mt4, styles.mh3]}
+                            iconStyles={[styles.mr5]}
+                            shouldShowRightIcon
+                            extraLarge
+                            success
+                        />
+                        <MenuItem
+                            title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
+                            icon={Expensicons.RotateLeft}
+                            onPress={BankAccounts.requestResetFreePlanBankAccount}
+                            shouldShowRightIcon
+                        />
                     </View>
                 )}
             </View>
