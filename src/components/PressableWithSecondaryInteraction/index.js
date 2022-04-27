@@ -5,7 +5,7 @@ import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import SelectionScraper from '../../libs/SelectionScraper';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
-import isHoverable from '../../libs/isHoverable';
+import hasHoverSupport from '../../libs/hasHoverSupport';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -32,7 +32,7 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {Object} e
      */
     callSecondaryInteractionWithMappedEvent(e) {
-        if ((e.nativeEvent.state !== State.ACTIVE) || isHoverable()) {
+        if ((e.nativeEvent.state !== State.ACTIVE) || hasHoverSupport()) {
             return;
         }
 

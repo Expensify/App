@@ -4,7 +4,7 @@
  * @returns {Boolean}
  */
 
-const isHoverable = () => true;
+const hasHoverSupport = () => true;
 
-export default isHoverable;
+export default hasHoverSupport;
 
