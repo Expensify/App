@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {
+    View, TouchableOpacity, TouchableNativeFeedback, Platform,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -54,11 +56,25 @@ const WorkspaceBillsFirstSection = (props) => {
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
-                        <TouchableOpacity
-                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                        >
-                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
-                        </TouchableOpacity>
+                        <>
+                            {
+                                Platform.OS === 'android' || Platform.OS === 'ios'
+                                    ? (
+                                        <TouchableNativeFeedback
+                                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                                        >
+                                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                                        </TouchableNativeFeedback>
+                                    )
+                                    : (
+                                        <TouchableOpacity
+                                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                                        >
+                                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                                        </TouchableOpacity>
+                                    )
+                            }
+                        </>
                     ) : (
                         <CopyTextToClipboard
                             text={`${emailDomain}@expensify.cash`}
