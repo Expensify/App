@@ -28,11 +28,23 @@ const AnchorRenderer = (props) => {
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (internalNewExpensifyPath || internalExpensifyPath) {
+    if (internalNewExpensifyPath) {
         return (
             <Text
                 style={styles.link}
-                onPress={() => (internalNewExpensifyPath ? Navigation.navigate(internalNewExpensifyPath) : Link.openOldDotLink(internalExpensifyPath))}
+                onPress={() => Navigation.navigate(internalNewExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={props.tnode} />
+            </Text>
+        );
+    }
+
+    // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
+    if (internalExpensifyPath) {
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => Link.openOldDotLink(internalExpensifyPath)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
