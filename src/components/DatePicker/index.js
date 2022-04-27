@@ -72,9 +72,6 @@ class Datepicker extends React.Component {
                 forceActiveLabel={!canUseTouchScreen()}
                 ref={(el) => {
                     this.inputRef = el;
-                    if (!this.props.innerRef) {
-                        return;
-                    }
 
                     if (_.isFunction(this.props.innerRef)) {
                         this.props.innerRef(el);

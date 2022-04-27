@@ -54,10 +54,6 @@ class Datepicker extends React.Component {
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
                     ref={(el) => {
-                        if (!this.props.innerRef) {
-                            return;
-                        }
-
                         if (_.isFunction(this.props.innerRef)) {
                             this.props.innerRef(el);
                         }
