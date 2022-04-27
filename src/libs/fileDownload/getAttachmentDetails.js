@@ -18,19 +18,17 @@ export default function getAttachmentName(html) {
             originalFileName: null,
         };
     }
-    let previewSourceURL = html.match(PREVIEW_SOURCE_REGEX)[1];
-    let sourceURL = html.match(SOURCE_REGEX)[1];
+    const previewSourceURL = html.match(PREVIEW_SOURCE_REGEX)[1].replace(
+        Config.EXPENSIFY.EXPENSIFY_URL,
+        Config.EXPENSIFY.URL_API_ROOT,
+    );
+    const sourceURL = html.match(SOURCE_REGEX)[1].replace(
+        Config.EXPENSIFY.EXPENSIFY_URL,
+        Config.EXPENSIFY.URL_API_ROOT,
+    );
     const originalFileName = html.match(ORIGINAL_FILENAME_REGEX)[1];
 
     // Update the image URL so the images can be accessed depending on the config environment
-    previewSourceURL = previewSourceURL.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-    sourceURL = sourceURL.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
     return {
         previewSourceURL,
         sourceURL,
