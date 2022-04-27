@@ -182,10 +182,6 @@ const CONST = {
         META: 'CMD',
         SHIFT: 'Shift',
     },
-    PICKER_EVENT: {
-        FOCUS: 'onFocus',
-        BLUR: 'onBlur',
-    },
     CURRENCY: {
         USD: 'USD',
     },
