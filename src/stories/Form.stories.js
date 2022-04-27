@@ -4,6 +4,7 @@ import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
 import StatePicker from '../components/StatePicker';
 import AddressSearch from '../components/AddressSearch';
+import DatePicker from '../components/DatePicker';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -24,6 +25,7 @@ const story = {
         CheckboxWithLabel,
         Picker,
         StatePicker,
+        DatePicker,
     },
 };
 
@@ -53,6 +55,12 @@ const Template = (args) => {
             <AddressSearch
                 label="Street"
                 inputID="street"
+                containerStyles={[styles.mt4]}
+                isFormInput
+            />
+            <DatePicker
+                label="Date of birth"
+                inputID="dob"
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
@@ -167,6 +175,9 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.dob) {
+            errors.dob = 'Please enter your date of birth';
+        }
         if (!values.pickFruit) {
             errors.pickFruit = 'Please select a fruit';
         }
@@ -194,6 +205,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
         pickState: 'AL',
@@ -210,6 +222,7 @@ InputError.args = {
         routingNumber: '',
         accountNumber: '',
         pickFruit: '',
+        dob: '',
         pickAnotherFruit: '',
         pickState: '',
         checkbox: false,
