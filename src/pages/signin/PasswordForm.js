@@ -133,7 +133,7 @@ class PasswordForm extends React.Component {
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={this.reset}
+                            onPress={this.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
