@@ -356,7 +356,7 @@ function isExistingRoomName(roomName, reports, policyID) {
 }
 
 /**
- * Validate that this is a valid tax ID (consisting of 9 digits)
+ * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
  * @returns {Boolean}
