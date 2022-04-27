@@ -56,10 +56,13 @@ const defaultProps = {
     loginList: [],
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -292,13 +295,12 @@ class ProfilePage extends Component {
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
-                                key={this.state.selectedTimezone}
                             />
                         </View>
                         <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
-                            onPress={this.setAutomaticTimezone}
+                            onInputChange={this.setAutomaticTimezone}
                         />
                     </ScrollView>
                     <FixedFooter>

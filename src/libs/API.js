@@ -53,13 +53,17 @@ NetworkEvents.registerLogHandler(() => Log);
 // Handle response event sent by the Network
 NetworkEvents.onResponse((queuedRequest, response) => {
     if (queuedRequest.command !== 'Log') {
-        Log.info('Finished API request', false, {
+        const logParams = {
             command: queuedRequest.command,
-            type: queuedRequest.type,
             shouldUseSecure: queuedRequest.shouldUseSecure,
             jsonCode: response.jsonCode,
             requestID: response.requestID,
-        });
+        };
+        if (queuedRequest.command === 'Get') {
+            logParams.returnValueList = lodashGet(queuedRequest, 'data.returnValueList', '');
+            logParams.nvpNames = lodashGet(queuedRequest, 'data.nvpNames', '');
+        }
+        Log.info('Finished API request', false, logParams);
     }
 
     if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
