@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -687,7 +689,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
-        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
+        taxIDNumberPlaceholder: '9 dígitos',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         incorporationState: 'Estado de incorporación',
@@ -882,6 +884,7 @@ export default {
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
         },
     },
     getAssistancePage: {

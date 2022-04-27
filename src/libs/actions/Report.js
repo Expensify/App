@@ -141,17 +141,18 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  *
  * @param {Object} fullReport
  * @param {String} chatType
+ * @param {String} oldPolicyName
  * @return {String}
  */
-function getChatReportName(fullReport, chatType) {
+function getChatReportName(fullReport, chatType, oldPolicyName) {
+    const isArchivedRoom = ReportUtils.isArchivedRoom({
+        chatType,
+        stateNum: fullReport.state,
+        statusNum: fullReport.status,
+    });
+
     if (ReportUtils.isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        })
-            ? ` (${Localize.translateLocal('common.deleted')})`
-            : '')}`;
+        return `#${fullReport.reportName}${isArchivedRoom ? ` (${Localize.translateLocal('common.deleted')})` : ''}`;
     }
 
     // For a basic policy room, return its original name
@@ -160,13 +161,10 @@ function getChatReportName(fullReport, chatType) {
     }
 
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        })
-            ? ` (${Localize.translateLocal('common.archived')})`
-            : '')}`;
+        const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
+            ? oldPolicyName
+            : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
+        return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -206,16 +204,16 @@ function getSimplifiedReportObject(report) {
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report, chatType)
+        ? getChatReportName(report, chatType, oldPolicyName)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
@@ -755,7 +753,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
@@ -883,7 +881,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 
@@ -1081,9 +1079,10 @@ function fetchAllReports(
  * @param {File} [file]
  */
 function addAction(reportID, text, file) {
-    // Convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = parser.replace(text);
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 
@@ -1522,7 +1521,8 @@ function createPolicyRoom(policyID, reportName, visibility) {
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
-        .then(([{reportID}]) => {
+        .then((chatReports) => {
+            const reportID = lodashGet(_.first(_.values(chatReports)), 'reportID', '');
             if (!reportID) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;

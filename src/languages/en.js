@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'You missed the party in ',
+        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -685,7 +687,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
-        taxIDNumberPlaceholder: '9 digits, no hyphens',
+        taxIDNumberPlaceholder: '9 digits',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         incorporationState: 'Incorporation state',
@@ -880,6 +882,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
+            areYouSure: 'Are you sure?',
         },
     },
     getAssistancePage: {

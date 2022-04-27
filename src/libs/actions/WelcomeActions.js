@@ -45,9 +45,9 @@ Onyx.connect({
  *
  * @param {Object} params
  * @param {Object} params.routes
- * @param {Function} params.toggleCreateMenu
+ * @param {Function} params.hideCreateMenu
  */
-function show({routes, toggleCreateMenu}) {
+function show({routes, hideCreateMenu}) {
     // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
     // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
     setTimeout(() => {
@@ -72,10 +72,10 @@ function show({routes, toggleCreateMenu}) {
         const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
         const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
-        // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case
+        // It's also possible that we already have a workspace policy. In either case we will not hide the menu but do still want to set the NVP in this case
         // since the user does not need to create a workspace.
         if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
-            toggleCreateMenu();
+            hideCreateMenu();
         }
     }, 1500);
 }

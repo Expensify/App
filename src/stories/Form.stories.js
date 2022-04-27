@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
 import AddressSearch from '../components/AddressSearch';
+import DatePicker from '../components/DatePicker';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -22,12 +23,11 @@ const story = {
         AddressSearch,
         CheckboxWithLabel,
         Picker,
+        DatePicker,
     },
 };
 
 const Template = (args) => {
-    const [isChecked, setIsChecked] = useState(args.draftValues.checkbox);
-
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
@@ -53,6 +53,12 @@ const Template = (args) => {
             <AddressSearch
                 label="Street"
                 inputID="street"
+                containerStyles={[styles.mt4]}
+                isFormInput
+            />
+            <DatePicker
+                label="Date of birth"
+                inputID="dob"
                 containerStyles={[styles.mt4]}
                 isFormInput
             />
@@ -101,10 +107,7 @@ const Template = (args) => {
             />
             <CheckboxWithLabel
                 inputID="checkbox"
-                isChecked={isChecked}
-                defaultValue={isChecked}
                 style={[styles.mb4, styles.mt5]}
-                onPress={() => { setIsChecked(prev => !prev); }}
                 isFormInput
                 shouldSaveDraft
                 LabelComponent={() => (
@@ -163,6 +166,9 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.dob) {
+            errors.dob = 'Please enter your date of birth';
+        }
         if (!values.pickFruit) {
             errors.pickFruit = 'Please select a fruit';
         }
@@ -187,6 +193,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
         checkbox: false,
@@ -202,6 +209,7 @@ InputError.args = {
         routingNumber: '',
         accountNumber: '',
         pickFruit: '',
+        dob: '',
         pickAnotherFruit: '',
         checkbox: false,
     },
