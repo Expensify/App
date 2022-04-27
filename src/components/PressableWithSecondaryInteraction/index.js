@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Platform, Pressable} from 'react-native';
+import {Pressable} from 'react-native';
 import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import SelectionScraper from '../../libs/SelectionScraper';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
+import isHoverable from '../../libs/isHoverable';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -31,8 +32,7 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {Object} e
      */
     callSecondaryInteractionWithMappedEvent(e) {
-        const isHoverableDevice = ((Platform.OS === 'web') || (Platform.OS === 'windows') || (Platform.OS === 'macos'));
-        if ((e.nativeEvent.state !== State.ACTIVE) || isHoverableDevice) {
+        if ((e.nativeEvent.state !== State.ACTIVE) || isHoverable()) {
             return;
         }
 
