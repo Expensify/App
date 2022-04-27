@@ -284,7 +284,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
  * User forgot the password so let's send them the link to reset their password
  */
 function resetPassword() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true, twoFactorAuthCode: '',});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});

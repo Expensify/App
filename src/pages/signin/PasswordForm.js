@@ -47,6 +47,7 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.reset = this.reset.bind(this);
 
         this.state = {
             formError: false,
@@ -76,6 +77,11 @@ class PasswordForm extends React.Component {
      */
     clearPassword() {
         this.setState({password: ''}, this.input.clear);
+    }
+
+    reset() {
+        this.setState({twoFactorAuthCode: ''}, this.twofainput.clear);
+        Session.resetPassword();
     }
 
     /**
@@ -124,7 +130,7 @@ class PasswordForm extends React.Component {
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={Session.resetPassword}
+                            onPress={this.reset}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
@@ -137,6 +143,7 @@ class PasswordForm extends React.Component {
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
                         <TextInput
+                            ref={el => this.twofainput = el}
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
