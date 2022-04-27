@@ -1,7 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Button from '../components/Button';
-import Text from '../components/Text';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
