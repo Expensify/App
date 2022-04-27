@@ -80,7 +80,7 @@ class PasswordForm extends React.Component {
     }
 
     reset() {
-        this.setState({twoFactorAuthCode: ''}, this.twofainput.clear);
+        this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         Session.resetPassword();
     }
 
@@ -143,7 +143,7 @@ class PasswordForm extends React.Component {
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            ref={el => this.twofainput = el}
+                            ref={el => this.input2FA = el}
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
