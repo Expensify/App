@@ -40,7 +40,7 @@ export default [
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment;
+            return isAttachment && reportAction.reportActionID;
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
