@@ -47,7 +47,7 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.reset = this.reset.bind(this);
+        this.resetPassword = this.resetPassword.bind(this);
 
         this.state = {
             formError: false,
@@ -79,7 +79,10 @@ class PasswordForm extends React.Component {
         this.setState({password: ''}, this.inputPassword.clear);
     }
 
-    reset() {
+    /**
+     * Trigger the reset password flow and ensure the 2FA input field is reset to avoid it being permanently hidden
+     */
+    resetPassword() {
         this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         Session.resetPassword();
     }
