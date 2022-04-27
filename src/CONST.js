@@ -401,6 +401,8 @@ const CONST = {
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
+    ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
