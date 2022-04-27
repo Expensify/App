@@ -27,9 +27,6 @@ class Tooltip extends PureComponent {
             wrapperHeight: 0,
         };
 
-        // The wrapper view containing the wrapped content along with the Tooltip itself.
-        this.wrapperView = null;
-
         // Whether the tooltip is first tooltip to activate the TooltipSense
         this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
