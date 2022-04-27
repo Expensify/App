@@ -100,7 +100,7 @@ const HeaderView = (props) => {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
