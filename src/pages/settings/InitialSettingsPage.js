@@ -22,6 +22,7 @@ import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
 import networkPropTypes from '../../components/networkPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -36,7 +37,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -73,7 +74,6 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    network: {},
     session: {},
     policies: {},
     userWallet: {
@@ -210,12 +210,10 @@ InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
         session: {
             key: ONYXKEYS.SESSION,

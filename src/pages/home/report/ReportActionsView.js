@@ -35,7 +35,7 @@ import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
@@ -81,7 +81,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -99,7 +99,6 @@ const defaultProps = {
     isLoadingReportActions: false,
     isLoadingReportData: false,
     personalDetails: {},
-    network: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -629,16 +628,13 @@ export default compose(
     withDrawerState,
     withLocalize,
     withPersonalDetails(),
+    withNetwork(),
     withOnyx({
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
-            initWithStoredValues: false,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
             initWithStoredValues: false,
         },
     }),

@@ -43,6 +43,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
 import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -80,13 +81,9 @@ const modalScreenListeners = {
 
 const propTypes = {
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    network: {isOffline: true},
 };
 
 class AuthScreens extends React.Component {
@@ -364,13 +361,10 @@ class AuthScreens extends React.Component {
 }
 
 AuthScreens.propTypes = propTypes;
-AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

@@ -88,7 +88,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -104,7 +104,6 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
 };

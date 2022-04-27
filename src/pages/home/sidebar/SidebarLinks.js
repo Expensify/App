@@ -26,6 +26,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/reportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -61,7 +62,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
@@ -88,7 +89,6 @@ const defaultProps = {
     myPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    network: null,
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     initialReportDataLoaded: false,
@@ -320,6 +320,7 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -329,9 +330,6 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,

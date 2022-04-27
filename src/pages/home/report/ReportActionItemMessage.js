@@ -15,14 +15,10 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     /** localization props */
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    network: {isOffline: false},
 };
 
 const ReportActionItemMessage = (props) => {
@@ -44,7 +40,6 @@ const ReportActionItemMessage = (props) => {
 };
 
 ReportActionItemMessage.propTypes = propTypes;
-ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default compose(

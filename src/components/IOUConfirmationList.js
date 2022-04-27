@@ -21,6 +21,7 @@ import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -94,7 +95,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -108,7 +109,6 @@ const defaultProps = {
     },
     onUpdateComment: null,
     comment: '',
-    network: {},
     myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
@@ -414,6 +414,7 @@ IOUConfirmationList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
@@ -421,9 +422,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
         betas: {
             key: ONYXKEYS.BETAS,
