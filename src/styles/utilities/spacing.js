@@ -177,10 +177,6 @@ export default {
         marginBottom: 32,
     },
 
-    mb10: {
-        marginBottom: 40,
-    },
-
     mbn1: {
         marginBottom: -4,
     },

@@ -14,7 +14,7 @@ const propTypes = {
 
 const ConfirmationScreen = props => (
     <>
-        <View style={[styles.flex1, styles.p5, styles.justifyContentCenter, styles.alignItemsCenter, styles.mb10]}>
+        <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Image
                 source={confettiPop}
                 style={styles.confettiIcon}
