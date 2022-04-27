@@ -119,8 +119,7 @@ class CompanyStep extends React.Component {
      * @param {String} value
      */
     clearDateErrorsAndSetValue(value) {
-        this.clearError('incorporationDate');
-        this.clearError('incorporationDateFuture');
+        this.clearErrors(['incorporationDate', 'incorporationDateFuture']);
         this.setValue({incorporationDate: value});
     }
 
@@ -277,8 +276,8 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
-                            onChange={this.clearDateErrorsAndSetValue}
-                            value={this.state.incorporationDate}
+                            onInputChange={this.clearDateErrorsAndSetValue}
+                            defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                             maximumDate={new Date()}
