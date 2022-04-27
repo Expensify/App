@@ -197,10 +197,9 @@ function getSimplifiedReportObject(report) {
     if (report.reportActionCount > 0) {
         // We are removing any html tags from the message html since we cannot access the text version of any comments as
         // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        // We convert the line-breaks in html to space ' ' before striping the tags
-        lastMessageText = lastActionMessage
-            .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '');
+        // We convert the line-breaks and blockquote closing tag in html to space ' ' before striping the tags
+        const parser = new ExpensiMark();
+        lastMessageText = parser.htmlToText(lastActionMessage);
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -600,10 +599,13 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    let messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    let messageText = lodashGet(reportAction, ['message', 0, 'html'], '');
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         messageText = lodashGet(reportAction, 'originalMessage.html', '');
     }
+
+    const parser = new ExpensiMark();
+    messageText = parser.htmlToText(messageText);
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
@@ -1093,7 +1095,7 @@ function addAction(reportID, text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
+        : parser.htmlToText(htmlForNewComment);
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
