@@ -133,12 +133,11 @@ function reauthenticate(command = '') {
             }
 
             // If we experience something other than a network error then redirect the user to sign in
-            redirectToSignIn(error.message);
-
             Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: error.message,
             });
+            redirectToSignIn(error.message);
         });
 }
 
