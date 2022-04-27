@@ -14,7 +14,7 @@ const propTypes = {
 
 const TestToolRow = props => (
     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter]}>
-        <View style={styles.flex4}>
+        <View style={styles.flex3}>
             <Text>
                 {props.title}
             </Text>
