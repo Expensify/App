@@ -176,7 +176,7 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(/\D/g, '')});
+        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, '')});
     }
 
     render() {
