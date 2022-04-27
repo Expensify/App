@@ -97,7 +97,8 @@ class ReportActionItem extends Component {
     }
 
     setHovered() {
-        if (ReportScrollManager.isScrolling() || !this.isHovering) {
+        //  This function can be used to force the hovering state, so check whether the user is actually hovering the item
+        if (!this.isHovering) {
             return;
         }
         this.setState({hovered: true});
@@ -105,6 +106,8 @@ class ReportActionItem extends Component {
 
     setHoveredWhenNotScrolling() {
         this.isHovering = true;
+
+        // When user is scrolling the report actions list, do not show the mini menu by skipping the hovering action.
         if (ReportScrollManager.isScrolling()) {
             ReportScrollManager.setCurrentlyHoveredReportActionItem(this);
             return;
