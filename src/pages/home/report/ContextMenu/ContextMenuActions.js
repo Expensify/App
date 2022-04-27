@@ -73,6 +73,7 @@ export default [
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
+            debugger;
             if (!isAttachment) {
                 Clipboard.setString(text);
             } else {
@@ -87,8 +88,14 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: () => false,
-        onPress: () => {},
+        shouldShow: () => true,
+        onPress: (closePopover, {reportAction, reportID}) => {
+            debugger;
+            const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
+            const text = `http://localhost:8080/r/${reportID}/actionID/${reportActionID}`;
+            Clipboard.setString(text);
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
     },
 
     {
