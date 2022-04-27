@@ -305,17 +305,42 @@ const CONST = {
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
+        SPINNER_TIMEOUT: 15 * 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    JSON_CODE: {
+        SUCCESS: 200,
+        NOT_AUTHENTICATED: 407,
+        EXP_ERROR: 666,
+    },
     ERROR: {
+        XHR_FAILED: 'xhrFailed',
         API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
+        NETWORK_REQUEST_FAILED: 'Network request failed',
+        SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
+        FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
+        IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
+        IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
+        IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_LOAD_FAILED: 'Load failed',
+        SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
+        GATEWAY_TIMEOUT: 'Gateway Timeout',
+        EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+    },
+    ERROR_TYPE: {
+        SOCKET: 'Expensify\\Auth\\Error\\Socket',
+    },
+    ERROR_TITLE: {
+        SOCKET: 'Issue connecting to database',
     },
     NETWORK: {
         METHOD: {
@@ -324,10 +349,6 @@ const CONST = {
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-    },
-    JSON_CODE: {
-        SUCCESS: 200,
-        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -381,6 +402,8 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
     },
 
+    ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
@@ -396,7 +419,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
 
-    COMPOSER_MAX_HEIGHT: 116,
+    COMPOSER_MAX_HEIGHT: 125,
 
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
@@ -656,6 +679,9 @@ const CONST = {
             this.EMAIL.ADMIN,
         ];
     },
+
+    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
+    MAX_COMMENT_LENGTH: 60000,
 };
 
 export default CONST;

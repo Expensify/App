@@ -54,7 +54,7 @@ const AddressForm = props => (
             label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
             value={props.values.street}
-            onChange={props.onFieldChange}
+            onInputChange={props.onFieldChange}
             errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
         />
         <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>

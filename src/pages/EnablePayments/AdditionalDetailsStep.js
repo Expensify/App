@@ -265,7 +265,7 @@ class AdditionalDetailsStep extends React.Component {
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
                                         containerStyles={[styles.mt4]}
-                                        onChange={(values) => {
+                                        onInputChange={(values) => {
                                             const renamedFields = {
                                                 street: 'addressStreet',
                                                 state: 'addressState',

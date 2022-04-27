@@ -8,13 +8,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import processRequest from './processRequest';
 
-let isPersistedRequestsQueueRunning = false;
+let isSequentialQueueRunning = false;
 
 /**
- * This method will get any persisted requests and fire them off in parallel to retry them.
- * If we get any jsonCode besides 407 the request is a success. It doesn't make sense to
- * continually retry things that have returned a response. However, we can retry any requests
- * with known networking errors like "Failed to fetch".
+ * This method will get any persisted requests and fire them off in sequence to retry them.
  *
  * @returns {Promise}
  */
@@ -26,7 +23,7 @@ function process() {
         return Promise.resolve();
     }
 
-    const tasks = _.map(persistedRequests, request => processRequest(request)
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => processRequest(request)
         .catch((error) => {
             const retryCount = PersistedRequests.incrementRetries(request);
             NetworkEvents.getLogger().info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
@@ -34,15 +31,14 @@ function process() {
                 NetworkEvents.getLogger().info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                 PersistedRequests.remove(request);
             }
-        }));
+        })), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
-    return Promise.all(tasks)
-        .then(process);
+    return task.then(process);
 }
 
 function flush() {
-    if (isPersistedRequestsQueueRunning) {
+    if (isSequentialQueueRunning) {
         return;
     }
 
@@ -52,7 +48,7 @@ function flush() {
         return;
     }
 
-    isPersistedRequestsQueueRunning = true;
+    isSequentialQueueRunning = true;
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -60,15 +56,22 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process()
-                .finally(() => isPersistedRequestsQueueRunning = false);
+                .finally(() => isSequentialQueueRunning = false);
         },
     });
+}
+
+/**
+ * @returns {Boolean}
+ */
+function isRunning() {
+    return isSequentialQueueRunning;
 }
 
 // Flush the queue when the connection resumes
 NetworkEvents.onConnectivityResumed(flush);
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     flush,
+    isRunning,
 };
