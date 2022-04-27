@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -10,6 +11,8 @@ import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
+import withNavigationFallback from './withNavigationFallback';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** The text for the button label */
@@ -239,4 +242,7 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default Button;
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(Button);
