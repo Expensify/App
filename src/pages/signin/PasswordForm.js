@@ -57,15 +57,15 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
+        if (!canFocusInputOnScreenFocus() || !this.inputPassword || !this.props.isVisible) {
             return;
         }
-        this.input.focus();
+        this.inputPassword.focus();
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isVisible && this.props.isVisible) {
-            this.input.focus();
+            this.inputPassword.focus();
         }
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
             this.clearPassword();
@@ -76,7 +76,7 @@ class PasswordForm extends React.Component {
      * Clear Password from the state
      */
     clearPassword() {
-        this.setState({password: ''}, this.input.clear);
+        this.setState({password: ''}, this.inputPassword.clear);
     }
 
     reset() {
@@ -115,7 +115,7 @@ class PasswordForm extends React.Component {
             <>
                 <View style={[styles.mv3]}>
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={el => this.inputPassword = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
