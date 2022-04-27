@@ -446,8 +446,6 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                animationIn="fadeInUp"
-                                                animationOut="fadeOutDown"
                                                 menuItems={[
                                                     ...(!hasExcludedIOUEmails
                                                         && Permissions.canUseIOU(this.props.betas) ? [
