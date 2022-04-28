@@ -31,6 +31,7 @@ import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import withRefetchActions from '../../../../components/withRefetchActions';
+import {withNetwork} from '../../../../components/OnyxProvider';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -66,6 +67,14 @@ class BasePaymentsPage extends React.Component {
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline === this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     componentWillUnmount() {
@@ -438,7 +447,7 @@ BasePaymentsPage.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withRefetchActions(BasePaymentsPage.prototype.fetchData),
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
