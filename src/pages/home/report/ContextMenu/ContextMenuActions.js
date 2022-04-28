@@ -11,6 +11,7 @@ import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
+import * as ContextMenuUtils from './ContextMenuUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -62,6 +63,7 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: ({selection, isSmallScreenWidth}) => (ContextMenuUtils.shouldShowDescription(isSmallScreenWidth) ? selection : ''),
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',

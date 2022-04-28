@@ -1,20 +1,14 @@
 /* eslint-disable import/prefer-default-export */
-import * as ContextMenuActions from '../ContextMenuActions';
 
 /**
- * Returns full link address to show in the context menu's description
+ * Always show popover description for native platforms
  *
- * @param {String} menuType
- * @param {String} link
- * @returns {String}
+ * @returns {Boolean}
  */
-function getPopoverDescription(menuType, link) {
-    if (menuType === ContextMenuActions.CONTEXT_MENU_TYPES.LINK) {
-        return link;
-    }
-    return '';
+function shouldShowDescription() {
+    return true;
 }
 
 export {
-    getPopoverDescription,
+    shouldShowDescription,
 };

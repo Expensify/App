@@ -293,7 +293,6 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
-                        selection={this.state.selection}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal

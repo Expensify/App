@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import * as ContextMenuUtils from './ContextMenuUtils';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -53,7 +52,7 @@ class BaseReportActionContextMenu extends React.Component {
                             draftMessage: this.props.draftMessage,
                             selection: this.props.selection,
                         })}
-                        description={ContextMenuUtils.getPopoverDescription(this.props.type, this.props.selection, this.props.isSmallScreenWidth)}
+                        description={contextAction.getDescription ? contextAction.getDescription({selection: this.props.selection, isSmallScreenWidth: this.props.isSmallScreenWidth}) : ''}
                     />
                 ))}
             </View>
