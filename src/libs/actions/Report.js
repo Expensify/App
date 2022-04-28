@@ -529,8 +529,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReportByID(iouReportID, chatReportID)
         .then((iouReportObject) => {
-            return;
-            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID // JULES
+            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
             const chatReportObject = {
                 hasOutstandingIOU: iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING
                     && iouReportObject.total !== 0,
