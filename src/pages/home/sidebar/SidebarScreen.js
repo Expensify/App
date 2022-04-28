@@ -58,7 +58,15 @@ class SidebarScreen extends Component {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        WelcomeActions.show({routes, showCreateMenu: this.showCreateMenu});
+        WelcomeActions.show({
+            routes,
+            showCreateMenu: this.showCreateMenu,
+            isFirstTimeNewExpensifyUser: _.isBoolean(this.props.isFirstTimeNewExpensifyUser)
+                ? this.props.isFirstTimeNewExpensifyUser
+                : true,
+            allPolicies: this.props.allPolicies,
+            allReports: this.props.allReports,
+        });
     }
 
     /**
@@ -195,11 +203,17 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
+        allReports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
         isCreatingWorkspace: {
             key: ONYXKEYS.IS_CREATING_WORKSPACE,
+        },
+        isFirstTimeNewExpensifyUser: {
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
 )(SidebarScreen);

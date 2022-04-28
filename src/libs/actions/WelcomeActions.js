@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
@@ -9,37 +8,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
 
-/* Flag for new users used to show welcome actions on first load */
-let isFirstTimeNewExpensifyUser = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    callback: val => isFirstTimeNewExpensifyUser = val,
-});
-
-const allReports = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allReports[key] = {...allReports[key], ...val};
-    },
-});
-
-const allPolicies = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allPolicies[key] = {...allPolicies[key], ...val};
-    },
-});
-
 /**
  * Shows a welcome action on first login
  *
@@ -47,7 +15,9 @@ Onyx.connect({
  * @param {Object} params.routes
  * @param {Function} params.showCreateMenu
  */
-function show({routes, showCreateMenu}) {
+function show({
+    routes, showCreateMenu, isFirstTimeNewExpensifyUser, allReports, allPolicies,
+}) {
     if (!isFirstTimeNewExpensifyUser) {
         return;
     }
