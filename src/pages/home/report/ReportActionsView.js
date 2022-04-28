@@ -36,7 +36,7 @@ import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import participantPropTypes from '../../../components/participantPropTypes';
-import EmojiPicker from '../../../components/EmojiPicker';
+import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
