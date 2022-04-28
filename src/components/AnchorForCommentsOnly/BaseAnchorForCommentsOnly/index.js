@@ -10,6 +10,7 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
+import Tooltip from '../../Tooltip';
 
 /*
  * This is a default anchor component for regular links.
@@ -57,34 +58,36 @@ class BaseAnchorForCommentsOnly extends React.Component {
                     </Pressable>
                 )
                 : (
-                    <PressableWithSecondaryInteraction
-                        inline
-                        onSecondaryInteraction={
-                        (event) => {
-                            ReportActionContextMenu.showContextMenu(
-                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                                event,
-                                this.props.href,
-                                lodashGet(linkRef, 'current'),
-                            );
+                    <Tooltip text={!Str.isValidEmail(this.props.displayName) && this.props.href}>
+                        <PressableWithSecondaryInteraction
+                            inline
+                            onSecondaryInteraction={
+                            (event) => {
+                                ReportActionContextMenu.showContextMenu(
+                                    Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                    event,
+                                    this.props.href,
+                                    lodashGet(linkRef, 'current'),
+                                );
+                            }
                         }
-                    }
-                    >
-                        <Text
-                            ref={el => linkRef = el}
-                            style={StyleSheet.flatten(this.props.style)}
-                            accessibilityRole="link"
-                            href={this.props.href}
-                            hrefAttrs={{
-                                rel: this.props.rel,
-                                target: this.props.target,
-                            }}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
                         >
-                            {this.props.children}
-                        </Text>
-                    </PressableWithSecondaryInteraction>
+                            <Text
+                                ref={el => linkRef = el}
+                                style={StyleSheet.flatten(this.props.style)}
+                                accessibilityRole="link"
+                                href={this.props.href}
+                                hrefAttrs={{
+                                    rel: this.props.rel,
+                                    target: this.props.target,
+                                }}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...rest}
+                            >
+                                {this.props.children}
+                            </Text>
+                        </PressableWithSecondaryInteraction>
+                    </Tooltip>
                 )
         );
     }
