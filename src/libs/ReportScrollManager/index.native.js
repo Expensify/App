@@ -29,7 +29,7 @@ function scrollToBottom() {
  * Ignore the scrolling on Native devices as currently they are not used.
  */
 
-function isScrolling() {}
+const isScrolling = false;
 function setScrollingAndStartUnsetListener() {}
 function setCurrentlyHoveredReportActionItem() {}
 

@@ -108,7 +108,7 @@ class ReportActionItem extends Component {
         this.isHovering = true;
 
         // When user is scrolling the report actions list, do not show the mini menu by skipping the hovering action.
-        if (ReportScrollManager.isScrolling()) {
+        if (ReportScrollManager.isScrolling) {
             ReportScrollManager.setCurrentlyHoveredReportActionItem(this);
             return;
         }

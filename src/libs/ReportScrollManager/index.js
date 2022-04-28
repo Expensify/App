@@ -6,7 +6,8 @@ import _ from 'underscore';
 const flatListRef = React.createRef();
 
 // Whether the user is scrolling the report messages list.
-let hasScrolling = false;
+// eslint-disable-next-line import/no-mutable-exports
+let isScrolling = false;
 let activeHoveredItem = null;
 
 /**
@@ -40,7 +41,7 @@ function scrollToBottom() {
  * Unset the scrolling status and activate the hovered item's hover state
  */
 const unsetScrollingAndActivateHoveredItem = _.debounce(() => {
-    hasScrolling = false;
+    isScrolling = false;
     if (!activeHoveredItem) {
         return;
     }
@@ -51,16 +52,8 @@ const unsetScrollingAndActivateHoveredItem = _.debounce(() => {
  * Toggle scrolling status.
  */
 function setScrollingAndStartUnsetListener() {
-    hasScrolling = true;
+    isScrolling = true;
     unsetScrollingAndActivateHoveredItem();
-}
-
-/**
- * Whether user is scrolling the report messages list
- * @returns {Boolean}
- */
-function isScrolling() {
-    return hasScrolling;
 }
 
 /**
