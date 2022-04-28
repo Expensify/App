@@ -100,6 +100,9 @@ const propTypes = {
 
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback: PropTypes.bool,
+
+    /** Whether Button is on active screen */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -149,7 +152,7 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
+            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
             this.props.onPress();
