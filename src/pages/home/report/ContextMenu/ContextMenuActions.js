@@ -63,7 +63,7 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: ({selection, isSmallScreenWidth}) => (ContextMenuUtils.shouldShowDescription(isSmallScreenWidth) ? selection : ''),
+        getDescription: ContextMenuUtils.getPopoverDescription,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',

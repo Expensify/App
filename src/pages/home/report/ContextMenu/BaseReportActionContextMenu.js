@@ -52,7 +52,7 @@ class BaseReportActionContextMenu extends React.Component {
                             draftMessage: this.props.draftMessage,
                             selection: this.props.selection,
                         })}
-                        description={contextAction.getDescription ? contextAction.getDescription({selection: this.props.selection, isSmallScreenWidth: this.props.isSmallScreenWidth}) : ''}
+                        description={contextAction.getDescription ? contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth) : ''}
                     />
                 ))}
             </View>

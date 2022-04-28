@@ -1,15 +1,16 @@
 /* eslint-disable import/prefer-default-export */
 
 /**
- * We should show popover description only for mWeb
+ * We should show popover description only on mWeb
  *
+ * @param {String} selection
  * @param {Boolean} isSmallScreenWidth
  * @returns {Boolean}
  */
-function shouldShowDescription(isSmallScreenWidth) {
-    return isSmallScreenWidth;
+function getPopoverDescription(selection, isSmallScreenWidth) {
+    return isSmallScreenWidth ? selection : '';
 }
 
 export {
-    shouldShowDescription,
+    getPopoverDescription,
 };

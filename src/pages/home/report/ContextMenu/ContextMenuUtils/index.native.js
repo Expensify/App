@@ -1,14 +1,15 @@
 /* eslint-disable import/prefer-default-export */
 
 /**
- * Always show popover description for native platforms
+ * Always show popover description on native platforms
  *
+ * @param {String} selection
  * @returns {Boolean}
  */
-function shouldShowDescription() {
-    return true;
+function getPopoverDescription(selection) {
+    return selection;
 }
 
 export {
-    shouldShowDescription,
+    getPopoverDescription,
 };
