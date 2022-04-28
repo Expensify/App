@@ -58,21 +58,19 @@ const WorkspaceBillsFirstSection = (props) => {
                     {props.user.isFromPublicDomain ? (
                         <>
                             {
-                                Platform.OS === 'android' || Platform.OS === 'ios'
-                                    ? (
-                                        <TouchableNativeFeedback
-                                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                                        >
-                                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
-                                        </TouchableNativeFeedback>
-                                    )
-                                    : (
-                                        <TouchableOpacity
-                                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                                        >
-                                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
-                                        </TouchableOpacity>
-                                    )
+                                Platform.OS === 'android' || Platform.OS === 'ios' ? (
+                                    <TouchableNativeFeedback
+                                        onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                                    >
+                                        <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                                    </TouchableNativeFeedback>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                                    >
+                                        <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                                    </TouchableOpacity>
+                                )
                             }
                         </>
                     ) : (
