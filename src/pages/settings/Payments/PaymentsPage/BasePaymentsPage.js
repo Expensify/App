@@ -30,6 +30,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
+import withRefetchActions from '../../../../components/withRefetchActions';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -57,10 +58,11 @@ class BasePaymentsPage extends React.Component {
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
+        this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
+        this.fetchData();
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
@@ -184,6 +186,10 @@ class BasePaymentsPage extends React.Component {
         }
 
         throw new Error('Invalid payment method type selected');
+    }
+
+    fetchData() {
+        PaymentMethods.getPaymentMethods();
     }
 
     /**
@@ -432,6 +438,7 @@ BasePaymentsPage.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withRefetchActions(BasePaymentsPage.prototype.fetchData),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
