@@ -37,6 +37,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Hint text to display */
+    hint: PropTypes.string,
+
     /** The label to display for the field */
     label: PropTypes.string.isRequired,
 
@@ -61,6 +64,7 @@ const defaultProps = {
     shouldSaveDraft: false,
     onBlur: () => {},
     errorText: '',
+    hint: '',
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
@@ -172,6 +176,7 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
+                        hint: props.hint,
                         value: props.value ? props.value : props.defaultValue,
                         isFormInput: props.isFormInput,
                         inputID: props.inputID,

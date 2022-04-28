@@ -56,8 +56,8 @@ const AddressForm = props => (
             value={props.values.street}
             onInputChange={props.onFieldChange}
             errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
+            hint={props.translate('common.noPO')}
         />
-        <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
                 <TextInput
