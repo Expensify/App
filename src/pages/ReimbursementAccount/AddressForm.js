@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
-import Text from '../../components/Text';
 
 const propTypes = {
 
