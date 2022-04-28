@@ -717,7 +717,7 @@ function updateReportPinnedState(reportID, isPinned) {
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return Pusher.getChannelName('private-report-reportID', reportID);
+    return Pusher.getChannelName(CONST.PUSHER_CHANNEL.REPORT, reportID);
 }
 
 /**
@@ -728,7 +728,7 @@ function getReportChannelName(reportID) {
  * @param {Boolean} isChunked
  */
 function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = Pusher.getChannelName('private-user-accountID', currentUserAccountID);
+    const pusherChannelName = Pusher.getChannelName(CONST.PUSHER_CHANNEL.USER, currentUserAccountID);
 
     /**
      * @param {Object} pushJSON
@@ -769,7 +769,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = Pusher.getChannelName('private-user-accountID', currentUserAccountID);
+    const pusherChannelName = Pusher.getChannelName(CONST.PUSHER_CHANNEL.USER, currentUserAccountID);
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }

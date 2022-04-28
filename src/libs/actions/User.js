@@ -295,7 +295,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = Pusher.getChannelName('private-user-accountID', currentUserAccountID);
+    const pusherChannelName = Pusher.getChannelName(CONST.PUSHER_CHANNEL.USER, currentUserAccountID);
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
@@ -336,7 +336,7 @@ function subscribeToExpensifyCardUpdates() {
         return;
     }
 
-    const pusherChannelName = Pusher.getChannelName('private-user-accountID', currentUserAccountID);
+    const pusherChannelName = Pusher.getChannelName(CONST.PUSHER_CHANNEL.USER, currentUserAccountID);
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {

@@ -15,7 +15,7 @@ import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 
 describe('actions/Report', () => {
-    const channelName = Pusher.getChannelName('private-user-accountID', 1);
+    const channelName = Pusher.getChannelName(CONST.PUSHER_CHANNEL.USER, 1);
 
     beforeAll(() => {
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a

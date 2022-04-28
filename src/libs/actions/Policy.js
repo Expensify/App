@@ -513,7 +513,7 @@ function updateLastAccessedWorkspace(policyID) {
  */
 function subscribeToPolicyEvents() {
     _.each(allPolicies, (policy, key) => {
-        const pusherChannelName = `public-policyEditor-${policy.id}`;
+        const pusherChannelName = `${CONST.PUSHER_CHANNEL.POLICY_EDITOR}-${policy.id}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
             const policyWithoutEmployee = _.clone(policy);
             policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
