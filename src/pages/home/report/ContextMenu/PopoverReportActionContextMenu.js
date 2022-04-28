@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Dimensions,
-    Platform,
 } from 'react-native';
 import _ from 'underscore';
 import * as Report from '../../../../libs/actions/Report';
@@ -9,9 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
-import * as ContextMenuActions from './ContextMenuActions';
-import compose from '../../../../libs/compose';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -55,7 +51,6 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
-        this.getPopoverDescription = this.getPopoverDescription.bind(this);
 
         this.dimensionsEventListener = null;
     }
@@ -91,18 +86,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 resolve({x: 0, y: 0});
             }
         });
-    }
-
-    /**
-     * Returns full link address to show under the title on native platforms and mWeb
-     * @returns {String}
-     */
-    getPopoverDescription() {
-        const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
-        if ((isNative || this.props.isSmallScreenWidth) && this.state.type === ContextMenuActions.CONTEXT_MENU_TYPES.LINK) {
-            return this.state.selection;
-        }
-        return '';
     }
 
     /**
@@ -239,7 +222,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
-                description={this.getPopoverDescription()}
             />
         );
     }
@@ -311,7 +293,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
-                        description={this.getPopoverDescription()}
+                        selection={this.state.selection}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
@@ -333,7 +315,4 @@ class PopoverReportActionContextMenu extends React.Component {
 
 PopoverReportActionContextMenu.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(PopoverReportActionContextMenu);
+export default withLocalize(PopoverReportActionContextMenu);
