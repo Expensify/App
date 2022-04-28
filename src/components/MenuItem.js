@@ -101,7 +101,7 @@ const MenuItem = props => (
                         >
                             {props.title}
                         </Text>
-                        {!!props.description && (
+                        {Boolean(props.description) && (
                             <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {props.description}
                             </Text>
