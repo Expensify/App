@@ -177,13 +177,14 @@ const AddressSearch = (props) => {
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
                         hint: props.hint,
-                        value: props.value ? props.value : props.defaultValue,
+                        value: props.value,
+                        defaultValue: props.defaultValue,
                         isFormInput: props.isFormInput,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: props.onBlur,
                         autoComplete: 'off',
-                        onChangeText: (text) => {
+                        onInputChange: (text) => {
                             if (skippedFirstOnChangeTextRef.current) {
                                 props.onInputChange({street: text});
                             } else {
