@@ -521,7 +521,7 @@ function subscribeToPolicyEvents() {
             // Remove the members from the policy
             Onyx.set(key, policyWithoutEmployee);
 
-            // Refetch the policy expense chats to update their state
+            // Refetch the policy expense chats to update their state and get their latest archive reason
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (chatID) => {
