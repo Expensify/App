@@ -17,7 +17,7 @@ if [ -f "$CONFIG_FILE" ]; then
 
         # delete any old suffix value and append the new one
         sed -i '' '/^PUSHER_DEV_SUFFIX/d' '.env' || true
-        echo "PUSHER_DEV_SUFFIX=${PUSHER_DEV_SUFFIX}" >> .env
+        echo "PUSHER_DEV_SUFFIX=-${PUSHER_DEV_SUFFIX}" >> .env
 
       fi
     done < "$CONFIG_FILE"
