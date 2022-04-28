@@ -71,7 +71,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         }
                     }
                     >
-                        <Tooltip text={!Str.isValidEmail(this.props.displayName) && this.props.href}>
+                        <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
                             <Text
                                 ref={el => linkRef = el}
                                 style={StyleSheet.flatten(this.props.style)}
