@@ -31,7 +31,6 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
-import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -39,6 +38,7 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import participantPropTypes from '../../../components/participantPropTypes';
 import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
@@ -117,8 +117,8 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
 
         this.state = {
-            isMarkerActive: false,
-            localUnreadActionCount: this.props.report.unreadActionCount,
+            isFloatingMessageCounterVisible: false,
+            messageCounterCount: this.props.report.unreadActionCount,
         };
 
         this.currentScrollOffset = 0;
@@ -126,11 +126,11 @@ class ReportActionsView extends React.Component {
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
-        this.showMarker = this.showMarker.bind(this);
-        this.hideMarker = this.hideMarker.bind(this);
-        this.toggleMarker = this.toggleMarker.bind(this);
-        this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
-        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+        this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
+        this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
+        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+        this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
+        this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
@@ -190,11 +190,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+        if (nextState.isFloatingMessageCounterVisible !== this.state.isFloatingMessageCounterVisible) {
             return true;
         }
 
-        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+        if (nextState.messageCounterCount !== this.state.messageCounterCount) {
             return true;
         }
 
@@ -241,18 +241,18 @@ class ReportActionsView extends React.Component {
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
-                // Only update the unread count when MarkerBadge is visible
-                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
-                if (this.state.isMarkerActive) {
-                    this.updateLocalUnreadActionCount(!shouldRecordMaxAction);
+                // Only update the unread count when the floating message counter is visible
+                // Otherwise counter will be shown on scrolling up from the bottom even if user have read those messages
+                if (this.state.isFloatingMessageCounterVisible) {
+                    this.updateMessageCounterCount(!shouldRecordMaxAction);
                 }
 
-                // show new MarkerBadge when there is a new message
-                this.toggleMarker();
+                // show new floating message counter when there is a new message
+                this.toggleFloatingMessageCounter();
             }
 
             // When the last action changes, record the max action
-            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
                 Report.updateLastReadActionID(this.props.reportID);
             }
@@ -260,7 +260,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+            this.updateNewMarkerPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
         }
     }
@@ -430,7 +430,7 @@ class ReportActionsView extends React.Component {
      * Updates NEW marker position
      * @param {Number} unreadActionCount
      */
-    updateUnreadIndicatorPosition(unreadActionCount) {
+    updateNewMarkerPosition(unreadActionCount) {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
@@ -439,31 +439,31 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
-    toggleMarker() {
-        // Update the unread message count before MarkerBadge is about to show
-        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
-            this.updateLocalUnreadActionCount();
-            this.showMarker();
+    toggleFloatingMessageCounter() {
+        // Update the message counter count before counter is about to show
+        if (this.currentScrollOffset < -200 && !this.state.isFloatingMessageCounterVisible) {
+            this.updateMessageCounterCount();
+            this.showFloatingMessageCounter();
         }
 
-        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
-            this.hideMarker();
+        if (this.currentScrollOffset > -200 && this.state.isFloatingMessageCounterVisible) {
+            this.hideFloatingMessageCounter();
         }
     }
 
     /**
-     * Update the unread messages count to show in the MarkerBadge
+     * Update the message counter count to show in the floating message counter
      * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
-    updateLocalUnreadActionCount(shouldResetLocalCount = false) {
+    updateMessageCounterCount(shouldResetLocalCount = false) {
         this.setState((prevState) => {
-            const localUnreadActionCount = shouldResetLocalCount
+            const messageCounterCount = shouldResetLocalCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
-            this.updateUnreadIndicatorPosition(localUnreadActionCount);
-            return {localUnreadActionCount};
+                : prevState.messageCounterCount + this.props.report.unreadActionCount;
+            this.updateNewMarkerPosition(messageCounterCount);
+            return {messageCounterCount};
         });
     }
 
@@ -471,7 +471,7 @@ class ReportActionsView extends React.Component {
      * Update NEW marker and mark report as read
      */
     updateNewMarkerAndMarkRead() {
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+        this.updateNewMarkerPosition(this.props.report.unreadActionCount);
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
@@ -480,19 +480,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show the new MarkerBadge
+     * Show the new floating message counter
      */
-    showMarker() {
-        this.setState({isMarkerActive: true});
+    showFloatingMessageCounter() {
+        this.setState({isFloatingMessageCounterVisible: true});
     }
 
     /**
-     * Hide the new MarkerBadge
+     * Hide the new floating message counter
      */
-    hideMarker() {
+    hideFloatingMessageCounter() {
         this.setState({
-            isMarkerActive: false,
-            localUnreadActionCount: 0,
+            isFloatingMessageCounterVisible: false,
+            messageCounterCount: 0,
         });
     }
 
@@ -503,7 +503,7 @@ class ReportActionsView extends React.Component {
      */
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleMarker();
+        this.toggleFloatingMessageCounter();
     }
 
     /**
@@ -589,11 +589,11 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <MarkerBadge
-                    active={this.state.isMarkerActive}
-                    count={this.state.localUnreadActionCount}
+                <FloatingMessageCounter
+                    active={this.state.isFloatingMessageCounterVisible}
+                    count={this.state.messageCounterCount}
                     onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideMarker}
+                    onClose={this.hideFloatingMessageCounter}
                 />
                 <InvertedFlatList
                     ref={ReportScrollManager.flatListRef}

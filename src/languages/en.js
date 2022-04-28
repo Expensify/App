@@ -188,9 +188,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
