@@ -529,7 +529,8 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReportByID(iouReportID, chatReportID)
         .then((iouReportObject) => {
-            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
+            return;
+            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID // JULES
             const chatReportObject = {
                 hasOutstandingIOU: iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING
                     && iouReportObject.total !== 0,
@@ -646,6 +647,10 @@ function updateReportWithNewAction(
     // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
+
+        if (reportAction.originalMessage.type === 'pay') {
+            return;
+        }
 
         // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
         // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
