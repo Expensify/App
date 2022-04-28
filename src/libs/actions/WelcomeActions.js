@@ -69,8 +69,8 @@ function show({routes, showCreateMenu}) {
     const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
     const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
-    // It's also possible that we already have a workspace policy. In either case we will not hide the menu but do still want to set the NVP in this case
-    // since the user does not need to create a workspace.
+    // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
+    // we will show the create menu.
     if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
         showCreateMenu();
     }
