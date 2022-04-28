@@ -43,6 +43,9 @@ const propTypes = {
     /** The value to set the field to initially */
     value: PropTypes.string,
 
+    /** The value to set the field to initially */
+    defaultValue: PropTypes.string,
+
     /** A callback function when the value of this field has changed */
     onInputChange: PropTypes.func.isRequired,
 
@@ -59,6 +62,7 @@ const defaultProps = {
     onBlur: () => {},
     errorText: '',
     value: undefined,
+    defaultValue: undefined,
     containerStyles: [],
 };
 
@@ -168,7 +172,7 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        value: props.value,
+                        value: props.value ? props.value : props.defaultValue,
                         isFormInput: props.isFormInput,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
