@@ -22,7 +22,7 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
-import * as WelcomeAction from '../../../libs/actions/WelcomeActions';
+import * as WelcomeActions from '../../../libs/actions/WelcomeActions';
 
 const propTypes = {
     /* Beta features list */
@@ -58,7 +58,7 @@ class SidebarScreen extends Component {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        WelcomeAction.show({routes, hideCreateMenu: this.hideCreateMenu});
+        WelcomeActions.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
     /**
