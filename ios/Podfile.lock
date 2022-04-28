@@ -535,7 +535,7 @@ PODS:
     - React-Core
   - RNCMaskedView (0.2.4):
     - React-Core
-  - RNCPicker (2.3.1):
+  - RNCPicker (1.9.11):
     - React-Core
   - RNDateTimePicker (3.5.2):
     - React-Core
@@ -878,7 +878,7 @@ SPEC CHECKSUMS:
   Airship: 29d674abeac754f783fc46c7d383d6f046687341
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
+  DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: e5569e42a1c79ca00521846c223173a57aca1fe1
   FBReactNativeSpec: fe08c1cd7e2e205718d77ad14b34957cce949b58
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
@@ -900,7 +900,7 @@ SPEC CHECKSUMS:
   Flipper-RSocket: d9d9ade67cbecf6ac10730304bf5607266dd2541
   FlipperKit: d8d346844eca5d9120c17d441a2f38596e8ed2b9
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 5337263514dd6f09803962437687240c5dc39aa4
+  glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   GoogleAppMeasurement: 6b6a08fd9c71f4dbc89e0e812acca81d797aa342
   GoogleDataTransport: 629c20a4d363167143f30ea78320d5a7eb8bd940
   GoogleUtilities: e0913149f6b0625b553d70dae12b49fc62914fd1
@@ -958,7 +958,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 8324611026e8dc3706f829953aa6e3899f581589
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
   RNCMaskedView: 138134c4d8a9421b4f2bf39055a79aa05c2d47b1
-  RNCPicker: f6c760d4b314585ff35165d8640d7917ae30afb1
+  RNCPicker: 6780c753e9e674065db90d9c965920516402579d
   RNDateTimePicker: c9911be59b1f8670b9f244b85af3a7c295e175ed
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFBAnalytics: 8ba84c2d31c64374d054c8621b998f25145ffddc
