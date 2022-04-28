@@ -40,6 +40,7 @@ import EmojiPicker from '../../../components/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -111,7 +112,6 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.sortedReportActions = [];
         this.appStateChangeListener = null;
 
         this.didLayout = false;
@@ -122,8 +122,8 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
+        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
         this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
@@ -168,8 +168,8 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
         }
 
@@ -352,71 +352,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Updates and sorts the report actions by sequence number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
-    }
-
-    /**
-     * Returns true when the report action immediately before the
-     * specified index is a comment made by the same actor who who
-     * is leaving a comment in the action at the specified index.
-     * Also checks to ensure that the comment is not too old to
-     * be considered part of the same comment
-     *
-     * @param {Number} actionIndex - index of the comment item in state to check
-     *
-     * @return {Boolean}
-     */
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
-        const currentAction = this.sortedReportActions[actionIndex];
-
-        // It's OK for there to be no previous action, and in that case, false will be returned
-        // so that the comment isn't grouped
-        if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
-            return false;
-        }
-
-        // Do not group if previous or current action was a renamed action
-        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return false;
-        }
-
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-     * Finds and updates most recent IOU report action number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateMostRecentIOUReportActionNumber(reportActions) {
-        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-            .max(action => action.sequenceNumber)
-            .value().sequenceNumber;
-    }
-
-    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -567,7 +502,7 @@ class ReportActionsView extends React.Component {
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
