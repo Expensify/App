@@ -20,7 +20,8 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
+    const internalExpensifyPath = (attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.DEV_NEW_EXPENSIFY_URL, ''))
+        || (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
