@@ -30,7 +30,6 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
-import withRefetchActions from '../../../../components/withRefetchActions';
 import {withNetwork} from '../../../../components/OnyxProvider';
 
 class BasePaymentsPage extends React.Component {
