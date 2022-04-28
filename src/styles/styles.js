@@ -2376,7 +2376,7 @@ const styles = {
         height: 20,
     },
 
-    reportMarkerBadgeWrapper: {
+    floatingMessageCounterWrapper: {
         position: 'absolute',
         left: '50%',
         top: 0,
@@ -2384,7 +2384,7 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeWrapperAndroid: {
+    floatingMessageCounterWrapperAndroid: {
         left: 0,
         width: '100%',
         alignItems: 'center',
@@ -2394,17 +2394,17 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeSubWrapperAndroid: {
+    floatingMessageCounterSubWrapperAndroid: {
         left: '50%',
         width: 'auto',
     },
 
-    reportMarkerBadge: {
+    floatingMessageCounter: {
         left: '-50%',
         ...visibility('visible'),
     },
 
-    reportMarkerBadgeTransformation: translateY => ({
+    floatingMessageCounterTransformation: translateY => ({
         transform: [
             {translateY},
         ],

@@ -8,7 +8,7 @@ import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import MarkerBadgeContainer from './MarkerBadgeContainer';
+import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
     /** Count of new messages to show in the badge */
@@ -70,8 +70,8 @@ class FloatingMessageCounter extends PureComponent {
 
     render() {
         return (
-            <MarkerBadgeContainer containerStyles={[styles.reportMarkerBadgeTransformation(this.translateY)]}>
-                <View style={styles.reportMarkerBadge}>
+            <FloatingMessageCounterContainer containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
+                <View style={styles.floatingMessageCounter}>
                     <View style={[
                         styles.flexRow,
                         styles.justifyContentBetween,
@@ -114,7 +114,7 @@ class FloatingMessageCounter extends PureComponent {
                         />
                     </View>
                 </View>
-            </MarkerBadgeContainer>
+            </FloatingMessageCounterContainer>
         );
     }
 }
