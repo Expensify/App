@@ -36,7 +36,7 @@ const defaultProps = {
 const MARKER_INACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-class MarkerBadge extends PureComponent {
+class FloatingMessageCounter extends PureComponent {
     constructor(props) {
         super(props);
         this.translateY = new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y);
@@ -94,7 +94,7 @@ class MarkerBadge extends PureComponent {
                                         ]}
                                     >
                                         {this.props.translate(
-                                            'reportActionsViewMarkerBadge.newMsg',
+                                            'newMessageCount',
                                             {count: this.props.count},
                                         )}
                                     </Text>
@@ -119,7 +119,7 @@ class MarkerBadge extends PureComponent {
     }
 }
 
-MarkerBadge.propTypes = propTypes;
-MarkerBadge.defaultProps = defaultProps;
+FloatingMessageCounter.propTypes = propTypes;
+FloatingMessageCounter.defaultProps = defaultProps;
 
-export default withLocalize(MarkerBadge);
+export default withLocalize(FloatingMessageCounter);
