@@ -598,7 +598,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             if (!option.login) {
                 return 2;
             }
-            if (option.login !== searchValue) {
+            if (option.login.toLowerCase() !== searchValue.toLowerCase()) {
                 return 1;
             }
 
