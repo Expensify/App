@@ -14,6 +14,9 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
+
+    /** A description text to show under the title */
+    description: PropTypes.string,
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
 };
@@ -49,6 +52,7 @@ class BaseReportActionContextMenu extends React.Component {
                             draftMessage: this.props.draftMessage,
                             selection: this.props.selection,
                         })}
+                        description={this.props.description}
                     />
                 ))}
             </View>
