@@ -524,6 +524,9 @@ function subscribeToPolicyEvents() {
             // Refetch the policy expense chats to update their state
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
+                _.each(policyExpenseChatIDs, (chatID) => {
+                    Report.fetchActions(chatID);
+                })
             }
 
             // Remove the default chats if we are one of the users getting removed
