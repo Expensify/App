@@ -58,20 +58,20 @@ class BaseAnchorForCommentsOnly extends React.Component {
                     </Pressable>
                 )
                 : (
-                    <Tooltip text={!Str.isValidEmail(this.props.displayName) && this.props.href}>
-                        <PressableWithSecondaryInteraction
-                            inline
-                            onSecondaryInteraction={
-                            (event) => {
-                                ReportActionContextMenu.showContextMenu(
-                                    Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                                    event,
-                                    this.props.href,
-                                    lodashGet(linkRef, 'current'),
-                                );
-                            }
+                    <PressableWithSecondaryInteraction
+                        inline
+                        onSecondaryInteraction={
+                        (event) => {
+                            ReportActionContextMenu.showContextMenu(
+                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                this.props.href,
+                                lodashGet(linkRef, 'current'),
+                            );
                         }
-                        >
+                    }
+                    >
+                        <Tooltip text={!Str.isValidEmail(this.props.displayName) && this.props.href}>
                             <Text
                                 ref={el => linkRef = el}
                                 style={StyleSheet.flatten(this.props.style)}
@@ -86,8 +86,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
                             >
                                 {this.props.children}
                             </Text>
-                        </PressableWithSecondaryInteraction>
-                    </Tooltip>
+                        </Tooltip>
+                    </PressableWithSecondaryInteraction>
                 )
         );
     }
