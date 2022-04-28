@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
@@ -358,6 +359,20 @@ function reconnect() {
     socket.connect();
 }
 
+/**
+ * Combines channel parts and adds Pusher suffix when necessary
+ *
+ * @param {*} parts
+ *
+ * @returns {String}
+ */
+function getChannelName(...parts) {
+    return _.chain([...parts, CONFIG.PUSHER.SUFFIX])
+        .filter(Boolean)
+        .join('-')
+        .value();
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -372,6 +387,7 @@ export {
     subscribe,
     unsubscribe,
     getChannel,
+    getChannelName,
     isSubscribed,
     isAlreadySubscribing,
     sendEvent,
