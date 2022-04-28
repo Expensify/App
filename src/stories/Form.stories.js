@@ -175,6 +175,9 @@ const defaultArgs = {
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
+        if (!values.street) {
+            errors.street = 'Please enter an address';
+        }
         if (!values.dob) {
             errors.dob = 'Please enter your date of birth';
         }
@@ -205,6 +208,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        street: '123 Happy St, Happyland HP 12345',
         dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
@@ -221,6 +225,7 @@ InputError.args = {
     draftValues: {
         routingNumber: '',
         accountNumber: '',
+        street: '',
         pickFruit: '',
         dob: '',
         pickAnotherFruit: '',
