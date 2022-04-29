@@ -519,9 +519,10 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
  * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
  * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
  *
- * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
- * closed IOU).
+ * Examples of correct usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a closed
+ * IOU). Send Money is an incorrect use case, because these IOUReports are never associated with the chatReport and this would
+ * prevent outstanding IOUs from showing.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, used to sync the reports
@@ -647,6 +648,8 @@ function updateReportWithNewAction(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
+        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chat report 
+        // as this would overwrite any existing IOUs. See the fetchIOUReportByIDAndUpdateChatReport for more information.
         if (reportAction.originalMessage.IOUDetails === undefined) {
 
             // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
