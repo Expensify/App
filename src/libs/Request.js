@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
+import * as NetworkStore from './Network/NetworkStore';
 
 let middlewares = [];
 
@@ -14,7 +15,8 @@ let middlewares = [];
  */
 function makeXHR(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+    return NetworkStore.hasReadRequiredDataFromStorage()
+        .then(() => HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure));
 }
 
 /**
