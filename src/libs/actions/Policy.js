@@ -101,19 +101,24 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
  * @param {Object} policyCollection - object of policy key and partial policy object
  */
 function updateAllPolicies(policyCollection) {
+    const onyxActions = [];
+
     // Clear out locally cached policies that have been deleted (i.e. they exist locally but not in our new policy collection object)
     _.each(allPolicies, (policy, key) => {
         if (policyCollection[key]) {
             return;
         }
 
-        Onyx.set(key, null);
+        onyxActions.push(Onyx.set(key, null));
     });
 
     // Set all the policies
     _.each(policyCollection, (policyData, key) => {
-        Onyx.merge(key, {...policyData, alertMessage: '', errors: null});
+        onyxActions.push(Onyx.merge(key, {...policyData, alertMessage: '', errors: null}));
     });
+
+    Promise.all(onyxActions)
+        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false));
 }
 
 /**
@@ -209,6 +214,7 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
+    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {

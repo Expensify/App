@@ -61,11 +61,6 @@ class SidebarScreen extends Component {
         WelcomeActions.show({
             routes,
             showCreateMenu: this.showCreateMenu,
-            isFirstTimeNewExpensifyUser: _.isBoolean(this.props.isFirstTimeNewExpensifyUser)
-                ? this.props.isFirstTimeNewExpensifyUser
-                : true,
-            allPolicies: this.props.allPolicies,
-            allReports: this.props.allReports,
         });
     }
 
@@ -211,9 +206,6 @@ export default compose(
         },
         isCreatingWorkspace: {
             key: ONYXKEYS.IS_CREATING_WORKSPACE,
-        },
-        isFirstTimeNewExpensifyUser: {
-            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
 )(SidebarScreen);
