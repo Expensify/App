@@ -16,6 +16,7 @@ import ReportActionItem from './ReportActionItem';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** Personal details of all the users */
@@ -36,12 +37,34 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
+    /** Sorted actions prepared for display */
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
+        /** Index of the action in the array */
+        index: PropTypes.number,
+
+        /** The action itself */
+        action: PropTypes.shape(reportActionPropTypes),
+    })).isRequired,
+
+    /** The sequence number of the most recent IOU report connected with the shown report */
+    mostRecentIOUReportSequenceNumber: PropTypes.number,
+
+    /** Are we loading more report actions? */
+    isLoadingReportActions: PropTypes.bool.isRequired,
+
+    /** Callback executed on list layout */
+    onLayout: PropTypes.func.isRequired,
+
+    /** Callback executed on scroll */
+    onScroll: PropTypes.func.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
+    mostRecentIOUReportSequenceNumber: undefined,
 };
 
 class ReportActionsList extends React.Component {
@@ -99,7 +122,7 @@ class ReportActionsList extends React.Component {
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, this.props.index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
