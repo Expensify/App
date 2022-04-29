@@ -167,14 +167,14 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={(
+                        subtitle={fileName ? (
                             <TextWithEllipsis
                                 leadingText={fileName}
                                 trailingText={fileExtension ? `.${fileExtension}` : ''}
                                 wrapperStyle={[styles.w100]}
                                 textStyle={styles.mutedTextLabel}
                             />
-                        )}
+                        ) : ''}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
