@@ -75,22 +75,22 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         }
                     }
                     >
-                      <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
-                          <Text
-                              ref={el => linkRef = el}
-                              style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
-                              accessibilityRole="link"
-                              href={this.props.href}
-                              hrefAttrs={{
-                                  rel: this.props.rel,
-                                  target: this.props.target,
-                              }}
-                          // eslint-disable-next-line react/jsx-props-no-spreading
-                              {...rest}
-                          >
-                              {this.props.children}
-                          </Text>
-                      </Tooltip>
+                        <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
+                            <Text
+                                ref={el => linkRef = el}
+                                style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
+                                accessibilityRole="link"
+                                href={this.props.href}
+                                hrefAttrs={{
+                                    rel: this.props.rel,
+                                    target: this.props.target,
+                                }}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...rest}
+                            >
+                                {this.props.children}
+                            </Text>
+                        </Tooltip>
                     </PressableWithSecondaryInteraction>
                 )
         );
