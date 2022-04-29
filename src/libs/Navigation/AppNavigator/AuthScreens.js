@@ -34,13 +34,11 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
+import LogOutOldUserPage from '../../../pages/LogOutOldUserPage';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -180,7 +178,7 @@ class AuthScreens extends React.Component {
         const email = params.get('email');
         const isLoggingInAsNewUser = !_.isNull(this.props.session.email) && (email !== this.props.session.email);
         return !isLoggingInAsNewUser
-            && Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
             && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
@@ -239,9 +237,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
+                    name={SCREENS.TRANSITION}
                     options={defaultScreenOptions}
-                    component={LogInWithShortLivedTokenPage}
+                    component={LogOutOldUserPage}
                 />
 
                 {/* These are the various modal routes */}
