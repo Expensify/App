@@ -18,10 +18,13 @@ class Hoverable extends Component {
         this.wrapperView = null;
 
         this.resetHoverStateOnOutsideClick = this.resetHoverStateOnOutsideClick.bind(this);
+        this.unsetScrollingAndSetHovered = _.debounce(this.unsetScrollingAndSetHovered, 100);
+        this.setScrollingAndStartUnsetListener = this.setScrollingAndStartUnsetListener.bind(this);
     }
 
     componentDidMount() {
         document.addEventListener('mousedown', this.resetHoverStateOnOutsideClick);
+        document.addEventListener('wheel', this.setScrollingAndStartUnsetListener);
 
         // we like to Block the hover on touch devices but we keep it for Hybrid devices so
         // following logic blocks hover on touch devices.
@@ -41,6 +44,7 @@ class Hoverable extends Component {
         document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
+        document.removeEventListener('wheel', this.setScrollingAndStartUnsetListener);
     }
 
     /**
@@ -49,6 +53,12 @@ class Hoverable extends Component {
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
+        this.hovering = isHovered;
+
+        // When hover is activated and user is scrolling, do not set the hover state to true
+        if (isHovered && this.isScrolling) {
+            return;
+        }
         if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
@@ -57,6 +67,25 @@ class Hoverable extends Component {
         if (!isHovered) {
             this.hoverDisabled = false;
         }
+    }
+
+    /**
+     * Toggle scrolling status and set the hover state
+     */
+    setScrollingAndStartUnsetListener() {
+        this.isScrolling = true;
+        this.unsetScrollingAndSetHovered();
+    }
+
+    /**
+     * Unset the scrolling status and set the hover state to true when user is hovering the component.
+     */
+    unsetScrollingAndSetHovered() {
+        this.isScrolling = false;
+        if (!this.hovering) {
+            return;
+        }
+        this.setIsHovered(true);
     }
 
     /**
