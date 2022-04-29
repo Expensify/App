@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -10,7 +9,6 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/reportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import variables from '../../../styles/variables';
@@ -73,7 +71,6 @@ class ReportActionsList extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
-        this.isConsecutiveActionMadeByPreviousActor = this.isConsecutiveActionMadeByPreviousActor.bind(this);
     }
 
     /**
@@ -120,7 +117,7 @@ class ReportActionsList extends React.Component {
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <ReportActionItem
-                reportID={this.props.reportID}
+                reportID={this.props.report.reportID}
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
@@ -189,10 +186,4 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
-    withOnyx({
-        isLoadingReportActions: {
-            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
-            initWithStoredValues: false,
-        },
-    }),
 )(ReportActionsList);

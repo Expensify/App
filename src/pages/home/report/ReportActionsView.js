@@ -104,13 +104,13 @@ class ReportActionsView extends React.Component {
         this.currentScrollOffset = 0;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
-        this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
         this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
         this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
         this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
+        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
@@ -415,6 +415,7 @@ class ReportActionsView extends React.Component {
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                    isLoadingReportActions={this.props.isLoadingReportActions}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
