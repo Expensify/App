@@ -2,14 +2,16 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as NetworkEvents from './NetworkEvents';
+import createCallback from '../createCallback';
 
 let credentials;
 let authToken;
 let currentUserEmail;
 let hasReadRequiredData = false;
-let isAuthenticating = false;
-let isOffline = false;
+let offline = false;
+let authenticating = false;
+
+const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
 
 /**
  * @param {Boolean} val
@@ -57,19 +59,26 @@ Onyx.connect({
         }
 
         // Client becomes online emit connectivity resumed event
-        if (isOffline && !network.isOffline) {
-            NetworkEvents.triggerConnectivityResumed();
+        if (offline && !network.isOffline) {
+            triggerConnectivityResumed();
         }
 
-        isOffline = network.isOffline;
+        offline = network.isOffline;
     },
 });
 
 /**
+ * @returns {Object}
+ */
+function getCredentials() {
+    return credentials;
+}
+
+/**
  * @returns {Boolean}
  */
-function getIsOffline() {
-    return isOffline;
+function isOffline() {
+    return offline;
 }
 
 /**
@@ -87,13 +96,6 @@ function setAuthToken(newAuthToken) {
 }
 
 /**
- * @returns {Object}
- */
-function getCredentials() {
-    return credentials;
-}
-
-/**
  * @returns {String}
  */
 function getCurrentUserEmail() {
@@ -108,27 +110,28 @@ function hasReadRequiredDataFromStorage() {
 }
 
 /**
- * @param {Boolean} value
+ * @returns {Boolean}
  */
-function setIsAuthenticating(value) {
-    isAuthenticating = value;
+function isAuthenticating() {
+    return authenticating;
 }
 
 /**
- * @returns {Boolean}
+ * @param {Boolean} val
  */
-function getIsAuthenticating() {
-    return isAuthenticating;
+function setIsAuthenticating(val) {
+    authenticating = val;
 }
 
 export {
     getAuthToken,
     setAuthToken,
-    getCredentials,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     setHasReadRequiredDataFromStorage,
+    isOffline,
+    onConnectivityResumed,
+    isAuthenticating,
     setIsAuthenticating,
-    getIsAuthenticating,
-    getIsOffline,
+    getCredentials,
 };

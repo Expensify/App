@@ -22,7 +22,6 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
-import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
@@ -30,7 +29,8 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
-import EmojiPicker from '../../../components/EmojiPicker';
+import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -92,7 +92,6 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.sortedReportActions = [];
         this.appStateChangeListener = null;
 
         this.didLayout = false;
@@ -103,12 +102,9 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
-
-        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
-        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
+        this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
         this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
         this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
@@ -149,8 +145,8 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
         }
 
@@ -287,36 +283,6 @@ class ReportActionsView extends React.Component {
         // case just get everything starting from 0.
         const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
         Report.fetchActionsWithLoadingState(this.props.reportID, offset);
-    }
-
-    /**
-     * Updates and sorts the report actions by sequence number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
-    }
-
-    /**
-     * Finds and updates most recent IOU report action number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateMostRecentIOUReportActionNumber(reportActions) {
-        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-            .max(action => action.sequenceNumber)
-            .value().sequenceNumber;
     }
 
     /**
