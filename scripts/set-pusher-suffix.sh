@@ -17,8 +17,8 @@ if [ -f "$CONFIG_FILE" ]; then
 
         # delete any old suffix value and append the new one
         sed -i '' '/^PUSHER_DEV_SUFFIX/d' '.env' || true
+        # a dash '-' is prepended to separate the suffix from trailing channel IDs (accountID, reportID, etc).
         echo "PUSHER_DEV_SUFFIX=-${PUSHER_DEV_SUFFIX}" >> .env
-
       fi
     done < "$CONFIG_FILE"
 fi
