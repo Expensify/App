@@ -1,8 +1,8 @@
-import {Platform} from 'react-native';
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
 import themeColors from './themes/default';
+import getPlatform from '../libs/getPlatform';
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
@@ -86,7 +86,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
 
             // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
-            shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
+            shouldAddTopSafeAreaPadding = getPlatform() === CONST.PLATFORM.IOS;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -119,7 +119,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
 
             // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
-            shouldAddTopSafeAreaPadding = Platform.OS === 'ios';
+            shouldAddTopSafeAreaPadding = getPlatform() === CONST.PLATFORM.IOS;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
