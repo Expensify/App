@@ -85,6 +85,7 @@ class CompanyStep extends React.Component {
             incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
+            incorporationState: 'bankAccount.error.incorporationState',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -285,9 +286,9 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <StatePicker
                             label={this.props.translate('companyStep.incorporationState')}
-                            onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                            onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                             value={this.state.incorporationState}
-                            hasError={this.getErrors().incorporationState}
+                            errorText={this.getErrorText('incorporationState')}
                         />
                     </View>
                     <CheckboxWithLabel
