@@ -648,14 +648,10 @@ function updateReportWithNewAction(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chat report 
-        // as this would overwrite any existing IOUs. See the fetchIOUReportByIDAndUpdateChatReport for more information.
+        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
+        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
+        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
         if (reportAction.originalMessage.IOUDetails === undefined) {
-
-            // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
-            // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
-            // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
-            // be displayed and paid IOUs would show as unpaid.
             fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
         }
     }
