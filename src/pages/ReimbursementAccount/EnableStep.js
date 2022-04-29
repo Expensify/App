@@ -24,10 +24,15 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Information about the network  */
+    network: networkPropTypes.isRequired,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -42,6 +47,18 @@ const defaultProps = {
 
 class EnableStep extends React.Component {
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline === this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         PaymentMethods.getPaymentMethods();
     }
 
@@ -133,6 +150,7 @@ EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
