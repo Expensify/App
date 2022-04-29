@@ -36,4 +36,3 @@ test('createOnReadyTask', () => {
             expect(mock).toHaveBeenCalledTimes(2);
         });
 });
-
