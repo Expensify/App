@@ -18,7 +18,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
-import ConfirmationScreen from './ConfirmationScreen';
+import PasswordConfirmationScreen from './PasswordConfirmationScreen';
 
 const propTypes = {
     /* Onyx Props */
@@ -156,7 +156,7 @@ class PasswordPage extends Component {
                     />
                     {!_.isEmpty(this.props.account.success)
                         ? (
-                            <ConfirmationScreen />
+                            <PasswordConfirmationScreen />
                         ) : (
                             <>
                                 <ScrollView

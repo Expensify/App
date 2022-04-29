@@ -339,7 +339,7 @@ export default {
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
-    confirmationScreen: {
+    passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo, guarda tu contraseña en un lugar seguro.',
         gotIt: 'Ok, entendido',

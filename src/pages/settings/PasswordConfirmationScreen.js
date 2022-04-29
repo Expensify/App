@@ -12,7 +12,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ConfirmationScreen = props => (
+const PasswordConfirmationScreen = props => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Image
@@ -26,16 +26,16 @@ const ConfirmationScreen = props => (
                     styles.mb2,
                 ]}
             >
-                {props.translate('confirmationScreen.passwordUpdated')}
+                {props.translate('passwordConfirmationScreen.passwordUpdated')}
             </Text>
             <Text style={styles.textAlignCenter}>
-                {props.translate('confirmationScreen.allSet')}
+                {props.translate('passwordConfirmationScreen.allSet')}
             </Text>
         </View>
         <FixedFooter>
             <Button
                 success
-                text={props.translate('confirmationScreen.gotIt')}
+                text={props.translate('passwordConfirmationScreen.gotIt')}
                 style={styles.mt6}
                 pressOnEnter
                 onPress={() => Navigation.goBack()}
@@ -44,7 +44,7 @@ const ConfirmationScreen = props => (
     </>
 );
 
-ConfirmationScreen.propTypes = propTypes;
-ConfirmationScreen.displayName = 'ConfirmationScreen';
+PasswordConfirmationScreen.propTypes = propTypes;
+PasswordConfirmationScreen.displayName = 'PasswordConfirmationScreen';
 
-export default withLocalize(ConfirmationScreen);
+export default withLocalize(PasswordConfirmationScreen);

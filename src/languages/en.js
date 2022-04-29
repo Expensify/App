@@ -339,7 +339,7 @@ export default {
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
-    confirmationScreen: {
+    passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set, keep your new password safe.',
         gotIt: 'Got it',
