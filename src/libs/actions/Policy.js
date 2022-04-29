@@ -101,24 +101,19 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
  * @param {Object} policyCollection - object of policy key and partial policy object
  */
 function updateAllPolicies(policyCollection) {
-    const onyxActions = [];
-
     // Clear out locally cached policies that have been deleted (i.e. they exist locally but not in our new policy collection object)
     _.each(allPolicies, (policy, key) => {
         if (policyCollection[key]) {
             return;
         }
 
-        onyxActions.push(Onyx.set(key, null));
+        Onyx.set(key, null);
     });
 
     // Set all the policies
     _.each(policyCollection, (policyData, key) => {
-        onyxActions.push(Onyx.merge(key, {...policyData, alertMessage: '', errors: null}));
+        Onyx.merge(key, {...policyData, alertMessage: '', errors: null});
     });
-
-    Promise.all(onyxActions)
-        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false));
 }
 
 /**
@@ -218,6 +213,7 @@ function getPolicyList() {
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
                 return;
             }
 
@@ -229,6 +225,8 @@ function getPolicyList() {
             if (!_.isEmpty(policyCollection)) {
                 updateAllPolicies(policyCollection);
             }
+
+            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
         });
 }
 
