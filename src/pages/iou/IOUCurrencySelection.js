@@ -261,6 +261,6 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
         iou: {key: ONYXKEYS.IOU},
-        withNetwork(),
     }),
+    withNetwork(),
 )(IOUCurrencySelection);
