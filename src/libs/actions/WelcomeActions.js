@@ -36,6 +36,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (val) => {
         isFirstTimeNewExpensifyUser = val;
+        checkOnReady();
     },
 });
 
