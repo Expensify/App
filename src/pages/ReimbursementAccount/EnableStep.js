@@ -31,7 +31,7 @@ const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
 
-    /** Information about the network  */
+    /** Information about the network */
     network: networkPropTypes.isRequired,
 
     /** List of bank accounts */
@@ -51,7 +51,7 @@ class EnableStep extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline === this.props.network.isOffline) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
             return;
         }
 
