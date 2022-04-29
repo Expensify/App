@@ -411,9 +411,9 @@ class ReportActionsView extends React.Component {
                 />
                 <ReportActionsList
                     report={this.props.report}
-                    sortedReportActions={this.sortedReportActions}
-                    onLayout={this.recordTimeToMeasureItemLayout}
                     onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />

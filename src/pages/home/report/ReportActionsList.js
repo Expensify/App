@@ -13,9 +13,9 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
-import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Personal details of all the users */
@@ -67,41 +67,6 @@ class ReportActionsList extends React.Component {
     }
 
     /**
-     * Returns true when the report action immediately before the
-     * specified index is a comment made by the same actor who who
-     * is leaving a comment in the action at the specified index.
-     * Also checks to ensure that the comment is not too old to
-     * be considered part of the same comment
-     *
-     * @param {Number} actionIndex - index of the comment item in state to check
-     *
-     * @return {Boolean}
-     */
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.props.sortedReportActions[actionIndex + 1];
-        const currentAction = this.props.sortedReportActions[actionIndex];
-
-        // It's OK for there to be no previous action, and in that case, false will be returned
-        // so that the comment isn't grouped
-        if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
-            return false;
-        }
-
-        // Do not group if previous or current action was a renamed action
-        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return false;
-        }
-
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
      * Create a unique key for Each Action in the FlatList.
      * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
      * shouldn't happen, but might be possible in some rare cases.
@@ -134,7 +99,7 @@ class ReportActionsList extends React.Component {
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, this.props.index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
