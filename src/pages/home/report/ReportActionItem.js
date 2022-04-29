@@ -26,7 +26,6 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -73,7 +72,6 @@ class ReportActionItem extends Component {
         this.showPopover = this.showPopover.bind(this);
         this.setHovered = this.setHovered.bind(this);
         this.unsetHovered = this.unsetHovered.bind(this);
-        this.setHoveredWhenNotScrolling = this.setHoveredWhenNotScrolling.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -97,26 +95,10 @@ class ReportActionItem extends Component {
     }
 
     setHovered() {
-        //  This function can be used to force the hovering state, so check whether the user is actually hovering the item
-        if (!this.isHovering) {
-            return;
-        }
         this.setState({hovered: true});
     }
 
-    setHoveredWhenNotScrolling() {
-        this.isHovering = true;
-
-        // When user is scrolling the report actions list, do not show the mini menu by skipping the hovering action.
-        if (ReportScrollManager.isScrolling) {
-            ReportScrollManager.setCurrentlyHoveredReportActionItem(this);
-            return;
-        }
-        this.setHovered();
-    }
-
     unsetHovered() {
-        this.isHovering = false;
         this.setState({hovered: false});
     }
 
@@ -192,7 +174,7 @@ class ReportActionItem extends Component {
                     event.target.blur();
                 }}
             >
-                <Hoverable resetsOnClickOutside onHoverIn={this.setHoveredWhenNotScrolling} onHoverOut={this.unsetHovered}>
+                <Hoverable resetsOnClickOutside onHoverIn={this.setHovered} onHoverOut={this.unsetHovered}>
                     {this.props.shouldDisplayNewIndicator && (
                         <UnreadActionIndicator />
                     )}
