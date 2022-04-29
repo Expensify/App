@@ -25,19 +25,8 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
-/**
- * Ignore the scrolling on Native devices as currently they are not used.
- */
-
-const isScrolling = false;
-function setScrollingAndStartUnsetListener() {}
-function setCurrentlyHoveredReportActionItem() {}
-
 export {
     flatListRef,
-    isScrolling,
     scrollToIndex,
     scrollToBottom,
-    setScrollingAndStartUnsetListener,
-    setCurrentlyHoveredReportActionItem,
 };
