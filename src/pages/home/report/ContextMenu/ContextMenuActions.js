@@ -52,6 +52,7 @@ export default [
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             fileDownload(sourceURL, originalFileName);
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
@@ -75,6 +76,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
@@ -109,6 +111,7 @@ export default [
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -116,6 +119,7 @@ export default [
         icon: Expensicons.LinkCopy,
         shouldShow: () => false,
         onPress: () => {},
+        getDescription: () => {},
     },
 
     {
@@ -130,6 +134,7 @@ export default [
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -154,6 +159,7 @@ export default [
             // No popover to hide, call editAction immediately
             editAction();
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
@@ -173,6 +179,7 @@ export default [
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
         },
+        getDescription: () => {},
     },
 ];
 
