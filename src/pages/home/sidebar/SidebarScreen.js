@@ -58,10 +58,7 @@ class SidebarScreen extends Component {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        WelcomeActions.show({
-            routes,
-            showCreateMenu: this.showCreateMenu,
-        });
+        WelcomeActions.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
     /**
