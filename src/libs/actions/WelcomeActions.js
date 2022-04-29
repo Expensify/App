@@ -14,6 +14,9 @@ import CONST from '../../CONST';
  * @param {Object} params
  * @param {Object} params.routes
  * @param {Function} params.showCreateMenu
+ * @param {Boolean} params.isFirstTimeNewExpensifyUser
+ * @param {Object} params.allReports
+ * @param {Object} params.allPolicies
  */
 function show({
     routes, showCreateMenu, isFirstTimeNewExpensifyUser, allReports, allPolicies,
