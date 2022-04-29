@@ -26,10 +26,6 @@ function checkRequiredData() {
     requiredDataReadyTask.setIsReady();
 }
 
-function hasReadRequiredDataFromStorage() {
-    return requiredDataReadyTask.isReady();
-}
-
 function resetHasReadRequiredDataFromStorage() {
     requiredDataReadyTask.reset();
 }
@@ -102,6 +98,13 @@ function setAuthToken(newAuthToken) {
  */
 function getCurrentUserEmail() {
     return currentUserEmail;
+}
+
+/**
+ * @returns {Promise}
+ */
+function hasReadRequiredDataFromStorage() {
+    return requiredDataReadyTask.isReady();
 }
 
 /**
