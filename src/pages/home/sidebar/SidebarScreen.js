@@ -198,9 +198,6 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        allReports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
