@@ -101,10 +101,6 @@ class IOUCurrencySelection extends Component {
         this.fetchData();
     }
 
-    fetchData() {
-        PersonalDetails.getCurrencyList();
-    }
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -136,6 +132,10 @@ class IOUCurrencySelection extends Component {
             currencyCode,
         }));
         return currencyOptions;
+    }
+
+    fetchData() {
+        PersonalDetails.getCurrencyList();
     }
 
     /**
