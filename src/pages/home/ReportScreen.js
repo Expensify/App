@@ -168,6 +168,8 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        console.log('over here render ReportScreen');
+
         if (!this.props.isSidebarLoaded) {
             return null;
         }

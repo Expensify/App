@@ -213,10 +213,19 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (this.props.reportActionID !== nextProps.reportActionID) {
+            return true;
+        }
+
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
     componentDidUpdate(prevProps) {
+        this.actionIndexID = -1;
+        if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID) {
+            this.scrollToReportActionID();
+        }
+
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
         if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
@@ -558,6 +567,7 @@ class ReportActionsView extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+        debugger;
         return (
             <ReportActionItem
                 reportID={this.props.reportID}

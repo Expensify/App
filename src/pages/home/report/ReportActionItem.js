@@ -81,6 +81,10 @@ class ReportActionItem extends Component {
             console.log(`over here shouldUpdate: ${this.props.reportID}`);
         }
 
+        if (this.props.action.reportActionID === "5790") {
+            debugger;
+        }
+
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
@@ -92,7 +96,10 @@ class ReportActionItem extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        console.log(`over here didUpdate 1: ${this.props.reportID}`);
+        if (this.props.action.reportActionID === "5790") {
+            debugger;
+        }
+
         if (!prevProps.isSelected && this.props.isSelected) {
             this.animateBackground();
         }
@@ -100,14 +107,12 @@ class ReportActionItem extends Component {
         if (prevProps.draftMessage || !this.props.draftMessage) {
             return;
         }
-        console.log(`over here didUpdate 2: ${this.props.reportID}`);
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
         this.textInput.focus();
     }
 
     animateBackground() {
-        console.log('over here Time to animate');
         Animated.timing(this.animatedBackgroundColor, {
             toValue: 1,
             duration: 0,
@@ -148,7 +153,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        console.log('over here render');
+        console.log(`over here render ReportActionItem: ${this.props.action.reportActionID}`);
 
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.reportID} />;
