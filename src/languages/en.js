@@ -188,9 +188,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -692,7 +690,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
-        taxIDNumberPlaceholder: '9 digits, no hyphens',
+        taxIDNumberPlaceholder: '9 digits',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         incorporationState: 'Incorporation state',
@@ -887,6 +885,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
+            areYouSure: 'Are you sure?',
         },
     },
     getAssistancePage: {

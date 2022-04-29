@@ -188,9 +188,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -694,7 +692,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
-        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
+        taxIDNumberPlaceholder: '9 dígitos',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         incorporationState: 'Estado de incorporación',
@@ -889,6 +887,7 @@ export default {
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
         },
     },
     getAssistancePage: {
