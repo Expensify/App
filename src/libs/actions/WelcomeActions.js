@@ -16,6 +16,13 @@ let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
 let isLoadingPolicyData = true;
 
+/**
+ * Check that a few requests have completed so that the welcome action can proceed:
+ *
+ * - Whether we are a first time new expensify user
+ * - Whether we have loaded all policies the server knows about
+ * - Whether we have loaded all reports the server knows about
+ */
 function checkOnReady() {
     if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingPolicyData || isLoadingReportData) {
         return;
