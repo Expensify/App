@@ -18,6 +18,7 @@ import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
+import HeaderGap from './HeaderGap';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -156,6 +157,7 @@ class AttachmentModal extends PureComponent {
                     onModalHide={this.props.onModalHide}
                     propagateSwipe
                 >
+                    {this.props.isSmallScreenWidth && <HeaderGap />}
                     <HeaderWithCloseButton
                         title={this.props.isUploadingAttachment
                             ? this.props.translate('reportActionCompose.sendAttachment')
