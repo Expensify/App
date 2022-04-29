@@ -504,7 +504,6 @@ class ReportActionsView extends React.Component {
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.toggleFloatingMessageCounter();
-        ReportScrollManager.setScrollingAndStartUnsetListener();
     }
 
     /**
