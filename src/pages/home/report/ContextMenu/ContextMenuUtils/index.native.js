@@ -4,7 +4,7 @@
  * Always show popover description on native platforms
  *
  * @param {String} selection
- * @returns {Boolean}
+ * @returns {String}
  */
 function getPopoverDescription(selection) {
     return selection;

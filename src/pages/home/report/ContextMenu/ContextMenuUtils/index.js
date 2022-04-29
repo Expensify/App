@@ -1,11 +1,12 @@
 /* eslint-disable import/prefer-default-export */
 
 /**
- * We should show popover description only on mWeb
+ * The popover description will be an empty string on anything but mobile web 
+ * because we show link in tooltip instead of popover on web
  *
  * @param {String} selection
  * @param {Boolean} isSmallScreenWidth
- * @returns {Boolean}
+ * @returns {String}
  */
 function getPopoverDescription(selection, isSmallScreenWidth) {
     return isSmallScreenWidth ? selection : '';
