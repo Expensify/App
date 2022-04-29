@@ -209,26 +209,28 @@ class ReportActionsView extends React.Component {
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
 
-        // Record the max action when window is visible except when Drawer is open on small screen
-        const shouldRecordMaxAction = Visibility.isVisible()
-            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
+        // Record the max action when window is visible and the sidebar is not covering the report view on a small screen
+        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        const shouldRecordMaxAction = Visibility.isVisible() && !isSidebarCoveringReportView;
+
+        const sidebarClosed = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
+        const screenSizeIncreased = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
+        const reportBecomeVisible = sidebarClosed || screenSizeIncreased;
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise
-            // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
-            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
+            const isLastActionFromCurrentUser = lodashGet(lastAction, 'actorEmail', '') === lodashGet(this.props.session, 'email', '');
+            if (isLastActionFromCurrentUser) {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where they are now in the list.
                 ReportScrollManager.scrollToBottom();
-            }
-
-            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
+            } else {
                 // Only update the unread count when the floating message counter is visible
                 // Otherwise counter will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isFloatingMessageCounterVisible) {
                     this.updateMessageCounterCount(!shouldRecordMaxAction);
                 }
 
-                // show new floating message counter when there is a new message
+                // Show new floating message counter when there is a new message
                 this.toggleFloatingMessageCounter();
             }
 
@@ -237,10 +239,10 @@ class ReportActionsView extends React.Component {
             if (shouldRecordMaxAction) {
                 Report.updateLastReadActionID(this.props.reportID);
             }
-        } else if (shouldRecordMaxAction && (
-            prevProps.isDrawerOpen !== this.props.isDrawerOpen
-            || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
-        )) {
+        }
+
+        // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
+        if (shouldRecordMaxAction && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
         }
