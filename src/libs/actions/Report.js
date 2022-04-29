@@ -647,11 +647,8 @@ function updateReportWithNewAction(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        if (reportAction.originalMessage.IOUDetails) {
-            return;
-        }
+        if (reportAction.originalMessage.IOUDetails === undefined) {
 
-        if (reportAction.originalMessage.type !== 'pay') {
             // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
             // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
             // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
