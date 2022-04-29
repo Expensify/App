@@ -341,7 +341,7 @@ export default {
     },
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
-        allSet: 'Todo está listo, guarda tu contraseña en un lugar seguro.',
+        allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
         gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {

@@ -341,7 +341,7 @@ export default {
     },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
-        allSet: 'You’re all set, keep your new password safe.',
+        allSet: 'You’re all set. Keep your new password safe.',
         gotIt: 'Got it',
     },
     addPayPalMePage: {
