@@ -19,6 +19,8 @@ import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -38,6 +40,9 @@ const propTypes = {
 
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Information about the network  */
+    network: networkPropTypes.isRequired,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -70,14 +75,13 @@ const defaultProps = {
 
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
-        // We can specify a step to navigate to by using route params when the component mounts.
-        const stepToOpen = this.getStepToOpenFromRouteParams();
-
-        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
         const currentStep = lodashGet(
             this.props,
             'reimbursementAccount.achData.currentStep',
@@ -142,6 +146,14 @@ class ReimbursementAccountPage extends React.Component {
             default:
                 return 'new';
         }
+    }
+
+    fetchData() {
+        // We can specify a step to navigate to by using route params when the component mounts.
+        const stepToOpen = this.getStepToOpenFromRouteParams();
+
+        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
+        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
     render() {
@@ -243,6 +255,7 @@ ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
 
 export default compose(
+    withNetwork(),
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
