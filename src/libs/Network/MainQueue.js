@@ -20,12 +20,6 @@ let networkRequestQueue = [];
  * @return {Boolean}
  */
 function canMakeRequest(request) {
-    // We must attempt to read authToken and credentials from storage before allowing any requests to happen so that any requests that
-    // require authToken or trigger reauthentication will succeed.
-    if (!NetworkStore.hasReadRequiredDataFromStorage()) {
-        return false;
-    }
-
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
