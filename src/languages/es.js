@@ -984,7 +984,7 @@ export default {
     fileDownload: {
         success: {
             title: 'Descargado!',
-            message: 'Archivo descargado con éxito',
+            message: 'Archivo descargado con éxito!',
         },
         generalError: {
             title: 'Error al adjuntar archivo',

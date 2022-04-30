@@ -982,7 +982,7 @@ export default {
     fileDownload: {
         success: {
             title: 'Downloaded!',
-            message: 'Attachment successfully downloaded',
+            message: 'Attachment successfully downloaded!',
         },
         generalError: {
             title: 'Attachment Error',
