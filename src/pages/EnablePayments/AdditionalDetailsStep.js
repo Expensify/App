@@ -167,6 +167,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
+        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+            errors.phoneNumber = true;
+        }
+
         if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn) && !ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
