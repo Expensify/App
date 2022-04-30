@@ -429,7 +429,9 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={this.state.participants}
+                                                participants={this.props.hasMultipleParticipants
+                                                    ? this.state.participants
+                                                    : _.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
