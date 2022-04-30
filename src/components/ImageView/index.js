@@ -134,6 +134,11 @@ class ImageView extends PureComponent {
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
+        // return if image not loaded yet
+        if (imageHeight <= 0) {
+            return;
+        }
+
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
