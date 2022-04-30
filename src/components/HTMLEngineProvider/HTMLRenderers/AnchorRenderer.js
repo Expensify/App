@@ -16,7 +16,7 @@ const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
-    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';

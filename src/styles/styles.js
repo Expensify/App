@@ -16,6 +16,8 @@ import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import pointerEventsNone from './pointerEventsNone';
+import overflowXHidden from './overflowXHidden';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -379,6 +381,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonExtraLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeExtraLarge,
+        paddingTop: 12,
+        paddingRight: 18,
+        paddingBottom: 12,
+        paddingLeft: 18,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         fontFamily: fontFamily.GTA_BOLD,
@@ -395,6 +407,13 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonExtraLargeText: {
+        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -550,7 +569,7 @@ const styles = {
         iconContainer: {
             top: 8,
             right: 9,
-            pointerEvents: 'none',
+            ...pointerEventsNone,
         },
         icon: {
             width: variables.iconSizeExtraSmall,
@@ -1342,7 +1361,7 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
-        overflowX: 'hidden',
+        ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
@@ -1666,9 +1685,7 @@ const styles = {
         borderColor: themeColors.border,
     },
 
-    pointerEventsNone: {
-        pointerEvents: 'none',
-    },
+    pointerEventsNone,
 
     headerBar: {
         overflow: 'hidden',
@@ -1691,14 +1708,17 @@ const styles = {
         backgroundColor: themeColors.modalBackground,
     },
     PDFView: {
-        flex: 1,
+        // `display: grid` is not supported in native platforms!
+        // It's being used on Web/Desktop only to vertically center short PDFs,
+        // while preventing the overflow of the top of long PDF files.
+        display: 'grid',
         backgroundColor: themeColors.modalBackground,
         width: '100%',
         height: '100%',
-        flexDirection: 'row',
         justifyContent: 'center',
         overflow: 'hidden',
         overflowY: 'auto',
+        alignItems: 'center',
     },
 
     modalCenterContentContainer: {
@@ -2356,7 +2376,7 @@ const styles = {
         height: 20,
     },
 
-    reportMarkerBadgeWrapper: {
+    floatingMessageCounterWrapper: {
         position: 'absolute',
         left: '50%',
         top: 0,
@@ -2364,7 +2384,7 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeWrapperAndroid: {
+    floatingMessageCounterWrapperAndroid: {
         left: 0,
         width: '100%',
         alignItems: 'center',
@@ -2374,17 +2394,17 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeSubWrapperAndroid: {
+    floatingMessageCounterSubWrapperAndroid: {
         left: '50%',
         width: 'auto',
     },
 
-    reportMarkerBadge: {
+    floatingMessageCounter: {
         left: '-50%',
         ...visibility('visible'),
     },
 
-    reportMarkerBadgeTransformation: translateY => ({
+    floatingMessageCounterTransformation: translateY => ({
         transform: [
             {translateY},
         ],
@@ -2487,6 +2507,17 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
+    },
+
+    userSelectText: {
+        userSelect: 'text',
+    },
+
+    screenCenteredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        marginBottom: 40,
+        padding: 16,
     },
 };
 

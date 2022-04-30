@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'You missed the party in ',
+        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -186,9 +188,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -325,6 +325,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
+        closeAccountError: 'Unable to close account',
     },
     passwordPage: {
         changePassword: 'Change password',
@@ -337,6 +338,11 @@ export default {
             newPasswordSameAsOld: 'New password must be different than your old password',
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Password updated!',
+        allSet: 'You’re all set. Keep your new password safe.',
+        gotIt: 'Got it',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -457,6 +463,7 @@ export default {
         error: {
             incorrectPassword: 'Incorrect password. Please try again.',
             incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
+            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
             unableToResetPassword: 'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
@@ -683,7 +690,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
-        taxIDNumberPlaceholder: '9 digits, no hyphens',
+        taxIDNumberPlaceholder: '9 digits',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         incorporationState: 'Incorporation state',
@@ -847,6 +854,7 @@ export default {
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Name',
@@ -877,6 +885,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
+            areYouSure: 'Are you sure?',
         },
     },
     getAssistancePage: {

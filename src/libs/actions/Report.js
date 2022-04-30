@@ -22,7 +22,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
@@ -142,17 +141,18 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  *
  * @param {Object} fullReport
  * @param {String} chatType
+ * @param {String} oldPolicyName
  * @return {String}
  */
-function getChatReportName(fullReport, chatType) {
+function getChatReportName(fullReport, chatType, oldPolicyName) {
+    const isArchivedRoom = ReportUtils.isArchivedRoom({
+        chatType,
+        stateNum: fullReport.state,
+        statusNum: fullReport.status,
+    });
+
     if (ReportUtils.isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        })
-            ? ` (${Localize.translateLocal('common.deleted')})`
-            : '')}`;
+        return `#${fullReport.reportName}${isArchivedRoom ? ` (${Localize.translateLocal('common.deleted')})` : ''}`;
     }
 
     // For a basic policy room, return its original name
@@ -161,13 +161,10 @@ function getChatReportName(fullReport, chatType) {
     }
 
     if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        return `${LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName)}${(ReportUtils.isArchivedRoom({
-            chatType,
-            stateNum: fullReport.state,
-            statusNum: fullReport.status,
-        })
-            ? ` (${Localize.translateLocal('common.archived')})`
-            : '')}`;
+        const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
+            ? oldPolicyName
+            : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
+        return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -207,16 +204,16 @@ function getSimplifiedReportObject(report) {
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report, chatType)
+        ? getChatReportName(report, chatType, oldPolicyName)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
@@ -522,9 +519,10 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
  * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
  * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
  *
- * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
- * closed IOU).
+ * Examples of correct usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a closed
+ * IOU). Send Money is an incorrect use case, because these IOUReports are never associated with the chatReport and this would
+ * prevent outstanding IOUs from showing.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, used to sync the reports
@@ -650,11 +648,12 @@ function updateReportWithNewAction(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
-        // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
-        // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
-        // be displayed and paid IOUs would show as unpaid.
-        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
+        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
+        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
+        if (reportAction.originalMessage.IOUDetails === undefined) {
+            fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        }
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -756,7 +755,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.info('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
@@ -884,7 +883,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 
@@ -1082,9 +1081,10 @@ function fetchAllReports(
  * @param {File} [file]
  */
 function addAction(reportID, text, file) {
-    // Convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = parser.replace(text);
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 
@@ -1254,10 +1254,11 @@ function deleteReportComment(reportID, reportAction) {
  *
  * @param {Number} reportID
  * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ * @param {Boolean} [manuallyMarked] If the user manually marked this as unread, we need to tell the API
  *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
  *  is last read (meaning that the entire report history has been read)
  */
-function updateLastReadActionID(reportID, sequenceNumber) {
+function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false) {
     // If report data is loading, we can't update the last read sequence number because it is obsolete
     if (isReportDataLoading) {
         return;
@@ -1283,6 +1284,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     API.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
+        markAsUnread: manuallyMarked,
     });
 }
 
@@ -1521,16 +1523,12 @@ function createPolicyRoom(policyID, reportName, visibility) {
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
-        .then(([{reportID}]) => {
+        .then((chatReports) => {
+            const reportID = lodashGet(_.first(_.values(chatReports)), 'reportID', '');
             if (!reportID) {
                 Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
-
-            // Make sure the report has its icons set
-            const report = allReports[reportID];
-            const icons = OptionsListUtils.getReportIcons(report, {});
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {icons});
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
