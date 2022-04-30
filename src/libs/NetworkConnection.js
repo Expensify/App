@@ -4,7 +4,6 @@ import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
 import * as NetworkActions from './actions/Network';
-import * as NetworkEvents from './Network/NetworkEvents';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
@@ -124,12 +123,11 @@ function recheckNetworkConnection() {
         .finally(() => hasPendingNetworkCheck = false);
 }
 
-NetworkEvents.onRecheckNeeded(recheckNetworkConnection);
-
 export default {
     setOfflineStatus,
     listenForReconnect,
     stopListeningForReconnect,
     onReconnect,
     triggerReconnectionCallbacks,
+    recheckNetworkConnection,
 };
