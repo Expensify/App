@@ -92,6 +92,8 @@ export default function fileDownload(fileUrl, fileName) {
 
             FileUtils.showSuccessAlert();
         }).catch((err) => {
+            // iOS shows permission popup only once. Subsequent request will only throw an error.
+            // We catch the error and show a redirection link to the settings screen
             if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
                 FileUtils.showPermissionErrorAlert();
             } else {
