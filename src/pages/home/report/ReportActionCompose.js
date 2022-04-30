@@ -301,7 +301,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.trim().length === 0,
+            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });
 
         // Indicate that draft has been created.
