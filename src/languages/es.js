@@ -175,6 +175,8 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -186,9 +188,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -322,9 +322,10 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
+        closeAccountError: 'No se pudo cerrar tu cuenta',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -337,6 +338,11 @@ export default {
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Contraseña actualizada!',
+        allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+        gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
@@ -457,6 +463,7 @@ export default {
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
             unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
@@ -685,7 +692,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
-        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
+        taxIDNumberPlaceholder: '9 dígitos',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         incorporationState: 'Estado de incorporación',
@@ -849,6 +856,7 @@ export default {
             pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -879,6 +887,7 @@ export default {
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
         },
     },
     getAssistancePage: {

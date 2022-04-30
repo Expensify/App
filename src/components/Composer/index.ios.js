@@ -76,6 +76,7 @@ class Composer extends React.Component {
         const propsToPass = _.omit(this.props, 'selection');
         return (
             <RNTextInput
+                autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={CONST.COMPOSER_MAX_HEIGHT}

@@ -5,6 +5,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
 import * as ReportUtils from '../reportUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
@@ -103,7 +104,7 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
  */
 function getLastVisibleMessageText(reportID) {
     const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
-        !ReportUtils.isDeletedAction(action)
+        !ReportActionsUtils.isDeletedAction(action)
     ));
 
     return ReportUtils.formatReportLastMessageText(

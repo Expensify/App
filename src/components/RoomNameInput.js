@@ -56,29 +56,17 @@ const defaultProps = {
 class RoomNameInput extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            roomName: props.initialValue,
-        };
 
         this.setModifiedRoomName = this.setModifiedRoomName.bind(this);
     }
 
     /**
-     * Sets the modified room name in the state and calls the onChangeText callback
+     * Calls the onChangeText callback with a modified room name
      * @param {Event} event
      */
     setModifiedRoomName(event) {
-        const nativeEvent = event.nativeEvent;
-        const roomName = nativeEvent.text;
-        const target = nativeEvent.target;
-        const selection = target.selectionStart;
+        const roomName = event.nativeEvent.text;
         const modifiedRoomName = this.modifyRoomName(roomName);
-        this.setState({roomName: modifiedRoomName}, () => {
-            if (!selection) {
-                return;
-            }
-            target.selectionEnd = selection;
-        });
         this.props.onChangeText(modifiedRoomName);
     }
 
@@ -108,7 +96,7 @@ class RoomNameInput extends Component {
                 prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
                 onChange={this.setModifiedRoomName}
-                value={this.state.roomName.substring(1)}
+                defaultValue={this.props.initialValue.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 errorText={this.props.errorText}
                 autoCapitalize="none"
             />

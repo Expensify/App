@@ -85,6 +85,7 @@ class CompanyStep extends React.Component {
             incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
+            incorporationState: 'bankAccount.error.incorporationState',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -119,8 +120,7 @@ class CompanyStep extends React.Component {
      * @param {String} value
      */
     clearDateErrorsAndSetValue(value) {
-        this.clearError('incorporationDate');
-        this.clearError('incorporationDateFuture');
+        this.clearErrors(['incorporationDate', 'incorporationDateFuture']);
         this.setValue({incorporationDate: value});
     }
 
@@ -142,7 +142,7 @@ class CompanyStep extends React.Component {
             errors.website = true;
         }
 
-        if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
+        if (!ValidationUtils.isValidTaxID(this.state.companyTaxID)) {
             errors.companyTaxID = true;
         }
 
@@ -176,7 +176,7 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate});
+        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, '')});
     }
 
     render() {
@@ -262,7 +262,6 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <Picker
@@ -277,8 +276,8 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
-                            onChange={this.clearDateErrorsAndSetValue}
-                            value={this.state.incorporationDate}
+                            onInputChange={this.clearDateErrorsAndSetValue}
+                            defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                             maximumDate={new Date()}
@@ -287,14 +286,14 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <StatePicker
                             label={this.props.translate('companyStep.incorporationState')}
-                            onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                            onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                             value={this.state.incorporationState}
-                            hasError={this.getErrors().incorporationState}
+                            errorText={this.getErrorText('incorporationState')}
                         />
                     </View>
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
-                        onPress={() => {
+                        onInputChange={() => {
                             this.setState((prevState) => {
                                 const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
                                 BankAccounts.updateReimbursementAccountDraft(newState);

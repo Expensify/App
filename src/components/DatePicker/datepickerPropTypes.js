@@ -9,9 +9,15 @@ const propTypes = {
 
     /**
      * The datepicker supports any value that `moment` can parse.
-     * `onChange` would always be called with a Date (or null)
+     * `onInputChange` would always be called with a Date (or null)
      */
     value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+
+    /**
+     * The datepicker supports any defaultValue that `moment` can parse.
+     * `onInputChange` would always be called with a Date (or null)
+     */
+    defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
     /* Restricts for selectable max date range for the picker */
     maximumDate: PropTypes.instanceOf(Date),

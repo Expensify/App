@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -50,7 +49,7 @@ class ReportTypingIndicator extends React.Component {
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
             case 0:
-                return <View style={[styles.chatItemComposeSecondaryRow]} />;
+                return <></>;
             case 1:
                 return (
                     <TextWithEllipsis
@@ -63,18 +62,16 @@ class ReportTypingIndicator extends React.Component {
                 );
             default:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {this.props.translate('reportTypingIndicator.multipleUsers')}
-                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        </Text>
-                    </View>
+                    <Text
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {this.props.translate('reportTypingIndicator.multipleUsers')}
+                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                    </Text>
                 );
         }
     }

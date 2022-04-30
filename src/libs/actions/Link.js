@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -54,7 +53,7 @@ function openExternalLink(url) {
         return;
     }
 
-    Linking.openURL(url);
+    asyncOpenURL(Promise.resolve(), url);
 }
 
 export {
