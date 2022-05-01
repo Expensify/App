@@ -3,6 +3,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 
 /**
  * Crops and rotates the image on ios/android
+ *
  * @param {String} uri
  * @param {Array<Object>} actions
  * @param {Object} options

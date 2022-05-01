@@ -1,5 +1,13 @@
 import _ from 'underscore';
 
+/**
+ * Calculates a size of canvas after rotation
+ *
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Number} angle
+ * @returns {Object} Returns width and height of new canvas
+*/
 function sizeFromAngle(width, height, angle) {
     const radians = (angle * Math.PI) / 180;
     let c = Math.cos(radians);
@@ -13,6 +21,13 @@ function sizeFromAngle(width, height, angle) {
     return {width: (height * s) + (width * c), height: (height * c) + (width * s)};
 }
 
+/**
+ * Created a new rotated canvas and returns it
+ *
+ * @param {Object} canvas
+ * @param {Number} degrees
+ * @returns {Object}
+*/
 function rotate(canvas, degrees) {
     const {width, height} = sizeFromAngle(canvas.width, canvas.height, degrees);
 
@@ -31,6 +46,13 @@ function rotate(canvas, degrees) {
     return result;
 }
 
+/**
+ * Creates new cropped canvas and returns it
+ *
+ * @param {Object} canvas
+ * @param {Object} options
+ * @returns {Object}
+*/
 function crop(canvas, options) {
     let {
         originX = 0, originY = 0, width = 0, height = 0,
@@ -55,6 +77,10 @@ function crop(canvas, options) {
     return result;
 }
 
+/**
+ * @param {Object} canvas
+ * @returns {Promise<File>}
+*/
 function convertCanvasToFile(canvas) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
@@ -65,6 +91,12 @@ function convertCanvasToFile(canvas) {
     });
 }
 
+/**
+ * Loads image from specified url
+ *
+ * @param {Number} uri
+ * @returns {Promise<Object>}
+*/
 function loadImageAsync(uri) {
     return new Promise((resolve, reject) => {
         const imageSource = new Image();
@@ -86,6 +118,7 @@ function loadImageAsync(uri) {
 
 /**
  * Crops and rotates the image on web
+ *
  * @param {String} uri
  * @param {Object} actions
  * @param {Object} options
