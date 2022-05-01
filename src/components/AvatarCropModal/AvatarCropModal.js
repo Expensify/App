@@ -89,15 +89,15 @@ const AvatarCropModal = (props) => {
         },
         onActive: (event, context) => {
             let heightRatio = 1.0;
-            let widthRation = 1.0;
+            let widthRatio = 1.0;
             if (imageWidth.value > imageHeight.value) {
                 heightRatio = imageWidth.value / imageHeight.value;
             } else {
-                widthRation = imageHeight.value / imageWidth.value;
+                widthRatio = imageHeight.value / imageWidth.value;
             }
 
             const radius = imageContainerSize / 2;
-            const realImageHeight = radius * scale.value * widthRation;
+            const realImageHeight = radius * scale.value * widthRatio;
             const realImageWidth = radius * scale.value * heightRatio;
 
             const maxX = realImageWidth - radius;
