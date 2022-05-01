@@ -59,7 +59,7 @@ const MenuItem = props => (
     >
         {({hovered, pressed}) => (
             <>
-                <View style={[styles.flexRow, styles.pointerEventsNone, styles.w100, styles.pr5]}>
+                <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
                     {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
@@ -90,7 +90,7 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
-                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.w100]}>
+                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                         <Text
                             style={[
                                 styles.popoverMenuText,
