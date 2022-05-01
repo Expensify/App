@@ -303,7 +303,7 @@ describe('OptionsListUtils', () => {
         // When we call getNewChatOptions() with no search value
         let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
-        // We should expect maximimum of 5 recent reports to be returneda
+        // We should expect maximimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
 
         // We should expect all personalDetails to be returned,
@@ -505,7 +505,7 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite.login).toBe('+15005550006');
 
         // Test Concierge's existence in new group options
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.RECEIPTS]);
+        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
