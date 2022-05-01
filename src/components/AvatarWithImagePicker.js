@@ -132,7 +132,6 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Opens avatars crop modal and sets image to state
      * @param {Object} image
     */
     openAvatarCropModal(image) {
