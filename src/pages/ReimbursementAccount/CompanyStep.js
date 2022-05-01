@@ -248,7 +248,7 @@ class CompanyStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
                         value={this.state.companyPhone}
-                        placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
+                        placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
                     />

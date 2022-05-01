@@ -323,6 +323,7 @@ class AdditionalDetailsStep extends React.Component {
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                     value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                    placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                     errorText={this.getErrorText('phoneNumber')}
                                 />
                                 <DatePicker

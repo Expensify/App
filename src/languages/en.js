@@ -30,6 +30,7 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'and',
         details: 'Details',
@@ -698,7 +699,6 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
