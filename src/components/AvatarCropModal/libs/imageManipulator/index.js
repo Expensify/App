@@ -1,9 +1,5 @@
 import _ from 'underscore';
 
-function getContext(canvas) {
-    return canvas.getContext('2d');
-}
-
 function sizeFromAngle(width, height, angle) {
     const radians = (angle * Math.PI) / 180;
     let c = Math.cos(radians);
@@ -24,35 +20,28 @@ function rotate(canvas, degrees) {
     result.width = width;
     result.height = height;
 
-    const context = getContext(result);
-
-    // Set the origin to the center of the image
+    const context = result.getContext('2d');
     context.translate(result.width / 2, result.height / 2);
 
-    // Rotate the canvas around the origin
     const radians = (degrees * Math.PI) / 180;
     context.rotate(radians);
 
-    // Draw the image
     context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
 
     return result;
 }
 
 function crop(canvas, options) {
-    // ensure values are defined.
     let {
         originX = 0, originY = 0, width = 0, height = 0,
     } = options;
     const clamp = (value, max) => Math.max(0, Math.min(max, value));
 
-    // lock within bounds.
     width = clamp(width, canvas.width);
     height = clamp(height, canvas.height);
     originX = clamp(originX, canvas.width);
     originY = clamp(originY, canvas.height);
 
-    // lock sum of crop.
     width = Math.min(originX + width, canvas.width) - originX;
     height = Math.min(originY + height, canvas.height) - originY;
 
@@ -60,13 +49,13 @@ function crop(canvas, options) {
     result.width = width;
     result.height = height;
 
-    const context = getContext(result);
+    const context = result.getContext('2d');
     context.drawImage(canvas, originX, originY, width, height, 0, 0, width, height);
 
     return result;
 }
 
-function getResults(canvas) {
+function convertCanvasToFile(canvas) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
             const file = new File([blob], 'fileName.jpg', {type: 'image/jpeg'});
@@ -85,7 +74,7 @@ function loadImageAsync(uri) {
             canvas.width = imageSource.naturalWidth;
             canvas.height = imageSource.naturalHeight;
 
-            const context = getContext(canvas);
+            const context = canvas.getContext('2d');
             context.drawImage(imageSource, 0, 0, imageSource.naturalWidth, imageSource.naturalHeight);
 
             resolve(canvas);
@@ -114,7 +103,7 @@ function imageManipulator(uri, actions, options) {
                 return canvas;
             }, originalCanvas);
 
-            getResults(resultCanvas, options).then(resolve);
+            convertCanvasToFile(resultCanvas, options).then(resolve);
         });
     });
 }
