@@ -18,6 +18,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
@@ -176,7 +177,12 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, '')});
+        BankAccounts.setupWithdrawalAccount({
+            ...this.state,
+            incorporationDate,
+            companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
+            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
+        });
     }
 
     render() {
