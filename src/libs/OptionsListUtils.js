@@ -632,7 +632,6 @@ function getOptions(reports, personalDetails, activeReportID, {
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array<String>} betas
- * @param {Boolean} sortByLastMessageTimestamp
  * @returns {Object}
  */
 function getSearchOptions(
@@ -640,7 +639,6 @@ function getSearchOptions(
     personalDetails,
     searchValue = '',
     betas,
-    sortByLastMessageTimestamp,
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
@@ -654,7 +652,7 @@ function getSearchOptions(
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp,
+        sortByLastMessageTimestamp: true,
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
     });
@@ -701,7 +699,6 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @param {Array} excludeLogins
- * @param {Boolean} sortByLastMessageTimestamp
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -711,7 +708,6 @@ function getNewChatOptions(
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-    sortByLastMessageTimestamp = true,
 ) {
     return getOptions(reports, personalDetails, 0, {
         betas,
@@ -722,7 +718,7 @@ function getNewChatOptions(
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
         excludeLogins,
-        sortByLastMessageTimestamp,
+        sortByLastMessageTimestamp: true,
     });
 }
 
