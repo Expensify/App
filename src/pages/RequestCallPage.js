@@ -173,7 +173,7 @@ class RequestCallPage extends Component {
     getPhoneNumberError() {
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
-            return this.props.translate('messages.errorMessageInvalidPhone');
+            return this.props.translate('common.error.phoneNumber');
         }
         return '';
     }
