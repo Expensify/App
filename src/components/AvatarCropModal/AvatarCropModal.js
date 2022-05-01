@@ -33,22 +33,21 @@ const propTypes = {
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
-    /** Callback to be called when user crops image */
+    /** Callback to be called when user crops the image */
     onCrop: PropTypes.func,
 
     ...withLocalizePropTypes,
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     imageUri: null,
-    onClose: () => {},
-    onCrop: () => {},
+    onClose: () => { },
+    onCrop: () => { },
 };
 
-// This component cant be writen using class since reanimated API uses hooks
-const AvatarCropModal = memo((props) => {
+// This component can't be written using class since reanimated API uses hooks.
+const AvatarCropModal = (props) => {
     const imageWidth = useSharedValue(1);
     const imageHeight = useSharedValue(1);
     const translateY = useSharedValue(0);
@@ -57,8 +56,8 @@ const AvatarCropModal = memo((props) => {
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
 
-    const containerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - 40 : variables.sideBarWidth - 40;
-    const sliderLineWidth = containerSize - 105;
+    const imageContainerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - 40 : variables.sideBarWidth - 40;
+    const sliderLineWidth = imageContainerSize - 105;
 
     const initializeImage = useCallback(() => {
         translateY.value = 0;
@@ -69,7 +68,9 @@ const AvatarCropModal = memo((props) => {
     }, []);
 
     useEffect(() => {
-        if (!props.imageUri) { return; }
+        if (!props.imageUri) {
+            return;
+        }
         initializeImage();
         Image.getSize(props.imageUri, (width, height) => {
             imageHeight.value = height;
@@ -87,17 +88,17 @@ const AvatarCropModal = memo((props) => {
             context.translateY = translateY.value;
         },
         onActive: (event, context) => {
-            let heighRatio = 1.0;
+            let heightRatio = 1.0;
             let widthRation = 1.0;
             if (imageWidth.value > imageHeight.value) {
-                heighRatio = imageWidth.value / imageHeight.value;
+                heightRatio = imageWidth.value / imageHeight.value;
             } else {
                 widthRation = imageHeight.value / imageWidth.value;
             }
 
-            const radius = containerSize / 2;
+            const radius = imageContainerSize / 2;
             const realImageHeight = radius * scale.value * widthRation;
-            const realImageWidth = radius * scale.value * heighRatio;
+            const realImageWidth = radius * scale.value * heightRatio;
 
             const maxX = realImageWidth - radius;
             const minX = (realImageWidth - radius) * -1;
@@ -127,7 +128,7 @@ const AvatarCropModal = memo((props) => {
                 newSlider = minScale;
             }
 
-            const newScale = ((newSlider / containerSize) * 10) + 1;
+            const newScale = ((newSlider / imageContainerSize) * 10) + 1;
             const change = newScale / scale.value;
             const newX = translateX.value * change;
             const newY = translateY.value * change;
@@ -135,17 +136,17 @@ const AvatarCropModal = memo((props) => {
             scale.value = newScale;
             translateSlider.value = newSlider;
 
-            let heighRatio = 1.0;
-            let widthRation = 1.0;
+            let heightRatio = 1.0;
+            let widthRatio = 1.0;
             if (imageWidth.value > imageHeight.value) {
-                heighRatio = imageWidth.value / imageHeight.value;
+                heightRatio = imageWidth.value / imageHeight.value;
             } else {
-                widthRation = imageHeight.value / imageWidth.value;
+                widthRatio = imageHeight.value / imageWidth.value;
             }
 
-            const radius = containerSize / 2;
-            const realImageHeight = radius * scale.value * widthRation;
-            const realImageWidth = radius * scale.value * heighRatio;
+            const radius = imageContainerSize / 2;
+            const realImageHeight = radius * scale.value * widthRatio;
+            const realImageWidth = radius * scale.value * heightRatio;
 
             const maxX = realImageWidth - radius;
             const minX = (realImageWidth - radius) * -1;
@@ -158,15 +159,15 @@ const AvatarCropModal = memo((props) => {
     });
 
     const imageStyle = useAnimatedStyle(() => {
-        const heigth = imageHeight.value;
+        const height = imageHeight.value;
         const width = imageWidth.value;
-        const aspectRation = heigth > width ? heigth / width : width / heigth;
+        const aspectRatio = height > width ? height / width : width / height;
         const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
         return {
             transform: [
                 {translateX: translateX.value},
                 {translateY: translateY.value},
-                {scale: scale.value * aspectRation},
+                {scale: scale.value * aspectRatio},
                 {rotate: `${rotate}deg`},
             ],
         };
@@ -188,8 +189,8 @@ const AvatarCropModal = memo((props) => {
         const centerY = imageHeight.value / 2;
         const radius = size / 2;
 
-        const originX = centerX - radius - ((translateX.value / containerSize / scale.value) * smallerSize);
-        const originY = centerY - radius - ((translateY.value / containerSize / scale.value) * smallerSize);
+        const originX = centerX - radius - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
+        const originY = centerY - radius - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
 
         const crop = {
             height: size, width: size, originX, originY,
@@ -200,7 +201,7 @@ const AvatarCropModal = memo((props) => {
                 props.onClose();
                 props.onCrop(newImage);
             });
-    }, [props.imageUri, containerSize]);
+    }, [props.imageUri, imageContainerSize]);
 
     return (
         <Modal
@@ -218,11 +219,11 @@ const AvatarCropModal = memo((props) => {
                     onCloseButtonPress={props.onClose}
                 />
                 <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView style={[{width: containerSize}, styles.alignSelfCenter, styles.mv5, styles.flex1]}>
+                <GestureHandlerRootView style={[{width: imageContainerSize}, styles.alignSelfCenter, styles.mv5, styles.flex1]}>
                     <ImageCropView
                         imageUri={props.imageUri}
                         style={[imageStyle, styles.h100, styles.w100]}
-                        containerSize={containerSize}
+                        containerSize={imageContainerSize}
                         panGestureEvent={panGestureEvent}
                         onLayout={initializeImage}
                     />
@@ -247,7 +248,7 @@ const AvatarCropModal = memo((props) => {
             </SafeAreaProvider>
         </Modal>
     );
-});
+};
 
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;
@@ -255,4 +256,4 @@ AvatarCropModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-)(AvatarCropModal);
+)(memo(AvatarCropModal));
