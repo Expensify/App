@@ -24,7 +24,7 @@ class Hoverable extends Component {
 
     componentDidMount() {
         document.addEventListener('mousedown', this.resetHoverStateOnOutsideClick);
-        document.addEventListener('wheel', this.setScrollingAndStartUnsetListener);
+        window.addEventListener('scroll', this.setScrollingAndStartUnsetListener, true);
 
         // we like to Block the hover on touch devices but we keep it for Hybrid devices so
         // following logic blocks hover on touch devices.
@@ -44,7 +44,7 @@ class Hoverable extends Component {
         document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
-        document.removeEventListener('wheel', this.setScrollingAndStartUnsetListener);
+        window.removeEventListener('scroll', this.setScrollingAndStartUnsetListener, true);
     }
 
     /**
