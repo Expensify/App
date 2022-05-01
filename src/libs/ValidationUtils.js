@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
-import LoginUtil from './LoginUtil';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -291,7 +291,7 @@ function isPositiveInteger(input) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -355,6 +355,16 @@ function isExistingRoomName(roomName, reports, policyID) {
     );
 }
 
+/**
+ * Checks if tax ID consists of 9 digits
+ *
+ * @param {String} taxID
+ * @returns {Boolean}
+ */
+function isValidTaxID(taxID) {
+    return CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -381,4 +391,5 @@ export {
     doesFailCharacterLimit,
     isReservedRoomName,
     isExistingRoomName,
+    isValidTaxID,
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import moment from 'moment';
+import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -12,18 +13,18 @@ const datePickerPropTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class Datepicker extends React.Component {
+class DatePicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.setDate = this.setDate.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
         * and make us reset the text input */
-        this.defaultValue = props.value
-            ? moment(props.value).format(CONST.DATE.MOMENT_FORMAT_STRING)
+        this.defaultValue = props.defaultValue
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
     }
 
@@ -40,15 +41,15 @@ class Datepicker extends React.Component {
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text
      */
-    raiseDateChange(text) {
+    setDate(text) {
         if (!text) {
-            this.props.onChange(null);
+            this.props.onInputChange(null);
             return;
         }
 
         const asMoment = moment(text);
         if (asMoment.isValid()) {
-            this.props.onChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     }
 
@@ -69,22 +70,31 @@ class Datepicker extends React.Component {
         return (
             <TextInput
                 forceActiveLabel={!canUseTouchScreen()}
-                ref={input => this.inputRef = input}
+                ref={(el) => {
+                    this.inputRef = el;
+
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(el);
+                    }
+                }}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
-                onChangeText={this.raiseDateChange}
+                onInputChange={this.setDate}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
-                hasError={this.props.hasError}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
                 disabled={this.props.disabled}
+                onBlur={this.props.onBlur}
             />
         );
     }
 }
 
-Datepicker.propTypes = datePickerPropTypes;
-Datepicker.defaultProps = defaultProps;
+DatePicker.propTypes = datePickerPropTypes;
+DatePicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(Datepicker);
+export default withWindowDimensions(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <DatePicker {...props} innerRef={ref} />
+)));

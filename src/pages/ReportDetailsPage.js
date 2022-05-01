@@ -123,9 +123,8 @@ class ReportDetailsPage extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.details')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.m5]}>
@@ -134,7 +133,7 @@ class ReportDetailsPage extends Component {
                         >
                             <View style={styles.mb4}>
                                 <RoomHeaderAvatars
-                                    avatarIcons={OptionsListUtils.getAvatarSources(this.props.report)}
+                                    icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
                                     shouldShowLargeAvatars={isPolicyExpenseChat}
                                 />
                             </View>

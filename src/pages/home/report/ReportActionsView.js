@@ -31,14 +31,16 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
-import MarkerBadge from './MarkerBadge/MarkerBadge';
 import Performance from '../../../libs/Performance';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import participantPropTypes from '../../../components/participantPropTypes';
-import EmojiPicker from '../../../components/EmojiPicker';
+import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import FloatingMessageCounter from './FloatingMessageCounter';
+import networkPropTypes from '../../../components/networkPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -79,6 +81,9 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -107,26 +112,25 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.sortedReportActions = [];
         this.appStateChangeListener = null;
 
         this.didLayout = false;
 
         this.state = {
-            isMarkerActive: false,
-            localUnreadActionCount: this.props.report.unreadActionCount,
+            isFloatingMessageCounterVisible: false,
+            messageCounterCount: this.props.report.unreadActionCount,
         };
 
         this.currentScrollOffset = 0;
-        this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
+        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
-        this.showMarker = this.showMarker.bind(this);
-        this.hideMarker = this.hideMarker.bind(this);
-        this.toggleMarker = this.toggleMarker.bind(this);
-        this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
-        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
+        this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
+        this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
+        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+        this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
+        this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
@@ -150,23 +154,31 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
-        Report.fetchActions(this.props.reportID);
+        this.fetchData();
 
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(copyShortcutConfig.shortcutKey, () => {
-            this.copySelectionToClipboard();
-        }, copyShortcutConfig.descriptionKey, copyShortcutConfig.modifiers, false);
+        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(
+            copyShortcutConfig.shortcutKey,
+            this.copySelectionToClipboard,
+            copyShortcutConfig.descriptionKey,
+            copyShortcutConfig.modifiers,
+            false,
+        );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
         }
 
         // If the new marker has changed places, update the component.
         if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
+            return true;
+        }
+
+        if (nextProps.network.isOffline !== this.props.network.isOffline) {
             return true;
         }
 
@@ -178,11 +190,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+        if (nextState.isFloatingMessageCounterVisible !== this.state.isFloatingMessageCounterVisible) {
             return true;
         }
 
-        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+        if (nextState.messageCounterCount !== this.state.messageCounterCount) {
             return true;
         }
 
@@ -202,6 +214,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
+
         // Update the last read action for the report currently in view when report data finishes loading.
         // This report should now be up-to-date and since it is in view we mark it as read.
         if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
@@ -225,18 +241,18 @@ class ReportActionsView extends React.Component {
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
-                // Only update the unread count when MarkerBadge is visible
-                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
-                if (this.state.isMarkerActive) {
-                    this.updateLocalUnreadActionCount(!shouldRecordMaxAction);
+                // Only update the unread count when the floating message counter is visible
+                // Otherwise counter will be shown on scrolling up from the bottom even if user have read those messages
+                if (this.state.isFloatingMessageCounterVisible) {
+                    this.updateMessageCounterCount(!shouldRecordMaxAction);
                 }
 
-                // show new MarkerBadge when there is a new message
-                this.toggleMarker();
+                // show new floating message counter when there is a new message
+                this.toggleFloatingMessageCounter();
             }
 
             // When the last action changes, record the max action
-            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
                 Report.updateLastReadActionID(this.props.reportID);
             }
@@ -244,7 +260,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+            this.updateNewMarkerPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
         }
     }
@@ -276,7 +292,7 @@ class ReportActionsView extends React.Component {
         Report.updateLastReadActionID(this.props.reportID);
     }
 
-    copySelectionToClipboard = () => {
+    copySelectionToClipboard() {
         const selectionMarkdown = SelectionScraper.getAsMarkdown();
 
         Clipboard.setString(selectionMarkdown);
@@ -291,6 +307,10 @@ class ReportActionsView extends React.Component {
      */
     keyExtractor(item) {
         return `${item.action.sequenceNumber}${item.action.clientID}`;
+    }
+
+    fetchData() {
+        Report.fetchActions(this.props.reportID);
     }
 
     /**
@@ -327,73 +347,8 @@ class ReportActionsView extends React.Component {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
-    }
-
-    /**
-     * Updates and sorts the report actions by sequence number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isDeletedAction(action))
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-                || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
-    }
-
-    /**
-     * Returns true when the report action immediately before the
-     * specified index is a comment made by the same actor who who
-     * is leaving a comment in the action at the specified index.
-     * Also checks to ensure that the comment is not too old to
-     * be considered part of the same comment
-     *
-     * @param {Number} actionIndex - index of the comment item in state to check
-     *
-     * @return {Boolean}
-     */
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
-        const currentAction = this.sortedReportActions[actionIndex];
-
-        // It's OK for there to be no previous action, and in that case, false will be returned
-        // so that the comment isn't grouped
-        if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
-            return false;
-        }
-
-        // Do not group if previous or current action was a renamed action
-        if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return false;
-        }
-
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-     * Finds and updates most recent IOU report action number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateMostRecentIOUReportActionNumber(reportActions) {
-        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-            .max(action => action.sequenceNumber)
-            .value().sequenceNumber;
     }
 
     /**
@@ -410,7 +365,7 @@ class ReportActionsView extends React.Component {
      * Updates NEW marker position
      * @param {Number} unreadActionCount
      */
-    updateUnreadIndicatorPosition(unreadActionCount) {
+    updateNewMarkerPosition(unreadActionCount) {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
@@ -419,31 +374,31 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
-    toggleMarker() {
-        // Update the unread message count before MarkerBadge is about to show
-        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
-            this.updateLocalUnreadActionCount();
-            this.showMarker();
+    toggleFloatingMessageCounter() {
+        // Update the message counter count before counter is about to show
+        if (this.currentScrollOffset < -200 && !this.state.isFloatingMessageCounterVisible) {
+            this.updateMessageCounterCount();
+            this.showFloatingMessageCounter();
         }
 
-        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
-            this.hideMarker();
+        if (this.currentScrollOffset > -200 && this.state.isFloatingMessageCounterVisible) {
+            this.hideFloatingMessageCounter();
         }
     }
 
     /**
-     * Update the unread messages count to show in the MarkerBadge
+     * Update the message counter count to show in the floating message counter
      * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
-    updateLocalUnreadActionCount(shouldResetLocalCount = false) {
+    updateMessageCounterCount(shouldResetLocalCount = false) {
         this.setState((prevState) => {
-            const localUnreadActionCount = shouldResetLocalCount
+            const messageCounterCount = shouldResetLocalCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
-            this.updateUnreadIndicatorPosition(localUnreadActionCount);
-            return {localUnreadActionCount};
+                : prevState.messageCounterCount + this.props.report.unreadActionCount;
+            this.updateNewMarkerPosition(messageCounterCount);
+            return {messageCounterCount};
         });
     }
 
@@ -451,7 +406,7 @@ class ReportActionsView extends React.Component {
      * Update NEW marker and mark report as read
      */
     updateNewMarkerAndMarkRead() {
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+        this.updateNewMarkerPosition(this.props.report.unreadActionCount);
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
@@ -460,18 +415,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show the new MarkerBadge
+     * Show the new floating message counter
      */
-    showMarker() {
-        this.setState({isMarkerActive: true});
+    showFloatingMessageCounter() {
+        this.setState({isFloatingMessageCounterVisible: true});
     }
 
     /**
-     * Hide the new MarkerBadge
+     * Hide the new floating message counter
      */
-    hideMarker() {
-        this.setState({isMarkerActive: false}, () => {
-            this.setState({localUnreadActionCount: 0});
+    hideFloatingMessageCounter() {
+        this.setState({
+            isFloatingMessageCounterVisible: false,
+            messageCounterCount: 0,
         });
     }
 
@@ -482,7 +438,7 @@ class ReportActionsView extends React.Component {
      */
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleMarker();
+        this.toggleFloatingMessageCounter();
     }
 
     /**
@@ -546,7 +502,7 @@ class ReportActionsView extends React.Component {
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
@@ -568,11 +524,11 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <MarkerBadge
-                    active={this.state.isMarkerActive}
-                    count={this.state.localUnreadActionCount}
+                <FloatingMessageCounter
+                    active={this.state.isFloatingMessageCounterVisible}
+                    count={this.state.messageCounterCount}
                     onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideMarker}
+                    onClose={this.hideFloatingMessageCounter}
                 />
                 <InvertedFlatList
                     ref={ReportScrollManager.flatListRef}
@@ -612,6 +568,7 @@ export default compose(
     withDrawerState,
     withLocalize,
     withPersonalDetails(),
+    withNetwork(),
     withOnyx({
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,

@@ -21,6 +21,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -78,7 +79,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
             return '';
         }
 
-        return numValue.toFixed(2);
+        return numValue.toFixed(3);
     }
 
     setRate(value) {
@@ -118,13 +119,13 @@ class WorkspaceReimburseNoVBAView extends React.Component {
         }
 
         this.setState({
-            rateValue: numValue.toFixed(2),
+            rateValue: numValue.toFixed(3),
         });
 
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
             name: this.state.rateName,
-            rate: numValue.toFixed(2) * 100,
+            rate: numValue.toFixed(3) * 100,
         }, null);
     }
 
@@ -181,7 +182,7 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                                 label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                 items={this.unitItems}
                                 value={this.state.unitValue}
-                                onChange={value => this.setUnit(value)}
+                                onInputChange={value => this.setUnit(value)}
                             />
                         </View>
                     </View>
@@ -190,18 +191,20 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                 <Section
                     title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.JewelBoxGreen}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.common.bankAccount'),
-                            onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID)),
-                            icon: Expensicons.Bank,
-                            shouldShowRightIcon: true,
-                        },
-                    ]}
                 >
                     <View style={[styles.mv4]}>
                         <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                     </View>
+                    <Button
+                        text={this.props.translate('workspace.common.bankAccount')}
+                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
+                        icon={Expensicons.Bank}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.mr5]}
+                        shouldShowRightIcon
+                        extraLarge
+                        success
+                    />
                 </Section>
             </>
         );

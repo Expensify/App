@@ -265,7 +265,7 @@ class AdditionalDetailsStep extends React.Component {
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
                                         containerStyles={[styles.mt4]}
-                                        onChange={(values) => {
+                                        onInputChange={(values) => {
                                             const renamedFields = {
                                                 street: 'addressStreet',
                                                 state: 'addressState',
@@ -320,8 +320,8 @@ class AdditionalDetailsStep extends React.Component {
                                 <DatePicker
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onChange={val => this.clearErrorAndSetValue('dob', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.dob || ''}
+                                    onInputChange={val => this.clearErrorAndSetValue('dob', val)}
+                                    defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                     placeholder={this.props.translate('common.dob')}
                                     errorText={this.getErrorText('dob')}
                                     maximumDate={new Date()}

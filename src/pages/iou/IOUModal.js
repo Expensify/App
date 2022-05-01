@@ -387,9 +387,7 @@ class IOUModal extends Component {
                             </View>
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
-                            <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd}
-                            />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (

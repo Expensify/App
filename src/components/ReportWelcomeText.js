@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/reportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as Localize from '../libs/Localize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -74,8 +73,7 @@ const ReportWelcomeText = (props) => {
             };
         },
     );
-    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
-
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
@@ -92,7 +90,7 @@ const ReportWelcomeText = (props) => {
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                     </Text>
                     <Text style={[styles.textStrong]}>
-                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
+                        {ReportUtils.getPolicyName(props.report, props.policies)}
                     </Text>
                     <Text>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
@@ -103,17 +101,13 @@ const ReportWelcomeText = (props) => {
                 <>
                     {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                     <Text style={styles.textAlignCenter}>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
+                        {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]}>
                         {props.report.reportName}
                     </Text>
                     <Text>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        {roomWelcomeMessage.phrase2}
                     </Text>
                 </>
             )}

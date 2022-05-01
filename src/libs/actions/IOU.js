@@ -138,6 +138,10 @@ function createIOUSplit(params) {
         emailList: _.map(params.splits, participant => participant.email).join(','),
     })
         .then((response) => {
+            if (response.jsonCode !== 200) {
+                return response;
+            }
+
             chatReportID = response.reportID;
             return API.CreateIOUSplit({
                 ...params,

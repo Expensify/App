@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+import * as Expensicons from '../components/Icon/Expensicons';
+import md5 from './md5';
 
 let sessionEmail;
 Onyx.connect({
@@ -23,13 +25,14 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Check whether a report action is Attachment is not.
+ * Check whether a report action is Attachment or not.
+ * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
- * @param {Object} reportMessageText report action's message as text
+ * @param {Object} reportActionMessage report action's message as text and html
  * @returns {Boolean}
  */
-function isReportMessageAttachment(reportMessageText) {
-    return reportMessageText === '[Attachment]';
+function isReportMessageAttachment({text, html}) {
+    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -53,14 +56,13 @@ function sortReportsByLastVisited(reports) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
 }
 
 /**
@@ -69,7 +71,6 @@ function canEditReportAction(reportAction) {
  * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
- * @param {String} sessionEmail
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
@@ -162,16 +163,30 @@ function findLastAccessedReport(reports, ignoreDefaultRooms) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isDefaultRoom(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
-    return report.statusNum === 2 && report.stateNum === 2;
+    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+}
+
+/**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyName(report, policies) {
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
 }
 
 /**
@@ -188,17 +203,42 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
-    }
     if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
         return Localize.translateLocal('workspace.common.workspace');
     }
-    return lodashGet(
-        policiesMap,
-        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
-        Localize.translateLocal('workspace.common.unavailable'),
-    );
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
+    }
+    return getPolicyName(report, policiesMap);
+}
+
+/**
+ * Get welcome message based on room type
+ * @param {Object} report
+ * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Object}
+ */
+
+function getRoomWelcomeMessage(report, policiesMap) {
+    const welcomeMessage = {};
+    const workspaceName = getPolicyName(report, policiesMap);
+
+    if (isArchivedRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else {
+        // Message for user created rooms or other room types.
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+
+    return welcomeMessage;
 }
 
 /**
@@ -250,16 +290,6 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Check if the comment is deleted
- * @param {Object} action
- * @returns {Boolean}
- */
-function isDeletedAction(action) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    return action.message.length === 0 || action.message[0].html === '';
-}
-
-/**
  * Trim the last message text to a fixed limit.
  * @param {String} lastMessageText
  * @returns {String}
@@ -268,9 +298,73 @@ function formatReportLastMessageText(lastMessageText) {
     return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
+/**
+ * Helper method to return a default avatar
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getDefaultAvatar(login = '') {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
+/**
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @param {Object} policies
+ * @param {*} [defaultIcon]
+ * @returns {Array<*>}
+ */
+function getIcons(report, personalDetails, policies, defaultIcon = null) {
+    if (!report) {
+        return [defaultIcon || getDefaultAvatar()];
+    }
+    if (isArchivedRoom(report)) {
+        return [Expensicons.DeletedRoomAvatar];
+    }
+    if (isAdminRoom(report)) {
+        return [Expensicons.AdminRoomAvatar];
+    }
+    if (isAnnounceRoom(report)) {
+        return [Expensicons.AnnounceRoomAvatar];
+    }
+    if (isChatRoom(report)) {
+        return [Expensicons.ActiveRoomAvatar];
+    }
+    if (isPolicyExpenseChat(report)) {
+        const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
+        ]) || Expensicons.Workspace;
+
+        // Return the workspace avatar if the user is the owner of the policy expense chat
+        if (report.isOwnPolicyExpenseChat) {
+            return [policyExpenseChatAvatarSource];
+        }
+
+        // If the user is an admin, return avatar source of the other participant of the report
+        // (their workspace chat) and the avatar source of the workspace
+        return [
+            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            policyExpenseChatAvatarSource,
+        ];
+    }
+
+    // Return avatar sources for Group chats
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
+    })).sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
+}
+
 export {
     getReportParticipantsTitle,
-    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
@@ -282,6 +376,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getPolicyName,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
@@ -289,4 +384,7 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    getDefaultAvatar,
+    getIcons,
+    getRoomWelcomeMessage,
 };

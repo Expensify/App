@@ -15,12 +15,10 @@ import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
-import CONFIG from '../../CONFIG';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
-import fileDownload from '../fileDownload';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -58,7 +56,8 @@ function changePasswordAndNavigate(oldPassword, password) {
                 return;
             }
 
-            Navigation.goBack();
+            const success = lodashGet(response, 'message', 'Password changed successfully.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -113,7 +112,8 @@ function getUserDetails() {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -178,7 +178,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.merge(ONYXKEYS.USER, {loginList});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
@@ -306,7 +306,7 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info(
+            Log.hmmm(
                 '[User] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
@@ -319,7 +319,14 @@ function subscribeToUserEvents() {
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    });
+    })
+        .catch((error) => {
+            Log.hmmm(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
+            );
+        });
 }
 
 /**
@@ -357,18 +364,16 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-
 function setPreferredSkinTone(skinTone) {
-    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 }
 
 /**
@@ -402,20 +407,21 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
+ * @returns {Promise<Void>}
  */
-function downloadStatementPDF(period) {
-    API.GetStatementPDF({period})
+function generateStatementPDF(period) {
+    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
+    return API.GetStatementPDF({period})
         .then((response) => {
-            if (response.jsonCode === 200 && response.filename) {
-                const downloadFileName = `Expensify_Statement_${response.period}.pdf`;
-                const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${response.filename}&downloadName=${downloadFileName}`;
-
-                fileDownload(pdfURL, downloadFileName);
-            } else {
-                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            if (response.jsonCode !== 200 || !response.filename) {
+                Log.info('[User] Failed to generate statement PDF', false, {response});
+                return;
             }
-        })
-        .catch(() => Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000));
+
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
+        });
 }
 
 export {
@@ -437,5 +443,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
-    downloadStatementPDF,
+    generateStatementPDF,
 };

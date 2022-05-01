@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
+import TestToolMenu from '../../components/TestToolMenu';
 
 const propTypes = {
     /** The chat priority mode */
@@ -85,7 +86,7 @@ const PreferencesPage = (props) => {
                     <View style={[styles.mb2, styles.w100]}>
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
-                            onChange={
+                            onInputChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
                             items={_.values(priorityModes)}
@@ -99,28 +100,8 @@ const PreferencesPage = (props) => {
                         <LocalePicker />
                     </View>
 
-                    {/* If we are in the staging environment then we have the option to switch from using the staging secure endpoint or the production secure endpoint. This enables QA */}
-                    {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
-                    {props.environment === CONST.ENVIRONMENT.STAGING && (
-                        <>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                Test Preferences
-                            </Text>
-                            <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
-                                <View style={styles.flex4}>
-                                    <Text>
-                                        Use Secure Staging Server
-                                    </Text>
-                                </View>
-                                <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                    <Switch
-                                        isOn={props.user.shouldUseSecureStaging || false}
-                                        onToggle={User.setShouldUseSecureStaging}
-                                    />
-                                </View>
-                            </View>
-                        </>
-                    )}
+                    {/* If we are in the staging environment then we enable additional test features */}
+                    {props.environment === CONST.ENVIRONMENT.STAGING && <TestToolMenu />}
                 </View>
             </ScrollView>
         </ScreenWrapper>

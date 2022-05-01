@@ -9,8 +9,7 @@ import CONST from '../CONST';
 import * as ReportUtils from './reportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
-import md5 from './md5';
-import * as Expensicons from '../components/Icon/Expensicons';
+import * as CollectionUtils from './CollectionUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -24,10 +23,10 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-let currentUser;
+let loginList;
 Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => currentUser = val,
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: val => loginList = _.isEmpty(val) ? [] : val,
 });
 
 let countryCodeByIP;
@@ -78,22 +77,21 @@ Onyx.connect({
     },
 });
 
-/**
- * Helper method to return a default avatar
- *
- * @param {String} [login]
- * @returns {String}
- */
-function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
-}
+const lastReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        lastReportActions[reportID] = _.last(_.toArray(actions));
+    },
+});
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
-const defaultAvatarForUserToInvite = getDefaultAvatar();
+const defaultAvatarForUserToInvite = ReportUtils.getDefaultAvatar();
 
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
@@ -103,7 +101,8 @@ const defaultAvatarForUserToInvite = getDefaultAvatar();
  */
 function addSMSDomainIfPhoneNumber(login) {
     if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
-        return login + CONST.SMS.DOMAIN;
+        const smsLogin = login + CONST.SMS.DOMAIN;
+        return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
     }
     return login;
 }
@@ -123,7 +122,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: login,
-                avatar: getDefaultAvatar(login),
+                avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
 
@@ -174,7 +173,7 @@ function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat
     if (!isChatRoomOrPolicyExpenseChat) {
         _.each(personalDetailList, (personalDetail) => {
             searchTerms.push(personalDetail.displayName);
-            searchTerms.push(personalDetail.login);
+            searchTerms.push(personalDetail.login.replace(/\./g, ''));
         });
     }
     if (report) {
@@ -206,50 +205,23 @@ function hasReportDraftComment(report) {
 }
 
 /**
- * Get the Avatar urls or return the icon according to the chat type
- *
- * @param {Object} report
- * @returns {Array<*>}
- */
-function getAvatarSources(report) {
-    return _.map(lodashGet(report, 'icons', ['']), (source) => {
-        if (source) {
-            return source;
-        }
-        if (ReportUtils.isArchivedRoom(report)) {
-            return Expensicons.DeletedRoomAvatar;
-        }
-        if (ReportUtils.isAdminRoom(report)) {
-            return Expensicons.AdminRoomAvatar;
-        }
-        if (ReportUtils.isAnnounceRoom(report)) {
-            return Expensicons.AnnounceRoomAvatar;
-        }
-        if (ReportUtils.isChatRoom(report)) {
-            return Expensicons.ActiveRoomAvatar;
-        }
-        if (ReportUtils.isPolicyExpenseChat(report)) {
-            return Expensicons.Workspace;
-        }
-        return Expensicons.Profile;
-    });
-}
-
-/**
  * Creates a report list option
  *
- * @param {Array<Object>} personalDetailList
+ * @param {Array<String>} logins
+ * @param {Object} personalDetails
  * @param {Object} report
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(personalDetailList, report, {
+function createOption(logins, personalDetails, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const personalDetailList = getPersonalDetailsForLogins(logins, personalDetails);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -259,7 +231,7 @@ function createOption(personalDetailList, report, {
         : {};
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment(lodashGet(report, 'lastMessageText', ''))
+    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
     let lastMessageText = report && hasMultipleParticipants && lastActorDetails
@@ -267,9 +239,16 @@ function createOption(personalDetailList, report, {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
+    if (isPolicyExpenseChat && isArchivedRoom) {
+        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+            displayName: lastActorDetails.displayName,
+            policyName: ReportUtils.getPolicyName(report, policies),
+        });
+    }
+
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    let icons = getAvatarSources(report);
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
@@ -285,15 +264,11 @@ function createOption(personalDetailList, report, {
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
-        if (!report) {
-            // If the report doesn't exist then we're creating a list of users to invite (using the personalDetailList)
-            icons = [personalDetail.avatar];
-        }
     }
     return {
         text,
         alternateText,
-        icons,
+        icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
         subtitle,
@@ -315,8 +290,8 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
-        isArchivedRoom: ReportUtils.isArchivedRoom(report),
-        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat,
+        isArchivedRoom,
+        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
         isPolicyExpenseChat,
     };
 }
@@ -333,6 +308,7 @@ function createOption(personalDetailList, report, {
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
     const searchWords = _.map(
         searchValue
+            .replace(/\./g, '')
             .replace(/,/g, ' ')
             .split(' '),
         word => word.trim(),
@@ -361,7 +337,6 @@ function isCurrentUser(userDetails) {
 
     // Initial check with currentUserLogin
     let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const loginList = _.isEmpty(currentUser) || _.isEmpty(currentUser.loginList) ? [] : currentUser.loginList;
     let index = 0;
 
     // Checking userDetailsLogin against to current user login options.
@@ -446,7 +421,13 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0 && !isDefaultRoom;
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
+
+                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
+                // highlight them in the LHN when they are created and have no messsages yet. We do
+                // not give archived rooms this exception since they do not need to be higlihted.
+                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
+
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
@@ -469,23 +450,21 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
-
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
-        if (logins.length <= 1 && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatRoom(report)) {
+        if (logins.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(reportPersonalDetails, report, {
+        allReportOptions.push(createOption(logins, personalDetails, report, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], {
+        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
@@ -587,13 +566,13 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     let userToInvite = null;
-    if (searchValue
-        && recentReportOptions.length === 0
-        && personalDetailsOptions.length === 0
+    const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
+    if (searchValue && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase()))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -601,8 +580,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, {
+        userToInvite = createOption([login], personalDetails, null, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -620,7 +598,12 @@ function getOptions(reports, personalDetails, activeReportID, {
             if (!option.login) {
                 return 2;
             }
-            return 1;
+            if (option.login.toLowerCase() !== searchValue.toLowerCase()) {
+                return 1;
+            }
+
+            // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
+            return 0;
         }], ['asc']);
     }
 
@@ -788,7 +771,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue)) {
+        if (/^\d+$/.test(searchValue) && !Str.isValidPhone(searchValue)) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
@@ -815,47 +798,9 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
-/**
- * Returns the appropriate icons for the given chat report using personalDetails if applicable
- *
- * @param {Object} report
- * @param {Object} personalDetails
- * @returns {Array<String>}
- */
-function getReportIcons(report, personalDetails) {
-    // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isChatRoom(report)) {
-        return [''];
-    }
-
-    if (ReportUtils.isPolicyExpenseChat(report)) {
-        const policyExpenseChatAvatarURL = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
-        ]);
-
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
-            return [policyExpenseChatAvatarURL];
-        }
-
-        // If the user is an admin, return avatar url of the other participant of the report
-        // (their workspace chat) and the avatar url of the workspace
-        return [lodashGet(personalDetails, [report.ownerEmail, 'avatarThumbnail']), policyExpenseChatAvatarURL];
-    }
-
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
-            || getDefaultAvatar(dmParticipant),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
-    getAvatarSources,
     getSearchOptions,
     getNewChatOptions,
     getSidebarOptions,
@@ -864,6 +809,4 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
-    getDefaultAvatar,
-    getReportIcons,
 };

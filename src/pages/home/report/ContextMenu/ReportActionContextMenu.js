@@ -5,7 +5,7 @@ const contextMenuRef = React.createRef();
 /**
  * Show the ReportActionContextMenu modal popover.
  *
- * @param {string} type - the context menu type to display [LINK, REPORT_ACTION]
+ * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION]
  * @param {Object} [event] - A press event.
  * @param {string} [selection] - A copy text.
  * @param {Element} contextMenuAnchor - popoverAnchor

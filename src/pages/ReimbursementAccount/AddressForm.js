@@ -54,7 +54,7 @@ const AddressForm = props => (
             label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
             value={props.values.street}
-            onChange={props.onFieldChange}
+            onInputChange={props.onFieldChange}
             errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
         />
         <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
@@ -70,9 +70,8 @@ const AddressForm = props => (
             <View style={[styles.flex1]}>
                 <StatePicker
                     value={props.values.state}
-                    onChange={value => props.onFieldChange({state: value})}
+                    onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                    hasError={Boolean(props.errors.state)}
                 />
             </View>
         </View>

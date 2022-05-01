@@ -1,331 +1,27 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
-import CONST from '../CONST';
-import CONFIG from '../CONFIG';
-import ONYXKEYS from '../ONYXKEYS';
 import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
-import redirectToSignIn from './actions/SignInRedirect';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
-import Log from './Log';
+import * as Request from './Request';
 import * as Network from './Network';
-import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
-import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
+import * as Middleware from './Middleware';
+import CONST from '../CONST';
 
-let isAuthenticating;
-let credentials;
-let authToken;
-let currentUserEmail;
+// Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
+// Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Retry. Errors thrown in one middleware will bubble to the next e.g. an error thrown in
+// Logging or Reauthenticate logic would be caught by the Retry logic (which is why it is the last one used).
 
-function checkRequiredDataAndSetNetworkReady() {
-    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
-        return;
-    }
+// Logging - Logs request details and errors.
+Request.use(Middleware.Logging);
 
-    Network.setIsReady(true);
-}
+// RecheckConnection - Sets a  timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
+Request.use(Middleware.RecheckConnection);
 
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (val) => {
-        credentials = val || null;
-        checkRequiredDataAndSetNetworkReady();
-    },
-});
+// Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
+Request.use(Middleware.Reauthentication);
 
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        authToken = lodashGet(val, 'authToken', null);
-        currentUserEmail = lodashGet(val, 'email', null);
-        checkRequiredDataAndSetNetworkReady();
-    },
-});
-
-/**
- * Does this command require an authToken?
- *
- * @param {String} command
- * @return {Boolean}
- */
-function isAuthTokenRequired(command) {
-    return !_.contains([
-        'Log',
-        'Graphite_Timer',
-        'Authenticate',
-        'GetAccountStatus',
-        'SetPassword',
-        'User_SignUp',
-        'ResendValidateCode',
-        'ResetPassword',
-        'User_ReopenAccount',
-        'ValidateEmail',
-    ], command);
-}
-
-/**
- * Adds default values to our request data
- *
- * @param {String} command
- * @param {Object} parameters
- * @returns {Object}
- */
-function addDefaultValuesToParameters(command, parameters) {
-    const finalParameters = {...parameters};
-
-    if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = authToken;
-    }
-
-    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
-
-    // This application does not save its authToken in cookies like the classic Expensify app.
-    // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
-    // and prevents interfering with the cookie authToken that Expensify classic uses.
-    finalParameters.api_setCookie = false;
-
-    // Unless email is already set include current user's email in every request and the server logs
-    finalParameters.email = lodashGet(parameters, 'email', currentUserEmail);
-
-    return finalParameters;
-}
-
-// Tie into the network layer to add auth token to the parameters of all requests
-Network.registerParameterEnhancer(addDefaultValuesToParameters);
-
-/**
- * Function used to handle expired auth tokens. It re-authenticates with the API and
- * then replays the original request
- *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {String} [originalType]
- * @returns {Promise}
- */
-function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
-    // When the authentication process is running, and more API requests will be requeued and they will
-    // be performed after authentication is done.
-    if (isAuthenticating) {
-        return Network.post(originalCommand, originalParameters, originalType);
-    }
-
-    // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
-
-    // eslint-disable-next-line no-use-before-define
-    return reauthenticate(originalCommand)
-        .then(() => {
-            // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
-            return Network.post(originalCommand, params, originalType);
-        })
-        .catch(() => (
-
-            // If the request did not succeed because of a networking issue or the server did not respond requeue the
-            // original request.
-            Network.post(originalCommand, originalParameters, originalType)
-        ));
-}
-
-Network.registerLogHandler(() => Log);
-
-Network.registerRequestHandler((queuedRequest, finalParameters) => {
-    if (queuedRequest.command === 'Log') {
-        return;
-    }
-
-    Log.info('Making API request', false, {
-        command: queuedRequest.command,
-        type: queuedRequest.type,
-        shouldUseSecure: queuedRequest.shouldUseSecure,
-        rvl: finalParameters.returnValueList,
-    });
-});
-
-Network.registerRequestSkippedHandler((parameters) => {
-    Log.hmmm('Trying to make a request when Network is not ready', parameters);
-});
-
-Network.registerResponseHandler((queuedRequest, response) => {
-    if (queuedRequest.command !== 'Log') {
-        Log.info('Finished API request', false, {
-            command: queuedRequest.command,
-            type: queuedRequest.type,
-            shouldUseSecure: queuedRequest.shouldUseSecure,
-            jsonCode: response.jsonCode,
-            requestID: response.requestID,
-        });
-    }
-
-    if (response.jsonCode === 407) {
-        // Credentials haven't been initialized. We will not be able to re-authenticates with the API
-        const unableToReauthenticate = (!credentials || !credentials.autoGeneratedLogin
-            || !credentials.autoGeneratedPassword);
-
-        // There are some API requests that should not be retried when there is an auth failure like
-        // creating and deleting logins. In those cases, they should handle the original response instead
-        // of the new response created by handleExpiredAuthToken.
-        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-        if (!shouldRetry || unableToReauthenticate) {
-            queuedRequest.resolve(response);
-            return;
-        }
-
-        handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
-        return;
-    }
-
-    // All other jsonCode besides 407 are treated as a successful response and must be handled in the .then() of the API method
-    queuedRequest.resolve(response);
-});
-
-Network.registerErrorHandler((queuedRequest, error) => {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        Log.info('[API] request canceled', false, queuedRequest);
-        return;
-    }
-    if (queuedRequest.command !== 'Log') {
-        Log.hmmm('[API] Handled error when making request', error);
-    } else {
-        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
-    }
-
-    // Set an error state and signify we are done loading
-    setSessionLoadingAndError(false, 'Cannot connect to server');
-
-    // Reject the queued request with an API offline error so that the original caller can handle it.
-    queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
-});
-
-/**
- * @param {Object} parameters
- * @param {Boolean} [parameters.useExpensifyLogin]
- * @param {String} parameters.partnerName
- * @param {String} parameters.partnerPassword
- * @param {String} parameters.partnerUserID
- * @param {String} parameters.partnerUserSecret
- * @param {String} [parameters.twoFactorAuthCode]
- * @param {String} [parameters.email]
- * @param {String} [parameters.authToken]
- * @returns {Promise}
- */
-function Authenticate(parameters) {
-    const commandName = 'Authenticate';
-
-    requireParameters([
-        'partnerName',
-        'partnerPassword',
-        'partnerUserID',
-        'partnerUserSecret',
-    ], parameters, commandName);
-
-    return Network.post(commandName, {
-        // When authenticating for the first time, we pass useExpensifyLogin as true so we check
-        // for credentials for the expensify partnerID to let users Authenticate with their expensify user
-        // and password.
-        useExpensifyLogin: parameters.useExpensifyLogin,
-        partnerName: parameters.partnerName,
-        partnerPassword: parameters.partnerPassword,
-        partnerUserID: parameters.partnerUserID,
-        partnerUserSecret: parameters.partnerUserSecret,
-        twoFactorAuthCode: parameters.twoFactorAuthCode,
-        authToken: parameters.authToken,
-        shouldRetry: false,
-
-        // Force this request to be made because the network queue is paused when re-authentication is happening
-        forceNetworkRequest: true,
-
-        // Add email param so the first Authenticate request is logged on the server w/ this email
-        email: parameters.email,
-    })
-        .then((response) => {
-            // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
-            // an expensify login or the login credentials we created after the initial authentication.
-            // In both cases, we need the user to sign in again with their expensify credentials
-            if (response.jsonCode !== 200) {
-                switch (response.jsonCode) {
-                    case 401:
-                        throw new Error('passwordForm.error.incorrectLoginOrPassword');
-                    case 402:
-                        // If too few characters are passed as the password, the WAF will pass it to the API as an empty
-                        // string, which results in a 402 error from Auth.
-                        if (response.message === '402 Missing partnerUserSecret') {
-                            throw new Error('passwordForm.error.incorrectLoginOrPassword');
-                        }
-                        throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
-                    case 403:
-                        throw new Error('passwordForm.error.invalidLoginOrPassword');
-                    case 404:
-                        throw new Error('passwordForm.error.unableToResetPassword');
-                    case 405:
-                        throw new Error('passwordForm.error.noAccess');
-                    case 413:
-                        throw new Error('passwordForm.error.accountLocked');
-                    default:
-                        throw new Error('passwordForm.error.fallback');
-                }
-            }
-            return response;
-        });
-}
-
-/**
- * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
- *
- * @param {String} [command] command name for loggin purposes
- * @returns {Promise}
- */
-function reauthenticate(command = '') {
-    return Authenticate({
-        useExpensifyLogin: false,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.autoGeneratedLogin,
-        partnerUserSecret: credentials.autoGeneratedPassword,
-    })
-        .then((response) => {
-            // If authentication fails throw so that we hit
-            // the catch below and redirect to sign in
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            // Update authToken in Onyx and in our local variables so that API requests will use the
-            // new authToken
-            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
-            authToken = response.authToken;
-
-            // The authentication process is finished so the network can be unpaused to continue
-            // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
-        })
-
-        .catch((error) => {
-            // If authentication fails, then the network can be unpaused
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
-
-            // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
-            // have a spotty connection and will need to try to reauthenticate when they come back online. We will
-            // re-throw this error so it can be handled by callers of reauthenticate().
-            if (error.message === CONST.ERROR.API_OFFLINE) {
-                throw error;
-            }
-
-            // If we experience something other than a network error then redirect the user to sign in
-            redirectToSignIn(error.message);
-
-            Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
-                command,
-                error: error.message,
-            });
-        });
-}
+// Retry - Handles retrying any failed requests.
+Request.use(Middleware.Retry);
 
 /**
  * @param {Object} parameters
@@ -1219,7 +915,6 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    Authenticate,
     AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
@@ -1274,7 +969,6 @@ export {
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
-    reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,

@@ -27,14 +27,20 @@ function getBrowser() {
     }
 
     match = match[1] ? match[1] : navigator.appName;
-    return match;
+    return match ? match.toLowerCase() : CONST.BROWSER.OTHER;
 }
 
 /**
- * Get the Browser name
- * @returns {String}
+ * Whether the platform is a mobile browser.
+ * https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
+ *
+ * @returns {Boolean}
  */
-export default () => {
-    const browser = getBrowser();
-    return browser ? browser.toLowerCase() : CONST.BROWSER.OTHER;
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
+}
+
+export {
+    getBrowser,
+    isMobile,
 };
