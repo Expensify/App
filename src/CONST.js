@@ -611,8 +611,6 @@ const CONST = {
         COMPACT: 'compact',
         DEFAULT: 'default',
     },
-    PHONE_MAX_LENGTH: 15,
-    PHONE_MIN_LENGTH: 5,
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,

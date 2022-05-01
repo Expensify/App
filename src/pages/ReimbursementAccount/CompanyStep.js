@@ -250,7 +250,6 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
-                        maxLength={CONST.PHONE_MAX_LENGTH}
                     />
                     <TextInput
                         label={this.props.translate('companyStep.companyWebsite')}
