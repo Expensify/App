@@ -96,11 +96,11 @@ function loadImageAsync(uri) {
 }
 
 /**
-     * Crops and rotates the image on web
-     * @param {String} uri
-     * @param {Object} actions
-     * @param {Object} options
-     * @returns {Promise<Object>} Returns cropped and rotated image
+ * Crops and rotates the image on web
+ * @param {String} uri
+ * @param {Object} actions
+ * @param {Object} options
+ * @returns {Promise<Object>} Returns cropped and rotated image
 */
 function imageManipulator(uri, actions, options) {
     return new Promise((resolve) => {
