@@ -2,11 +2,11 @@ import RNImageManipulator from '@oguzhnatly/react-native-image-manipulator';
 import RNFetchBlob from 'rn-fetch-blob';
 
 /**
-     * Crops and rotates the image on ios/android
-     * @param {String} uri
-     * @param {Array<Object>} actions
-     * @param {Object} options
-     * @returns {Promise<Object>} Returns cropped and rotated image
+ * Crops and rotates the image on ios/android
+ * @param {String} uri
+ * @param {Array<Object>} actions
+ * @param {Object} options
+ * @returns {Promise<Object>} Returns cropped and rotated image
 */
 function imageManipulator(uri, actions, options) {
     return new Promise((resolve) => {
