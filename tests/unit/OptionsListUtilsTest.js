@@ -310,12 +310,27 @@ describe('OptionsListUtils', () => {
         // minus the currently logged in user and recent reports count
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - MAX_RECENT_REPORTS);
 
+        // We should expect personal details sorted alphabetically
+        expect(results.personalDetails[0].text).toBe('Black Widow');
+        expect(results.personalDetails[1].text).toBe('Invisible Woman');
+        expect(results.personalDetails[2].text).toBe('Spider-Man');
+        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = _.find(
             results.personalDetails,
             personalDetail => personalDetail.login === 'peterparker@expensify.com',
         );
         expect(personalDetailWithExistingReport.reportID).toBe(2);
+
+        // When we call only pass personal details
+        results = OptionsListUtils.getNewChatOptions([], PERSONAL_DETAILS, [], '');
+
+        // We should expect personal details sorted alphabetically
+        expect(results.personalDetails[0].text).toBe('Black Panther');
+        expect(results.personalDetails[1].text).toBe('Black Widow');
+        expect(results.personalDetails[2].text).toBe('Captain America');
+        expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'magneto');
@@ -407,6 +422,12 @@ describe('OptionsListUtils', () => {
         // And we should expect all the personalDetails to show (minus the 5 that are already
         // showing and the currently logged in user)
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 6);
+
+        // We should expect personal details sorted alphabetically
+        expect(results.personalDetails[0].text).toBe('Black Widow');
+        expect(results.personalDetails[1].text).toBe('Invisible Woman');
+        expect(results.personalDetails[2].text).toBe('Spider-Man');
+        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = _.map(results.recentReports, reportOption => reportOption.login);
