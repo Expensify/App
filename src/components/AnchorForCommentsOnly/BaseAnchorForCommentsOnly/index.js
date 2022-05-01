@@ -10,6 +10,8 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import styles from '../../../styles/styles';
 
 /*
  * This is a default anchor component for regular links.
@@ -38,6 +40,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
     render() {
         let linkRef;
         const rest = _.omit(this.props, _.keys(propTypes));
+        const defaultTextStyle = canUseTouchScreen() || this.props.isSmallScreenWidth ? {} : styles.userSelectText;
+
         return (
             this.props.isAttachment
                 ? (
@@ -72,7 +76,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                     >
                         <Text
                             ref={el => linkRef = el}
-                            style={StyleSheet.flatten(this.props.style)}
+                            style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
                             accessibilityRole="link"
                             href={this.props.href}
                             hrefAttrs={{

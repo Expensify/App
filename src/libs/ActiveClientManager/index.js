@@ -12,7 +12,14 @@ let activeClients;
 
 // Keeps track of the ActiveClientManager's readiness in one place
 // so that multiple calls of isReady resolve the same promise
-const [isReady, setIsReady] = createOnReadyTask();
+const activeClientsReadyTask = createOnReadyTask();
+
+/**
+ * @returns {Promise}
+ */
+function isReady() {
+    return activeClientsReadyTask.isReady();
+}
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -30,7 +37,7 @@ Onyx.connect({
  */
 function init() {
     ActiveClients.addClient(clientID)
-        .then(setIsReady);
+        .then(activeClientsReadyTask.setIsReady);
 }
 
 /**
