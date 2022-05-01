@@ -33,8 +33,8 @@ const propTypes = {
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
-    /** Callback to be called when user crops the image */
-    onCrop: PropTypes.func,
+    /** Callback to be called when user saves the image */
+    onSave: PropTypes.func,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -43,7 +43,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: null,
     onClose: () => { },
-    onCrop: () => { },
+    onSave: () => { },
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -199,7 +199,7 @@ const AvatarCropModal = (props) => {
         imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1})
             .then((newImage) => {
                 props.onClose();
-                props.onCrop(newImage);
+                props.onSave(newImage);
             });
     }, [props.imageUri, imageContainerSize]);
 
