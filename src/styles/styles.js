@@ -101,7 +101,7 @@ const webViewStyles = {
         pre: {
             ...baseCodeTagStyles,
             paddingTop: 4,
-            paddingBottom: 5,
+            paddingBottom: 17,
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
@@ -690,9 +690,9 @@ const styles = {
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
-            {translateY},
-            {translateX},
-            {scale},
+            { translateY },
+            { translateX },
+            { scale },
         ],
     }),
 
@@ -785,13 +785,13 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+            ...(focused && { borderColor: themeColors.borderFocus }),
+            ...(error && { borderColor: themeColors.badgeDangerBG }),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+            ...(focused && { borderColor: themeColors.borderFocus }),
+            ...(error && { borderColor: themeColors.badgeDangerBG }),
         },
     }),
 
@@ -1781,7 +1781,7 @@ const styles = {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{ borderRadius: variables.componentBorderRadiusSmall },
     },
 
     reportDetailsTitleContainer: {
@@ -1914,7 +1914,7 @@ const styles = {
     },
 
     flipUpsideDown: {
-        transform: [{rotate: '180deg'}],
+        transform: [{ rotate: '180deg' }],
     },
 
     navigationSceneContainer: {
@@ -2139,7 +2139,7 @@ const styles = {
     },
 
     growlNotificationTranslateY: y => ({
-        transform: [{translateY: y}],
+        transform: [{ translateY: y }],
     }),
 
     growlNotificationBox: {
@@ -2389,7 +2389,7 @@ const styles = {
 
     reportMarkerBadgeTransformation: translateY => ({
         transform: [
-            {translateY},
+            { translateY },
         ],
     }),
 
@@ -2422,7 +2422,7 @@ const styles = {
     },
 
     googleListView: {
-        transform: [{scale: 0}],
+        transform: [{ scale: 0 }],
     },
 
     keyboardShortcutModalContainer: {
