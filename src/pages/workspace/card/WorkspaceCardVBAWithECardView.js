@@ -8,7 +8,6 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import * as Link from '../../../libs/actions/Link';
 import Section from '../../../components/Section';
-import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -30,16 +29,14 @@ const WorkspaceCardVBAWithECardView = (props) => {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
         },
-    ];
-    if (Permissions.canUseMonthlySettlements(props.betas)) {
-        menuItems.push({
+        {
             title: props.translate('workspace.common.settlementFrequency'),
             onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"configureSettings"}')),
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-        });
-    }
+        },
+    ];
 
     return (
         <Section
