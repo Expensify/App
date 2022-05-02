@@ -4,6 +4,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 beforeAll(() => {
     global.fetch = jest.fn()
         .mockImplementation(() => Promise.resolve({
+            ok: true,
             json: () => Promise.resolve({
                 jsonCode: 200,
             }),
