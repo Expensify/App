@@ -111,7 +111,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Checks if image has valid size and updates avatar
+     *  Checks if the image has the valid size and triggers the onImageSelected callback
      * @param {Object} image
     */
     updateAvatarImage(image) {
