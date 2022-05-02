@@ -132,12 +132,25 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
-                if (this.shouldCreateFreePolicy(url)) {
+                if (!url) {
+                    return;
+                }
+                const path = new URL(url).pathname;
+                const params = new URLSearchParams(url);
+                const exitTo = params.get('exitTo');
+                const email = params.get('email');
+                const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
+                const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                    && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
+                    && exitTo === ROUTES.WORKSPACE_NEW;
+                if (shouldCreateFreePolicy) {
                     Policy.createAndGetPolicyList();
                     return;
                 }
-
                 Policy.getPolicyList();
+                if (!isLoggingInAsNewUser && exitTo) {
+                    this.navigateToExitRoute(exitTo);
+                }
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -185,22 +198,17 @@ class AuthScreens extends React.Component {
     }
 
     /**
-     * @param {String} [url]
-     * @returns {Boolean}
+     * Navigate to the transition exit route
+     *
+     * @param {String} exitTo
      */
-    shouldCreateFreePolicy(url = '') {
-        if (!url) {
-            return false;
-        }
-
-        const path = new URL(url).pathname;
-        const params = new URLSearchParams(url);
-        const exitTo = params.get('exitTo');
-        const email = params.get('email');
-        const isLoggingInAsNewUser = !_.isNull(this.props.session.email) && (email !== this.props.session.email);
-        return !isLoggingInAsNewUser
-            && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
-            && exitTo === ROUTES.WORKSPACE_NEW;
+    navigateToExitRoute(exitTo) {
+        // In order to navigate to a modal, we first have to dismiss the current modal. Without dismissing the current modal, if the user cancels out of the workspace modal,
+        // then they will be routed back to /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/` if they cancel out of the new workspace modal.
+        Log.info('[AuthScreens] Dismissing LogOutOldUserPage and navigating to the transition exit route');
+        Navigation.dismissModal();
+        Navigation.navigate(exitTo);
     }
 
     render() {
