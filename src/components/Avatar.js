@@ -38,7 +38,7 @@ class Avatar extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            isErrorFetchingImage: false,
+            imageError: false,
         };
     }
 
@@ -55,17 +55,17 @@ class Avatar extends PureComponent {
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {_.isFunction(this.props.source) || this.state.isErrorFetchingImage
+                {_.isFunction(this.props.source) || this.state.imageError
                     ? (
                         <Icon
-                            src={this.state.isErrorFetchingImage ? Expensicons.FallbackAvatar : this.props.source}
-                            fill={this.state.isErrorFetchingImage ? themeColors.offline : this.props.fill}
+                            src={this.state.imageError ? Expensicons.FallbackAvatar : this.props.source}
+                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
                             height={iconSize}
                             width={iconSize}
                         />
                     )
                     : (
-                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({isErrorFetchingImage: true})} />
+                        <Image source={{uri: this.props.source}} style={[imageStyle, {backgroundColor: themeColors.offline}]} onError={() => this.setState({imageError: true})} />
                     )}
             </View>
         );
