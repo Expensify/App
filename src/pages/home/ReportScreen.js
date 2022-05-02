@@ -118,7 +118,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.state.isSkeletonViewVisible && this.props.isLoadingReportData === false) {
+        if (this.state.isSkeletonViewVisible && !this.props.isLoadingReportData) {
             this.hideSkeletonView();
         }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
@@ -161,7 +161,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return (this.state.isLoading || !getReportID(this.props.route)) && this.state.isSkeletonViewVisible;
+        return this.state.isLoading || !getReportID(this.props.route) || this.state.isSkeletonViewVisible;
     }
 
     /**
@@ -205,6 +205,18 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
+
+        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        let reportClosedAction;
+        if (isArchivedRoom) {
+            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        }
+        return (
+            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
+                <HeaderView
+                    reportID={reportID}
+                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                />
 
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
