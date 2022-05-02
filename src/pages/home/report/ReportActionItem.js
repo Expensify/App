@@ -164,7 +164,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
-                        <>
+                        <View>
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
@@ -198,7 +198,7 @@ class ReportActionItem extends Component {
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
-                        </>
+                        </View>
                     )}
                 </Hoverable>
             </PressableWithSecondaryInteraction>
