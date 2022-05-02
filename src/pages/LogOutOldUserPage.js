@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Log from '../libs/Log';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -53,6 +54,9 @@ class LogOutOldUserPage extends Component {
             Log.info('[LogOutOldUserPage] Different user signed in - signing out');
             Session.signOutAndRedirectToSignIn();
         }
+
+        // Set isNavigationReady so that we can navigate in the AuthScreens
+        Navigation.setIsNavigationReady();
     }
 
     render() {

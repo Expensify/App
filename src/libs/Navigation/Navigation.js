@@ -9,6 +9,9 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import createOnReadyTask from '../createOnReadyTask';
+
+const [isNavigationReady, setIsNavigationReady] = createOnReadyTask();
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -196,6 +199,8 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+    isNavigationReady,
+    setIsNavigationReady,
 };
 
 export {
