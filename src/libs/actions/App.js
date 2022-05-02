@@ -13,7 +13,7 @@ import * as User from './User';
 import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import BankAccounts from './BankAccounts';
+import * as BankAccounts from './BankAccounts';
 
 let currentUserAccountID;
 Onyx.connect({

@@ -13,22 +13,18 @@ import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
 import NetworkConnection from '../../NetworkConnection';
 import CONFIG from '../../../CONFIG';
-import * as GeoLocation from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import NameValuePair from '../../actions/NameValuePair';
 import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import * as BankAccounts from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -108,19 +104,7 @@ class AuthScreens extends React.Component {
         });
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-        App.getLocale();
-        PersonalDetails.fetchPersonalDetails();
-        User.getUserDetails();
-        User.getBetas();
-        User.getDomainInfo();
-        PersonalDetails.fetchLocalCurrency();
-        Report.fetchAllReports(true, true);
-        GeoLocation.fetchCountryCodeByRequestIP();
-        UnreadIndicatorUpdater.listenForReportChanges();
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-        BankAccounts.fetchUserWallet();
+        App.getAppData();
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
