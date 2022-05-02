@@ -187,7 +187,7 @@ const AvatarCropModal = (props) => {
         const height = originalImageHeight.value;
         const width = originalImageWidth.value;
         const aspectRatio = height > width ? height / width : width / height;
-        const rotate = clamp(rotation.value, [0, 360]);
+        const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
         return {
             transform: [
                 {translateX: translateX.value},
