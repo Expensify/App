@@ -36,11 +36,10 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         Log.info('[LoginWithShortLivedTokenPage] signing in the transitioning user');
-        Session.signInWithShortLivedToken(accountID, email, shortLivedToken);
+        Session.signInWithShortLivedToken(email, shortLivedToken);
     }
 
     render() {
