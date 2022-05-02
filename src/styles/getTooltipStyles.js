@@ -60,6 +60,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the top edge of the wrapped component.
  * @param {Number} componentWidth - The width of the wrapped component.
  * @param {Number} componentHeight - The height of the wrapped component.
+ * @param {Number} maxWidth - The tooltip's max width.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
  * @param {Number} tooltipTextWidth - The tooltip's inner text width.
@@ -68,7 +69,6 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Number} maxWidth - The tooltip's max width.
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -78,12 +78,12 @@ export default function getTooltipStyles(
     yOffset,
     componentWidth,
     componentHeight,
+    maxWidth,
     tooltipWidth,
     tooltipHeight,
     tooltipTextWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
-    maxWidth,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
@@ -105,7 +105,6 @@ export default function getTooltipStyles(
         // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
         ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
         : maxWidth;
-
     return {
         animationStyle: {
             // remember Transform causes a new Local cordinate system

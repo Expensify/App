@@ -95,12 +95,12 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.yOffset,
             this.props.wrapperWidth,
             this.props.wrapperHeight,
+            this.props.maxWidth,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
             this.state.tooltipTextWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
-            this.props.maxWidth,
         );
         return ReactDOM.createPortal(
             <Animated.View
