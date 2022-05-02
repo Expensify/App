@@ -56,6 +56,8 @@ const propTypes = {
     /** Callback executed on scroll */
     onScroll: PropTypes.func.isRequired,
 
+    scrollToReportActionID: PropTypes.func.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -174,6 +176,8 @@ class ReportActionsList extends React.Component {
                 onLayout={this.props.onLayout}
                 onScroll={this.props.onScroll}
                 extraData={extraData}
+                measurementPadding={shouldShowReportRecipientLocalTime ? 0 : styles.chatContentScrollView.paddingVertical}
+                onMeasurementEnd={this.props.scrollToReportActionID}
             />
         );
     }

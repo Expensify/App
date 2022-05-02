@@ -440,8 +440,6 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
-
         return (
             <>
                 <FloatingMessageCounter
@@ -457,8 +455,7 @@ class ReportActionsView extends React.Component {
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                     isLoadingReportActions={this.props.isLoadingReportActions}
-                    measurementPadding={shouldShowReportRecipientLocalTime ? 0 : styles.chatContentScrollView.paddingVertical}
-                    onMeasurementEnd={this.scrollToReportActionID}
+                    scrollToReportActionID={this.scrollToReportActionID}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
