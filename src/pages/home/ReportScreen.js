@@ -108,7 +108,7 @@ class ReportScreen extends React.Component {
 
         this.state = {
             isLoading: true,
-            isGhostScreenVisible: true,
+            isSkeletonViewVisible: true,
         };
     }
 
@@ -118,8 +118,8 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.state.isGhostScreenVisible && this.props.isLoadingReportData === false) {
-            this.hideGhostScreen();
+        if (this.state.isSkeletonViewVisible && this.props.isLoadingReportData === false) {
+            this.hideSkeletonView();
         }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
@@ -151,8 +151,8 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
-    hideGhostScreen() {
-        this.setState({isGhostScreenVisible: false});
+    hideSkeletonView() {
+        this.setState({isSkeletonViewVisible: false});
     }
 
     /**
@@ -161,7 +161,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return (this.state.isLoading || !getReportID(this.props.route)) && this.state.isGhostScreenVisible;
+        return (this.state.isLoading || !getReportID(this.props.route)) && this.state.isSkeletonViewVisible;
     }
 
     /**
