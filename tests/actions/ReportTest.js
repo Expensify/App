@@ -192,13 +192,7 @@ describe('actions/Report', () => {
                 },
             }))
             .then(() => {
-                global.fetch = jest.fn()
-                    .mockImplementation(() => Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({
-                            jsonCode: 200,
-                        }),
-                    }));
+                global.fetch = TestHelper.getGlobalFetchMock();
 
                 // WHEN we add enough logs to send a packet
                 for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {

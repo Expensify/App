@@ -35,10 +35,7 @@ Onyx.init({
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({jsonCode: 200}),
-    });
+    global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     PersistedRequests.clear();
     MainQueue.clear();
@@ -71,7 +68,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
             expect(isOffline).toBe(null);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError('Failed to fetch'))));
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
             const actualXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn();
@@ -466,7 +463,7 @@ test('test bad response will log alert', () => {
 
 test('test Failed to fetch error for requests not flagged with shouldRetry will throw API OFFLINE error', () => {
     // Setup xhr handler that rejects once with a 502 Bad Gateway
-    global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new Error(CONST.ERROR.FAILED_TO_FETCH))));
+    global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
     const onRejected = jest.fn();
 
