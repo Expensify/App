@@ -7,6 +7,13 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
+import NameValuePair from './NameValuePair';
+import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
+import * as Report from './Report';
+import * as GeoLocation from './GeoLocation';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import BankAccounts from './BankAccounts';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -83,10 +90,28 @@ function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
 }
 
+function getAppData() {
+    // Fetch some data we need on initialization
+    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
+    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
+    getLocale();
+    PersonalDetails.fetchPersonalDetails();
+    User.getUserDetails();
+    User.getBetas();
+    User.getDomainInfo();
+    PersonalDetails.fetchLocalCurrency();
+    Report.fetchAllReports(true, true);
+    GeoLocation.fetchCountryCodeByRequestIP();
+    UnreadIndicatorUpdater.listenForReportChanges();
+    BankAccounts.fetchFreePlanVerifiedBankAccount();
+    BankAccounts.fetchUserWallet();
+}
+
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getLocale,
     triggerUpdateAvailable,
+    getAppData,
 };
