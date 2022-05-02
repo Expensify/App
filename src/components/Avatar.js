@@ -7,6 +7,7 @@ import Icon from './Icon';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -34,6 +35,13 @@ const defaultProps = {
 };
 
 class Avatar extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isErrorFetchingImage: false,
+        };
+    }
+
     render() {
         if (!this.props.source) {
             return null;
@@ -47,11 +55,18 @@ class Avatar extends PureComponent {
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {
-                _.isFunction(this.props.source)
-                    ? <Icon src={this.props.source} fill={this.props.fill} height={iconSize} width={iconSize} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />
-            }
+                {_.isFunction(this.props.source) || this.state.isErrorFetchingImage
+                    ? (
+                        <Icon
+                            src={this.state.isErrorFetchingImage ? Expensicons.FallbackAvatar : this.props.source}
+                            fill={this.state.isErrorFetchingImage ? themeColors.offline : this.props.fill}
+                            height={iconSize}
+                            width={iconSize}
+                        />
+                    )
+                    : (
+                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({isErrorFetchingImage: true})} />
+                    )}
             </View>
         );
     }

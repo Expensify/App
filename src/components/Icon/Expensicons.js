@@ -74,6 +74,7 @@ import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import Connect from '../../../assets/images/connect.svg';
 
 export {
@@ -81,6 +82,7 @@ export {
     AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,
+    FallbackAvatar,
     Apple,
     ArrowRight,
     BackArrow,
