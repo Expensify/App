@@ -111,7 +111,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.state.isSkeletonViewVisible && this.props.isLoadingReportData === false) {
+        if (this.state.isSkeletonViewVisible && !this.props.isLoadingReportData) {
             this.hideSkeletonView();
         }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
@@ -143,7 +143,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return (this.state.isLoading || !getReportID(this.props.route)) && this.state.isSkeletonViewVisible;
+        return this.state.isLoading || !getReportID(this.props.route) || this.state.isSkeletonViewVisible;
     }
 
     /**
@@ -183,7 +183,6 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
