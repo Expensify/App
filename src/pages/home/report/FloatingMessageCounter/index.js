@@ -8,7 +8,7 @@ import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import MarkerBadgeContainer from './MarkerBadgeContainer';
+import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
     /** Count of new messages to show in the badge */
@@ -36,7 +36,7 @@ const defaultProps = {
 const MARKER_INACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-class MarkerBadge extends PureComponent {
+class FloatingMessageCounter extends PureComponent {
     constructor(props) {
         super(props);
         this.translateY = new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y);
@@ -70,8 +70,8 @@ class MarkerBadge extends PureComponent {
 
     render() {
         return (
-            <MarkerBadgeContainer containerStyles={[styles.reportMarkerBadgeTransformation(this.translateY)]}>
-                <View style={styles.reportMarkerBadge}>
+            <FloatingMessageCounterContainer containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
+                <View style={styles.floatingMessageCounter}>
                     <View style={[
                         styles.flexRow,
                         styles.justifyContentBetween,
@@ -94,7 +94,7 @@ class MarkerBadge extends PureComponent {
                                         ]}
                                     >
                                         {this.props.translate(
-                                            'reportActionsViewMarkerBadge.newMsg',
+                                            'newMessageCount',
                                             {count: this.props.count},
                                         )}
                                     </Text>
@@ -114,12 +114,12 @@ class MarkerBadge extends PureComponent {
                         />
                     </View>
                 </View>
-            </MarkerBadgeContainer>
+            </FloatingMessageCounterContainer>
         );
     }
 }
 
-MarkerBadge.propTypes = propTypes;
-MarkerBadge.defaultProps = defaultProps;
+FloatingMessageCounter.propTypes = propTypes;
+FloatingMessageCounter.defaultProps = defaultProps;
 
-export default withLocalize(MarkerBadge);
+export default withLocalize(FloatingMessageCounter);
