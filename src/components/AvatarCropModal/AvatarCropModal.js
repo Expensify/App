@@ -7,7 +7,7 @@ import {
     useAnimatedGestureHandler,
     useAnimatedStyle,
     useSharedValue,
-    useWorkletCallback
+    useWorkletCallback,
 } from 'react-native-reanimated';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CONST from '../../CONST';
@@ -82,6 +82,34 @@ const AvatarCropModal = (props) => {
         });
     }, [props.imageUri, initializeImage]);
 
+    const clamp = useWorkletCallback((value, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
+
+    const getImageDimensions = useWorkletCallback(() => {
+        let heightRatio = 1.0;
+        let widthRatio = 1.0;
+        if (imageWidth.value > imageHeight.value) {
+            heightRatio = imageWidth.value / imageHeight.value;
+        } else {
+            widthRatio = imageHeight.value / imageWidth.value;
+        }
+
+        const radius = imageContainerSize / 2;
+        return {
+            height: radius * scale.value * widthRatio,
+            width: radius * scale.value * heightRatio,
+        };
+    }, [imageContainerSize, scale]);
+
+    const updateImagePosition = useWorkletCallback((newX, newY) => {
+        const {height, width} = getImageDimensions();
+
+        const radius = imageContainerSize / 2;
+        const maxX = width - radius;
+        const maxY = height - radius;
+        translateX.value = clamp(newX, [maxX * -1, maxX]);
+        translateY.value = clamp(newY, [maxY * -1, maxY]);
+    }, [imageContainerSize, scale]);
+
     const panGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
             // eslint-disable-next-line no-param-reassign
@@ -90,29 +118,12 @@ const AvatarCropModal = (props) => {
             context.translateY = translateY.value;
         },
         onActive: (event, context) => {
-            let heightRatio = 1.0;
-            let widthRatio = 1.0;
-            if (imageWidth.value > imageHeight.value) {
-                heightRatio = imageWidth.value / imageHeight.value;
-            } else {
-                widthRatio = imageHeight.value / imageWidth.value;
-            }
-
-            const radius = imageContainerSize / 2;
-            const realImageHeight = radius * scale.value * widthRatio;
-            const realImageWidth = radius * scale.value * heightRatio;
-
-            const maxX = realImageWidth - radius;
-            const minX = (realImageWidth - radius) * -1;
-            const maxY = realImageHeight - radius;
-            const minY = (realImageHeight - radius) * -1;
-
             const newX = event.translationX + context.translateX;
             const newY = event.translationY + context.translateY;
-            translateX.value = interpolate(newX, [minX, maxX], [minX, maxX], 'clamp');
-            translateY.value = interpolate(newY, [minY, maxY], [minY, maxY], 'clamp');
+
+            updateImagePosition(newX, newY);
         },
-    });
+    }, [imageContainerSize]);
 
     const panSliderGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
@@ -120,43 +131,15 @@ const AvatarCropModal = (props) => {
             context.translateSliderX = translateSlider.value;
         },
         onActive: (event, context) => {
-            const maxScale = sliderLineWidth;
-            const minScale = 0;
+            const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderLineWidth]);
+            const newScale = ((newSliderValue / imageContainerSize) * 10) + 1;
+            scale.value = newScale;
+            translateSlider.value = newSliderValue;
 
-            let newSlider = event.translationX + context.translateSliderX;
-            if (newSlider > maxScale) {
-                newSlider = maxScale;
-            } else if (newSlider < minScale) {
-                newSlider = minScale;
-            }
-
-            const newScale = ((newSlider / imageContainerSize) * 10) + 1;
             const change = newScale / scale.value;
             const newX = translateX.value * change;
             const newY = translateY.value * change;
-
-            scale.value = newScale;
-            translateSlider.value = newSlider;
-
-            let heightRatio = 1.0;
-            let widthRatio = 1.0;
-            if (imageWidth.value > imageHeight.value) {
-                heightRatio = imageWidth.value / imageHeight.value;
-            } else {
-                widthRatio = imageHeight.value / imageWidth.value;
-            }
-
-            const radius = imageContainerSize / 2;
-            const realImageHeight = radius * scale.value * widthRatio;
-            const realImageWidth = radius * scale.value * heightRatio;
-
-            const maxX = realImageWidth - radius;
-            const minX = (realImageWidth - radius) * -1;
-            const maxY = realImageHeight - radius;
-            const minY = (realImageHeight - radius) * -1;
-
-            translateX.value = interpolate(newX, [minX, maxX], [minX, maxX], 'clamp');
-            translateY.value = interpolate(newY, [minY, maxY], [minY, maxY], 'clamp');
+            updateImagePosition(newX, newY);
         },
     });
 
