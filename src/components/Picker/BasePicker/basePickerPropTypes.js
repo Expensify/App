@@ -11,8 +11,8 @@ const propTypes = {
     /** Whether or not to show the disabled styles */
     disabled: PropTypes.bool,
 
-    /** Should the picker be styled for errors  */
-    hasError: PropTypes.bool,
+    /** Error text to display */
+    errorText: PropTypes.string,
 
     /** Should the picker be styled for focus state  */
     focused: PropTypes.bool,
@@ -43,10 +43,19 @@ const propTypes = {
 
     /** Size of a picker component */
     size: PropTypes.oneOf(['normal', 'small']),
+
+    /** Callback called when Picker options menu is closed */
+    onClose: PropTypes.func.isRequired,
+
+    /** Callback called when Picker options menu is open */
+    onOpen: PropTypes.func.isRequired,
+
+    /** Callback called when click or tap out of Picker */
+    onBlur: PropTypes.func,
 };
 const defaultProps = {
     disabled: false,
-    hasError: false,
+    errorText: '',
     focused: false,
     placeholder: {},
     value: null,
@@ -68,6 +77,7 @@ const defaultProps = {
         </>
     ),
     size: 'normal',
+    onBlur: undefined,
 };
 
 export {
