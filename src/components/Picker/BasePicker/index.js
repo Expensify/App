@@ -33,7 +33,7 @@ class BasePicker extends React.Component {
     }
 
     render() {
-        const hasError = !_.isEmpty(this.props.errorText);
+        const hasError = !_.isEmpty(this.props.errorText) || this.props.hasError;
         return (
             <RNPickerSelect
                 onValueChange={this.updateSelectedValueAndExecuteOnChange}
