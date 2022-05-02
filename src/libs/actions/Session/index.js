@@ -20,6 +20,12 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
+import NameValuePair from '../NameValuePair';
+import * as App from '../App';
+import * as PersonalDetails from '../PersonalDetails';
+import * as Report from '../Report';
+import * as GeoLocation from '../GeoLocation';
+import * as BankAccounts from '../BankAccounts';
 
 let credentials = {};
 Onyx.connect({
@@ -483,6 +489,22 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
     Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
 }
 
+function loadInitializationData() {
+    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
+    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
+    App.getLocale();
+    PersonalDetails.fetchPersonalDetails();
+    User.getUserDetails();
+    User.getBetas();
+    User.getDomainInfo();
+    PersonalDetails.fetchLocalCurrency();
+    Report.fetchAllReports(true, true);
+    GeoLocation.fetchCountryCodeByRequestIP();
+    UnreadIndicatorUpdater.listenForReportChanges();
+    BankAccounts.fetchFreePlanVerifiedBankAccount();
+    BankAccounts.fetchUserWallet();
+}
+
 export {
     fetchAccountDetails,
     setPassword,
@@ -502,4 +524,5 @@ export {
     setShouldShowComposeInput,
     changePasswordAndSignIn,
     invalidateCredentials,
+    loadInitializationData,
 };
