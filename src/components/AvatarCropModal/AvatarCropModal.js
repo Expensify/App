@@ -27,6 +27,10 @@ import ImageCropView from './components/ImageCropView';
 import Slider from './components/Slider';
 import imageManipulator from './libs/imageManipulator';
 
+const IMAGE_CONTAINER_PADDING = 40;
+const MAX_SCALE = 3;
+const MIN_SCALE = 1;
+
 const propTypes = {
     /** Link to image for cropping   */
     imageUri: PropTypes.string,
@@ -49,15 +53,15 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 const AvatarCropModal = (props) => {
-    const imageWidth = useSharedValue(1);
-    const imageHeight = useSharedValue(1);
+    const originalImageWidth = useSharedValue(1);
+    const originalImageHeight = useSharedValue(1);
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
     const scale = useSharedValue(1);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
 
-    const imageContainerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - 40 : variables.sideBarWidth - 40;
+    const imageContainerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - IMAGE_CONTAINER_PADDING : variables.sideBarWidth - IMAGE_CONTAINER_PADDING;
     const sliderLineWidth = imageContainerSize - 105;
 
     /**
@@ -77,8 +81,8 @@ const AvatarCropModal = (props) => {
         }
         initializeImage();
         Image.getSize(props.imageUri, (width, height) => {
-            imageHeight.value = height;
-            imageWidth.value = width;
+            originalImageHeight.value = height;
+            originalImageWidth.value = width;
             translateSlider.value += 0.01;
             rotation.value += 360;
         });
@@ -98,35 +102,35 @@ const AvatarCropModal = (props) => {
      *
      * @returns {Object}
     */
-    const getImageDimensions = useWorkletCallback(() => {
-        const radius = imageContainerSize / 2;
-        let height = radius * scale.value;
-        let width = radius * scale.value;
+    const getDisplayedImageSize = useWorkletCallback(() => {
+        const apothem = imageContainerSize / 2;
+        let height = apothem * scale.value;
+        let width = apothem * scale.value;
 
-        // Since the smaller side will be always equal to imageContainerSize
-        // to get a bigger side we have to multiply smaller side by original image aspect ratio.
-        if (imageWidth.value > imageHeight.value) {
-            width *= imageWidth.value / imageHeight.value;
+        // Since the smaller side will be always equal to imageContainerSize multiplied by scale,
+        // another side can be calculated with aspect ratio.
+        if (originalImageWidth.value > originalImageHeight.value) {
+            width *= originalImageWidth.value / originalImageHeight.value;
         } else {
-            height *= imageHeight.value / imageWidth.value;
+            height *= originalImageHeight.value / originalImageWidth.value;
         }
 
         return {height, width};
     }, [imageContainerSize, scale]);
 
     /**
-     * Validates the image's offset to prevent overflow, and update the image's offset.
+     * Validates the offset to prevent overflow, and updates the image offset.
      *
      * @param {Number} newX
      * @param {Number} newY
     */
-    const updateImageOffset = useWorkletCallback((newX, newY) => {
-        const {height, width} = getImageDimensions();
-        const radius = imageContainerSize / 2;
-        const maxX = width - radius;
-        const maxY = height - radius;
-        translateX.value = clamp(newX, [maxX * -1, maxX]);
-        translateY.value = clamp(newY, [maxY * -1, maxY]);
+    const updateImageOffset = useWorkletCallback((offsetX, offsetY) => {
+        const {height, width} = getDisplayedImageSize();
+        const apothem = imageContainerSize / 2;
+        const maxOffsetX = width - apothem;
+        const maxOffsetY = height - apothem;
+        translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
+        translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
     }, [imageContainerSize, scale, clamp]);
 
     /**
@@ -148,7 +152,7 @@ const AvatarCropModal = (props) => {
 
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, updateImageOffset]);
+    }, [imageContainerSize, updateImageOffset, translateX, translateY]);
 
     /**
      * Calculates new scale value and updates image's offset to ensure
@@ -163,20 +167,21 @@ const AvatarCropModal = (props) => {
         },
         onActive: (event, context) => {
             const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderLineWidth]);
-            const newScale = ((newSliderValue / imageContainerSize) * 10) + 1;
+            const newScale = ((newSliderValue / sliderLineWidth) * (MAX_SCALE - MIN_SCALE)) + MIN_SCALE;
+            const differential = newScale / scale.value;
+
             scale.value = newScale;
             translateSlider.value = newSliderValue;
 
-            const change = newScale / scale.value;
-            const newX = translateX.value * change;
-            const newY = translateY.value * change;
+            const newX = translateX.value * differential;
+            const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, clamp]);
+    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale]);
 
     const imageStyle = useAnimatedStyle(() => {
-        const height = imageHeight.value;
-        const width = imageWidth.value;
+        const height = originalImageHeight.value;
+        const width = originalImageWidth.value;
         const aspectRatio = height > width ? height / width : width / height;
         const rotate = clamp(rotation.value, [0, 360]);
         return {
@@ -187,7 +192,7 @@ const AvatarCropModal = (props) => {
                 {rotate: `${rotate}deg`},
             ],
         };
-    }, [imageHeight.value, imageWidth.value, clamp]);
+    }, [originalImageHeight.value, originalImageWidth.value, clamp]);
 
     const handleRotate = useCallback(() => {
         rotation.value -= 90;
@@ -196,23 +201,23 @@ const AvatarCropModal = (props) => {
         [translateX.value, translateY.value] = [translateY.value, translateX.value * -1];
 
         // Since we rotated image by 90 degrees, now width becomes height and vice versa.
-        [imageHeight.value, imageWidth.value] = [
-            imageWidth.value,
-            imageHeight.value,
+        [originalImageHeight.value, originalImageWidth.value] = [
+            originalImageWidth.value,
+            originalImageHeight.value,
         ];
     }, []);
 
     const handleCrop = useCallback(() => {
-        const smallerSize = Math.min(imageHeight.value, imageWidth.value);
+        const smallerSize = Math.min(originalImageHeight.value, originalImageWidth.value);
         const size = smallerSize / scale.value;
-        const centerX = imageWidth.value / 2;
-        const centerY = imageHeight.value / 2;
-        const radius = size / 2;
+        const centerX = originalImageWidth.value / 2;
+        const centerY = originalImageHeight.value / 2;
+        const apothem = size / 2;
 
         // Since translate value is only a distance from image center, we are able to calculate
         // originX and originY - start coordinates of cropping.
-        const originX = centerX - radius - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
-        const originY = centerY - radius - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
+        const originX = centerX - apothem - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
+        const originY = centerY - apothem - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
 
         const crop = {
             height: size, width: size, originX, originY,
