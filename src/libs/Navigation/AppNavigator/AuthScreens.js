@@ -135,22 +135,24 @@ class AuthScreens extends React.Component {
                 if (!url) {
                     return;
                 }
-                const path = new URL(url).pathname;
-                const params = new URLSearchParams(url);
-                const exitTo = params.get('exitTo');
-                const email = params.get('email');
-                const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
-                const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                Navigation.isNavigationReady().then(() => {
+                    const path = new URL(url).pathname;
+                    const params = new URLSearchParams(url);
+                    const exitTo = params.get('exitTo');
+                    const email = params.get('email');
+                    const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
+                    const shouldCreateFreePolicy = !isLoggingInAsNewUser
                     && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
                     && exitTo === ROUTES.WORKSPACE_NEW;
-                if (shouldCreateFreePolicy) {
-                    Policy.createAndGetPolicyList();
-                    return;
-                }
-                Policy.getPolicyList();
-                if (!isLoggingInAsNewUser && exitTo) {
-                    this.navigateToExitRoute(exitTo);
-                }
+                    if (shouldCreateFreePolicy) {
+                        Policy.createAndGetPolicyList();
+                        return;
+                    }
+                    Policy.getPolicyList();
+                    if (!isLoggingInAsNewUser && exitTo) {
+                        this.navigateToExitRoute(exitTo);
+                    }
+                });
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes
