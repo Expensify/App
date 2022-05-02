@@ -65,9 +65,7 @@ class LogOutOldUserPage extends Component {
             return;
         }
 
-        // In order to navigate to a modal, we first have to dismiss the current modal. Without dismissing the current modal, if the user cancels out of the workspace modal,
-        // then they will be routed back to /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/` if they cancel out of the new workspace modal.
+        // We must call dismissModal() to remove the /transition route from history
         Log.info('[LoginWithShortLivedTokenPage] Dismissing LoginWithShortLivedTokenPage and navigating to exitTo');
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
