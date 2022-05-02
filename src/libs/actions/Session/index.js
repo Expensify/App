@@ -489,6 +489,9 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
     Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
 }
 
+/**
+ * Load all the data we need on app initialization after logging in
+ */
 function loadInitializationData() {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
