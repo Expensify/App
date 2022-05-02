@@ -1,27 +1,18 @@
 import React from 'react';
 import {
-    View,
     Keyboard,
     AppState,
-    ActivityIndicator,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Clipboard from '../../../libs/Clipboard';
 import * as Report from '../../../libs/actions/Report';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import SelectionScraper from '../../../libs/SelectionScraper';
-import ReportActionItem from './ReportActionItem';
-import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
-import InvertedFlatList from '../../../components/InvertedFlatList';
 import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
-import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -30,16 +21,15 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
-import variables from '../../../styles/variables';
 import Performance from '../../../libs/Performance';
-import * as ReportUtils from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
-import participantPropTypes from '../../../components/participantPropTypes';
-import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
+import ReportActionsList from './ReportActionsList';
+import CopySelectionHelper from '../../../components/CopySelectionHelper';
+import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
@@ -78,9 +68,6 @@ const propTypes = {
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -99,19 +86,12 @@ const defaultProps = {
     session: {},
     isLoadingReportActions: false,
     isLoadingReportData: false,
-    personalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.renderItem = this.renderItem.bind(this);
-        this.renderCell = this.renderCell.bind(this);
-        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
-        this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.appStateChangeListener = null;
 
         this.didLayout = false;
@@ -124,18 +104,24 @@ class ReportActionsView extends React.Component {
         this.currentScrollOffset = 0;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
-        this.keyExtractor = this.keyExtractor.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
         this.showFloatingMessageCounter = this.showFloatingMessageCounter.bind(this);
         this.hideFloatingMessageCounter = this.hideFloatingMessageCounter.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
         this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
+        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', this.onVisibilityChange);
+        this.appStateChangeListener = AppState.addEventListener('change', () => {
+            if (!Visibility.isVisible() || this.props.isDrawerOpen) {
+                return;
+            }
+
+            Report.updateLastReadActionID(this.props.reportID);
+        });
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
@@ -155,15 +141,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.fetchData();
-
-        const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
-        this.unsubscribeCopyShortcut = KeyboardShortcut.subscribe(
-            copyShortcutConfig.shortcutKey,
-            this.copySelectionToClipboard,
-            copyShortcutConfig.descriptionKey,
-            copyShortcutConfig.modifiers,
-            false,
-        );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -228,26 +205,28 @@ class ReportActionsView extends React.Component {
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
 
-        // Record the max action when window is visible except when Drawer is open on small screen
-        const shouldRecordMaxAction = Visibility.isVisible()
-            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
+        // Record the max action when window is visible and the sidebar is not covering the report view on a small screen
+        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        const shouldRecordMaxAction = Visibility.isVisible() && !isSidebarCoveringReportView;
+
+        const sidebarClosed = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
+        const screenSizeIncreased = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
+        const reportBecomeVisible = sidebarClosed || screenSizeIncreased;
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise
-            // leave the user positioned where they are now in the list.
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
-            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
+            const isLastActionFromCurrentUser = lodashGet(lastAction, 'actorEmail', '') === lodashGet(this.props.session, 'email', '');
+            if (isLastActionFromCurrentUser) {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where they are now in the list.
                 ReportScrollManager.scrollToBottom();
-            }
-
-            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
+            } else {
                 // Only update the unread count when the floating message counter is visible
                 // Otherwise counter will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isFloatingMessageCounterVisible) {
                     this.updateMessageCounterCount(!shouldRecordMaxAction);
                 }
 
-                // show new floating message counter when there is a new message
+                // Show new floating message counter when there is a new message
                 this.toggleFloatingMessageCounter();
             }
 
@@ -256,10 +235,10 @@ class ReportActionsView extends React.Component {
             if (shouldRecordMaxAction) {
                 Report.updateLastReadActionID(this.props.reportID);
             }
-        } else if (shouldRecordMaxAction && (
-            prevProps.isDrawerOpen !== this.props.isDrawerOpen
-            || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
-        )) {
+        }
+
+        // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
+        if (shouldRecordMaxAction && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
         }
@@ -275,38 +254,6 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.reportID);
-
-        if (this.unsubscribeCopyShortcut) {
-            this.unsubscribeCopyShortcut();
-        }
-    }
-
-    /**
-     * Records the max action on app visibility change event.
-     */
-    onVisibilityChange() {
-        if (!Visibility.isVisible() || this.props.isDrawerOpen) {
-            return;
-        }
-
-        Report.updateLastReadActionID(this.props.reportID);
-    }
-
-    copySelectionToClipboard() {
-        const selectionMarkdown = SelectionScraper.getAsMarkdown();
-
-        Clipboard.setString(selectionMarkdown);
-    }
-
-    /**
-     * Create a unique key for Each Action in the FlatList.
-     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-     * shouldn't happen, but might be possible in some rare cases.
-     * @param {Object} item
-     * @return {String}
-     */
-    keyExtractor(item) {
-        return `${item.action.sequenceNumber}${item.action.clientID}`;
     }
 
     fetchData() {
@@ -336,19 +283,6 @@ class ReportActionsView extends React.Component {
         // case just get everything starting from 0.
         const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
         Report.fetchActionsWithLoadingState(this.props.reportID, offset);
-    }
-
-    /**
-     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-     * the height of the smallest report action possible.
-     * @return {Number}
-     */
-    calculateInitialNumToRender() {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
-            + variables.fontSizeNormalHeight;
-        const availableHeight = this.props.windowHeight
-            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
     /**
@@ -461,66 +395,11 @@ class ReportActionsView extends React.Component {
         }
     }
 
-    /**
-     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     * rows is hidden beneath other rows.
-     *
-     * @param {Object} index - The ReportAction item in the FlatList.
-     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
-     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {React.Component}
-     */
-    renderCell({item, style, ...props}) {
-        const cellStyle = [
-            style,
-            {zIndex: item.action.sequenceNumber},
-        ];
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View style={cellStyle} {...props} />;
-    }
-
-    /**
-     * Do not move this or make it an anonymous function it is a method
-     * so it will not be recreated each time we render an item
-     *
-     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-     *
-     * @param {Object} args
-     * @param {Object} args.item
-     * @param {Number} args.index
-     *
-     * @returns {React.Component}
-     */
-    renderItem({
-        item,
-        index,
-    }) {
-        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
-        return (
-            <ReportActionItem
-                reportID={this.props.reportID}
-                action={item.action}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.sortedReportActions, index)}
-                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
-                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
-                index={index}
-            />
-        );
-    }
-
     render() {
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
         }
-
-        // Native mobile does not render updates flatlist the changes even though component did update called.
-        // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         return (
             <>
@@ -530,30 +409,17 @@ class ReportActionsView extends React.Component {
                     onClick={this.scrollToBottomAndUpdateLastRead}
                     onClose={this.hideFloatingMessageCounter}
                 />
-                <InvertedFlatList
-                    ref={ReportScrollManager.flatListRef}
-                    data={this.sortedReportActions}
-                    renderItem={this.renderItem}
-                    CellRendererComponent={this.renderCell}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt0,
-                    ]}
-                    keyExtractor={this.keyExtractor}
-                    initialRowHeight={32}
-                    initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.loadMoreChats}
-                    onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingReportActions
-                        ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                        : null}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={this.recordTimeToMeasureItemLayout}
+                <ReportActionsList
+                    report={this.props.report}
                     onScroll={this.trackScroll}
-                    extraData={extraData}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.sortedReportActions}
+                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                    isLoadingReportActions={this.props.isLoadingReportActions}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
+                <CopySelectionHelper />
             </>
         );
     }
@@ -567,7 +433,6 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
-    withPersonalDetails(),
     withNetwork(),
     withOnyx({
         isLoadingReportData: {
