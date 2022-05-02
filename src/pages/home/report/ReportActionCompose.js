@@ -125,6 +125,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.getReportComposeActions = this.getReportComposeActions.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -228,6 +229,75 @@ class ReportActionCompose extends React.Component {
         }
 
         return this.props.translate('reportActionCompose.writeSomething');
+    }
+
+    /**
+     * Returns the list of report compose actions
+     *
+     * @param {Boolean} showSplitBill
+     * @param {Boolean} showSendRequestMoney
+     * @param {Boolean} hasExcludedIOUEmails
+     * @param {Function} openPicker
+     * @param {Function} displayFileInModal
+     * @returns {Array<object>}
+     */
+    getReportComposeActions(showSplitBill, showSendRequestMoney, hasExcludedIOUEmails, openPicker, displayFileInModal) {
+        return [
+            ...(!hasExcludedIOUEmails
+                && Permissions.canUseIOU(this.props.betas)
+                && showSplitBill ? [
+                    {
+                        icon: Expensicons.Receipt,
+                        text: this.props.translate('iou.splitBill'),
+                        onSelected: () => {
+                            Navigation.navigate(
+                                ROUTES.getIouSplitRoute(
+                                    this.props.reportID,
+                                ),
+                            );
+                        },
+                    },
+                ] : []),
+            ...(!hasExcludedIOUEmails
+                && Permissions.canUseIOU(this.props.betas)
+                && showSendRequestMoney ? [
+                    {
+                        icon: Expensicons.MoneyCircle,
+                        text: this.props.translate('iou.requestMoney'),
+                        onSelected: () => {
+                            Navigation.navigate(
+                                ROUTES.getIouRequestRoute(
+                                    this.props.reportID,
+                                ),
+                            );
+                        },
+                    },
+                ] : []),
+            ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && showSendRequestMoney ? [
+                {
+                    icon: Expensicons.Send,
+                    text: this.props.translate('iou.sendMoney'),
+                    onSelected: () => {
+                        Navigation.navigate(
+                            ROUTES.getIOUSendRoute(
+                                this.props.reportID,
+                            ),
+                        );
+                    },
+                },
+            ] : []),
+            {
+                icon: Expensicons.Paperclip,
+                text: this.props.translate('reportActionCompose.addAttachment'),
+                onSelected: () => {
+                    openPicker({
+                        onPicked: (file) => {
+                            displayFileInModal({file});
+                        },
+                    });
+                },
+            },
+        ];
     }
 
     /**
@@ -449,62 +519,7 @@ class ReportActionCompose extends React.Component {
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
-                                                menuItems={[
-                                                    ...(!hasExcludedIOUEmails
-                                                        && Permissions.canUseIOU(this.props.betas)
-                                                        && showSplitBill ? [
-                                                            {
-                                                                icon: Expensicons.Receipt,
-                                                                text: this.props.translate('iou.splitBill'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouSplitRoute(
-                                                                            this.props.reportID,
-                                                                        ),
-                                                                    );
-                                                                },
-                                                            },
-                                                        ] : []),
-                                                    ...(!hasExcludedIOUEmails
-                                                        && Permissions.canUseIOU(this.props.betas)
-                                                        && showSendRequestMoney ? [
-                                                            {
-                                                                icon: Expensicons.MoneyCircle,
-                                                                text: this.props.translate('iou.requestMoney'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouRequestRoute(
-                                                                            this.props.reportID,
-                                                                        ),
-                                                                    );
-                                                                },
-                                                            },
-                                                        ] : []),
-                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && showSendRequestMoney ? [
-                                                        {
-                                                            icon: Expensicons.Send,
-                                                            text: this.props.translate('iou.sendMoney'),
-                                                            onSelected: () => {
-                                                                Navigation.navigate(
-                                                                    ROUTES.getIOUSendRoute(
-                                                                        this.props.reportID,
-                                                                    ),
-                                                                );
-                                                            },
-                                                        },
-                                                    ] : []),
-                                                    {
-                                                        icon: Expensicons.Paperclip,
-                                                        text: this.props.translate('reportActionCompose.addAttachment'),
-                                                        onSelected: () => {
-                                                            openPicker({
-                                                                onPicked: (file) => {
-                                                                    displayFileInModal({file});
-                                                                },
-                                                            });
-                                                        },
-                                                    },
-                                                ]}
+                                                menuItems={this.getReportComposeActions(showSplitBill, showSendRequestMoney, hasExcludedIOUEmails, openPicker, displayFileInModal)}
                                             />
                                         </>
                                     )}
