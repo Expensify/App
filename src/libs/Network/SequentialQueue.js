@@ -77,8 +77,18 @@ function push(request) {
     // Add request to Persisted Requests so that it can be retried if it fails
     PersistedRequests.save([request]);
 
-    // If the queue is running we want to wait for it to finish before flushing the queue
-    queueProcessTask.isReady().then(flush);
+    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
+    if (NetworkStore.isOffline()) {
+        return;
+    }
+
+    // If the queue is running this request will run once it has finished processing the current batch
+    if (isSequentialQueueRunning) {
+        queueProcessTask.isReady().then(flush);
+        return;
+    }
+
+    flush();
 }
 
 export {

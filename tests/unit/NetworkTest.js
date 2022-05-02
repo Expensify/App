@@ -39,7 +39,12 @@ beforeEach(() => {
     HttpUtils.xhr = originalXHR;
     PersistedRequests.clear();
     MainQueue.clear();
-    return Onyx.clear().then(waitForPromisesToResolve);
+
+    // Wait for any Log command to finish and Onyx to fully clear
+    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    return waitForPromisesToResolve()
+        .then(Onyx.clear)
+        .then(waitForPromisesToResolve);
 });
 
 afterEach(() => {
@@ -714,5 +719,44 @@ test('Sequential queue will not run until credentials are read', () => {
         .then(() => {
             // Then we should expect XHR to run
             expect(xhr).toHaveBeenCalled();
+        });
+});
+
+test('persistable request will move directly to the SequentialQueue when we are online', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // GIVEN that we are online
+            expect(NetworkStore.isOffline()).toBe(false);
+
+            // WHEN we make a request that should be retried and one that should not
+            Network.post('MockCommand', {persist: true});
+            Network.post('MockCommand2');
+
+            // THEN the request should immediately be added to the persisted requests
+            expect(PersistedRequests.getAll().length).toBe(1);
+
+            // WHEN we wait for the queue to run and finish processing
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN the queue should be stopped and there should be no more requests to run
+            expect(SequentialQueue.isRunning()).toBe(false);
+            expect(PersistedRequests.getAll().length).toBe(0);
+
+            // And our persistable request should run before our non persistable one in a blocking way
+            const firstRequest = xhr.mock.calls[0];
+            const [firstRequestCommandName] = firstRequest;
+            expect(firstRequestCommandName).toBe('MockCommand');
+
+            // WHEN we advance the main queue timer and wait for promises
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN we should see that our second (non-persistable) request has run
+            const secondRequest = xhr.mock.calls[1];
+            const [secondRequestCommandName] = secondRequest;
+            expect(secondRequestCommandName).toBe('MockCommand2');
         });
 });
