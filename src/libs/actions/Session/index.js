@@ -508,6 +508,18 @@ function loadInitializationData() {
     BankAccounts.fetchUserWallet();
 }
 
+/**
+ * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
+ */
+function fixAccountAndReload() {
+    API.User_FixAccount()
+        .then((response) => {
+            if (response.changed) {
+                loadInitializationData();
+            }
+        });
+}
+
 export {
     fetchAccountDetails,
     setPassword,
@@ -528,4 +540,5 @@ export {
     changePasswordAndSignIn,
     invalidateCredentials,
     loadInitializationData,
+    fixAccountAndReload,
 };
