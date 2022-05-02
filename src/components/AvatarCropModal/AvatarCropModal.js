@@ -28,6 +28,7 @@ import Slider from './components/Slider';
 import imageManipulator from './libs/imageManipulator';
 
 const IMAGE_CONTAINER_PADDING = 40;
+const MAX_IMAGE_CONTAINER_SIZE = 500;
 const MAX_SCALE = 3;
 const MIN_SCALE = 1;
 
@@ -57,20 +58,25 @@ const AvatarCropModal = (props) => {
     const originalImageHeight = useSharedValue(1);
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
-    const scale = useSharedValue(1);
+    const scale = useSharedValue(MIN_SCALE);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
 
-    const imageContainerSize = props.isSmallScreenWidth ? Math.min(props.windowWidth, 500) - IMAGE_CONTAINER_PADDING : variables.sideBarWidth - IMAGE_CONTAINER_PADDING;
+    // TODO: calculate variable using onLayout callback
+    const imageContainerSize = props.isSmallScreenWidth
+        ? Math.min(props.windowWidth, MAX_IMAGE_CONTAINER_SIZE) - IMAGE_CONTAINER_PADDING
+        : variables.sideBarWidth - IMAGE_CONTAINER_PADDING;
+
+    // TODO: calculate variable using onLayout callback
     const sliderLineWidth = imageContainerSize - 105;
 
     /**
-     * Changes image values to initial
+     * Changes the modal state values to initial
     */
     const initializeImage = useCallback(() => {
         translateY.value = 0;
         translateX.value = 0;
-        scale.value = 1;
+        scale.value = MIN_SCALE;
         rotation.value = 0;
         translateSlider.value = 0;
     }, []);
@@ -103,11 +109,10 @@ const AvatarCropModal = (props) => {
      * @returns {Object}
     */
     const getDisplayedImageSize = useWorkletCallback(() => {
-        const apothem = imageContainerSize / 2;
-        let height = apothem * scale.value;
-        let width = apothem * scale.value;
+        let height = imageContainerSize * scale.value;
+        let width = imageContainerSize * scale.value;
 
-        // Since the smaller side will be always equal to imageContainerSize multiplied by scale,
+        // Since the smaller side will be always equal to the imageContainerSize multiplied by scale,
         // another side can be calculated with aspect ratio.
         if (originalImageWidth.value > originalImageHeight.value) {
             width *= originalImageWidth.value / originalImageHeight.value;
@@ -126,9 +131,8 @@ const AvatarCropModal = (props) => {
     */
     const updateImageOffset = useWorkletCallback((offsetX, offsetY) => {
         const {height, width} = getDisplayedImageSize();
-        const apothem = imageContainerSize / 2;
-        const maxOffsetX = width - apothem;
-        const maxOffsetY = height - apothem;
+        const maxOffsetX = (width - imageContainerSize) / 2;
+        const maxOffsetY = (height - imageContainerSize) / 2;
         translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
         translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
     }, [imageContainerSize, scale, clamp]);
@@ -139,8 +143,8 @@ const AvatarCropModal = (props) => {
     */
     const panGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
-            // we have to assign translate values to a context,
-            // since that is required for proper work of turbo modules
+            // we have to assign translate values to a context
+            // since that is required for proper work of turbo modules.
             // eslint-disable-next-line no-param-reassign
             context.translateX = translateX.value;
             // eslint-disable-next-line no-param-reassign
@@ -155,13 +159,13 @@ const AvatarCropModal = (props) => {
     }, [imageContainerSize, updateImageOffset, translateX, translateY]);
 
     /**
-     * Calculates new scale value and updates image's offset to ensure
-     * that image stays in the center of container after changing scale
+     * Calculates new scale value and updates images offset to ensure
+     * that image stays in the center of the container after changing scale.
     */
     const panSliderGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
-            // we have to assign this value to a context,
-            // since that is required for proper work of turbo modules
+            // we have to assign this value to a context
+            // since that is required for proper work of turbo modules.
             // eslint-disable-next-line no-param-reassign
             context.translateSliderX = translateSlider.value;
         },
@@ -197,10 +201,10 @@ const AvatarCropModal = (props) => {
     const handleRotate = useCallback(() => {
         rotation.value -= 90;
 
-        // Rotating 2d coordinates applying formula (x, y) → (-y, x).
+        // Rotating 2d coordinates by applying the formula (x, y) → (-y, x).
         [translateX.value, translateY.value] = [translateY.value, translateX.value * -1];
 
-        // Since we rotated image by 90 degrees, now width becomes height and vice versa.
+        // Since we rotated the image by 90 degrees, now width becomes height and vice versa.
         [originalImageHeight.value, originalImageWidth.value] = [
             originalImageWidth.value,
             originalImageHeight.value,
@@ -210,14 +214,14 @@ const AvatarCropModal = (props) => {
     const handleCrop = useCallback(() => {
         const smallerSize = Math.min(originalImageHeight.value, originalImageWidth.value);
         const size = smallerSize / scale.value;
-        const centerX = originalImageWidth.value / 2;
-        const centerY = originalImageHeight.value / 2;
-        const apothem = size / 2;
+        const imageCenterX = originalImageWidth.value / 2;
+        const imageCenterY = originalImageHeight.value / 2;
+        const apothem = size / 2; // apothem for squares is equals to half of it size
 
-        // Since translate value is only a distance from image center, we are able to calculate
-        // originX and originY - start coordinates of cropping.
-        const originX = centerX - apothem - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
-        const originY = centerY - apothem - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
+        // Since the translate value is only a distance from the image center, we are able to calculate
+        // the originX and the originY - start coordinates of cropping view.
+        const originX = imageCenterX - apothem - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
+        const originY = imageCenterY - apothem - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
 
         const crop = {
             height: size, width: size, originX, originY,
