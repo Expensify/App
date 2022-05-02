@@ -984,15 +984,15 @@ export default {
     fileDownload: {
         success: {
             title: 'Descargado!',
-            message: 'Archivo descargado con éxito!',
+            message: 'Archivo descargado correctamente',
         },
         generalError: {
-            title: 'Error al adjuntar archivo',
+            title: 'Error en la descarga',
             message: 'No se puede descargar el archivo adjunto',
         },
         permissionError: {
-            title: 'Acceso Restringido',
-            message: 'NewExpensify no tiene acceso para guardar archivos adjuntos. Para habilitar el acceso, pulse Configuración y permita el acceso.',
+            title: 'Se necesita acceso',
+            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
         },
     },
 };

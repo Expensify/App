@@ -989,8 +989,8 @@ export default {
             message: 'Attachment cannot be downloaded',
         },
         permissionError: {
-            title: 'Access Needed',
-            message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+            title: 'Access needed',
+            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
         },
     },
 };
