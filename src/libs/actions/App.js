@@ -87,10 +87,6 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
-function triggerUpdateAvailable() {
-    Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
-}
-
 /**
  * Fetches data needed for app initialization
  *
@@ -124,6 +120,5 @@ export {
     setLocale,
     setSidebarLoaded,
     getLocale,
-    triggerUpdateAvailable,
     getAppData,
 };
