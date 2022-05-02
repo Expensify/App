@@ -93,21 +93,27 @@ function triggerUpdateAvailable() {
 
 /**
  * Fetches data needed for app initialization
+ *
+ * @returns {Promise}
  */
 function getAppData() {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
-    PersonalDetails.fetchPersonalDetails();
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
-    Report.fetchAllReports(true, true);
     GeoLocation.fetchCountryCodeByRequestIP();
     UnreadIndicatorUpdater.listenForReportChanges();
     BankAccounts.fetchFreePlanVerifiedBankAccount();
     BankAccounts.fetchUserWallet();
+
+    // We should update the syncing indicator when personal details and reports are both done fetching.
+    return Promise.all([
+        PersonalDetails.fetchPersonalDetails(),
+        Report.fetchAllReports(true, true),
+    ]);
 }
 
 // When the app reconnects from being offline, fetch all initialization data
