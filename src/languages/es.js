@@ -120,6 +120,10 @@ export default {
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
+    avatarCropModal: {
+        title: 'Editar Foto',
+        description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
+    },
     composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
