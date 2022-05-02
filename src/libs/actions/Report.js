@@ -1380,9 +1380,6 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
-// When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(fetchAllReports);
-
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
