@@ -100,7 +100,7 @@ const webViewStyles = {
 
         pre: {
             ...baseCodeTagStyles,
-            paddingTop: 4,
+            paddingTop: 16,
             paddingBottom: 17,
             paddingRight: 8,
             paddingLeft: 8,
