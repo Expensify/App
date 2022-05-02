@@ -19,7 +19,7 @@ import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
-import ChatGhostUI from '../../components/ChatGhostUI';
+import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
@@ -170,7 +170,7 @@ class ReportScreen extends React.Component {
     prepareTransition() {
         this.setState({isLoading: true});
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 100);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
     }
 
     /**
@@ -210,35 +210,32 @@ class ReportScreen extends React.Component {
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
-                    {
-                      (this.state.isGhostScreenVisible || this.shouldShowLoader()) && <ChatGhostUI />
-                    }
-                    {!this.state.isGhostScreenVisible && !this.shouldShowLoader() && (
-                        <ReportActionsView
-                            reportID={reportID}
-                            reportActions={this.props.reportActions}
-                            report={this.props.report}
-                            session={this.props.session}
-                        />
-                    )}
-                    {this.props.session.shouldShowComposeInput && (
-                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                            <ReportActionCompose
-                                onSubmit={this.onSubmitComment}
+
+                    {this.shouldShowLoader()
+                        ? <ReportActionsSkeletonView />
+                        : (
+                            <ReportActionsView
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
-                        {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                            <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                                {
-                                    isArchivedRoom
-                                        ? (
-                                            <ArchivedReportFooter
-                                                reportClosedAction={reportClosedAction}
+                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        <View style={styles.chatFooter}>
+                            {
+                                isArchivedRoom
+                                    ? (
+                                        <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
+                                            report={this.props.report}
+                                        />
+                                    ) : (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
                                                 report={this.props.report}
                                             />
                                         ) : (
