@@ -142,6 +142,9 @@ class AuthScreens extends React.Component {
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
+
+        // Run fixAccountAndReload in case we have migrations we need to run for the user
+        Session.fixAccountAndReload();
     }
 
     shouldComponentUpdate(nextProps) {
