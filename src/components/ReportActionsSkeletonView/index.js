@@ -8,7 +8,7 @@ const propTypes = {
 };
 
 const ReportActionsSkeletonView = (props) => {
-    const possibleVisibleContentItems = Math.floor(props.windowHeight / CONST.CHAT_SKELETON_VIEW_ROW_HEIGHT);
+    const possibleVisibleContentItems = Math.floor(props.windowHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
     for (let index = 0; index < possibleVisibleContentItems; index++) {
         const iconIndex = (index + 1) % 4;
