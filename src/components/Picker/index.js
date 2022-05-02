@@ -21,6 +21,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Should the picker be styled for errors  */
+    hasError: PropTypes.bool,
+
     /** Customize the Picker container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -43,6 +46,7 @@ const defaultProps = {
     label: '',
     isDisabled: false,
     errorText: '',
+    hasError: false,
     containerStyles: [],
     isFormInput: false,
     inputID: undefined,
@@ -78,6 +82,7 @@ class Picker extends PureComponent {
                         disabled={this.props.isDisabled}
                         focused={this.state.isOpen}
                         errorText={this.props.errorText}
+                        hasError={this.props.hasError}
                         value={this.props.value}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}

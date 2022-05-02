@@ -11,6 +11,9 @@ const propTypes = {
     /** Whether or not to show the disabled styles */
     disabled: PropTypes.bool,
 
+    /** Should the picker be styled for errors  */
+    hasError: PropTypes.bool,
+
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -55,6 +58,7 @@ const propTypes = {
 };
 const defaultProps = {
     disabled: false,
+    hasError: false,
     errorText: '',
     focused: false,
     placeholder: {},
