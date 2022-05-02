@@ -7,6 +7,7 @@ import {
     useAnimatedGestureHandler,
     useAnimatedStyle,
     useSharedValue,
+    useWorkletCallback
 } from 'react-native-reanimated';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CONST from '../../CONST';
@@ -60,6 +61,7 @@ const AvatarCropModal = (props) => {
     const sliderLineWidth = imageContainerSize - 105;
 
     const initializeImage = useCallback(() => {
+        // resetting state on image change
         translateY.value = 0;
         translateX.value = 0;
         scale.value = 1;
@@ -175,7 +177,11 @@ const AvatarCropModal = (props) => {
 
     const handleRotate = useCallback(() => {
         rotation.value -= 90;
+
+        // Simply rotating 2d coordinates applying next formula (x, y) → (-y, x).
         [translateX.value, translateY.value] = [translateY.value, translateX.value * -1];
+
+        // since we rotated image by 90 degrees, now width is height and vice versa.
         [imageHeight.value, imageWidth.value] = [
             imageWidth.value,
             imageHeight.value,
