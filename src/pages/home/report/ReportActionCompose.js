@@ -234,14 +234,15 @@ class ReportActionCompose extends React.Component {
     /**
      * Returns the list of report compose actions
      *
-     * @param {Boolean} showSplitBill
-     * @param {Boolean} showSendRequestMoney
-     * @param {Boolean} hasExcludedIOUEmails
+     * @param {Array} reportParticipants
      * @param {Function} openPicker
      * @param {Function} displayFileInModal
      * @returns {Array<object>}
      */
-    getReportComposeActions(showSplitBill, showSendRequestMoney, hasExcludedIOUEmails, openPicker, displayFileInModal) {
+    getReportComposeActions(reportParticipants, openPicker, displayFileInModal) {
+        const showSplitBill = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length > 1;
+        const showSendRequestMoney = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length === 1;
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         return [
             ...(!hasExcludedIOUEmails
                 && Permissions.canUseIOU(this.props.betas)
@@ -459,9 +460,6 @@ class ReportActionCompose extends React.Component {
         }
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const showSplitBill = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length > 1;
-        const showSendRequestMoney = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length === 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
@@ -519,7 +517,7 @@ class ReportActionCompose extends React.Component {
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
-                                                menuItems={this.getReportComposeActions(showSplitBill, showSendRequestMoney, hasExcludedIOUEmails, openPicker, displayFileInModal)}
+                                                menuItems={this.getReportComposeActions(reportParticipants, openPicker, displayFileInModal)}
                                             />
                                         </>
                                     )}
