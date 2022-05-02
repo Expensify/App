@@ -56,7 +56,8 @@ function changePasswordAndNavigate(oldPassword, password) {
                 return;
             }
 
-            Navigation.goBack();
+            const success = lodashGet(response, 'message', 'Password changed successfully.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -111,7 +112,8 @@ function getUserDetails() {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -176,7 +178,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.merge(ONYXKEYS.USER, {loginList});
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
@@ -304,7 +306,7 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info(
+            Log.hmmm(
                 '[User] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
@@ -317,7 +319,14 @@ function subscribeToUserEvents() {
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    });
+    })
+        .catch((error) => {
+            Log.hmmm(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
+            );
+        });
 }
 
 /**
@@ -355,18 +364,16 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-
 function setPreferredSkinTone(skinTone) {
-    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 }
 
 /**
@@ -397,6 +404,26 @@ function joinScreenShare(accessToken, roomName) {
     clearScreenShareRequest();
 }
 
+/**
+ * Downloads the statement PDF for the provided period
+ * @param {String} period YYYYMM format
+ * @returns {Promise<Void>}
+ */
+function generateStatementPDF(period) {
+    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
+    return API.GetStatementPDF({period})
+        .then((response) => {
+            if (response.jsonCode !== 200 || !response.filename) {
+                Log.info('[User] Failed to generate statement PDF', false, {response});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
+        });
+}
+
 export {
     changePasswordAndNavigate,
     closeAccount,
@@ -416,4 +443,5 @@ export {
     setFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
+    generateStatementPDF,
 };

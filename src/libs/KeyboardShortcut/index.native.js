@@ -6,8 +6,7 @@ const KeyboardShortcut = {
     subscribe() {
         return () => {};
     },
-    getKeyboardShortcuts() { return []; },
-    getShortcutModifiers() { return []; },
+    getDocumentedShortcuts() { return []; },
 };
 
 export default KeyboardShortcut;

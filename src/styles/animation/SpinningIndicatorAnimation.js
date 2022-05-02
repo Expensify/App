@@ -31,7 +31,6 @@ class SpinningIndicatorAnimation {
         ).start();
     }
 
-
     /**
      * Start Animation for Indicator
      *

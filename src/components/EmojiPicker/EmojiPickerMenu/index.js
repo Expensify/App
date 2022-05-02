@@ -1,20 +1,23 @@
 import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import TextInputFocusable from '../../TextInputFocusable';
+import Composer from '../../Composer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 
@@ -27,9 +30,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
@@ -45,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    updatePreferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -86,6 +85,7 @@ class EmojiPickerMenu extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
 
         this.currentScrollOffset = 0;
 
@@ -125,7 +125,6 @@ class EmojiPickerMenu extends Component {
         this.setState({selection: event.nativeEvent.selection});
     }
 
-
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
@@ -145,7 +144,7 @@ class EmojiPickerMenu extends Component {
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.props.onEmojiSelected(emoji, item);
+                this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
             }
 
@@ -185,6 +184,15 @@ class EmojiPickerMenu extends Component {
 
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        this.props.onEmojiSelected(emoji);
     }
 
     /**
@@ -248,6 +256,9 @@ class EmojiPickerMenu extends Component {
             const isHeader = e => e.header || e.spacer;
             do {
                 newIndex += steps;
+                if (newIndex < 0) {
+                    break;
+                }
             } while (isHeader(this.state.filteredEmojis[newIndex]));
         };
 
@@ -341,7 +352,7 @@ class EmojiPickerMenu extends Component {
             this.setState({
                 filteredEmojis: this.emojis,
                 headerIndices: this.unfilteredHeaderIndices,
-                highlightedIndex: this.numColumns,
+                highlightedIndex: -1,
             });
             return;
         }
@@ -366,6 +377,17 @@ class EmojiPickerMenu extends Component {
      */
     isMobileLandscape() {
         return this.props.isSmallScreenWidth && this.props.windowWidth >= this.props.windowHeight;
+    }
+
+    /**
+     * @param {Number} skinTone
+     */
+    updatePreferredSkinTone(skinTone) {
+        if (this.props.preferredSkinTone === skinTone) {
+            return;
+        }
+
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -395,10 +417,9 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
-
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
+                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
@@ -414,7 +435,7 @@ class EmojiPickerMenu extends Component {
             >
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
-                        <TextInputFocusable
+                        <Composer
                             textAlignVertical="top"
                             placeholder={this.props.translate('common.search')}
                             placeholderTextColor={themeColors.textSupporting}
@@ -462,7 +483,7 @@ class EmojiPickerMenu extends Component {
                         />
                     )}
                 <EmojiSkinToneList
-                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
@@ -476,6 +497,14 @@ EmojiPickerMenu.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />

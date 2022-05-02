@@ -1,6 +1,12 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
+    // First name of the current user from their personal details
+    firstName: PropTypes.string,
+
+    // Last name of the current user from their personal details
+    lastName: PropTypes.string,
+
     // Display name of the current user from their personal details
     displayName: PropTypes.string,
 

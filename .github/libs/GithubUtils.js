@@ -63,7 +63,6 @@ class GithubUtils {
         return this.octokitInternal;
     }
 
-
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
      *
@@ -110,6 +109,8 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
+                isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
             };
         } catch (exception) {
@@ -179,6 +180,8 @@ class GithubUtils {
      * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
+     * @param {Boolean} [isTimingDashboardChecked]
+     * @param {Boolean} [isFirebaseChecked]
      * @returns {Promise}
      */
     static generateStagingDeployCashBody(
@@ -188,6 +191,8 @@ class GithubUtils {
         accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
+        isTimingDashboardChecked = false,
+        isFirebaseChecked = false,
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
@@ -259,6 +264,12 @@ class GithubUtils {
                         issueBody += URL;
                     });
                 }
+
+                issueBody += '\r\n\r\n**Deployer verifications:**';
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;

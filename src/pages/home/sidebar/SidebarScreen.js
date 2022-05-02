@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -22,14 +22,11 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
-import NameValuePair from '../../../libs/actions/NameValuePair';
+import * as WelcomeAction from '../../../libs/actions/WelcomeActions';
 
 const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /* Flag for new users used to open the Global Create menu on first load */
-    isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     /* Is workspace is being created by the user? */
     isCreatingWorkspace: PropTypes.bool,
@@ -39,7 +36,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    isFirstTimeNewExpensifyUser: false,
     isCreatingWorkspace: false,
 };
 
@@ -47,10 +43,10 @@ class SidebarScreen extends Component {
     constructor(props) {
         super(props);
 
-        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
-        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
+        this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
+        this.showCreateMenu = this.showCreateMenu.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
@@ -61,36 +57,17 @@ class SidebarScreen extends Component {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
-        // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
-        // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
-        setTimeout(() => {
-            if (!this.props.isFirstTimeNewExpensifyUser) {
-                return;
-            }
-
-            // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
-            // create menu right now.
-            const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-            const topRouteName = lodashGet(_.last(routes), 'name', '');
-            const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
-
-            // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
-            // not need to create a workspace.
-            if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
-                this.toggleCreateMenu();
-            }
-
-            // Set the NVP back to false so we don't automatically open the menu again
-            // Note: this may need to be moved if this NVP is used for anything else later
-            NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-        }, 1500);
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        WelcomeAction.show({routes, hideCreateMenu: this.hideCreateMenu});
     }
 
     /**
-     * Method called when a Create Menu item is selected.
+     * Method called when we click the floating action button
      */
-    onCreateMenuItemSelected() {
-        this.toggleCreateMenu();
+    showCreateMenu() {
+        this.setState({
+            isCreateMenuActive: true,
+        });
     }
 
     /**
@@ -101,16 +78,14 @@ class SidebarScreen extends Component {
     }
 
     /**
-     * Method called when we click the floating action button
-     * will trigger the animation
      * Method called either when:
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleCreateMenu() {
-        this.setState(state => ({
-            isCreateMenuActive: !state.isCreateMenuActive,
-        }));
+    hideCreateMenu() {
+        this.setState({
+            isCreateMenuActive: false,
+        });
     }
 
     /**
@@ -122,6 +97,8 @@ class SidebarScreen extends Component {
     }
 
     render() {
+        // Workspaces are policies with type === 'free'
+        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
             <ScreenWrapper
                 includePaddingBottom={false}
@@ -140,14 +117,14 @@ class SidebarScreen extends Component {
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
-                                onPress={this.toggleCreateMenu}
+                                onPress={this.showCreateMenu}
                             />
                         </View>
                         <PopoverMenu
-                            onClose={this.toggleCreateMenu}
+                            onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
-                            onItemSelected={this.onCreateMenuItemSelected}
+                            onItemSelected={this.hideCreateMenu}
                             fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
@@ -160,7 +137,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUsePolicyRooms(this.props.betas) ? [
+                                ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
                                     {
                                         icon: Expensicons.Hashtag,
                                         text: this.props.translate('sidebarScreen.newRoom'),
@@ -220,9 +197,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isFirstTimeNewExpensifyUser: {
-            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
         isCreatingWorkspace: {
             key: ONYXKEYS.IS_CREATING_WORKSPACE,

@@ -17,17 +17,25 @@ const propTypes = {
 
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
+
+    /** A ref to forward to the Pressable */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
 };
 
 const defaultProps = {
     hasError: false,
     disabled: false,
+    forwardedRef: undefined,
 };
 
 const Checkbox = props => (
     <Pressable
         disabled={props.disabled}
         onPress={() => props.onPress(!props.isChecked)}
+        ref={props.forwardedRef}
     >
         <View
             style={[

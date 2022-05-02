@@ -79,8 +79,7 @@ function push({
                 setTimeout(notification.close.bind(notification), delay);
             }
 
-            notification.onclick = (event) => {
-                event.preventDefault();
+            notification.onclick = () => {
                 onClick();
                 window.parent.focus();
                 window.focus();
@@ -113,7 +112,7 @@ export default {
         const plainTextMessage = Str.htmlDecode((_.find(message, f => f.type === 'COMMENT') || {}).text);
 
         push({
-            title: `New message from ${plainTextPerson}`,
+            title: plainTextPerson,
             body: plainTextMessage,
             delay: 0,
             onClick,

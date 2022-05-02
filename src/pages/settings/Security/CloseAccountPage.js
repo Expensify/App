@@ -86,11 +86,18 @@ class CloseAccountPage extends Component {
                             {' '}
                             {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.defaultContact')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
+                        </Text>
                         <TextInput
                             autoCapitalize="none"
                             value={this.state.phoneOrEmail}
                             onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
-                            label={this.props.translate('closeAccountPage.typeToConfirm', {emailOrPhone: userEmailOrPhone})}
+                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
                         />
                     </ScrollView>
@@ -104,8 +111,8 @@ class CloseAccountPage extends Component {
                         />
                     </FixedFooter>
                     <ConfirmModal
-                        title=""
-                        success={false}
+                        title={this.props.translate('closeAccountPage.closeAccountError')}
+                        success
                         confirmText={this.props.translate('closeAccountPage.okayGotIt')}
                         prompt={(
                             <Text>

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import participantPropTypes from './participantPropTypes';
 
 export default PropTypes.shape({
     // Text to display
@@ -7,8 +8,8 @@ export default PropTypes.shape({
     // Alternate text to display
     alternateText: PropTypes.string,
 
-    // Array of icon urls
-    icons: PropTypes.arrayOf(PropTypes.string),
+    // Array of URLs or icons
+    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     // Login (only present when there is a single participant)
     login: PropTypes.string,
@@ -33,4 +34,19 @@ export default PropTypes.shape({
 
     // Whether the report corresponds to a chat room
     isChatRoom: PropTypes.bool,
+
+    // Whether the option has an outstanding IOU
+    hasOutstandingIOU: PropTypes.bool,
+
+    // List of participants of the report
+    participantsList: PropTypes.arrayOf(participantPropTypes),
+
+    // Descriptive text to be displayed besides selection element
+    descriptiveText: PropTypes.string,
+
+    // The type of option we have e.g. user or report
+    type: PropTypes.string,
+
+    // Text to show for tooltip
+    tooltipText: PropTypes.string,
 });

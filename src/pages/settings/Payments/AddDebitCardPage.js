@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import lodashEndsWith from 'lodash/endsWith';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -84,13 +85,14 @@ class DebitCardPage extends Component {
             addressStreet: 'addDebitCardPage.error.addressStreet',
             addressState: 'addDebitCardPage.error.addressState',
             addressZipCode: 'addDebitCardPage.error.addressZipCode',
-            acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+            acceptedTerms: 'common.error.acceptedTerms',
             password: 'addDebitCardPage.error.password',
         };
 
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
+        this.addOrRemoveSlashToExpiryDate = this.addOrRemoveSlashToExpiryDate.bind(this);
     }
 
     /**
@@ -184,6 +186,35 @@ class DebitCardPage extends Component {
         }));
     }
 
+    /**
+     * @param {String} inputExpiryDate
+     */
+    addOrRemoveSlashToExpiryDate(inputExpiryDate) {
+        this.setState((prevState) => {
+            let expiryDate = inputExpiryDate;
+
+            // Remove the digit and '/' when backspace is pressed with expiry date ending with '/'
+            if (inputExpiryDate.length < prevState.expirationDate.length
+                && (((inputExpiryDate.length === 3 && lodashEndsWith(inputExpiryDate, '/'))
+                  || (inputExpiryDate.length === 2 && lodashEndsWith(prevState.expirationDate, '/'))))) {
+                expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
+            } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+                // An Expiry Date was added, so we should append a slash '/'
+                expiryDate = `${inputExpiryDate}/`;
+            } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
+                // Expiry Date with MM and YY without slash, hence adding slash(/)
+                expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
+            }
+            return {
+                expirationDate: expiryDate,
+                errors: {
+                    ...prevState.errors,
+                    expirationDate: false,
+                },
+            };
+        });
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -217,11 +248,10 @@ class DebitCardPage extends Component {
                                     <TextInput
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
-                                        onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                         value={this.state.expirationDate}
-                                        maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                        onChangeText={this.addOrRemoveSlashToExpiryDate}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -239,7 +269,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onChange={(values) => {
+                                onInputChange={(values) => {
                                     const renamedFields = {
                                         street: 'addressStreet',
                                         state: 'addressState',
@@ -268,9 +298,9 @@ class DebitCardPage extends Component {
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <StatePicker
-                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                        onInputChange={value => this.clearErrorAndSetValue('addressState', value)}
                                         value={this.state.addressState}
-                                        hasError={lodashGet(this.state.errors, 'addressState', false)}
+                                        errorText={this.getErrorText('addressState')}
                                     />
                                 </View>
                             </View>
@@ -287,7 +317,7 @@ class DebitCardPage extends Component {
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
-                                onPress={() => {
+                                onInputChange={() => {
                                     this.setState(prevState => ({
                                         acceptedTerms: !prevState.acceptedTerms,
                                         errors: {
@@ -304,9 +334,8 @@ class DebitCardPage extends Component {
                                         </TextLink>
                                     </>
                                 )}
-                                style={[styles.mt4, styles.mb4]}
+                                style={styles.mt4}
                                 errorText={this.getErrorText('acceptedTerms')}
-                                hasError={Boolean(this.state.errors.acceptedTerms)}
                             />
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (

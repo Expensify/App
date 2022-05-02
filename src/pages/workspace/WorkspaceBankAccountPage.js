@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,10 +20,18 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
+import withFullPolicy from './withFullPolicy';
+import Button from '../../components/Button';
+import MenuItem from '../../components/MenuItem';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        name: PropTypes.string,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -43,6 +52,10 @@ class WorkspaceBankAccountPage extends React.Component {
 
     componentDidMount() {
         this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
+
+        if (!this.getShouldShowPage()) {
+            this.navigateToBankAccountRoute();
+        }
     }
 
     componentWillUnmount() {
@@ -82,15 +95,13 @@ class WorkspaceBankAccountPage extends React.Component {
     }
 
     render() {
-        if (!this.getShouldShowPage()) {
-            this.navigateToBankAccountRoute();
-            return null;
-        }
+        const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
+                    subtitle={policyName}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
                     shouldShowGetAssistanceButton
@@ -101,25 +112,27 @@ class WorkspaceBankAccountPage extends React.Component {
                     <Section
                         title={this.props.translate('workspace.bankAccount.almostDone')}
                         icon={Illustrations.BankArrowPink}
-                        menuItems={[
-                            {
-                                title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                                icon: Expensicons.Bank,
-                                onPress: this.navigateToBankAccountRoute,
-                                shouldShowRightIcon: true,
-                            },
-                            {
-                                title: this.props.translate('workspace.bankAccount.startOver'),
-                                icon: Expensicons.RotateLeft,
-                                onPress: BankAccounts.requestResetFreePlanBankAccount,
-                                shouldShowRightIcon: true,
-                            },
-                        ]}
                     >
                         <Text>
                             {this.props.translate('workspace.bankAccount.youreAlmostDone')}
                         </Text>
                     </Section>
+                    <Button
+                        text={this.props.translate('workspace.bankAccount.continueWithSetup')}
+                        onPress={this.navigateToBankAccountRoute}
+                        icon={Expensicons.Bank}
+                        style={[styles.mh3, styles.mt2]}
+                        iconStyles={[styles.mr5]}
+                        shouldShowRightIcon
+                        extraLarge
+                        success
+                    />
+                    <MenuItem
+                        title={this.props.translate('workspace.bankAccount.startOver')}
+                        icon={Expensicons.RotateLeft}
+                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        shouldShowRightIcon
+                    />
                 </ScrollView>
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
@@ -137,4 +150,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withFullPolicy,
 )(WorkspaceBankAccountPage);

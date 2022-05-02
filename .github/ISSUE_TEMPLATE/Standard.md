@@ -20,7 +20,7 @@ Describe what actually happened
 Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
 
 ## Platform:
-<!--- 
+<!---
 Remove any platforms that aren't affected by this issue
 --->
 Where is this issue occurring?
@@ -31,13 +31,14 @@ Where is this issue occurring?
 - Desktop App
 - Mobile Web
 
-**Version Number:**
-**Reproducible in staging?:**
-**Reproducible in production?:**
+**Version Number:** 
+**Reproducible in staging?:** 
+**Reproducible in production?:** 
+**Email or phone of affected tester (no customers):** 
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
-**Expensify/Expensify Issue URL:**
-**Issue reported by:**
+**Expensify/Expensify Issue URL:** 
+**Issue reported by:** 
 **Slack conversation:** 
 
 [View all open jobs on GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22)

@@ -68,6 +68,8 @@ describe('GithubUtils', () => {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,
             deployBlockers: [],
+            isTimingDashboardChecked: false,
+            isFirebaseChecked: false,
         };
         const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
         expectedResponseWithDeployBlockers.deployBlockers = [
@@ -375,6 +377,11 @@ describe('GithubUtils', () => {
         const lineBreakDouble = '\r\n\r\n';
         const indent = '  ';
         const assignOctocatHubot = ' - @octocat @hubot';
+        const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
+        // eslint-disable-next-line max-len
+        const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
+        // eslint-disable-next-line max-len
+        const firebaseVerification = 'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.';
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
@@ -383,7 +390,6 @@ describe('GithubUtils', () => {
                 + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                 + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                 + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`;
-
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
@@ -395,6 +401,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -410,6 +419,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -425,6 +437,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -434,7 +449,11 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}${lineBreakDouble}${ccApplauseLeads}`,
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
@@ -447,6 +466,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -460,6 +482,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -478,6 +503,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -496,6 +524,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${internalQAHeader}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -514,6 +545,9 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${internalQAHeader}`
                         + `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
+                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })

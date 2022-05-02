@@ -65,7 +65,6 @@ class NewPasswordForm extends React.Component {
         return this.isValidPassword();
     }
 
-
     render() {
         return (
             <View style={styles.mb6}>

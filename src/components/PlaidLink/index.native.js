@@ -4,7 +4,6 @@ import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
-
 const PlaidLink = (props) => {
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {

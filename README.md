@@ -70,9 +70,9 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `EXPENSIFY_URL_CASH` - The root URL used for the website
-- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
-- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `NEW_EXPENSIFY_URL` - The root URL used for the website
+- `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
+- `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
@@ -98,15 +98,6 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
-
-## End to end tests
-End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
-In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
-We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
-
-You are first required to build the tests, then you can run them:
-1. To build the **Detox end to end tests**: `npm run detox-build`
-2. To run the **Detox end to end tests**: `npm run detox-test`
 
 ----
 
@@ -137,7 +128,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 - Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `OptionRow.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
-    1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
+    1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > IndexedDB > OnyxDB > keyvaluepairs)
     2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`.
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
@@ -169,7 +160,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 ```js
 function signIn(password, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.Authenticate({
+    Authentication.Authenticate({
         ...defaultParams,
         password,
         twoFactorAuthCode,

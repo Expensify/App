@@ -33,10 +33,9 @@ const defaultProps = {
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
-        const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(shortcutConfig.modifiers);
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             KeyboardShortcutsActions.showKeyboardShortcutModal();
-        }, shortcutConfig.descriptionKey, shortcutModifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
     componentWillUnmount() {
@@ -73,7 +72,7 @@ class KeyboardShortcutsModal extends React.Component {
     }
 
     render() {
-        const shortcuts = KeyboardShortcut.getKeyboardShortcuts();
+        const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
         const modalType = this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
 
         return (

@@ -25,7 +25,8 @@ export default {
     // Boolean flag set when workspace is being created
     IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
-    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+    // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
+    PERSISTED_REQUESTS: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
@@ -70,6 +71,9 @@ export default {
 
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
+
+    // Contains metadata (partner, login, validation date) for all of the user's logins
+    LOGIN_LIST: 'loginList',
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
@@ -129,6 +133,9 @@ export default {
 
     // The user's credit cards
     CARD_LIST: 'cardList',
+
+    // Stores information about the user's saved statements
+    WALLET_STATEMENT: 'walletStatement',
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',

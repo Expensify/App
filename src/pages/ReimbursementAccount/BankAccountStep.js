@@ -30,6 +30,7 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
+import Button from '../../components/Button';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -68,6 +69,7 @@ class BankAccountStep extends React.Component {
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
+            hasAcceptedTerms: 'common.error.acceptedTerms',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -177,7 +179,7 @@ class BankAccountStep extends React.Component {
         const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI && this.props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
-        const bankAccountRoute = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH}${ROUTES.BANK_ACCOUNT}`;
+        const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -213,12 +215,16 @@ class BankAccountStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        <MenuItem
+                        <Button
                             icon={Expensicons.Bank}
-                            title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
+                            text={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                             disabled={this.props.isPlaidDisabled || !this.props.user.validated}
+                            style={[styles.mt5, styles.mh3]}
+                            iconStyles={[styles.mr5]}
                             shouldShowRightIcon
+                            success
+                            extraLarge
                         />
                         {this.props.isPlaidDisabled && (
                             <Text style={[styles.formError, styles.mh5]}>
@@ -226,7 +232,7 @@ class BankAccountStep extends React.Component {
                             </Text>
                         )}
                         <MenuItem
-                            icon={Expensicons.Paycheck}
+                            icon={Expensicons.Connect}
                             title={this.props.translate('bankAccount.connectManually')}
                             disabled={!this.props.user.validated}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
@@ -299,9 +305,9 @@ class BankAccountStep extends React.Component {
                             errorText={this.getErrorText('accountNumber')}
                         />
                         <CheckboxWithLabel
-                            style={[styles.mb4, styles.mt5]}
+                            style={styles.mt4}
                             isChecked={this.state.hasAcceptedTerms}
-                            onPress={this.toggleTerms}
+                            onInputChange={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     <Text>
@@ -312,7 +318,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
-                            hasError={this.getErrors().hasAcceptedTerms}
+                            errorText={this.getErrorText('hasAcceptedTerms')}
                         />
                     </ReimbursementAccountForm>
                 )}

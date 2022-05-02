@@ -9,13 +9,28 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import HapticFeedback from '../libs/HapticFeedback';
+import * as Expensicons from './Icon/Expensicons';
+import colors from '../styles/colors';
 
 const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: PropTypes.bool,
+
     /** The icon asset to display to the left of the text */
     icon: PropTypes.func,
+
+    /** The icon asset to display to the right of the text */
+    iconRight: PropTypes.func,
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -25,6 +40,9 @@ const propTypes = {
 
     /** medium sized button */
     medium: PropTypes.bool,
+
+    /** Extra large sized button */
+    extraLarge: PropTypes.bool,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -46,6 +64,9 @@ const propTypes = {
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
+
+    /** The priority to assign the enter key event listener. 0 is the highest priority. */
+    enterKeyEventListenerPriority: PropTypes.number,
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([
@@ -73,21 +94,30 @@ const propTypes = {
 
     /** Should we remove the left border radius top + bottom? */
     shouldRemoveLeftBorderRadius: PropTypes.bool,
+
+    /** Should enable the haptic feedback? */
+    shouldEnableHapticFeedback: PropTypes.bool,
 };
 
 const defaultProps = {
     text: '',
+    shouldShowRightIcon: false,
     icon: null,
+    iconRight: Expensicons.ArrowRight,
+    iconFill: colors.white,
+    iconStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
     large: false,
     medium: false,
+    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
     pressOnEnter: false,
+    enterKeyEventListenerPriority: 0,
     style: [],
     innerStyles: [],
     textStyles: [],
@@ -96,6 +126,7 @@ const defaultProps = {
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
+    shouldEnableHapticFeedback: false,
 };
 
 class Button extends Component {
@@ -114,12 +145,12 @@ class Button extends Component {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
 
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.props.isDisabled || this.props.isLoading) {
+        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
+            if (this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
 
     componentWillUnmount() {
@@ -149,6 +180,7 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
+                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -160,15 +192,29 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={styles.mr1}>
-                        <Icon
-                            src={this.props.icon}
-                            fill={themeColors.heading}
-                            small={this.props.small}
-                        />
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
+                            styles.mr1,
+                            ...this.props.iconStyles,
+                        ]}
+                        >
+                            <Icon
+                                src={this.props.icon}
+                                fill={this.props.iconFill}
+                                small={this.props.small}
+                            />
+                        </View>
+                        {textComponent}
                     </View>
-                    {textComponent}
+                    {this.props.shouldShowRightIcon && (
+                        <View>
+                            <Icon
+                                src={this.props.iconRight}
+                                fill={this.props.iconFill}
+                            />
+                        </View>
+                    )}
                 </View>
             );
         }
@@ -179,8 +225,18 @@ class Button extends Component {
     render() {
         return (
             <Pressable
-                onPress={this.props.onPress}
-                onLongPress={this.props.onLongPress}
+                onPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onPress(e);
+                }}
+                onLongPress={(e) => {
+                    if (this.props.shouldEnableHapticFeedback) {
+                        HapticFeedback.trigger();
+                    }
+                    this.props.onLongPress(e);
+                }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
@@ -197,6 +253,7 @@ class Button extends Component {
                             this.props.small ? styles.buttonSmall : undefined,
                             this.props.medium ? styles.buttonMedium : undefined,
                             this.props.large ? styles.buttonLarge : undefined,
+                            this.props.extraLarge ? styles.buttonExtraLarge : undefined,
                             this.props.success ? styles.buttonSuccess : undefined,
                             this.props.danger ? styles.buttonDanger : undefined,
                             (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,

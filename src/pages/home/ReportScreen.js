@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -19,6 +20,7 @@ import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -163,6 +165,13 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
+
+        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        let reportClosedAction;
+        if (isArchivedRoom) {
+            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -174,7 +183,7 @@ class ReportScreen extends React.Component {
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
-                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
                     {!this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}
@@ -183,15 +192,27 @@ class ReportScreen extends React.Component {
                             session={this.props.session}
                         />
                     )}
-                    {this.props.session.shouldShowComposeInput && (
-                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                            <ReportActionCompose
-                                onSubmit={this.onSubmitComment}
-                                reportID={reportID}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                            />
-                        </SwipeableView>
+                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        <View style={styles.chatFooter}>
+                            {
+                                isArchivedRoom
+                                    ? (
+                                        <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
+                                            report={this.props.report}
+                                        />
+                                    ) : (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                            />
+                                        </SwipeableView>
+                                    )
+                            }
+                        </View>
                     )}
                     <KeyboardSpacer />
                 </View>

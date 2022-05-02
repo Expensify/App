@@ -212,6 +212,7 @@ class WorkspaceInitialPage extends React.Component {
                     prompt={this.props.translate('workspace.common.deleteConfirmation')}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
+                    danger
                 />
             </ScreenWrapper>
         );

@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -19,7 +20,14 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = canUseTouchScreen();
+        this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
+        this.onContainerPressIn = this.onContainerPressIn.bind(this);
+        this.onContainerPress = this.onContainerPress.bind(this);
+        this.onContainerPressOut = this.onContainerPressOut.bind(this);
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.state = {
+            isLoading: false,
             containerHeight: 0,
             containerWidth: 0,
             isZoomed: false,
@@ -58,11 +66,85 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When open image, set image left/right/top/bottom point and width, height
-     * @param {Boolean} width image width
-     * @param {Boolean} height image height
+     * @param {SyntheticEvent} e
      */
-    setImageRegion(width, height) {
+    onContainerLayoutChanged(e) {
+        const {width, height} = e.nativeEvent.layout;
+        const imageWidth = this.state.imgWidth;
+        const imageHeight = this.state.imgHeight;
+        const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+        this.setState({
+            containerHeight: height,
+            containerWidth: width,
+            zoomScale: scale,
+        });
+    }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    onContainerPressIn(e) {
+        const {pageX, pageY} = e.nativeEvent;
+        this.setState({
+            isMouseDown: true,
+            initialX: pageX,
+            initialY: pageY,
+            initialScrollLeft: this.scrollableRef.scrollLeft,
+            initialScrollTop: this.scrollableRef.scrollTop,
+        });
+    }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    onContainerPress(e) {
+        if (this.state.isZoomed && !this.state.isDragging) {
+            const {offsetX, offsetY} = e.nativeEvent;
+            const delta = this.getScrollOffset(offsetX, offsetY);
+            const sX = delta.offsetX;
+            const sY = delta.offsetY;
+            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
+            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
+        }
+
+        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+            this.setState({isDragging: false, isMouseDown: false});
+        }
+    }
+
+    onContainerPressOut() {
+        if (this.state.isDragging) {
+            return;
+        }
+
+        this.setState(prevState => ({
+            isZoomed: !prevState.isZoomed,
+            isMouseDown: false,
+        }));
+    }
+
+    /**
+     * When open image, set image left/right/top/bottom point and width, height
+     * @param {Number} imageWidth
+     * @param {Number} imageHeight
+     */
+    setImageRegion(imageWidth, imageHeight) {
+        let width = imageWidth;
+        let height = imageHeight;
+        const containerHeight = this.state.containerHeight;
+        const containerWidth = this.state.containerWidth;
+
+        // return if image not loaded yet
+        if (imageHeight <= 0 || containerHeight <= 0) {
+            return;
+        }
+
+        // Fit the image to container size if image small than container.
+        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+        if (aspectRatio > 1) {
+            width *= (aspectRatio);
+            height *= (aspectRatio);
+        }
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
@@ -86,16 +168,16 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
-        this.setState(prevState => ({
+        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
+        this.setState({
             imgWidth: width,
-            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            zoomScale: newZoomScale,
             imgHeight: height,
             imageLeft: imgLeft,
             imageTop: imgTop,
             imageRight: imgRight,
             imageBottom: imgBottom,
-        }));
+        });
     }
 
     /**
@@ -149,6 +231,14 @@ class ImageView extends PureComponent {
         this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         if (this.canUseTouchScreen) {
             return (
@@ -161,26 +251,22 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]}
-                        resizeMode="center"
+                        resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
+                    {this.state.isLoading && (
+                        <FullscreenLoadingIndicator
+                            style={[styles.opacity1, styles.bgTransparent]}
+                        />
+                    )}
                 </View>
             );
         }
-
         return (
             <View
                 ref={el => this.scrollableRef = el}
-                onLayout={(e) => {
-                    const {width, height} = e.nativeEvent.layout;
-                    const imageWidth = this.state.imgWidth;
-                    const imageHeight = this.state.imgHeight;
-                    const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
-                    this.setState({
-                        containerHeight: height,
-                        containerWidth: width,
-                        zoomScale: scale,
-                    });
-                }}
+                onLayout={this.onContainerLayoutChanged}
                 style={[
                     styles.imageViewContainer,
                     styles.overflowScroll,
@@ -193,43 +279,12 @@ class ImageView extends PureComponent {
                         ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
                             this.state.containerHeight, this.state.containerWidth),
                         ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                        ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
+                        ...this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}
-                    onPressIn={(e) => {
-                        const {pageX, pageY} = e.nativeEvent;
-                        this.setState({
-                            isMouseDown: true,
-                            initialX: pageX,
-                            initialY: pageY,
-                            initialScrollLeft: this.scrollableRef.scrollLeft,
-                            initialScrollTop: this.scrollableRef.scrollTop,
-                        });
-                    }}
-                    onPress={(e) => {
-                        if (this.state.isZoomed && !this.state.isDragging) {
-                            const {offsetX, offsetY} = e.nativeEvent;
-                            const delta = this.getScrollOffset(offsetX, offsetY);
-                            const sX = delta.offsetX;
-                            const sY = delta.offsetY;
-                            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
-                            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
-                        }
-
-                        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
-                            this.setState({isDragging: false, isMouseDown: false});
-                        }
-                    }}
-                    onPressOut={() => {
-                        if (this.state.isDragging) {
-                            return;
-                        }
-
-                        this.setState(prevState => ({
-                            isZoomed: !prevState.isZoomed,
-                            isMouseDown: false,
-                        }));
-                    }}
+                    onPressIn={this.onContainerPressIn}
+                    onPress={this.onContainerPress}
+                    onPressOut={this.onContainerPressOut}
                 >
                     <Image
                         source={{uri: this.props.url}}
@@ -237,9 +292,17 @@ class ImageView extends PureComponent {
                             styles.h100,
                             styles.w100,
                         ]}
-                        resizeMode={this.state.isZoomed ? 'contain' : 'center'}
+                        resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                 </Pressable>
+
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

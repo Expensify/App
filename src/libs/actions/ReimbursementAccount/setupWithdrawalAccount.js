@@ -231,7 +231,7 @@ function setupWithdrawalAccount(params) {
             // Example 1: When forcing manual step after adding Chase bank account via Plaid, so we can ask for the real numbers instead of the plaid substitutes
             // Example 2: When on the requestor step, showing Onfido view after submitting the identity and retrieving the sdkToken
             if (_.has(responseACHData, 'nextStepValues')) {
-                navigation.goToWithdrawalAccountSetupStep(_.get(responseACHData.nextStepValues, 'currentStep') || nextStep, {
+                navigation.goToWithdrawalAccountSetupStep(lodashGet(responseACHData, 'nextStepValues.currentStep') || nextStep, {
                     ...updatedACHData,
                     ...(_.omit(responseACHData, 'nextStepValues')),
                     ...responseACHData.nextStepValues,

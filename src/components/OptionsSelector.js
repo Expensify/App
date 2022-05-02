@@ -1,13 +1,14 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import OptionsList from './OptionsList';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Wether we should wait before focusing the TextInput, useful when using transitions  */
@@ -67,6 +68,12 @@ const propTypes = {
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
+    /** Whether to autofocus the search input on mount */
+    autoFocus: PropTypes.bool,
+
+    /** Whether to show options list */
+    shouldShowOptions: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +90,8 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
+    autoFocus: true,
+    shouldShowOptions: true,
 };
 
 class OptionsSelector extends Component {
@@ -92,6 +101,7 @@ class OptionsSelector extends Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
+        this.relatedTarget = null;
 
         this.state = {
             focusedIndex: 0,
@@ -99,6 +109,10 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
+        if (!this.props.autoFocus) {
+            return;
+        }
+
         if (this.props.shouldDelayFocus) {
             setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
@@ -122,6 +136,10 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
+        if (!this.list) {
+            return;
+        }
+
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -161,7 +179,6 @@ class OptionsSelector extends Component {
                     return {focusedIndex: newFocusedIndex};
                 });
 
-
                 e.preventDefault();
                 break;
             }
@@ -191,10 +208,16 @@ class OptionsSelector extends Component {
      * Completes the follow up actions after a row is selected
      *
      * @param {Object} option
+     * @param {Object} ref
      */
-    selectRow(option) {
+    selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
-            this.textInput.focus();
+            // Input is permanently focused on native platforms, so we always highlight the text inside of it
+            this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
+            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+                this.textInput.focus();
+            }
+            this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
     }
@@ -206,27 +229,43 @@ class OptionsSelector extends Component {
                     <TextInput
                         ref={el => this.textInput = el}
                         value={this.props.value}
-                        onChangeText={this.props.onChangeText}
+                        onChangeText={(text) => {
+                            if (this.props.shouldFocusOnSelectRow) {
+                                this.textInput.setNativeProps({selection: null});
+                            }
+                            this.props.onChangeText(text);
+                        }}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        onBlur={(e) => {
+                            if (!this.props.shouldFocusOnSelectRow) {
+                                return;
+                            }
+                            this.relatedTarget = e.relatedTarget;
+                        }}
+                        selectTextOnFocus
                     />
                 </View>
-                <OptionsList
-                    ref={el => this.list = el}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    onSelectRow={this.selectRow}
-                    sections={this.props.sections}
-                    focusedIndex={this.state.focusedIndex}
-                    selectedOptions={this.props.selectedOptions}
-                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                    hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
-                    disableFocusOptions={this.props.disableArrowKeysActions}
-                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                    showTitleTooltip={this.props.showTitleTooltip}
-                />
+                {this.props.shouldShowOptions
+                    ? (
+                        <OptionsList
+                            ref={el => this.list = el}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            onSelectRow={this.selectRow}
+                            sections={this.props.sections}
+                            focusedIndex={this.state.focusedIndex}
+                            selectedOptions={this.props.selectedOptions}
+                            canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                            hideSectionHeaders={this.props.hideSectionHeaders}
+                            headerMessage={this.props.headerMessage}
+                            disableFocusOptions={this.props.disableArrowKeysActions}
+                            hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                            forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                            showTitleTooltip={this.props.showTitleTooltip}
+                        />
+                    )
+                    : <FullScreenLoadingIndicator />}
             </View>
         );
     }

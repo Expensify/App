@@ -8,7 +8,7 @@ import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
-import OptionRow from '../home/sidebar/OptionRow';
+import OptionRow from '../../components/OptionRow';
 import TextInput from '../../components/TextInput';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -204,9 +204,15 @@ class IOUCurrencySelection extends Component {
                                     )}
                                     renderSectionHeader={({section: {title}}) => (
                                         <View>
-                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                                                {title}
-                                            </Text>
+                                            {this.state.currencyData.length === 0 ? (
+                                                <Text style={[styles.ph5, styles.textLabel, styles.colorMuted]}>
+                                                    {this.props.translate('common.noResultsFound')}
+                                                </Text>
+                                            ) : (
+                                                <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                                    {title}
+                                                </Text>
+                                            )}
                                         </View>
                                     )}
                                 />

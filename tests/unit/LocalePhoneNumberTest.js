@@ -5,7 +5,6 @@ describe('localePhoneNumber', () => {
         expect(localePhoneNumber.toLocalPhone('es-ES', '34547474747474')).toBe('547474747474');
     });
 
-
     // Failing due to the use of Trimstart.
     it('Test to local Number Conversion by locale', () => {
         expect(localePhoneNumber.toLocalPhone('es-ES', '343434343434')).toBe('3434343434');

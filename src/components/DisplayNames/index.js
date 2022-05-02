@@ -66,7 +66,6 @@ class DisplayNames extends PureComponent {
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }
 
-
     render() {
         if (!this.props.tooltipEnabled) {
             // No need for any complex text-splitting, just return a simple Text component

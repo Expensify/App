@@ -11,10 +11,10 @@ curl https://json.schemastore.org/github-action.json --output ./tempSchemas/gith
 curl https://json.schemastore.org/github-workflow.json --output ./tempSchemas/github-workflow.json --silent || exit 1
 
 # Validate the actions and workflows using the JSON schemas and ajv https://github.com/ajv-validator/ajv-cli
-find ./actions/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-action.json -d file --strict=false || EXIT_CODE=1
-find ./workflows/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-workflow.json -d file --strict=false || EXIT_CODE=1
+find ./actions -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-action.json -d file --strict=false || EXIT_CODE=1
+find ./workflows -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-workflow.json -d file --strict=false || EXIT_CODE=1
 
-if (( $EXIT_CODE != 0 )); then
+if (( "$EXIT_CODE" != 0 )); then
   exit $EXIT_CODE
 fi
 

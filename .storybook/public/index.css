@@ -18,3 +18,7 @@ a.sidebar-item > svg {
     background: #ff7101;
     color: #fff;
 }
+
+.sidebar-container {
+    background: #0b1b34;
+}

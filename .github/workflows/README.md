@@ -48,6 +48,7 @@ We've found that the best way to avoid this pitfall is to always wrap any refere
 1. Review all modifications to our workflows with extra scrutiny, it is important to get it correct the first time.
 1. Test workflow changes in your own public fork, for example: https://github.com/Andrew-Test-Org/Public-Test-Repo
 1. Only trusted users will be allowed write access to the repository, however, it's good to add logic checks in actions to prevent human error.
+1. Do not add repo secrets to the environment at the workflow or job level. Only add them to the environment at the step level.
 
 ## Further Reading 📖
 1. https://securitylab.github.com/research/github-actions-preventing-pwn-requests
@@ -57,23 +58,23 @@ We've found that the best way to avoid this pitfall is to always wrap any refere
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
-   2. `android/app/android-fastlane-json-key.json.gpg`
-   3. `ios/chat_expensify_appstore.mobileprovision`
-   4. `ios/Certificates.p12.gpg`
-2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
-3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
-4. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
-5. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-6. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-7. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
-8. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-9. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
-10. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
-11. `CLOUDFLARE_TOKEN` - Required for hosting website
-12. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
-13. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
-14. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
-15. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+   1. `android/app/android-fastlane-json-key.json.gpg`
+   1. `ios/chat_expensify_appstore.mobileprovision`
+   1. `ios/Certificates.p12.gpg`
+1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
+1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
+1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+1. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
+1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
+1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
+1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
+1. `CLOUDFLARE_TOKEN` - Required for hosting website
+1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
+1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 
 ## Actions
 
@@ -81,9 +82,9 @@ All these _workflows_ are comprised of atomic _actions_. Most of the time, we ca
 
 All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). Each action is a module comprised of three parts:
 
-1) An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
-2) A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
-3) A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
+1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
+1. A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
+1. A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
 
 ### Why do actions need to be compiled?
 

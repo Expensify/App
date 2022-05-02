@@ -109,12 +109,25 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
                     walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                 });
                 Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
-            } else {
-                Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+                return;
             }
-        })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+
+            // Make sure to show user more specific errors which will help support identify the problem faster.
+            switch (response.message) {
+                case CONST.WALLET.ERROR.INVALID_WALLET:
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
+                case CONST.WALLET.ERROR.INVALID_FUND:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
+                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
+                    return;
+                default:
+                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
+            }
         });
 }
 

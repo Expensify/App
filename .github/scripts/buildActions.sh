@@ -22,6 +22,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
     "$ACTIONS_DIR/triggerWorkflowAndWait/triggerWorkflowAndWait.js"
+    "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
+import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -16,16 +17,11 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
+const BUTTON = 'button';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
-
-    /** Are we loading payments from the server? */
-    isLoadingPayments: PropTypes.bool,
-
-    /** Is the payment options menu open / active? */
-    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -80,8 +76,6 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
-    isLoadingPayments: false,
-    isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -97,12 +91,34 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
+     * @param {Boolean} isDefault
+     * @returns {*}
+     */
+    getDefaultBadgeText(isDefault = false) {
+        if (!isDefault) {
+            return null;
+        }
+
+        const defaultablePaymentMethodCount = _.reduce(this.getFilteredPaymentMethods(), (count, method) => (
+            (method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD)
+                ? count + 1
+                : count
+        ), 0);
+        if (defaultablePaymentMethodCount <= 1) {
+            return null;
+        }
+
+        return this.props.translate('paymentMethodList.defaultPaymentMethod');
+    }
+
+    /**
      * @returns {Array}
      */
-    createPaymentMethodList() {
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
+    getFilteredPaymentMethods() {
+        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
+        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -111,10 +127,21 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
+
+        return combinedPaymentMethods;
+    }
+
+    /**
+     * Take all of the different payment methods and create a list that can be easily digested by renderItem
+     *
+     * @returns {Array}
+     */
+    createPaymentMethodList() {
+        const combinedPaymentMethods = this.getFilteredPaymentMethods();
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {
@@ -129,14 +156,16 @@ class PaymentMethodList extends Component {
         }
 
         combinedPaymentMethods.push({
-            type: MENU_ITEM,
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.Plus,
+            type: BUTTON,
+            text: this.props.translate('paymentMethodList.addPaymentMethod'),
+            icon: Expensicons.CreditCard,
+            style: [styles.mh4],
+            iconStyles: [styles.mr4],
             onPress: e => this.props.onPress(e),
+            isDisabled: this.props.isLoadingPayments,
+            shouldShowRightIcon: true,
+            success: true,
             key: 'addPaymentMethodButton',
-            disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -172,10 +201,25 @@ class PaymentMethodList extends Component {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    badgeText={item.isDefault ? this.props.translate('paymentMethodList.defaultPaymentMethod') : null}
+                    badgeText={this.getDefaultBadgeText(item.isDefault)}
                     wrapperStyle={item.wrapperStyle}
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
+                />
+            );
+        }
+        if (item.type === BUTTON) {
+            return (
+                <Button
+                    text={item.text}
+                    icon={item.icon}
+                    onPress={item.onPress}
+                    isDisabled={item.isDisabled}
+                    style={item.style}
+                    iconStyles={item.iconStyles}
+                    success={item.success}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
+                    extraLarge
                 />
             );
         }

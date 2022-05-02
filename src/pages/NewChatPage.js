@@ -60,11 +60,7 @@ class NewChatPage extends Component {
         this.createGroup = this.createGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
-            CONST.EMAIL.CONCIERGE,
-            CONST.EMAIL.RECEIPTS,
-            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-        ]);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
         const {
             recentReports,
@@ -108,21 +104,27 @@ class NewChatPage extends Component {
             }
         }
 
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const recentReportsWithoutSelected = _.filter(this.state.recentReports, ({login}) => !filterText.includes(login));
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
+
         sections.push({
             title: this.props.translate('common.recents'),
-            data: this.state.recentReports,
-            shouldShow: !_.isEmpty(this.state.recentReports),
+            data: recentReportsWithoutSelected,
+            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite) {
+        if (hasUnselectedUserToInvite) {
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
@@ -175,8 +177,8 @@ class NewChatPage extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
-                newSelectedOptions,
+                prevState.searchValue,
+                [],
                 this.excludedGroupEmails,
             );
 
@@ -185,7 +187,7 @@ class NewChatPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchValue: prevState.searchValue,
             };
         });
     }
@@ -229,7 +231,7 @@ class NewChatPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <>
                                     <OptionsSelector
@@ -262,6 +264,7 @@ class NewChatPage extends Component {
                                         disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
+                                        shouldFocusOnSelectRow={this.props.isGroupChat}
                                     />
                                     {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>

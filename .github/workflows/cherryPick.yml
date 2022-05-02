@@ -142,15 +142,15 @@ jobs:
 
       - name: Create Pull Request
         id: createPullRequest
-        # Version: 2.4.3
-        uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
-        with:
-          source_branch: ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          destination_branch: staging
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
-          pr_body: '🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
-          pr_label: automerge
+        run: |
+          gh pr create \
+            --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
+            --body "🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
+            --label "automerge" \
+            --base "staging"
+          echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
@@ -158,51 +158,42 @@ jobs:
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
-        uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
-        with:
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          labels: |
-            Engineering
-            Hourly
+        run: gh pr edit --add-label "Engineering,Hourly"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assign the PR to the deployer
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
-        uses: actions-ecosystem/action-add-assignees@a73fcabd82d847c5e7433fcfdd58ef9f7e8a3993
-        with:
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
+        run: gh pr edit --add-assignee ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: If PR has merge conflicts, comment with instructions for assignee
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          body: |
-            This pull request has merge conflicts and can not be automatically merged. :disappointed:
-            Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
-            **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving.
+        run: |
+          gh pr comment --body \
+          "This pull request has merge conflicts and can not be automatically merged. :disappointed:
+           Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
+           **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: If PR has a bundle version mismatch, comment with the instructions for assignee
         if: ${{ !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.createPullRequest.outputs.pr_number }}
-          body: |
-            The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
-            Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
-            **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers.
+        run: |
+          gh pr comment --body \
+          "The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
+           Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
+           **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers."
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Check for an auto approve
+      - name: Auto-approve the PR
         # Important: only auto-approve if there was no merge conflict!
         if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
-        # Version: 2.0.0
-        uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
+        run: gh pr review --approve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
@@ -211,18 +202,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
-      - name: Check for an auto merge
-        # Important: only auto-merge if there was no merge conflict!
+      - name: Auto-merge the PR
+        # Important: only auto-merge if there was no merge conflict and the PR is mergable (not blocked by a missing status check)!
         if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
-        # Version: 0.12.0
-        uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
+        run: gh pr merge --merge --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: 'Announces a CP failure in the #announce Slack room'
         uses: 8398a7/action-slack@v3
-        if: ${{ failure() }}
+        if: ${{ failure() || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         with:
           status: custom
           custom_payload: |

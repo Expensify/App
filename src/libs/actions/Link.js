@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -40,7 +39,7 @@ function openOldDotLink(url) {
     }
 
     function buildOldDotURL({shortLivedAuthToken}) {
-        return `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
     }
 
     asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
@@ -54,7 +53,7 @@ function openExternalLink(url) {
         return;
     }
 
-    Linking.openURL(url);
+    asyncOpenURL(Promise.resolve(), url);
 }
 
 export {

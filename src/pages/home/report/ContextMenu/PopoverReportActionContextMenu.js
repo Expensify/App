@@ -101,7 +101,7 @@ class PopoverReportActionContextMenu extends React.Component {
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {string} type - context menu type [LINK, REPORT_ACTION]
+     * @param {string} type - context menu type [EMAIL, LINK, REPORT_ACTION]
      * @param {Object} [event] - A press event.
      * @param {string} [selection] - A copy text.
      * @param {Element} contextMenuAnchor - popoverAnchor
@@ -305,6 +305,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
+                    danger
                 />
             </>
         );

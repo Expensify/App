@@ -16,6 +16,10 @@ export default {
         minHeight: '100%',
     },
 
+    mnw2: {
+        minWidth: 8,
+    },
+
     w50: {
         width: '50%',
     },

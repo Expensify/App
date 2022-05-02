@@ -37,8 +37,8 @@ const propTypes = {
         /** The MIME type of the attachment. */
         type: PropTypes.string,
 
-        /** The source of attachment */
-        uri: PropTypes.string,
+        /** Attachment's URL represents the specified File object or Blob object  */
+        source: PropTypes.string,
     }),
 
     /** Does this fragment belong to a reportAction that has not yet loaded? */
@@ -59,7 +59,7 @@ const defaultProps = {
         name: '',
         size: 0,
         type: '',
-        uri: '',
+        source: '',
     },
     loading: false,
     isSingleLine: false,
@@ -76,7 +76,7 @@ const ReportActionItemFragment = (props) => {
                         {Str.isImage(props.attachmentInfo.name)
                             ? (
                                 <ImageBackground
-                                    source={{uri: props.attachmentInfo.uri}}
+                                    source={{uri: props.attachmentInfo.source}}
                                     resizeMode="cover"
                                     imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
                                     style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
@@ -114,9 +114,7 @@ const ReportActionItemFragment = (props) => {
                                 fontSize={variables.fontSizeSmall}
                                 color={themeColors.textSupporting}
                             >
-                                {/* Native devices do not support margin between nested Text */}
-                                <Text style={styles.w1}>{' '}</Text>
-                                {props.translate('reportActionCompose.edited')}
+                                {` ${props.translate('reportActionCompose.edited')}`}
                             </Text>
                         )}
                     </Text>

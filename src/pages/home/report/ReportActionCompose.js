@@ -12,7 +12,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import TextInputFocusable from '../../../components/TextInputFocusable';
+import Composer from '../../../components/Composer';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -35,16 +35,16 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
-import {participantPropTypes} from '../sidebar/optionPropTypes';
-import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
-import EmojiPicker from '../../../components/EmojiPicker';
+import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -64,9 +64,6 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -91,10 +88,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -110,10 +104,8 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -154,6 +146,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -226,10 +219,6 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.isArchivedRoom(this.props.report)) {
-            return this.props.translate('reportActionCompose.roomIsArchived');
-        }
-
         if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
@@ -280,8 +269,8 @@ class ReportActionCompose extends React.Component {
                 // Keyboard is not opened after Emoji Picker is closed
                 // SetTimeout is used as a workaround
                 // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 50ms is found enough for keyboard to open.
-                setTimeout(() => this.textInput.focus(), 50);
+                // We carefully choose a delay. 100ms is found enough for keyboard to open.
+                setTimeout(() => this.textInput.focus(), 100);
             }
         });
     }
@@ -312,7 +301,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.length === 0,
+            isCommentEmpty: newComment.trim().length === 0,
         });
 
         // Indicate that draft has been created.
@@ -350,8 +339,8 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed
-        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -378,8 +367,8 @@ class ReportActionCompose extends React.Component {
 
         const trimmedComment = this.comment.trim();
 
-        // Don't submit empty comments
-        if (!trimmedComment) {
+        // Don't submit empty comments or comments that exceed the character limit
+        if (!trimmedComment || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -388,11 +377,14 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
+
+        // Important to reset the selection on Submit action
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
     }
 
     render() {
         // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.myPersonalDetails)) {
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -400,20 +392,16 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
+        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[
-                styles.chatItemCompose,
-                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
-            ]}
-            >
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -422,10 +410,11 @@ class ReportActionCompose extends React.Component {
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow,
+                    hasExceededMaxCommentLength && styles.borderColorDanger,
                 ]}
                 >
                     <AttachmentModal
-                        isUploadingAttachment
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -446,7 +435,7 @@ class ReportActionCompose extends React.Component {
                                                         }}
                                                         style={styles.chatItemAttachButton}
                                                         underlayColor={themeColors.componentBG}
-                                                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                        disabled={isBlockedFromConcierge}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
@@ -473,8 +462,7 @@ class ReportActionCompose extends React.Component {
                                                                             ),
                                                                         );
                                                                     },
-                                                                }
-                                                                : {
+                                                                } : {
                                                                     icon: Expensicons.MoneyCircle,
                                                                     text: this.props.translate('iou.requestMoney'),
                                                                     onSelected: () => {
@@ -515,7 +503,7 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <TextInputFocusable
+                                <Composer
                                     autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
@@ -552,36 +540,40 @@ class ReportActionCompose extends React.Component {
                                     }}
                                     style={[styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
-                                    maxLines={16} // This is the same that slack has
+                                    maxLines={this.props.isSmallScreenWidth ? 6 : 16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge || isArchivedChatRoom}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
-
                             </>
                         )}
                     </AttachmentModal>
-                    <EmojiPicker
-                        isDisabled={isBlockedFromConcierge || isArchivedChatRoom}
-                        onModalHide={() => this.focus(true)}
-                        onEmojiSelected={this.addEmojiToTextBox}
-                        onBeforeShowEmojiPicker={() => this.textInput.blur()}
-                    />
+                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
+                        <EmojiPickerButton
+                            isDisabled={isBlockedFromConcierge}
+                            onModalHide={() => this.focus(true)}
+                            onEmojiSelected={this.addEmojiToTextBox}
+                        />
+                    )}
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
                                 style={[
                                     styles.chatItemSubmitButton,
-                                    this.state.isCommentEmpty ? styles.buttonDisable : styles.buttonSuccess,
+                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? styles.buttonDisable : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+
+                                // Keep focus on the composer when Send message is clicked.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                onMouseDown={e => e.preventDefault()}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
@@ -591,24 +583,31 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                {this.props.network.isOffline ? (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <View style={[
-                            styles.chatItemComposeSecondaryRowOffset,
-                            styles.flexRow,
-                            styles.alignItemsCenter]}
-                        >
-                            <Icon
-                                src={Expensicons.Offline}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </Text>
-                        </View>
+                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
+                    <View>
+                        {this.props.network.isOffline ? (
+                            <View style={[
+                                styles.chatItemComposeSecondaryRowOffset,
+                                styles.flexRow,
+                                styles.alignItemsCenter]}
+                            >
+                                <Icon
+                                    src={Expensicons.Offline}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                />
+                                <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                                </Text>
+                            </View>
+                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
                     </View>
-                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
+                    {hasExceededMaxCommentLength && (
+                        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
+                            {`${this.comment.length}/${CONST.MAX_COMMENT_LENGTH}`}
+                        </Text>
+                    )}
+                </View>
             </View>
         );
     }
@@ -633,9 +632,6 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,

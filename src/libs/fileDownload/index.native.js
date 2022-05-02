@@ -34,7 +34,6 @@ function hasAndroidPermission() {
     });
 }
 
-
 /**
  * Re useable alert function
  * @param {Object} content
@@ -47,7 +46,6 @@ function showAlert(content) {
         {cancelable: false},
     );
 }
-
 
 /**
  * Handling the download
@@ -107,7 +105,6 @@ function handleDownload(url, fileName) {
         });
     });
 }
-
 
 /**
  * Platform specifically check download

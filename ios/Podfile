@@ -17,7 +17,6 @@ target 'NewExpensify' do
     :hermes_enabled => true
   )
 
-  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
 
   target 'NewExpensifyTests' do
     inherit! :complete

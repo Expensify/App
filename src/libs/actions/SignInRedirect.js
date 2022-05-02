@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as MainQueue from '../Network/MainQueue';
 
 let currentActiveClients;
 Onyx.connect({
@@ -38,12 +39,16 @@ function clearStorageAndRedirect(errorMessage) {
 }
 
 /**
- * Clears the Onyx store and redirects to the sign in page.
+ * Cleanup actions resulting in the user being redirected to the Sign-in page
+ * - Clears the Onyx store - removing the authToken redirects the user to the Sign-in page
+ * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
+    MainQueue.clear();
     clearStorageAndRedirect(errorMessage);
 }
 

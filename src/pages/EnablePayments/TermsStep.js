@@ -45,14 +45,22 @@ class TermsStep extends React.Component {
         };
     }
 
+    clearError() {
+        if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            return;
+        }
+
+        this.setState({error: false});
+    }
+
     toggleDisclosure() {
-        this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}));
+        this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}), () => this.clearError());
     }
 
     togglePrivacyPolicy() {
         this.setState(prevState => ({
             hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
-        }));
+        }), () => this.clearError());
     }
 
     render() {
@@ -68,7 +76,7 @@ class TermsStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb4, styles.mt4]}
                         isChecked={this.state.hasAcceptedDisclosure}
-                        onPress={this.toggleDisclosure}
+                        onInputChange={this.toggleDisclosure}
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')}`}
@@ -79,9 +87,8 @@ class TermsStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
-                        style={styles.mb4}
                         isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
-                        onPress={this.togglePrivacyPolicy}
+                        onInputChange={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <>
                                 <Text>
@@ -102,12 +109,12 @@ class TermsStep extends React.Component {
                     />
                     {this.state.error && (
                         <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('termsStep.termsMustBeAccepted')}
+                            {this.props.translate('common.error.acceptedTerms')}
                         </Text>
                     )}
                     <Button
                         success
-                        style={styles.mb4}
+                        style={[styles.mv4]}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {

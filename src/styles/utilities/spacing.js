@@ -37,6 +37,10 @@ export default {
         marginHorizontal: 12,
     },
 
+    mh4: {
+        marginHorizontal: 16,
+    },
+
     mh5: {
         marginHorizontal: 20,
     },
@@ -107,6 +111,10 @@ export default {
 
     ml5: {
         marginLeft: 20,
+    },
+
+    ml8: {
+        marginLeft: 32,
     },
 
     mln5: {
@@ -284,6 +292,10 @@ export default {
 
     pr15: {
         paddingRight: 60,
+    },
+
+    pl1: {
+        paddingLeft: 4,
     },
 
     pl5: {

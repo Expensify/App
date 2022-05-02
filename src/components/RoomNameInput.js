@@ -1,21 +1,16 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
-import TextInputWithPrefix from './TextInputWithPrefix';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
     onChangeText: PropTypes.func,
-
-    /** Callback to execute when an error gets found/cleared/modified */
-    onChangeError: PropTypes.func,
 
     /** Initial room name to show in input field. This should include the '#' already prefixed to the name */
     initialValue: PropTypes.string,
@@ -23,8 +18,8 @@ const propTypes = {
     /** Whether we should show the input as disabled */
     disabled: PropTypes.bool,
 
-    /** ID of policy whose room names we should be checking for duplicates */
-    policyID: PropTypes.string,
+    /** Error text to show */
+    errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
     ...fullPolicyPropTypes,
@@ -52,40 +47,27 @@ const propTypes = {
 
 const defaultProps = {
     onChangeText: () => {},
-    onChangeError: () => {},
     initialValue: '',
     disabled: false,
-    policyID: '',
+    errorText: '',
     ...fullPolicyDefaultProps,
 };
 
 class RoomNameInput extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            roomName: props.initialValue,
-            error: '',
-        };
 
-        this.originalRoomName = props.initialValue;
-
-        this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
-        this.checkExistingRoomName = this.checkExistingRoomName.bind(this);
+        this.setModifiedRoomName = this.setModifiedRoomName.bind(this);
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // As we are modifying the text input, we'll bubble up any changes/errors so the parent component can see it
-        if (prevState.roomName !== this.state.roomName) {
-            this.props.onChangeText(this.state.roomName);
-        }
-        if (prevState.error !== this.state.error) {
-            this.props.onChangeError(this.state.error);
-        }
-
-        // If the selected policyID has changed we need to check if the room name already exists on this new policy.
-        if (prevProps.policyID !== this.props.policyID) {
-            this.checkExistingRoomName(this.state.roomName);
-        }
+    /**
+     * Calls the onChangeText callback with a modified room name
+     * @param {Event} event
+     */
+    setModifiedRoomName(event) {
+        const roomName = event.nativeEvent.text;
+        const modifiedRoomName = this.modifyRoomName(roomName);
+        this.props.onChangeText(modifiedRoomName);
     }
 
     /**
@@ -93,76 +75,29 @@ class RoomNameInput extends Component {
      * - Max length 80 characters
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
-     * Also checks to see if this room name already exists, and displays an error message if so.
-     * @param {Event} event
-     *
+     * @param {String} roomName
+     * @returns {String}
      */
-    checkAndModifyRoomName(event) {
-        const nativeEvent = event.nativeEvent;
-        const roomName = nativeEvent.text;
-        const target = nativeEvent.target;
-        const selection = target.selectionStart;
-
+    modifyRoomName(roomName) {
         const modifiedRoomNameWithoutHash = roomName
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
-            .substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
 
-        this.checkExistingRoomName(finalRoomName);
-
-        this.setState({
-            roomName: finalRoomName,
-        }, () => {
-            if (!selection) {
-                return;
-            }
-            target.selectionEnd = selection;
-        });
+        return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
     }
-
-    /**
-     * Checks to see if this room name already exists, and displays an error message if so.
-     * @param {String} roomName
-     *
-     */
-    checkExistingRoomName(roomName) {
-        const isExistingRoomName = _.some(
-            _.values(this.props.reports),
-            report => report && report.policyID === this.props.policyID && report.reportName === roomName,
-        );
-
-        let error = '';
-
-        // We error if the room name already exists. We don't care if it matches the original name provided in this
-        // component because then we are not changing the room's name.
-        if (isExistingRoomName && roomName !== this.originalRoomName) {
-            error = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        }
-
-        // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (_.contains(CONST.REPORT.RESERVED_ROOM_NAMES, roomName)) {
-            error = this.props.translate('newRoomPage.roomNameReservedError');
-        }
-
-        this.setState({
-            error,
-        });
-    }
-
 
     render() {
         return (
-            <TextInputWithPrefix
+            <TextInput
                 disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
-                prefixCharacter="#"
+                prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
-                containerStyles={[styles.mb5]}
-                onChange={this.checkAndModifyRoomName}
-                value={this.state.roomName.substring(1)}
-                errorText={this.state.error}
+                onChange={this.setModifiedRoomName}
+                defaultValue={this.props.initialValue.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
+                errorText={this.props.errorText}
                 autoCapitalize="none"
             />
         );
