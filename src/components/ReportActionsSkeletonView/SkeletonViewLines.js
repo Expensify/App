@@ -15,8 +15,8 @@ const SkeletonViewLines = props => (
         <Circle cx="50" cy="26" r="20" />
         <Rect x="90" y="11" width="20%" height="8" />
         <Rect x="90" y="31" width="90%" height="8" />
-        { props.numberOfRows < 3 && <Rect x="90" y="51" width="50%" height="8" /> }
-        { props.numberOfRows < 4 && <Rect x="90" y="71" width="50%" height="8" /> }
+        { props.numberOfRows > 1 && <Rect x="90" y="51" width="50%" height="8" /> }
+        { props.numberOfRows > 2 && <Rect x="90" y="71" width="50%" height="8" /> }
     </SkeletonViewContentLoader>
 );
 
