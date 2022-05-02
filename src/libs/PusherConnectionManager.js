@@ -1,6 +1,8 @@
+import lodashGet from 'lodash/get';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
+import CONST from '../CONST';
 
 function init() {
     /**
@@ -16,17 +18,29 @@ function init() {
     }));
 
     /**
-     * Events that happen on the pusher socket are used to determine if the app is online or offline.
-     * The offline setting is stored in Onyx so the rest of the app has access to it.
-     *
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName, data) => {
+    Pusher.registerSocketEventCallback((eventName, error) => {
         switch (eventName) {
-            case 'error':
-                Log.info('[PusherConnectionManager] error event', false, {error: data});
-                Session.reauthenticatePusher();
+            case 'error': {
+                const errorType = lodashGet(error, 'type');
+                const code = lodashGet(error, 'data.code');
+                if (errorType === CONST.ERROR.PUSHER_ERROR && code === 1006) {
+                    // 1006 code happens when a websocket connection is closed. There may or may not be a reason attached indicating why the connection was closed.
+                    // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
+                    Log.hmmm('[PusherConnectionManager] Channels Error 1006', {error});
+                } else if (errorType === CONST.ERROR.PUSHER_ERROR && code === 4201) {
+                    // This means the connection was closed because Pusher did not recieve a reply from the client when it pinged them for a response
+                    // https://pusher.com/docs/channels/library_auth_reference/pusher-websockets-protocol/#4200-4299
+                    Log.hmmm('[PusherConnectionManager] Pong reply not received', {error});
+                } else if (errorType === CONST.ERROR.WEB_SOCKET_ERROR) {
+                    // It's not clear why some errors are wrapped in a WebSocketError type - this error could mean different things depending on the contents.
+                    Log.hmmm('[PusherConnectionManager] WebSocketError', {error});
+                } else {
+                    Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
+                }
                 break;
+            }
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event');
                 break;
@@ -34,6 +48,7 @@ function init() {
                 Log.info('[PusherConnectionManager] disconnected event');
                 break;
             default:
+                Log.info('[PusherConnectionManager] unhandled event', false, {eventName});
                 break;
         }
     });

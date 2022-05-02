@@ -11,7 +11,7 @@ class BasePicker extends React.Component {
         super(props);
 
         this.state = {
-            selectedValue: this.props.value || this.props.defaultValue,
+            selectedValue: this.props.defaultValue,
         };
 
         this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
@@ -31,7 +31,7 @@ class BasePicker extends React.Component {
                 style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
-                value={this.state.selectedValue}
+                value={this.props.value || this.state.selectedValue}
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug

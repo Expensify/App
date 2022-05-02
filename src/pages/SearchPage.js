@@ -16,7 +16,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -177,19 +176,17 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    sections={sections}
-                                    value={this.state.searchValue}
-                                    onSelectRow={this.selectReport}
-                                    onChangeText={this.onChangeText}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    showTitleTooltip
-                                />
-                            )}
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={this.onChangeText}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
+                                shouldShowOptions={didScreenTransitionEnd}
+                            />
                         </View>
                         <KeyboardSpacer />
                     </>

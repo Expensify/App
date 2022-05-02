@@ -86,7 +86,6 @@ const CONST = {
             PENDING: 'PENDING',
         },
         MAX_LENGTH: {
-            TAX_ID_NUMBER: 9,
             SSN: 4,
             ZIP_CODE: 5,
         },
@@ -322,6 +321,8 @@ const CONST = {
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
         SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
         FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
@@ -398,6 +399,8 @@ const CONST = {
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
+    ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -414,7 +417,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
 
-    COMPOSER_MAX_HEIGHT: 116,
+    COMPOSER_MAX_HEIGHT: 125,
 
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
@@ -637,6 +640,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
+        TAX_ID: /^\d{9}$/,
+        NON_NUMERIC: /\D/g,
     },
 
     PRONOUNS: {
@@ -674,6 +679,9 @@ const CONST = {
             this.EMAIL.ADMIN,
         ];
     },
+
+    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
+    MAX_COMMENT_LENGTH: 60000,
 };
 
 export default CONST;

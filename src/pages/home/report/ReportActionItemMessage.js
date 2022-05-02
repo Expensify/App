@@ -8,23 +8,17 @@ import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The report action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     /** localization props */
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    network: {isOffline: false},
 };
 
 const ReportActionItemMessage = (props) => {
@@ -46,7 +40,6 @@ const ReportActionItemMessage = (props) => {
 };
 
 ReportActionItemMessage.propTypes = propTypes;
-ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default compose(
