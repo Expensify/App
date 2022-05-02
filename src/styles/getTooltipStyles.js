@@ -62,12 +62,13 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @param {Number} componentHeight - The height of the wrapped component.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
+ * @param {Number} tooltipTextWidth - The tooltip's inner text width.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Number} wrapperWidth - Calculated width for tooltip's wrapper
+ * @param {Number} maxWidth - The tooltip's max width.
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -79,9 +80,10 @@ export default function getTooltipStyles(
     componentHeight,
     tooltipWidth,
     tooltipHeight,
+    tooltipTextWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
-    wrapperWidth,
+    maxWidth,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
@@ -94,6 +96,15 @@ export default function getTooltipStyles(
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
+
+    // We get wrapper width based on tooltip's inner text width so the wrapper
+    // is just big enough to fit text and prevent white space
+    const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
+
+        // Add horizontal padding to the text width to get the wrapper width.
+        // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
+        ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
+        : maxWidth;
 
     return {
         animationStyle: {

@@ -4,7 +4,6 @@ import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
-import spacing from '../../styles/utilities/spacing';
 
 const propTypes = {
     /** Window width */
@@ -83,14 +82,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     render() {
-        // We get wrapper width based on tooltip's inner text width so the wrapper
-        // is just big enough to fit text and prevent white space
-        const wrapperWidth = this.state.tooltipTextWidth && this.state.tooltipTextWidth < this.props.maxWidth
-
-            // Add horizontal padding to the text width to get the wrapper width.
-            // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-            ? this.state.tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
-            : this.props.maxWidth;
         const {
             animationStyle,
             tooltipWrapperStyle,
@@ -106,9 +97,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.wrapperHeight,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
+            this.state.tooltipTextWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
-            wrapperWidth,
+            this.props.maxWidth,
         );
         return ReactDOM.createPortal(
             <Animated.View
