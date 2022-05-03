@@ -180,7 +180,11 @@ const AddressSearch = (props) => {
                         onBlur: props.onBlur,
                         autoComplete: 'off',
                         onInputChange: (text) => {
-                            props.onInputChange(text);
+                            if (props.isFormInput) {
+                                props.onInputChange(text);
+                            } else {
+                                props.onInputChange({street: text});
+                            }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
                             if (_.isEmpty(text)) {
