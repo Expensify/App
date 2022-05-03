@@ -2,8 +2,8 @@ import React from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
 import {View} from 'react-native';
 import _ from 'underscore';
-import withLocalize from '../../withLocalize';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
+import withLocalize from '../../../withLocalize';
+import htmlRendererPropTypes from '../htmlRendererPropTypes';
 
 const PreRenderer = (props) => {
     const TDefaultRenderer = props.TDefaultRenderer;
