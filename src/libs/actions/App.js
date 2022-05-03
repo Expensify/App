@@ -12,8 +12,9 @@ import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import * as BankAccounts from './BankAccounts';
+import * as Policy from './Policy';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import NetworkConnection from '../NetworkConnection';
 
 let currentUserAccountID;
@@ -90,9 +91,10 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Fetches data needed for app initialization
  *
+ * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-function getAppData() {
+function getAppData(shouldSyncPolicyList = true) {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
@@ -101,9 +103,16 @@ function getAppData() {
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
     GeoLocation.fetchCountryCodeByRequestIP();
-    UnreadIndicatorUpdater.listenForReportChanges();
     BankAccounts.fetchFreePlanVerifiedBankAccount();
     BankAccounts.fetchUserWallet();
+
+    if (!UnreadIndicatorUpdater.isListeningForReportChanges()) {
+        UnreadIndicatorUpdater.listenForReportChanges();
+    }
+
+    if (shouldSyncPolicyList) {
+        Policy.getPolicyList();
+    }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
