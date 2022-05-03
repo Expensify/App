@@ -32,6 +32,8 @@ import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
 import FormElement from '../components/FormElement';
+import {withNetwork} from '../components/OnyxProvider';
+import networkPropTypes from '../components/networkPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -79,6 +81,9 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -117,6 +122,18 @@ class RequestCallPage extends Component {
     }
 
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         // If it is the weekend don't check the wait time
         if (moment().day() === 0 || moment().day() === 6) {
             this.setState({
@@ -124,6 +141,7 @@ class RequestCallPage extends Component {
             });
             return;
         }
+
         Inbox.getInboxCallWaitTime();
     }
 
@@ -333,6 +351,7 @@ RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
