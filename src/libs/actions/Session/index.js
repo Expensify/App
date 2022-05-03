@@ -514,8 +514,10 @@ function loadInitializationData() {
 function fixAccountAndReload() {
     API.User_FixAccount()
         .then((response) => {
-            if (response.changed) {
-                loadInitializationData();
+            if (!response.changed) {
+                return;
+            }
+            loadInitializationData();
             }
         });
 }
