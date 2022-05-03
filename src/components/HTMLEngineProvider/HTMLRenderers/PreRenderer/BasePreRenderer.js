@@ -12,7 +12,7 @@ class BasePreRenderer extends React.Component {
             <ScrollView ref={this.props.innerRef} horizontal>
                 <View onStartShouldSetResponder={() => true}>
                     <TDefaultRenderer
-                     // eslint-disable-next-line react/jsx-props-no-spreading
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...defaultRendererProps}
                     />
                 </View>
