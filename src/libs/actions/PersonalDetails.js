@@ -99,6 +99,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
@@ -109,6 +110,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatarHighResolution,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
