@@ -2,7 +2,7 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
-import * as Update from '../../actions/Update';
+import * as AppUpdate from '../../actions/AppUpdate';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 
 const DEFAULT_DELAY = 4000;
@@ -128,7 +128,7 @@ export default {
             body: 'A new version of this app is available!',
             delay: 0,
             onClick: () => {
-                Update.triggerUpdateAvailable();
+                AppUpdate.triggerUpdateAvailable();
             },
         });
     },
