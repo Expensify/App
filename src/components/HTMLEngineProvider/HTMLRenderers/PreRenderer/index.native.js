@@ -3,23 +3,12 @@ import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
-class PreRenderer extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.ref = React.createRef(null);
-    }
-
-    render() {
-        return (
-            <BasePreRenderer
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                ref={this.ref}
-            />
-        );
-    }
-}
+const PreRenderer = props => (
+    <BasePreRenderer
+    // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    />
+);
 
 PreRenderer.propTypes = htmlRendererPropTypes;
 PreRenderer.displayName = 'PreRenderer';
