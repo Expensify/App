@@ -209,9 +209,11 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
+    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
                 return;
             }
 
@@ -223,6 +225,8 @@ function getPolicyList() {
             if (!_.isEmpty(policyCollection)) {
                 updateAllPolicies(policyCollection);
             }
+
+            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
         });
 }
 
