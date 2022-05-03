@@ -133,18 +133,6 @@ class RequestCallPage extends Component {
         this.fetchData();
     }
 
-    fetchData() {
-        // If it is the weekend don't check the wait time
-        if (moment().day() === 0 || moment().day() === 6) {
-            this.setState({
-                onTheWeekend: true,
-            });
-            return;
-        }
-
-        Inbox.getInboxCallWaitTime();
-    }
-
     onSubmit() {
         if (!this.validateInputs()) {
             return;
@@ -235,6 +223,18 @@ class RequestCallPage extends Component {
             waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
         }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+    }
+
+    fetchData() {
+        // If it is the weekend don't check the wait time
+        if (moment().day() === 0 || moment().day() === 6) {
+            this.setState({
+                onTheWeekend: true,
+            });
+            return;
+        }
+
+        Inbox.getInboxCallWaitTime();
     }
 
     validatePhoneInput() {
