@@ -518,7 +518,6 @@ function fixAccountAndReload() {
                 return;
             }
             loadInitializationData();
-            }
         });
 }
 
