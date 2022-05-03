@@ -1,17 +1,29 @@
-import React, {useEffect, useRef} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {View} from 'react-native';
-import _ from 'underscore';
+import React from 'react';
 import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
+import BasePreRenderer from './BasePreRenderer';
 
-const PreRenderer = (props) => {
-    const TDefaultRenderer = props.TDefaultRenderer;
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer']);
-    const ref = useRef();
+class PreRenderer extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const wheelEvent = (event) => {
-        const node = ref.current.getScrollableNode();
+        this.wheelEvent = this.wheelEvent.bind(this);
+        this.ref = React.createRef(null);
+    }
+
+    componentDidMount() {
+        this.ref.current
+            .getScrollableNode()
+            .addEventListener('wheel', this.wheelEvent);
+    }
+
+    componentWillUnmount() {
+        this.ref.getScrollableNode()
+            .removeEventListener('wheel', this.wheelEvent);
+    }
+
+    wheelEvent(event) {
+        const node = this.ref.current.getScrollableNode();
         const checkOverflow = (node.scrollHeight / node.scrollWidth) !== (node.offsetHeight / node.offsetWidth);
 
         if ((event.currentTarget === node) && checkOverflow) {
@@ -19,27 +31,18 @@ const PreRenderer = (props) => {
             event.preventDefault();
             event.stopPropagation();
         }
-    };
+    }
 
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.getScrollableNode()
-                .addEventListener('wheel', wheelEvent);
-        }
-        return () => ref.current.getScrollableNode().removeEventListener('wheel', wheelEvent);
-    }, []);
-
-    return (
-        <ScrollView ref={ref} horizontal>
-            <View onStartShouldSetResponder={() => true}>
-                <TDefaultRenderer
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...defaultRendererProps}
-                />
-            </View>
-        </ScrollView>
-    );
-};
+    render() {
+        return (
+            <BasePreRenderer
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                ref={this.ref}
+            />
+        );
+    }
+}
 
 PreRenderer.propTypes = htmlRendererPropTypes;
 PreRenderer.displayName = 'PreRenderer';

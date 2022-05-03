@@ -1,25 +1,25 @@
 import React from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {View} from 'react-native';
-import _ from 'underscore';
 import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
+import BasePreRenderer from './BasePreRenderer';
 
-const PreRenderer = (props) => {
-    const TDefaultRenderer = props.TDefaultRenderer;
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer']);
+class PreRenderer extends React.Component {
+    constructor(props) {
+        super(props);
 
-    return (
-        <ScrollView horizontal>
-            <View onStartShouldSetResponder={() => true}>
-                <TDefaultRenderer
-                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...defaultRendererProps}
-                />
-            </View>
-        </ScrollView>
-    );
-};
+        this.ref = React.createRef(null);
+    }
+
+    render() {
+        return (
+            <BasePreRenderer
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                ref={this.ref}
+            />
+        );
+    }
+}
 
 PreRenderer.propTypes = htmlRendererPropTypes;
 PreRenderer.displayName = 'PreRenderer';
