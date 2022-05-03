@@ -39,24 +39,24 @@ class VideoChatButtonAndMenu extends Component {
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
-        this.menuItemData = _.map([
+        this.menuItemData = [
             {
                 icon: ZoomIcon,
                 text: props.translate('videoChatButtonAndMenu.zoom'),
-                onPress: () => Linking.openURL(CONST.NEW_ZOOM_MEETING_URL),
+                onPress: () => {
+                    this.toggleVideoChatMenu();
+                    Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
+                },
             },
             {
                 icon: GoogleMeetIcon,
                 text: props.translate('videoChatButtonAndMenu.googleMeet'),
-                onPress: () => Linking.openURL(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+                onPress: () => {
+                    this.toggleVideoChatMenu();
+                    Linking.openURL(CONST.NEW_GOOGLE_MEET_MEETING_URL);
+                },
             },
-        ], item => ({
-            ...item,
-            onPress: () => {
-                item.onPress();
-                this.toggleVideoChatMenu();
-            },
-        }));
+        ];
 
         this.state = {
             isVideoChatMenuActive: false,
