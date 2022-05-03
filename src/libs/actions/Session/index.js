@@ -20,7 +20,10 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
+<<<<<<< HEAD
 import * as ErrorUtils from '../../ErrorUtils';
+=======
+>>>>>>> 334b989fb (Merge pull request #8827 from Expensify/marcaaron-fixSetTimeout)
 import * as Welcome from '../Welcome';
 
 let credentials = {};
