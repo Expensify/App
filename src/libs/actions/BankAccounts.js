@@ -91,6 +91,9 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
                 ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }
 
