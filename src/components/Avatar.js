@@ -59,7 +59,8 @@ class Avatar extends PureComponent {
                     ? (
                         <Icon
                             src={this.state.imageError ? Expensicons.FallbackAvatar : this.props.source}
-                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...(!this.state.imageError ? {fill: this.props.fill} : {})}
                             height={iconSize}
                             width={iconSize}
                         />
