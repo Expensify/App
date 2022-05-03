@@ -12,6 +12,9 @@ class PreRenderer extends React.Component {
     }
 
     componentDidMount() {
+        if (!this.ref.current) {
+            return;
+        }
         this.ref.current
             .getScrollableNode()
             .addEventListener('wheel', this.wheelEvent);
@@ -38,7 +41,7 @@ class PreRenderer extends React.Component {
             <BasePreRenderer
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                ref={this.ref}
+                ref={el => this.ref.current = el}
             />
         );
     }
