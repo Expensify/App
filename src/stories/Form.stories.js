@@ -56,6 +56,7 @@ const Template = (args) => {
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
+                hint="No PO box"
                 isFormInput
             />
             <DatePicker
