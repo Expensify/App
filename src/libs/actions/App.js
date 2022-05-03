@@ -7,6 +7,14 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
+import NameValuePair from './NameValuePair';
+import * as PersonalDetails from './PersonalDetails';
+import * as User from './User';
+import * as Report from './Report';
+import * as GeoLocation from './GeoLocation';
+import * as BankAccounts from './BankAccounts';
+import * as Policy from './Policy';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -79,14 +87,42 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
-function triggerUpdateAvailable() {
-    Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
+/**
+ * Fetches data needed for app initialization
+ *
+ * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
+ * @returns {Promise}
+ */
+function getAppData(shouldSyncPolicyList = true) {
+    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
+    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
+    getLocale();
+    User.getUserDetails();
+    User.getBetas();
+    User.getDomainInfo();
+    PersonalDetails.fetchLocalCurrency();
+    GeoLocation.fetchCountryCodeByRequestIP();
+    BankAccounts.fetchFreePlanVerifiedBankAccount();
+    BankAccounts.fetchUserWallet();
+
+    if (shouldSyncPolicyList) {
+        Policy.getPolicyList();
+    }
+
+    // We should update the syncing indicator when personal details and reports are both done fetching.
+    return Promise.all([
+        PersonalDetails.fetchPersonalDetails(),
+        Report.fetchAllReports(true, true),
+    ]);
 }
+
+// When the app reconnects from being offline, fetch all initialization data
+NetworkConnection.onReconnect(getAppData);
 
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getLocale,
-    triggerUpdateAvailable,
+    getAppData,
 };

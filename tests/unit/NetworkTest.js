@@ -15,6 +15,9 @@ import * as NetworkStore from '../../src/libs/Network/NetworkStore';
 import * as Session from '../../src/libs/actions/Session';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import Log from '../../src/libs/Log';
+import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as MainQueue from '../../src/libs/Network/MainQueue';
+import * as Request from '../../src/libs/Request';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -32,14 +35,20 @@ Onyx.init({
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
+    global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     PersistedRequests.clear();
-    Network.clearRequestQueue();
-    return Onyx.clear().then(waitForPromisesToResolve);
+    MainQueue.clear();
+
+    // Wait for any Log command to finish and Onyx to fully clear
+    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    return waitForPromisesToResolve()
+        .then(Onyx.clear)
+        .then(waitForPromisesToResolve);
 });
 
 afterEach(() => {
-    NetworkStore.setHasReadRequiredDataFromStorage(false);
+    NetworkStore.resetHasReadRequiredDataFromStorage();
     Onyx.addDelayToConnectCallback(0);
     jest.clearAllMocks();
 });
@@ -64,7 +73,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
             expect(isOffline).toBe(null);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError('Failed to fetch'))));
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
             const actualXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn();
@@ -92,7 +101,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                 }));
 
-            // This should first trigger re-authentication and then an API is offline error
+            // This should first trigger re-authentication and then a Failed to fetch
             API.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -232,9 +241,9 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
         });
 });
 
-test('retry network request if auth and credentials are not read from Onyx yet', () => {
-    // In order to test an scenario where the auth token and credentials hasn't been read from storage we set
-    // NetworkStore.setHasReadRequiredDataFromStorage(false) and set the session and credentials to "ready" the Network
+test('Request will not run until credentials are read from Onyx', () => {
+    // In order to test an scenario where the auth token and credentials hasn't been read from storage we reset hasReadRequiredDataFromStorage
+    // and set the session and credentials to "ready" the Network
 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
@@ -244,37 +253,24 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
 
     // Given initial state to Network
-    NetworkStore.setHasReadRequiredDataFromStorage(false);
-
-    // Given an initial value to trigger an update
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
-    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token'});
+    NetworkStore.resetHasReadRequiredDataFromStorage();
 
     // Given some mock functions to track the isReady
     // flag in Network and the http requests made
     const spyHttpUtilsXhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({}));
 
-    // When we make an arbitrary request that can be retried
-    // And we wait for the Onyx.callbacks to be set
+    // When we make a request
     Session.fetchAccountDetails(TEST_USER_LOGIN);
+
+    // Then we should expect that no requests have been made yet
+    expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+    // Once credentials are set and we wait for promises to resolve
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
+    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token'});
     return waitForPromisesToResolve().then(() => {
-        // Then we expect not having the Network ready and not making an http request
-        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(false);
+        // Then we should expect the request to have been made since the network is now ready
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
-
-        // When we resolve Onyx.connect callbacks
-        jest.advanceTimersByTime(ONYX_DELAY_MS);
-
-        // Then we should expect call Network.setIsReady(true)
-        // And We should expect not making an http request yet
-        expect(NetworkStore.hasReadRequiredDataFromStorage()).toBe(true);
-        expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
-
-        // When we run processNetworkRequestQueue in the setInterval of Network.js
-        jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-
-        // Then we should expect a retry of the network request
-        expect(spyHttpUtilsXhr).toHaveBeenCalled();
     });
 });
 
@@ -346,6 +342,10 @@ test('requests should resume when we are online', () => {
             Network.post('mock command', {param1: 'value1', persist: true});
             Network.post('mock command', {param2: 'value2', persist: true});
             return waitForPromisesToResolve();
+        })
+        .then(() => {
+            const persisted = PersistedRequests.getAll();
+            expect(persisted).toHaveLength(2);
         })
 
         // When we resume connectivity
@@ -468,7 +468,7 @@ test('test bad response will log alert', () => {
 
 test('test Failed to fetch error for requests not flagged with shouldRetry will throw API OFFLINE error', () => {
     // Setup xhr handler that rejects once with a 502 Bad Gateway
-    global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new Error(CONST.ERROR.FAILED_TO_FETCH))));
+    global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
     const onRejected = jest.fn();
 
@@ -528,7 +528,11 @@ test('several actions made while offline will get added in the order they are cr
     const xhr = jest.spyOn(HttpUtils, 'xhr')
         .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
-    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+    return Onyx.multiSet({
+        [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
+        [ONYXKEYS.NETWORK]: {isOffline: true},
+        [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'psswd'},
+    })
         .then(() => {
             // When we queue 6 persistable commands
             Network.post('MockCommand', {content: 'value1', persist: true});
@@ -556,6 +560,208 @@ test('several actions made while offline will get added in the order they are cr
 
             // Move main queue forward so it processes the "read" request
             jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
             expect(xhr.mock.calls[6][1].content).toBe('not-persisted');
+        });
+});
+
+test('several actions made while offline will get added in the order they are created when we need to reauthenticate', () => {
+    // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
+    const xhr = jest.spyOn(HttpUtils, 'xhr')
+        .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
+        .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+    return Onyx.multiSet({
+        [ONYXKEYS.NETWORK]: {isOffline: true},
+        [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'caca', autoGeneratedPassword: 'caca'},
+    })
+        .then(() => {
+            // When we queue 6 persistable commands
+            Network.post('MockCommand', {content: 'value1', persist: true});
+            Network.post('MockCommand', {content: 'value2', persist: true});
+            Network.post('MockCommand', {content: 'value3', persist: true});
+            Network.post('MockCommand', {content: 'value4', persist: true});
+            Network.post('MockCommand', {content: 'value5', persist: true});
+            Network.post('MockCommand', {content: 'value6', persist: true});
+            return waitForPromisesToResolve();
+        })
+        .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+        .then(waitForPromisesToResolve)
+        .then(() => {
+            // Then expect only 8 calls to have been made total and for them to be made in the order that we made them despite requiring reauthentication
+            expect(xhr.mock.calls.length).toBe(8);
+            expect(xhr.mock.calls[0][1].content).toBe('value1');
+
+            // Our call to Authenticate will not have a "content" field
+            expect(xhr.mock.calls[1][1].content).not.toBeDefined();
+
+            // Rest of the calls have the expected params and are called in sequence
+            expect(xhr.mock.calls[2][1].content).toBe('value1');
+            expect(xhr.mock.calls[3][1].content).toBe('value2');
+            expect(xhr.mock.calls[4][1].content).toBe('value3');
+            expect(xhr.mock.calls[5][1].content).toBe('value4');
+            expect(xhr.mock.calls[6][1].content).toBe('value5');
+            expect(xhr.mock.calls[7][1].content).toBe('value6');
+        });
+});
+
+test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
+    // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
+    const xhr = jest.spyOn(HttpUtils, 'xhr')
+        .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
+        .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
+        .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
+
+    return Onyx.multiSet({
+        [ONYXKEYS.SESSION]: {authToken: 'oldToken'},
+        [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'psswd'},
+    })
+        .then(() => {
+            // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
+            Network.post('Push_Authenticate', {content: 'value1'});
+            Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            expect(NetworkStore.isOffline()).toBe(false);
+            expect(NetworkStore.isAuthenticating()).toBe(false);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            Network.post('MockCommand', {persist: true});
+            expect(PersistedRequests.getAll().length).toBe(1);
+            expect(NetworkStore.isOffline()).toBe(true);
+            expect(SequentialQueue.isRunning()).toBe(false);
+            expect(NetworkStore.isAuthenticating()).toBe(false);
+
+            // We should only have a single call at this point as the main queue is stopped since we've gone offline
+            expect(xhr.mock.calls.length).toBe(1);
+
+            // Come back from offline to trigger the sequential queue flush
+            return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        })
+        .then(() => {
+            // When we wait for the sequential queue to finish
+            expect(SequentialQueue.isRunning()).toBe(true);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // Then we should expect to see that...
+            // The sequential queue has stopped
+            expect(SequentialQueue.isRunning()).toBe(false);
+
+            // All persisted requests have run
+            expect(PersistedRequests.getAll().length).toBe(0);
+
+            // We are not offline anymore
+            expect(NetworkStore.isOffline()).toBe(false);
+
+            // First call to xhr is the Push_Authenticate request that could not call Authenticate because we went offline
+            const [firstCommand] = xhr.mock.calls[0];
+            expect(firstCommand).toBe('Push_Authenticate');
+
+            // Second call to xhr is the MockCommand that also failed with a 407
+            const [secondCommand] = xhr.mock.calls[1];
+            expect(secondCommand).toBe('MockCommand');
+
+            // Third command should be the call to Authenticate
+            const [thirdCommand] = xhr.mock.calls[2];
+            expect(thirdCommand).toBe('Authenticate');
+
+            const [fourthCommand] = xhr.mock.calls[3];
+            expect(fourthCommand).toBe('MockCommand');
+
+            // We are using the new authToken
+            expect(NetworkStore.getAuthToken()).toBe('newToken');
+
+            // We are no longer authenticating
+            expect(NetworkStore.isAuthenticating()).toBe(false);
+        });
+});
+
+test('Sequential queue will not run until credentials are read', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+    const processWithMiddleware = jest.spyOn(Request, 'processWithMiddleware');
+
+    // Given a simulated a condition where the credentials have not yet been read from storage and we are offline
+    return Onyx.multiSet({
+        [ONYXKEYS.NETWORK]: {isOffline: true},
+        [ONYXKEYS.CREDENTIALS]: null,
+        [ONYXKEYS.SESSION]: null,
+    })
+        .then(() => {
+            expect(NetworkStore.isOffline()).toBe(true);
+
+            NetworkStore.resetHasReadRequiredDataFromStorage();
+
+            // And queue a request while offline
+            Network.post('MockCommand', {content: 'value1', persist: true});
+
+            // Then we should expect the request to get persisted
+            expect(PersistedRequests.getAll().length).toBe(1);
+
+            // When we go online and wait for promises to resolve
+            return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        })
+        .then(() => {
+            expect(processWithMiddleware).toHaveBeenCalled();
+
+            // Then we should not expect XHR to run
+            expect(xhr).not.toHaveBeenCalled();
+
+            // When we set our credentials and authToken
+            return Onyx.multiSet({
+                [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'psswd'},
+                [ONYXKEYS.SESSION]: {authToken: 'oldToken'},
+            });
+        })
+        .then(waitForPromisesToResolve)
+        .then(() => {
+            // Then we should expect XHR to run
+            expect(xhr).toHaveBeenCalled();
+        });
+});
+
+test('persistable request will move directly to the SequentialQueue when we are online and block non-persistable requests', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // GIVEN that we are online
+            expect(NetworkStore.isOffline()).toBe(false);
+
+            // WHEN we make a request that should be retried, one that should not, and another that should
+            Network.post('MockCommandOne', {persist: true});
+            Network.post('MockCommandTwo');
+            Network.post('MockCommandThree', {persist: true});
+
+            // THEN the retryable requests should immediately be added to the persisted requests
+            expect(PersistedRequests.getAll().length).toBe(2);
+
+            // WHEN we wait for the queue to run and finish processing
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN the queue should be stopped and there should be no more requests to run
+            expect(SequentialQueue.isRunning()).toBe(false);
+            expect(PersistedRequests.getAll().length).toBe(0);
+
+            // And our persistable request should run before our non persistable one in a blocking way
+            const firstRequest = xhr.mock.calls[0];
+            const [firstRequestCommandName] = firstRequest;
+            expect(firstRequestCommandName).toBe('MockCommandOne');
+
+            const secondRequest = xhr.mock.calls[1];
+            const [secondRequestCommandName] = secondRequest;
+            expect(secondRequestCommandName).toBe('MockCommandThree');
+
+            // WHEN we advance the main queue timer and wait for promises
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN we should see that our third (non-persistable) request has run last
+            const thirdRequest = xhr.mock.calls[2];
+            const [thirdRequestCommandName] = thirdRequest;
+            expect(thirdRequestCommandName).toBe('MockCommandTwo');
         });
 });
