@@ -125,7 +125,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.getReportComposeActions = this.getReportComposeActions.bind(this);
+        this.getIOUOptions = this.getIOUOptions.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -232,50 +232,49 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Returns the list of report compose actions
+     * Returns the list of IOU Options
      *
      * @param {Array} reportParticipants
-     * @param {Function} openPicker
-     * @param {Function} displayFileInModal
      * @returns {Array<object>}
      */
-    getReportComposeActions(reportParticipants, openPicker, displayFileInModal) {
-        const showSplitBill = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length > 1;
-        const showSendRequestMoney = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email).length === 1;
+    getIOUOptions(reportParticipants) {
+        const iouOptions = [];
+        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
-        return [
-            ...(!hasExcludedIOUEmails
-                && Permissions.canUseIOU(this.props.betas)
-                && showSplitBill ? [
-                    {
-                        icon: Expensicons.Receipt,
-                        text: this.props.translate('iou.splitBill'),
-                        onSelected: () => {
-                            Navigation.navigate(
-                                ROUTES.getIouSplitRoute(
-                                    this.props.reportID,
-                                ),
-                            );
-                        },
-                    },
-                ] : []),
-            ...(!hasExcludedIOUEmails
-                && Permissions.canUseIOU(this.props.betas)
-                && showSendRequestMoney ? [
-                    {
-                        icon: Expensicons.MoneyCircle,
-                        text: this.props.translate('iou.requestMoney'),
-                        onSelected: () => {
-                            Navigation.navigate(
-                                ROUTES.getIouRequestRoute(
-                                    this.props.reportID,
-                                ),
-                            );
-                        },
-                    },
-                ] : []),
-            ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && showSendRequestMoney ? [
+        const hasMultipleParticipants = participants.length > 1;
+
+        if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
+            return iouOptions;
+        }
+
+        if (hasMultipleParticipants) {
+            iouOptions.push(
                 {
+                    icon: Expensicons.Receipt,
+                    text: this.props.translate('iou.splitBill'),
+                    onSelected: () => {
+                        Navigation.navigate(
+                            ROUTES.getIouSplitRoute(
+                                this.props.reportID,
+                            ),
+                        );
+                    },
+                },
+            );
+        } else {
+            iouOptions.push({
+                icon: Expensicons.MoneyCircle,
+                text: this.props.translate('iou.requestMoney'),
+                onSelected: () => {
+                    Navigation.navigate(
+                        ROUTES.getIouRequestRoute(
+                            this.props.reportID,
+                        ),
+                    );
+                },
+            });
+            if (Permissions.canUseIOUSend(this.props.betas)) {
+                iouOptions.push({
                     icon: Expensicons.Send,
                     text: this.props.translate('iou.sendMoney'),
                     onSelected: () => {
@@ -285,20 +284,10 @@ class ReportActionCompose extends React.Component {
                             ),
                         );
                     },
-                },
-            ] : []),
-            {
-                icon: Expensicons.Paperclip,
-                text: this.props.translate('reportActionCompose.addAttachment'),
-                onSelected: () => {
-                    openPicker({
-                        onPicked: (file) => {
-                            displayFileInModal({file});
-                        },
-                    });
-                },
-            },
-        ];
+                });
+            }
+        }
+        return iouOptions;
     }
 
     /**
@@ -517,7 +506,19 @@ class ReportActionCompose extends React.Component {
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
-                                                menuItems={this.getReportComposeActions(reportParticipants, openPicker, displayFileInModal)}
+                                                menuItems={[...this.getIOUOptions(reportParticipants),
+                                                    {
+                                                        icon: Expensicons.Paperclip,
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
+                                                        onSelected: () => {
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
+                                                        },
+                                                    },
+                                                ]}
                                             />
                                         </>
                                     )}
