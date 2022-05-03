@@ -19,11 +19,8 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
-<<<<<<< HEAD
-=======
 import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
->>>>>>> 334b989fb (Merge pull request #8827 from Expensify/marcaaron-fixSetTimeout)
 
 let credentials = {};
 Onyx.connect({
