@@ -171,7 +171,6 @@ class WorkspaceNewRoomPage extends React.Component {
                                 placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                                 items={this.state.workspaceOptions}
                                 errorText={this.state.errors.policyID}
-                                hasError={Boolean(this.state.errors.policyID)}
                                 onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
                             />
                         </View>

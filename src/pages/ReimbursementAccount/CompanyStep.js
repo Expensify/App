@@ -275,7 +275,7 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
-                            hasError={this.getErrors().incorporationType}
+                            errorText={this.getErrors().incorporationType}
                         />
                     </View>
                     <View style={styles.mt4}>
@@ -293,7 +293,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.incorporationState')}
                             onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                             value={this.state.incorporationState}
-                            errorText={this.getErrorText('incorporationState')}
+                            errorText={this.getErrors().incorporationState}
                         />
                     </View>
                     <CheckboxWithLabel
