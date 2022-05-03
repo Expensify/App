@@ -301,7 +301,7 @@ class DebitCardPage extends Component {
                                     <StatePicker
                                         onChange={value => this.clearErrorAndSetValue('addressState', value)}
                                         value={this.state.addressState}
-                                        hasError={lodashGet(this.state.errors, 'addressState', false)}
+                                        errorText={lodashGet(this.state.errors, 'addressState', {})}
                                     />
                                 </View>
                             </View>

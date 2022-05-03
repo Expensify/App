@@ -72,7 +72,6 @@ const AddressForm = props => (
                     value={props.values.state}
                     onChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                    hasError={Boolean(props.errors.state)}
                 />
             </View>
         </View>

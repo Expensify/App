@@ -35,7 +35,6 @@ const StatePicker = props => (
         onInputChange={props.onChange}
         value={props.value}
         label={props.label || props.translate('common.state')}
-        hasError={props.hasError}
         errorText={props.errorText}
     />
 );
