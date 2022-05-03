@@ -64,8 +64,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.setState({
-            tooltipTextWidth: this.textRef.offsetWidth,
+        this.textRef.measure((x, y, width) => {
+            this.setState({
+                tooltipTextWidth: width,
+            });
         });
     }
 

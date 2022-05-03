@@ -97,8 +97,7 @@ export default function getTooltipStyles(
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
-    // We get wrapper width based on tooltip's inner text width so the wrapper
-    // is just big enough to fit text and prevent white space
+    // We get wrapper width based on tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space
     const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
 
         // Add horizontal padding to the text width to get the wrapper width.
