@@ -300,7 +300,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
             return;
         }
         if (response.jsonCode !== 200) {
-            console.error(response.message);
+            Log.hmmm('[Report] Failed to populate IOU Collection:', {message: response.message, jsonCode: response.jsonCode});
             return;
         }
         const iouReportData = response.reports[iouReportID];
@@ -310,8 +310,6 @@ function fetchIOUReport(iouReportID, chatReportID) {
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
-    }).catch((error) => {
-        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 

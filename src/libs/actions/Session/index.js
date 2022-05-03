@@ -469,10 +469,6 @@ function authenticatePusher(socketID, channelName, callback) {
                 {channelName},
             );
             callback(null, response);
-        })
-        .catch((error) => {
-            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('Push_Authenticate request failed'), {auth: ''});
         });
 }
 

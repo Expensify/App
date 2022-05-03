@@ -253,11 +253,6 @@ function setupWithdrawalAccount(params) {
                 navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        })
-        .catch((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
-            console.error(response.stack);
-            errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
         });
 }
 
