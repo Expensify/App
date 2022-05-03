@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {Pressable} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -108,13 +107,9 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {roomWelcomeMessage.phrase1}
                     </Text>
-                    <Pressable
-                        onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                    >
-                        <Text style={[styles.textStrong]}>
-                            {props.report.reportName}
-                        </Text>
-                    </Pressable>
+                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
+                        {props.report.reportName}
+                    </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}
                     </Text>
@@ -131,11 +126,9 @@ const ReportWelcomeText = (props) => {
                     }, index) => (
                         <Text key={displayName}>
                             <Tooltip text={tooltip}>
-                                <Pressable onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(login))}>
-                                    <Text style={[styles.textStrong]}>
-                                        {displayName}
-                                    </Text>
-                                </Pressable>
+                                <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(login))}>
+                                    {displayName}
+                                </Text>
                             </Tooltip>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                             {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
