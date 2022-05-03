@@ -8,6 +8,7 @@ class BasePreRenderer extends React.Component {
     render() {
         const TDefaultRenderer = this.props.TDefaultRenderer;
         const defaultRendererProps = _.omit(this.props, ['TDefaultRenderer']);
+
         return (
             <ScrollView ref={this.props.innerRef} horizontal>
                 <View onStartShouldSetResponder={() => true}>
