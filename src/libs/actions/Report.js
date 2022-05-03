@@ -1423,7 +1423,11 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportComment: htmlForNewComment,
         sequenceNumber,
     })
-        .catch(() => {
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                return;
+            }
+
             // If it fails, reset Onyx
             actionToMerge[sequenceNumber] = originalReportAction;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
@@ -1519,9 +1523,10 @@ function createPolicyRoom(policyID, reportName, visibility) {
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(response.message);
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
                 return;
             }
+
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then((chatReports) => {
@@ -1531,9 +1536,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
@@ -1548,16 +1550,14 @@ function renameReport(reportID, reportName) {
     API.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Growl.error(response.message);
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
                 return;
             }
+
             Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
             // Update the report name so that the LHN and header display the updated name
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
-        })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
