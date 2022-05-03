@@ -4,7 +4,7 @@ import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import TouchableWithoutFocus from '../../TouchableWithoutFocus';
+import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 
 const ImageRenderer = (props) => {
@@ -46,12 +46,13 @@ const ImageRenderer = (props) => {
 
     return (
         <AttachmentModal
+            allowDownload
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
         >
             {({show}) => (
-                <TouchableWithoutFocus
+                <PressableWithoutFocus
                     style={styles.noOutline}
                     onPress={show}
                 >
@@ -60,7 +61,7 @@ const ImageRenderer = (props) => {
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
-                </TouchableWithoutFocus>
+                </PressableWithoutFocus>
             )}
         </AttachmentModal>
     );

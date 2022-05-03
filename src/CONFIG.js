@@ -53,6 +53,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
+        SUFFIX: lodashGet(Config, 'PUSHER_DEV_SUFFIX', ''),
         CLUSTER: 'mt1',
     },
     SITE_TITLE: 'New Expensify',

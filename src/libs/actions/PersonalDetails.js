@@ -10,7 +10,6 @@ import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
@@ -39,7 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return OptionsListUtils.getDefaultAvatar(login);
+    return ReportUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -100,6 +99,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
@@ -110,6 +110,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatarHighResolution,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -226,7 +227,6 @@ function getFromReportParticipants(reports) {
                     return;
                 }
 
-                const avatars = OptionsListUtils.getReportIcons(report, details);
                 const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
                     ? report.reportName
                     : _.chain(report.participants)
@@ -239,7 +239,7 @@ function getFromReportParticipants(reports) {
                         .value()
                         .join(', ');
 
-                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {reportName};
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.

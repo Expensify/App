@@ -263,6 +263,8 @@ function activateWallet(currentStep, parameters) {
                             'resultcode.pa.dob.match',
                             'resultcode.pa.dob.not.available',
                             'resultcode.pa.dob.does.not.match',
+                            'resultcode.blacklist.alert.ssn',
+                            'resultcode.blacklist.alert.address',
                         ];
                         if (_.some(hardFailures, hardFailure => _.contains(idologyErrors, hardFailure))) {
                             setWalletShouldShowFailedKYC(true);

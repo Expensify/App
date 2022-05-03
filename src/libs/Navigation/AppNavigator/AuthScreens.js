@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -43,6 +42,8 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
+import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -80,16 +81,9 @@ const modalScreenListeners = {
 
 const propTypes = {
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    network: {isOffline: true},
 };
 
 class AuthScreens extends React.Component {
@@ -110,6 +104,7 @@ class AuthScreens extends React.Component {
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
+            Policy.subscribeToPolicyEvents();
         });
 
         // Fetch some data we need on initialization
@@ -366,13 +361,10 @@ class AuthScreens extends React.Component {
 }
 
 AuthScreens.propTypes = propTypes;
-AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
