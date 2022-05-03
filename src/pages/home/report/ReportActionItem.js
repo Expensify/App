@@ -81,10 +81,6 @@ class ReportActionItem extends Component {
             console.log(`over here shouldUpdate: ${this.props.reportID}`);
         }
 
-        if (this.props.action.reportActionID === "5790") {
-            debugger;
-        }
-
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
@@ -96,10 +92,6 @@ class ReportActionItem extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.action.reportActionID === "5790") {
-            debugger;
-        }
-
         if (!prevProps.isSelected && this.props.isSelected) {
             this.animateBackground();
         }
