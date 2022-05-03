@@ -10,7 +10,7 @@ import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
 import createOnReadyTask from '../createOnReadyTask';
 
-const [isReady, setReady] = createOnReadyTask();
+const readyTask = createOnReadyTask();
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
@@ -28,7 +28,7 @@ function checkOnReady() {
         return;
     }
 
-    setReady();
+    readyTask.setIsReady();
 }
 
 Onyx.connect({
@@ -91,7 +91,7 @@ Onyx.connect({
  * @param {Function} params.showCreateMenu
  */
 function show({routes, showCreateMenu}) {
-    isReady().then(() => {
+    readyTask.isReady().then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
@@ -121,7 +121,11 @@ function show({routes, showCreateMenu}) {
     });
 }
 
+function resetReadyCheck() {
+    readyTask.reset();
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     show,
+    resetReadyCheck,
 };

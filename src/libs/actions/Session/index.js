@@ -20,6 +20,7 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
+import * as Welcome from '../Welcome';
 
 let credentials = {};
 Onyx.connect({
@@ -347,6 +348,7 @@ function cleanupSession() {
     PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
+    Welcome.resetReadyCheck();
 }
 
 function clearAccountMessages() {
