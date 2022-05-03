@@ -83,6 +83,9 @@ export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensi
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+
+            // Only apply top padding on iOS since it's the only platform using SafeAreaView
+            shouldAddTopSafeAreaPadding = getPlatform() === CONST.PLATFORM.IOS;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
