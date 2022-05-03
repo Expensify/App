@@ -3,32 +3,29 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {View} from 'react-native';
 import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
+import withLocalize from '../../../withLocalize';
 
-class BasePreRenderer extends React.Component {
-    render() {
-        const TDefaultRenderer = this.props.TDefaultRenderer;
-        const defaultRendererProps = _.omit(this.props, ['TDefaultRenderer']);
-        return (
-            <ScrollView
-                ref={this.props.innerRef}
-                horizontal
+const BasePreRenderer = forwardRef((props, ref) => {
+    const TDefaultRenderer = props.TDefaultRenderer;
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer']);
+
+    return (
+        <ScrollView
+            ref={ref}
+            horizontal
+        >
+            <View
+                onStartShouldSetResponder={() => true}
             >
-                <View
-                    onStartShouldSetResponder={() => true}
-                >
-                    <TDefaultRenderer
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...defaultRendererProps}
-                    />
-                </View>
-            </ScrollView>
-        );
-    }
-}
+                <TDefaultRenderer
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultRendererProps}
+                />
+            </View>
+        </ScrollView>
+    );
+});
 
 BasePreRenderer.propTypes = htmlRendererPropTypes;
 
-export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BasePreRenderer {...props} innerRef={ref} />
-));
+export default withLocalize(BasePreRenderer);

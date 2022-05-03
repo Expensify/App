@@ -7,7 +7,7 @@ class PreRenderer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.wheelEvent = this.wheelEvent.bind(this);
+        this.scrollNode = this.scrollNode.bind(this);
         this.ref = React.createRef(null);
     }
 
@@ -17,19 +17,19 @@ class PreRenderer extends React.Component {
         }
         this.ref.current
             .getScrollableNode()
-            .addEventListener('wheel', this.wheelEvent);
+            .addEventListener('wheel', this.scrollNode);
     }
 
     componentWillUnmount() {
         this.ref.getScrollableNode()
-            .removeEventListener('wheel', this.wheelEvent);
+            .removeEventListener('wheel', this.scrollNode);
     }
 
-    wheelEvent(event) {
+    scrollNode(event) {
         const node = this.ref.current.getScrollableNode();
-        const checkOverflow = (node.scrollHeight / node.scrollWidth) !== (node.offsetHeight / node.offsetWidth);
+        const horizontalOverflow = node.scrollWidth > node.offsetWidth;
 
-        if ((event.currentTarget === node) && checkOverflow) {
+        if ((event.currentTarget === node) && horizontalOverflow) {
             node.scrollLeft += event.deltaX;
             event.preventDefault();
             event.stopPropagation();
