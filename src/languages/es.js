@@ -339,6 +339,11 @@ export default {
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Contraseña actualizada!',
+        allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+        gotIt: 'Ok, entendido',
+    },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',

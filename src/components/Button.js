@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -10,6 +11,8 @@ import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
+import withNavigationFallback from './withNavigationFallback';
+import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 
@@ -97,6 +100,9 @@ const propTypes = {
 
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback: PropTypes.bool,
+
+    /** Whether Button is on active screen */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -146,7 +152,7 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
+            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
             this.props.onPress();
@@ -277,4 +283,7 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default Button;
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(Button);

@@ -2508,6 +2508,17 @@ const styles = {
     closeAccountMessageInput: {
         height: 153,
     },
+
+    userSelectText: {
+        userSelect: 'text',
+    },
+
+    screenCenteredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        marginBottom: 40,
+        padding: 16,
+    },
 };
 
 export default styles;
