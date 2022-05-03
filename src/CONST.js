@@ -314,6 +314,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        OFFLINE: 0,
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',

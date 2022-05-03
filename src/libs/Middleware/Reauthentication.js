@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as NetworkStore from '../Network/NetworkStore';
 import * as MainQueue from '../Network/MainQueue';
@@ -24,19 +23,6 @@ function Reauthentication(response, request, isFromSequentialQueue) {
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                // There are some API requests that should not be retried when there is an auth failure like
-                // creating and deleting logins. In those cases, they should handle the original response instead
-                // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = lodashGet(request, 'data.shouldRetry');
-                if (!shouldRetry) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
-                    request.resolve(data);
-                    return;
-                }
-
                 // We are already authenticating
                 if (NetworkStore.isAuthenticating()) {
                     if (isFromSequentialQueue) {
