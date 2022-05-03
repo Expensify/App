@@ -20,6 +20,7 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
+import * as ErrorUtils from '../../ErrorUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -241,15 +242,19 @@ function signIn(password, twoFactorAuthCode) {
         twoFactorAuthCode,
         email: credentials.login,
     })
-        .then(({authToken, email}) => {
-            createTemporaryLogin(authToken, email);
-        })
-        .catch((error) => {
-            if (error.message === 'passwordForm.error.twoFactorAuthenticationEnabled') {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
+                if (errorMessage === 'passwordForm.error.twoFactorAuthenticationEnabled') {
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                    return;
+                }
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), loading: false});
                 return;
             }
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
+
+            const {authToken, email} = response;
+            createTemporaryLogin(authToken, email);
         });
 }
 

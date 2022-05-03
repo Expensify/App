@@ -314,10 +314,10 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
-        API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
