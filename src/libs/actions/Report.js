@@ -1522,8 +1522,13 @@ function createPolicyRoom(policyID, reportName, visibility) {
     Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
-            if (response.jsonCode !== 200) {
+            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
+                return;
+            }
+
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                Growl.error(response.message);
                 return;
             }
 
@@ -1549,8 +1554,13 @@ function renameReport(reportID, reportName) {
     Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
     API.RenameReport({reportID, reportName})
         .then((response) => {
-            if (response.jsonCode !== 200) {
+            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+                return;
+            }
+
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                Growl.error(response.message);
                 return;
             }
 
