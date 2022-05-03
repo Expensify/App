@@ -64,16 +64,7 @@ function stopListeningForReportChanges() {
     Onyx.disconnect(connectionID);
 }
 
-/**
- * Are we already listening for report changes?
- * @returns {Boolean}
- */
-function isListeningForReportChanges() {
-    return Boolean(connectionID);
-}
-
 export default {
     listenForReportChanges,
     stopListeningForReportChanges,
-    isListeningForReportChanges,
 };

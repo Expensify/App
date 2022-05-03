@@ -14,7 +14,6 @@ import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import NetworkConnection from '../NetworkConnection';
 
 let currentUserAccountID;
@@ -105,10 +104,6 @@ function getAppData(shouldSyncPolicyList = true) {
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchFreePlanVerifiedBankAccount();
     BankAccounts.fetchUserWallet();
-
-    if (!UnreadIndicatorUpdater.isListeningForReportChanges()) {
-        UnreadIndicatorUpdater.listenForReportChanges();
-    }
 
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();

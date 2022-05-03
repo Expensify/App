@@ -13,6 +13,7 @@ import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
+import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
@@ -103,7 +104,8 @@ class AuthScreens extends React.Component {
             Policy.subscribeToPolicyEvents();
         });
 
-        // Fetch some data we need on initialization
+        // Listen for report changes and fetch some data we need on initialization
+        UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData(false);
 
         // Load policies, maybe creating a new policy first.
