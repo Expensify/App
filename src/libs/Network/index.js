@@ -49,7 +49,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // If we are offline and attempting to make a read request then we will resolve this promise with a non-200 jsonCode that implies it
         // could not succeed. We do this any so any requests that block the UI will be able to handle this case (e.g. reset loading flag)
         if (NetworkStore.isOffline()) {
-            request.resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
+            resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
             return;
         }
 
