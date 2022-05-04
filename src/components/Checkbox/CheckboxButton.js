@@ -49,6 +49,7 @@ class CheckboxButton extends Component {
                 onClick={this.onClick}
                 onKeyDown={this.onKeyDown}
                 ref={this.props.forwardedRef}
+                style={this.props.style}
             >
                 {this.props.children}
             </View>
