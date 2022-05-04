@@ -110,7 +110,6 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -314,11 +313,11 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        OFFLINE: 0,
+        OFFLINE: 'offline',
+        UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
-        API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -634,7 +633,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d+(\.\d*)?$/,
+        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
