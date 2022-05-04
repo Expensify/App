@@ -24,6 +24,9 @@ const propTypes = {
 
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
+
+    /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
+    isWorkSpace: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -32,6 +35,7 @@ const defaultProps = {
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
+    isWorkSpace: false,
 };
 
 class Avatar extends PureComponent {
@@ -53,20 +57,23 @@ class Avatar extends PureComponent {
         ];
 
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
+        const isHeightDefine = _.find(this.props.imageStyles, 'height');
+        const isWidthDefine = _.find(this.props.imageStyles, 'width');
+        const fallbackAvatar = this.props.isWorkSpace ? Expensicons.FallbackWorkspaceAvatar : Expensicons.FallbackAvatar;
+
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
                     ? (
                         <Icon
-                            src={this.state.imageError ? Expensicons.FallbackAvatar : this.props.source}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(!this.state.imageError ? {fill: this.props.fill} : {})}
-                            height={iconSize}
-                            width={iconSize}
+                            src={this.state.imageError ? fallbackAvatar : this.props.source}
+                            height={isHeightDefine ? isHeightDefine.height : iconSize}
+                            width={isWidthDefine ? isWidthDefine.width : iconSize}
+                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
                         />
                     )
                     : (
-                        <Image source={{uri: this.props.source}} style={[imageStyle, {backgroundColor: themeColors.offline}]} onError={() => this.setState({imageError: true})} />
+                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({imageError: true})} />
                     )}
             </View>
         );

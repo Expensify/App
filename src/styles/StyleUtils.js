@@ -36,6 +36,7 @@ function getAvatarStyle(size) {
         height: avatarSize,
         width: avatarSize,
         borderRadius: avatarSize,
+        backgroundColor: themeColors.offline,
     };
 }
 

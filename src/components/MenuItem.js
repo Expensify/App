@@ -39,6 +39,7 @@ const defaultProps = {
     iconType: 'icon',
     onPress: () => {},
     interactive: true,
+    isWorkSpace: false,
 };
 
 const MenuItem = props => (
@@ -87,6 +88,7 @@ const MenuItem = props => (
                             <Avatar
                                 imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                 source={props.icon}
+                                isWorkSpace={props.isWorkSpace}
                             />
                         </View>
                     )}

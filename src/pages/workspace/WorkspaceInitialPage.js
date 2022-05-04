@@ -156,6 +156,7 @@ class WorkspaceInitialPage extends React.Component {
                                                 containerStyles={styles.avatarLarge}
                                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                                 source={this.props.policy.avatarURL}
+                                                isWorkSpace
                                             />
                                         )
                                         : (
@@ -200,6 +201,7 @@ class WorkspaceInitialPage extends React.Component {
                                 iconRight={item.iconRight}
                                 onPress={() => item.action()}
                                 shouldShowRightIcon
+                                isWorkSpace
                             />
                         ))}
                     </View>
