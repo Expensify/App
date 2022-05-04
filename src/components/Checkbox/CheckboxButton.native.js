@@ -8,10 +8,27 @@ const propTypes = {
 
     /** A function that is called when the box/label is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Additional styles to add to checkbox button */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
+    /** A ref to forward to the Pressable */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
+
+    /** Children to wrap in CheckboxButton. */
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
-    onPress: () => {},
+    disabled: false,
+    style: [],
+    forwardedRef: undefined,
 };
 
 const CheckboxButton = props => (
