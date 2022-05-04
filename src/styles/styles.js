@@ -2526,11 +2526,8 @@ const styles = {
         padding: 16,
     },
 
-    inlineSystemMessage: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+    iouRejectButton: {
+        minWidth: 69,
     },
 };
 
