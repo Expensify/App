@@ -193,4 +193,6 @@ export default {
 
     // Validating Email?
     USER_SIGN_UP: 'userSignUp',
+
+    DEFAULT_CLEAR_KEY: 'defaultClearKey',
 };
