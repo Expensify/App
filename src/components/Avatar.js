@@ -26,7 +26,7 @@ const propTypes = {
     fill: PropTypes.string,
 
     /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
-    isWorkSpace: PropTypes.bool,
+    fallbackIcon: PropTypes.string,
 };
 
 const defaultProps = {
@@ -35,7 +35,7 @@ const defaultProps = {
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
-    isWorkSpace: false,
+    fallbackIcon: Expensicons.FallbackAvatar,
 };
 
 class Avatar extends PureComponent {
@@ -57,18 +57,15 @@ class Avatar extends PureComponent {
         ];
 
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
-        const isHeightDefine = _.find(this.props.imageStyles, 'height');
-        const isWidthDefine = _.find(this.props.imageStyles, 'width');
-        const fallbackAvatar = this.props.isWorkSpace ? Expensicons.FallbackWorkspaceAvatar : Expensicons.FallbackAvatar;
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
                     ? (
                         <Icon
-                            src={this.state.imageError ? fallbackAvatar : this.props.source}
-                            height={isHeightDefine ? isHeightDefine.height : iconSize}
-                            width={isWidthDefine ? isWidthDefine.width : iconSize}
+                            src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                            height={iconSize}
+                            width={iconSize}
                             fill={this.state.imageError ? themeColors.offline : this.props.fill}
                         />
                     )

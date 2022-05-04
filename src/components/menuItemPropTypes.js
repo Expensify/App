@@ -65,7 +65,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
-    isWorkSpace: PropTypes.bool,
+    fallbackIcon: PropTypes.string,
 };
 
 export default propTypes;

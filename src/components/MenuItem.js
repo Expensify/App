@@ -39,7 +39,7 @@ const defaultProps = {
     iconType: 'icon',
     onPress: () => {},
     interactive: true,
-    isWorkSpace: false,
+    fallbackIcon: Expensicons.FallbackAvatar,
 };
 
 const MenuItem = props => (
@@ -88,7 +88,7 @@ const MenuItem = props => (
                             <Avatar
                                 imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                 source={props.icon}
-                                isWorkSpace={props.isWorkSpace}
+                                fallbackIcon={props.fallbackIcon}
                             />
                         </View>
                     )}
