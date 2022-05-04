@@ -18,6 +18,7 @@ import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
 import * as API from '../API';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
@@ -519,9 +520,10 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
  * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
  * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
  *
- * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
- * closed IOU).
+ * Examples of correct usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a closed
+ * IOU). Send Money is an incorrect use case, because these IOUReports are never associated with the chatReport and this would
+ * prevent outstanding IOUs from showing.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, used to sync the reports
@@ -647,11 +649,12 @@ function updateReportWithNewAction(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
-        // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
-        // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
-        // be displayed and paid IOUs would show as unpaid.
-        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
+        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
+        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
+        if (reportAction.originalMessage.IOUDetails === undefined) {
+            fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        }
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -717,7 +720,7 @@ function updateReportPinnedState(reportID, isPinned) {
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}`;
+    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -728,7 +731,7 @@ function getReportChannelName(reportID) {
  * @param {Boolean} isChunked
  */
 function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
      * @param {Object} pushJSON
@@ -769,7 +772,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -1377,9 +1380,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
 });
-
-// When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(fetchAllReports);
 
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.

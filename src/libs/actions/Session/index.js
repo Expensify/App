@@ -19,6 +19,8 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
+import * as Authentication from '../../Authentication';
+import * as Welcome from '../Welcome';
 
 let credentials = {};
 Onyx.connect({
@@ -231,7 +233,7 @@ function createTemporaryLogin(authToken, email) {
 function signIn(password, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.Authenticate({
+    Authentication.Authenticate({
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -346,6 +348,7 @@ function cleanupSession() {
     PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
+    Welcome.resetReadyCheck();
 }
 
 function clearAccountMessages() {
@@ -422,7 +425,7 @@ function validateEmail(accountID, validateCode) {
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticatePusher = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting');
-    API.reauthenticate('Push_Authenticate')
+    Authentication.reauthenticate('Push_Authenticate')
         .then(Pusher.reconnect)
         .catch(() => {
             console.debug(

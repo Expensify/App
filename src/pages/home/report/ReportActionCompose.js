@@ -414,7 +414,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        isUploadingAttachment
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -446,8 +446,6 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                animationIn="fadeInUp"
-                                                animationOut="fadeOutDown"
                                                 menuItems={[
                                                     ...(!hasExcludedIOUEmails
                                                         && Permissions.canUseIOU(this.props.betas) ? [
