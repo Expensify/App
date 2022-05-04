@@ -253,7 +253,7 @@ class AddPlaidBankAccount extends React.Component {
                                     label: this.props.translate('bankAccount.chooseAnAccount'),
                                 } : {}}
                                 value={this.state.selectedIndex}
-                                errorText={this.getErrors().selectedBank}
+                                errorText={this.getErrorText('selectedBank')}
                             />
                         </View>
                         {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
