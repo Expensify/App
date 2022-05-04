@@ -26,6 +26,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
     );
 });
 
+BasePreRenderer.displayName = 'BasePreRenderer';
 BasePreRenderer.propTypes = htmlRendererPropTypes;
 
 export default withLocalize(BasePreRenderer);
