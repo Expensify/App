@@ -1,10 +1,9 @@
-import CONST from '../CONST';
-import colors from './colors';
-import variables from './variables';
-import themeColors from './themes/default';
-import getPlatform from '../libs/getPlatform';
+import CONST from '../../CONST';
+import colors from '../colors';
+import variables from '../variables';
+import themeColors from '../themes/default';
 
-export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
+export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -17,7 +16,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
     let animationOut;
     let hideBackdrop = false;
     let shouldAddBottomSafeAreaPadding = false;
-    let shouldAddTopSafeAreaPadding = false;
+    const shouldAddTopSafeAreaPadding = shouldModalAddTopSafeAreaPadding[type] || false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CONFIRM:
@@ -84,9 +83,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-
-            // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
-            shouldAddTopSafeAreaPadding = getPlatform() === CONST.PLATFORM.IOS;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -117,9 +113,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-
-            // Only apply top padding on iOS since only iOS using SafeAreaView and the top insets is not apply
-            shouldAddTopSafeAreaPadding = getPlatform() === CONST.PLATFORM.IOS;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -201,7 +194,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
-            shouldAddTopSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
