@@ -122,7 +122,7 @@ class ImageView extends PureComponent {
             return;
         }
 
-        // We hold to setting isZoomed state if true
+        // We hold for set isZoomed state if true
         // Because when set isZoomed state can't getting actual position user clicked
         this.isZoomed = !this.state.isZoomed;
         if (this.isZoomed === false) {
