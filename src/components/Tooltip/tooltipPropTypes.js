@@ -30,7 +30,7 @@ const propTypes = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number,
 
-    /** Maximum number of lines to set on tooltip */
+    /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number,
 };
 

@@ -98,12 +98,12 @@ export default function getTooltipStyles(
     const tooltipFontSize = variables.fontSizeSmall;
 
     // We get wrapper width based on tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space
+    // Add horizontal padding to the text width to get the wrapper width.
+    // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
     const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
-
-        // Add horizontal padding to the text width to get the wrapper width.
-        // TooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
         ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
         : maxWidth;
+
     return {
         animationStyle: {
             // remember Transform causes a new Local cordinate system

@@ -39,7 +39,7 @@ const propTypes = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number.isRequired,
 
-    /** Maximum number of lines to set on tooltip */
+    /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number.isRequired,
 };
 
@@ -47,7 +47,7 @@ const propTypes = {
 // On every tooltip hover, we update the position in state which will result in re-rendering.
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
-// Its good to memorize this one.
+// It's good to memorize this one.
 class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -64,10 +64,8 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.textRef.measure((x, y, width) => {
-            this.setState({
-                tooltipTextWidth: width,
-            });
+        this.setState({
+            tooltipTextWidth: this.textRef.offsetWidth,
         });
     }
 
