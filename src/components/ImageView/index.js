@@ -94,21 +94,21 @@ class ImageView extends PureComponent {
      * @param {SyntheticEvent} e
      */
     onContainerPress(e) {
-        let sX;
-        let sY;
+        let scrollX;
+        let scrollY;
         if (this.isZoomed && !this.state.isDragging) {
             const {offsetX, offsetY} = e.nativeEvent;
             const delta = this.getScrollOffset(offsetX / this.state.zoomScale, offsetY / this.state.zoomScale);
-            sX = delta.offsetX;
-            sY = delta.offsetY;
+            scrollX = delta.offsetX;
+            scrollY = delta.offsetY;
         }
 
         if (this.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
         } else if (this.isZoomed) {
             this.setState({isZoomed: this.isZoomed}, () => {
-                this.scrollableRef.scrollTop = sY;
-                this.scrollableRef.scrollLeft = sX;
+                this.scrollableRef.scrollTop = scrollY;
+                this.scrollableRef.scrollLeft = scrollX;
             });
         }
     }
@@ -160,23 +160,23 @@ class ImageView extends PureComponent {
      * @returns {Object} converted touch point
      */
     getScrollOffset(x, y) {
-        let sx;
-        let sy;
+        let offsetX;
+        let offsetY;
 
-        // container size bigger than clicked position offset
+        // Container size bigger than clicked position offset
         if (x <= (this.state.containerWidth / 2)) {
-            sx = 0;
+            offsetX = 0;
         } else if (x > this.state.containerWidth / 2) {
-            // minus half of container size because we want to be center clicked position
-            sx = x - (this.state.containerWidth / 2);
+            // Minus half of container size because we want to be center clicked position
+            offsetX = x - (this.state.containerWidth / 2);
         }
         if (y <= this.state.containerHeight / 2) {
-            sy = 0;
+            offsetY = 0;
         } else if (y > this.state.containerHeight / 2) {
-            // minus half of container size because we want to be center clicked position
-            sy = y - (this.state.containerHeight / 2);
+            // Minus half of container size because we want to be center clicked position
+            offsetY = y - (this.state.containerHeight / 2);
         }
-        return {offsetX: sx, offsetY: sy};
+        return {offsetX, offsetY};
     }
 
     trackMovement(e) {
