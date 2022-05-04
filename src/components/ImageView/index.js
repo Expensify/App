@@ -98,6 +98,9 @@ class ImageView extends PureComponent {
         let scrollY;
         if (this.isZoomed && !this.state.isDragging) {
             const {offsetX, offsetY} = e.nativeEvent;
+
+            // We divide the clicked positions by the zoomScale.
+            // We need pixel coordinates.
             const delta = this.getScrollOffset(offsetX / this.state.zoomScale, offsetY / this.state.zoomScale);
             scrollX = delta.offsetX;
             scrollY = delta.offsetY;
@@ -106,6 +109,7 @@ class ImageView extends PureComponent {
         if (this.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
         } else if (this.isZoomed) {
+            // We set isZoomed state then scroll image for calculating positions
             this.setState({isZoomed: this.isZoomed}, () => {
                 this.scrollableRef.scrollTop = scrollY;
                 this.scrollableRef.scrollLeft = scrollX;
@@ -118,6 +122,8 @@ class ImageView extends PureComponent {
             return;
         }
 
+        // We hold to setting isZoomed state if true
+        // Because when set isZoomed state can't getting actual position user clicked
         this.isZoomed = !this.state.isZoomed;
         if (this.isZoomed === false) {
             this.setState(prevState => ({
@@ -132,7 +138,7 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When open image, set image left/right/top/bottom point and width, height
+     * When open image, set image width and height. If containerHeight is set before set zoomScale
      * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
