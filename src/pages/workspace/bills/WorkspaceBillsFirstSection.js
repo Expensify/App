@@ -56,7 +56,7 @@ const WorkspaceBillsFirstSection = (props) => {
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
                         <TextLink
-                            href="https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/"
+                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
                             example.com@expensify.cash
                         </TextLink>
