@@ -1,9 +1,10 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import styles from '../../styles/styles';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import CheckboxButton from './CheckboxButton';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -32,7 +33,7 @@ const defaultProps = {
 };
 
 const Checkbox = props => (
-    <Pressable
+    <CheckboxButton
         disabled={props.disabled}
         onPress={() => props.onPress(!props.isChecked)}
         ref={props.forwardedRef}
@@ -47,7 +48,7 @@ const Checkbox = props => (
         >
             <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
         </View>
-    </Pressable>
+    </CheckboxButton>
 );
 
 Checkbox.propTypes = propTypes;
