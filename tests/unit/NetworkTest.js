@@ -358,6 +358,9 @@ test('Retryable requests should be persisted while offline', () => {
             ]);
 
             PersistedRequests.clear();
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
             expect(PersistedRequests.getAll()).toEqual([]);
         });
 });
