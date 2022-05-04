@@ -116,6 +116,10 @@ class AuthScreens extends React.Component {
                 Policy.getPolicyList();
             });
 
+
+        // Run fixAccountAndReload in case we have migrations we need to run for the user
+        Session.fixAccountAndReload();
+
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
         // See https://github.com/Expensify/ReactNativeChat/issues/468
@@ -142,9 +146,6 @@ class AuthScreens extends React.Component {
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
-
-        // Run fixAccountAndReload in case we have migrations we need to run for the user
-        Session.fixAccountAndReload();
     }
 
     shouldComponentUpdate(nextProps) {
