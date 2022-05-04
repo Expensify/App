@@ -31,8 +31,6 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/reportUtils';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -98,6 +96,7 @@ class ReportActionsView extends React.Component {
 
         this.appStateChangeListener = null;
         this.actionIndexID = -1;
+        this.renderedActionIDs = new Set();
 
         this.didLayout = false;
 
@@ -108,6 +107,9 @@ class ReportActionsView extends React.Component {
 
         this.currentScrollOffset = 0;
         this.scrollToReportActionIDAttempt = 0;
+        this.doneMeasuring = false;
+        this.itemRendered = false;
+        this.doneScrollingToReportActionID = false;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
@@ -119,9 +121,13 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
         this.scrollToReportActionID = this.scrollToReportActionID.bind(this);
+        this.onItemRendered = this.onItemRendered.bind(this);
+        this.onMeasurementEnd = this.onMeasurementEnd.bind(this);
+        this.checkScrollToReportAction = this.checkScrollToReportAction.bind(this);
     }
 
     componentDidMount() {
+        console.log('over here done mounting reportActionsView');
         this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!Visibility.isVisible() || this.props.isDrawerOpen) {
                 return;
@@ -154,6 +160,10 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.scrollToReportActionIDAttempt = 0;
+            this.renderedActionIDs = new Set();
+            this.doneMeasuring = false;
+            this.itemRendered = false;
+            this.doneScrollingToReportActionID = false;
             this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
             this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
@@ -411,10 +421,13 @@ class ReportActionsView extends React.Component {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
+        console.log('over here onLayout');
     }
 
     scrollToReportActionID() {
+        console.log(`over here scrolling to reportActionID: ${this.props.reportActionID}`);
         if (this.props.reportActionID === 0) {
+            console.log('over here 1');
             return;
         }
 
@@ -422,15 +435,42 @@ class ReportActionsView extends React.Component {
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
+        console.log('over here 2');
         // Check if reportID is deleted
         const test = this.props.reportActions;
 
         // Continue scroll back if actionIndex is -1
-        if (this.actionIndexID === -1 && this.scrollToReportActionIDAttempt < 3) {
-            ++this.scrollToReportActionIDAttempt;
-            this.loadMoreChats();
-        } else if (this.actionIndexID !== -1) {
+        // if (this.actionIndexID === -1 && this.scrollToReportActionIDAttempt < 3) {
+        //     console.log('over here 3');
+        //     ++this.scrollToReportActionIDAttempt;
+        //     // this.loadMoreChats();
+        //     // ReportScrollManager.scrollToIndex({index: this.sortedReportActions.length});
+        // } else
+        if (this.actionIndexID !== -1) {
+            console.log(`over here 4: ${this.actionIndexID}`);
             ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
+        }
+    }
+
+    onItemRendered(reportActionID) {
+        this.renderedActionIDs.add(parseInt(reportActionID, 10));
+        this.checkScrollToReportAction();
+    }
+
+    onMeasurementEnd() {
+        this.doneMeasuring = true;
+        this.checkScrollToReportAction();
+    }
+
+    checkScrollToReportAction() {
+        if (!this.props.reportActionID) {
+            return;
+        }
+
+        if (this.doneMeasuring && this.renderedActionIDs.has(this.props.reportActionID) && !this.doneScrollingToReportActionID) {
+            // We give a slight delay because if we attempt this too fast things break as the front end hasn't loaded images/content yet.
+            this.doneScrollingToReportActionID = true;
+            setTimeout(this.scrollToReportActionID, 1000);
         }
     }
 
@@ -450,12 +490,15 @@ class ReportActionsView extends React.Component {
                 />
                 <ReportActionsList
                     report={this.props.report}
+                    selectedReportActionID={this.props.reportActionID}
                     onScroll={this.trackScroll}
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                     isLoadingReportActions={this.props.isLoadingReportActions}
                     scrollToReportActionID={this.scrollToReportActionID}
+                    onItemRendered={this.onItemRendered}
+                    onMeasurementEnd={this.onMeasurementEnd}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />

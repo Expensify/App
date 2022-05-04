@@ -55,6 +55,8 @@ const propTypes = {
 
     isSelected: PropTypes.bool,
 
+    onItemRendered: PropTypes.func.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -74,6 +76,15 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.animatedBackgroundColor = new Animated.Value(0);
+    }
+
+    componentDidMount() {
+        // if (this.props.isSelected) {
+        console.log(`over here did mount. ReportActionItem: ${this.props.action.reportActionID}. index: ${this.props.index}`);
+        // We give a slight delay because if we attempt this too fast things break as the front end hasn't loaded images/content yet.
+        // setTimeout(this.props.scrollToReportActionID, 2000);
+        this.props.onItemRendered(this.props.action.reportActionID);
+        // }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -145,7 +156,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        console.log(`over here render ReportActionItem: ${this.props.action.reportActionID}`);
+        console.log(`over here render ReportActionItem: ${this.props.action.reportActionID}. index: ${this.props.index}`);
 
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.reportID} />;
@@ -207,7 +218,7 @@ class ReportActionItem extends Component {
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
-                            <Text>{`:: INDEX ${this.props.index} ::`}</Text>
+                            <Text>{`INDEX ${this.props.index} :: REPORTACTIONID ${this.props.action.reportActionID}`}</Text>
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered

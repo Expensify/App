@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -35,6 +36,8 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
+    selectedReportActionID: PropTypes.number.isRequired,
+
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
         /** Index of the action in the array */
@@ -57,6 +60,10 @@ const propTypes = {
     onScroll: PropTypes.func.isRequired,
 
     scrollToReportActionID: PropTypes.func.isRequired,
+
+    onItemRendered: PropTypes.func.isRequired,
+
+    onMeasurementEnd: PropTypes.func.isRequired,
 
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
@@ -117,6 +124,7 @@ class ReportActionsList extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
@@ -126,6 +134,9 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
+                scrollToReportActionID={this.props.scrollToReportActionID}
+                isSelected={this.props.selectedReportActionID == item.action.reportActionID}
+                onItemRendered={this.props.onItemRendered}
             />
         );
     }
@@ -177,7 +188,7 @@ class ReportActionsList extends React.Component {
                 onScroll={this.props.onScroll}
                 extraData={extraData}
                 measurementPadding={shouldShowReportRecipientLocalTime ? 0 : styles.chatContentScrollView.paddingVertical}
-                onMeasurementEnd={this.props.scrollToReportActionID}
+                onMeasurementEnd={this.props.onMeasurementEnd}
             />
         );
     }

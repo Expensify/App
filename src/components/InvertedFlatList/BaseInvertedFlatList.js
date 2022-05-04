@@ -29,6 +29,8 @@ const propTypes = {
 
     measurementPadding: PropTypes.number,
 
+    onViewableItemsChanged: PropTypes.func,
+
     onMeasurementEnd: PropTypes.func,
 };
 
@@ -37,6 +39,7 @@ const defaultProps = {
     shouldMeasureItems: false,
     shouldRemoveClippedSubviews: false,
     measurementPadding: 0,
+    onViewableItemsChanged: () => {},
     onMeasurementEnd: () => {},
 };
 
@@ -46,12 +49,21 @@ class BaseInvertedFlatList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.itemsRendered = new Set();
 
         // Stores each item's computed height after it renders
         // once and is then referenced for the life of this component.
         // This is essential to getting FlatList inverted to work on web
         // and also enables more predictable scrolling on native platforms.
         this.sizeMap = {};
+    }
+
+    componentDidMount() {
+        console.log('over here flatlist did mount');
+        if (!this.props.shouldMeasureItems) {
+            console.log('over here flatlist measurementEnd');
+            this.props.onMeasurementEnd();
+        }
     }
 
     /**
@@ -148,14 +160,24 @@ class BaseInvertedFlatList extends Component {
      * @return {React.Component}
      */
     renderItem({item, index}) {
-        if (this.props.shouldMeasureItems) {
+        this.itemsRendered.add(index);
 
+        // console.log(`over here items rendered: ${this.itemsRendered.size}. data.length: ${this.props.data.length}`);
+        // if (this.itemsRendered.size === this.props.data.length) {
+        //     console.log('over here measurement end');
+        //     this.props.onMeasurementEnd();
+        // }
+
+        if (this.props.shouldMeasureItems) {
             return (
                 <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
                     {this.props.renderItem({item, index})}
                 </View>
             );
         }
+
+        // onscrolltoIndexfailed, if it happens then try again
+        // onViewableItemsChanged,
 
         return this.props.renderItem({item, index});
     }
@@ -178,6 +200,7 @@ class BaseInvertedFlatList extends Component {
                 windowSize={15}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
+                onViewableItemsChanged={this.props.onViewableItemsChanged}
             />
         );
     }
