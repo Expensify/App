@@ -82,8 +82,6 @@ class ButtonWithMenu extends PureComponent {
                         onClose={() => this.setMenuVisibility(false)}
                         onItemSelected={() => this.setMenuVisibility(false)}
                         anchorPosition={styles.createMenuPositionRightSidepane}
-                        animationIn="fadeInUp"
-                        animationOut="fadeOutDown"
                         headerText={this.props.menuHeaderText}
                         menuItems={_.map(this.props.options, item => ({
                             ...item,
