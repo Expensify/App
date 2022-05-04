@@ -95,6 +95,13 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape({
+        /** Primary login of the user */
+        login: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -106,6 +113,7 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
