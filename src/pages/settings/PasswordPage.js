@@ -180,7 +180,7 @@ class PasswordPage extends Component {
                                             value={this.state.currentPassword}
                                             onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
                                             returnKeyType="done"
-                                            hasError={this.state.errors.currentPassword}
+                                            hasError={this.state.errors.currentPassword || this.props.account.errorInCurrentPassword}
                                             errorText={this.getErrorText('currentPassword')}
                                             onSubmitEditing={this.submit}
                                         />
@@ -199,7 +199,7 @@ class PasswordPage extends Component {
                                             onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                                             onSubmitEditing={this.submit}
                                         />
-                                        {shouldShowNewPasswordPrompt && (
+                                        {shouldShowNewPasswordPrompt && !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange && (
                                         <Text
                                             style={[
                                                 styles.textLabelSupporting,
