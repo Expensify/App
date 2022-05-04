@@ -69,7 +69,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline === this.props.network.isOffline) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
 
