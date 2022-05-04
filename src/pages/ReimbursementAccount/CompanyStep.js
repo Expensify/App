@@ -270,7 +270,7 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
-                            errorText={this.getErrors().incorporationType}
+                            errorText={this.getErrorText('incorporationType')}
                         />
                     </View>
                     <View style={styles.mt4}>
