@@ -53,6 +53,9 @@ const propTypes = {
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
+    /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
+    isWorkSpace: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -65,6 +68,7 @@ const defaultProps = {
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    isWorkSpace: false,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -181,6 +185,7 @@ class AvatarWithImagePicker extends React.Component {
                                     containerStyles={styles.avatarLarge}
                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                     source={this.props.avatarURL}
+                                    isWorkSpace={this.props.isWorkSpace}
                                 />
                             )
                             : (

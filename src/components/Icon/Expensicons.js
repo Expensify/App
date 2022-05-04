@@ -32,6 +32,7 @@ import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
@@ -112,6 +113,7 @@ export {
     EyeDisabled,
     ExpensifyCard,
     FallbackAvatar,
+    FallbackWorkspaceAvatar,
     Gallery,
     Gear,
     Hashtag,
