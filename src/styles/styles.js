@@ -2519,6 +2519,10 @@ const styles = {
         marginBottom: 40,
         padding: 16,
     },
+
+    iouRejectButton: {
+        minWidth: 69,
+    },
 };
 
 export default styles;
