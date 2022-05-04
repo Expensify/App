@@ -114,6 +114,7 @@ const DetailsPage = (props) => {
                                             containerStyles={[styles.avatarLarge, styles.mb3]}
                                             imageStyles={[styles.avatarLarge]}
                                             source={details.avatar}
+                                            size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </PressableWithoutFocus>
                                 )}
