@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
+import Log from '../Log';
 
 let currentActiveClients;
 Onyx.connect({
@@ -16,6 +18,12 @@ Onyx.connect({
     callback: val => currentPreferredLocale = val,
 });
 
+let defaultValue;
+Onyx.connect({
+    key: ONYXKEYS.DEFAULT_CLEAR_KEY,
+    callback: val => defaultValue = val,
+});
+
 /**
  * @param {String} errorMessage
  */
@@ -23,9 +31,26 @@ function clearStorageAndRedirect(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
+    const mergedValue = {value: 42};
+
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear()
         .then(() => {
+            Log.info('Done clearing Onyx');
+            console.assert(_.isEqual(defaultValue, mergedValue), {
+                defaultValue,
+                mergedValue,
+                errorMessage: "[Onyx test] Onyx value doesn't match the value merged after clearing.",
+            });
+            const cachedValue = Onyx.getValueFromCache(ONYXKEYS.DEFAULT_CLEAR_KEY);
+            Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
+                .then((storedValue) => {
+                    console.assert(_.isEqual(cachedValue, storedValue), {
+                        cachedValue,
+                        storedValue,
+                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when merging after clearing.",
+                    });
+                });
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
@@ -36,6 +61,10 @@ function clearStorageAndRedirect(errorMessage) {
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
             Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
+
+    // Merge immediately after clear
+    Onyx.merge(ONYXKEYS.DEFAULT_CLEAR_KEY, mergedValue)
+        .then(() => Log.info('Done merging'));
 }
 
 /**
