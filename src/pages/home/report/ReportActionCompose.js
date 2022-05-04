@@ -44,6 +44,7 @@ import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -87,10 +88,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -106,7 +104,6 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
 };
@@ -417,7 +414,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        isUploadingAttachment
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -449,8 +446,6 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                animationIn="fadeInUp"
-                                                animationOut="fadeOutDown"
                                                 menuItems={[
                                                     ...(!hasExcludedIOUEmails
                                                         && Permissions.canUseIOU(this.props.betas) ? [

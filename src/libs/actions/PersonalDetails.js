@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -99,6 +98,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
@@ -109,6 +109,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatarHighResolution,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -368,9 +369,6 @@ function deleteAvatar(defaultAvatarURL) {
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
-
-// When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
