@@ -35,14 +35,16 @@ Onyx.init({
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({jsonCode: 200}),
-    });
+    global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     PersistedRequests.clear();
     MainQueue.clear();
-    return Onyx.clear().then(waitForPromisesToResolve);
+
+    // Wait for any Log command to finish and Onyx to fully clear
+    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    return waitForPromisesToResolve()
+        .then(Onyx.clear)
+        .then(waitForPromisesToResolve);
 });
 
 afterEach(() => {
@@ -71,7 +73,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
             expect(isOffline).toBe(null);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new TypeError('Failed to fetch'))));
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
             const actualXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn();
@@ -466,7 +468,7 @@ test('test bad response will log alert', () => {
 
 test('test Failed to fetch error for requests not flagged with shouldRetry will throw API OFFLINE error', () => {
     // Setup xhr handler that rejects once with a 502 Bad Gateway
-    global.fetch = jest.fn(() => new Promise((_resolve, reject) => reject(new Error(CONST.ERROR.FAILED_TO_FETCH))));
+    global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
     const onRejected = jest.fn();
 
@@ -717,5 +719,49 @@ test('Sequential queue will not run until credentials are read', () => {
         .then(() => {
             // Then we should expect XHR to run
             expect(xhr).toHaveBeenCalled();
+        });
+});
+
+test('persistable request will move directly to the SequentialQueue when we are online and block non-persistable requests', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // GIVEN that we are online
+            expect(NetworkStore.isOffline()).toBe(false);
+
+            // WHEN we make a request that should be retried, one that should not, and another that should
+            Network.post('MockCommandOne', {persist: true});
+            Network.post('MockCommandTwo');
+            Network.post('MockCommandThree', {persist: true});
+
+            // THEN the retryable requests should immediately be added to the persisted requests
+            expect(PersistedRequests.getAll().length).toBe(2);
+
+            // WHEN we wait for the queue to run and finish processing
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN the queue should be stopped and there should be no more requests to run
+            expect(SequentialQueue.isRunning()).toBe(false);
+            expect(PersistedRequests.getAll().length).toBe(0);
+
+            // And our persistable request should run before our non persistable one in a blocking way
+            const firstRequest = xhr.mock.calls[0];
+            const [firstRequestCommandName] = firstRequest;
+            expect(firstRequestCommandName).toBe('MockCommandOne');
+
+            const secondRequest = xhr.mock.calls[1];
+            const [secondRequestCommandName] = secondRequest;
+            expect(secondRequestCommandName).toBe('MockCommandThree');
+
+            // WHEN we advance the main queue timer and wait for promises
+            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN we should see that our third (non-persistable) request has run last
+            const thirdRequest = xhr.mock.calls[2];
+            const [thirdRequestCommandName] = thirdRequest;
+            expect(thirdRequestCommandName).toBe('MockCommandTwo');
         });
 });
