@@ -56,7 +56,7 @@ class CheckboxButton extends Component {
     }
 
     onToggle() {
-        if(this.props.disabled) {
+        if (this.props.disabled) {
             return;
         }
 

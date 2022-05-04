@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
+    Animated, View, TouchableWithoutFeedback, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -14,7 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CheckboxButton from '../Checkbox/CheckboxButton'
+import CheckboxButton from '../Checkbox/CheckboxButton';
 
 class BaseTextInput extends Component {
     constructor(props) {
