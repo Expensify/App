@@ -21,9 +21,6 @@ const propTypes = {
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /**
     * The ID used to uniquely identify the input
     *
@@ -53,7 +50,6 @@ const defaultProps = {
     defaultValue: undefined,
     errorText: '',
     shouldSaveDraft: false,
-    isFormInput: false,
     inputID: undefined,
     onBlur: () => {},
 };
@@ -69,7 +65,6 @@ const StatePicker = forwardRef((props, ref) => (
         label={props.label || props.translate('common.state')}
         errorText={props.errorText}
         onBlur={props.onBlur}
-        isFormInput={props.isFormInput}
         shouldSaveDraft={props.shouldSaveDraft}
     />
 ));

@@ -57,9 +57,6 @@ const propTypes = {
     prefixCharacter: PropTypes.string,
 
     /** Form props */
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /**
      * The ID used to uniquely identify the input
      *
@@ -76,7 +73,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isFormInput: false,
     label: '',
     name: '',
     errorText: '',
