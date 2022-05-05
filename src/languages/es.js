@@ -981,4 +981,18 @@ export default {
         },
         refresh: 'Refresh',
     },
+    fileDownload: {
+        success: {
+            title: 'Descargado!',
+            message: 'Archivo descargado correctamente',
+        },
+        generalError: {
+            title: 'Error en la descarga',
+            message: 'No se puede descargar el archivo adjunto',
+        },
+        permissionError: {
+            title: 'Se necesita acceso',
+            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
+    },
 };

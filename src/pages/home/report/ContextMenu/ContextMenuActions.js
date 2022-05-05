@@ -11,6 +11,7 @@ import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
+import * as ContextMenuUtils from './ContextMenuUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -51,6 +52,7 @@ export default [
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             fileDownload(sourceURL, originalFileName);
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
@@ -62,6 +64,7 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: ContextMenuUtils.getPopoverDescription,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
@@ -73,6 +76,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
@@ -107,6 +111,7 @@ export default [
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -119,6 +124,7 @@ export default [
             Clipboard.setString(text);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: () => {},
     },
 
     {
@@ -133,6 +139,7 @@ export default [
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -157,6 +164,7 @@ export default [
             // No popover to hide, call editAction immediately
             editAction();
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
@@ -176,6 +184,7 @@ export default [
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
         },
+        getDescription: () => {},
     },
 ];
 

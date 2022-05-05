@@ -103,7 +103,7 @@ function Logging(response, request) {
                     command: request.command,
                     message: error.message,
                     status: error.status,
-                });
+                }, false);
             }
 
             throw new Error(CONST.ERROR.XHR_FAILED);
