@@ -347,7 +347,7 @@ class OptionsSelector extends Component {
                                     showTitleTooltip={this.props.showTitleTooltip}
                                 />
                                 {this.props.shouldTextInputAppearBelowOptions && (
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
+                                    <View style={[styles.ph5, styles.pv5, styles.iouConfirmComment]}>
                                         {textInput}
                                     </View>
                                 )}
