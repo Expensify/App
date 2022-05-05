@@ -492,7 +492,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 /**
  * Load all the data we need on app initialization after logging in
  */
-function loadInitializationData() {
+function loadInitialData() {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     App.getLocale();
@@ -510,14 +510,16 @@ function loadInitializationData() {
 
 /**
  * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
+ * because some migrations might create new chat reports, new policies, etc. that the user now has access to.
  */
-function fixAccountAndReload() {
+function fixAccountAndReloadData() {
     API.User_FixAccount()
         .then((response) => {
             if (!response.changed) {
                 return;
             }
-            loadInitializationData();
+            console.debug('FixAccount found updates for this user, so data will be reinitalized');
+            loadInitialData();
         });
 }
 
@@ -540,6 +542,6 @@ export {
     setShouldShowComposeInput,
     changePasswordAndSignIn,
     invalidateCredentials,
-    loadInitializationData,
-    fixAccountAndReload,
+    loadInitialData,
+    fixAccountAndReloadData,
 };
