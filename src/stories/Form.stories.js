@@ -42,7 +42,6 @@ const Template = (args) => {
                 <TextInput
                     label="Routing number"
                     inputID="routingNumber"
-                    isFormInput
                     shouldSaveDraft
                 />
             </View>
@@ -50,20 +49,17 @@ const Template = (args) => {
                 label="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <AddressSearch
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
-                isFormInput
             />
             <DatePicker
                 label="Date of birth"
                 inputID="dob"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <View>
                 <Picker
@@ -85,7 +81,6 @@ const Template = (args) => {
                             value: 'apple',
                         },
                     ]}
-                    isFormInput
                 />
             </View>
             <Picker
@@ -106,19 +101,16 @@ const Template = (args) => {
                         value: 'apple',
                     },
                 ]}
-                isFormInput
             />
             <View style={styles.mt4}>
                 <StatePicker
                     inputID="pickState"
                     shouldSaveDraft
-                    isFormInput
                 />
             </View>
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                isFormInput
                 shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
