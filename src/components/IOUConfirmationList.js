@@ -136,12 +136,6 @@ class IOUConfirmationList extends Component {
         this.confirm = this.confirm.bind(this);
     }
 
-    componentDidMount() {
-        // We need to wait for the transition animation to end before focusing the TextInput,
-        // otherwise the TextInput isn't animated correctly
-        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-    }
-
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -359,6 +353,7 @@ class IOUConfirmationList extends Component {
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
+                shouldDelayFocus
                 shouldTextInputAppearBelowOptions
                 shouldShowOfflineMessage
                 optionHoveredStyle={this.props.canModifyParticipants ? styles.hoveredComponentBG : {}}
