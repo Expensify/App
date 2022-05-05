@@ -27,9 +27,6 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
@@ -49,7 +46,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isFormInput: false,
     inputID: undefined,
     style: [],
     label: undefined,
@@ -86,7 +82,6 @@ const CheckboxWithLabel = (props) => {
                     label={props.label}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
-                    isFormInput={props.isFormInput}
                     inputID={props.inputID}
                     shouldSaveDraft={props.shouldSaveDraft}
                 />

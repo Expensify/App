@@ -24,9 +24,6 @@ const propTypes = {
     /** Customize the Picker container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /**
      * The ID used to uniquely identify the input
      *
@@ -44,7 +41,6 @@ const defaultProps = {
     isDisabled: false,
     errorText: '',
     containerStyles: [],
-    isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
     value: undefined,

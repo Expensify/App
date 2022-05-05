@@ -17,9 +17,6 @@ import * as FormUtils from '../libs/FormUtils';
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /**
      * The ID used to uniquely identify the input
      *
@@ -59,7 +56,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
@@ -174,13 +170,12 @@ const AddressSearch = (props) => {
                         hint: props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
-                        isFormInput: props.isFormInput,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: props.onBlur,
                         autoComplete: 'off',
                         onInputChange: (text) => {
-                            if (props.isFormInput) {
+                            if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
                                 props.onInputChange({street: text});
