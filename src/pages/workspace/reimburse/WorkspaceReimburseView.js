@@ -191,7 +191,7 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                 </Section>
 
-                {!this.props.hasVBA ? (
+                {Boolean(!this.props.hasVBA) && (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.JewelBoxGreen}
@@ -210,26 +210,26 @@ class WorkspaceReimburseView extends React.Component {
                             success
                         />
                     </Section>
-                )
-                    : (
-                        <Section
-                            title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                            icon={Illustrations.BankUserGreen}
-                            menuItems={[
-                                {
-                                    title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                                    icon: Expensicons.Bank,
-                                    shouldShowRightIcon: true,
-                                    iconRight: Expensicons.NewWindow,
-                                },
-                            ]}
-                        >
-                            <View style={[styles.mv4]}>
-                                <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                            </View>
-                        </Section>
-                    )}
+                )}
+                {Boolean(this.props.hasVBA) && (
+                    <Section
+                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                        icon={Illustrations.BankUserGreen}
+                        menuItems={[
+                            {
+                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                icon: Expensicons.Bank,
+                                shouldShowRightIcon: true,
+                                iconRight: Expensicons.NewWindow,
+                            },
+                        ]}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                        </View>
+                    </Section>
+                )}
             </>
         );
     }
