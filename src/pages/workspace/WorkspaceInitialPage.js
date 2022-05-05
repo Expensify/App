@@ -6,6 +6,7 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Tooltip from '../../components/Tooltip';
 import Text from '../../components/Text';
+
 // import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -52,6 +53,7 @@ class WorkspaceInitialPage extends React.Component {
      * Toggle delete confirm modal visibility
      * @param {Boolean} shouldOpen
      */
+    // eslint-disable-next-line
     toggleDeleteModal(shouldOpen) {
         // this.setState({isDeleteModalOpen: shouldOpen});
     }
@@ -131,6 +133,7 @@ class WorkspaceInitialPage extends React.Component {
                         }, {
                             icon: Expensicons.Trashcan,
                             text: this.props.translate('workspace.common.delete'),
+
                             // onSelected: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
