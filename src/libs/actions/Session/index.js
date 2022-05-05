@@ -365,10 +365,10 @@ function cleanupSession() {
 
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
-      error: '',
-      errorInCurrentPassword: false,
-      errorToNotAllowPasswordChange: false,
-      success: '',
+        error: '',
+        errorInCurrentPassword: false,
+        errorToNotAllowPasswordChange: false,
+        success: ''
     });
 }
 
