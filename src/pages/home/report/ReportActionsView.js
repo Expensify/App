@@ -103,6 +103,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             isFloatingMessageCounterVisible: false,
             messageCounterCount: this.props.report.unreadActionCount,
+            selectedReportActionID: -1,
         };
 
         this.currentScrollOffset = 0;
@@ -127,7 +128,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        console.log('over here done mounting reportActionsView');
         this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!Visibility.isVisible() || this.props.isDrawerOpen) {
                 return;
@@ -421,13 +421,11 @@ class ReportActionsView extends React.Component {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-        console.log('over here onLayout');
     }
 
     scrollToReportActionID() {
         console.log(`over here scrolling to reportActionID: ${this.props.reportActionID}`);
         if (this.props.reportActionID === 0) {
-            console.log('over here 1');
             return;
         }
 
@@ -435,25 +433,18 @@ class ReportActionsView extends React.Component {
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
-        console.log('over here 2');
         // Check if reportID is deleted
         const test = this.props.reportActions;
 
-        // Continue scroll back if actionIndex is -1
-        // if (this.actionIndexID === -1 && this.scrollToReportActionIDAttempt < 3) {
-        //     console.log('over here 3');
-        //     ++this.scrollToReportActionIDAttempt;
-        //     // this.loadMoreChats();
-        //     // ReportScrollManager.scrollToIndex({index: this.sortedReportActions.length});
-        // } else
         if (this.actionIndexID !== -1) {
-            console.log(`over here 4: ${this.actionIndexID}`);
             ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
+            this.setState({selectedReportActionID: this.props.reportActionID});
         }
     }
 
     onItemRendered(reportActionID) {
         this.renderedActionIDs.add(parseInt(reportActionID, 10));
+        console.log(`over here Items rendered: (${this.renderedActionIDs.size}), vs sortedActions: (${this.sortedReportActions.length})`);
         this.checkScrollToReportAction();
     }
 
@@ -490,7 +481,7 @@ class ReportActionsView extends React.Component {
                 />
                 <ReportActionsList
                     report={this.props.report}
-                    selectedReportActionID={this.props.reportActionID}
+                    selectedReportActionID={this.state.selectedReportActionID}
                     onScroll={this.trackScroll}
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}

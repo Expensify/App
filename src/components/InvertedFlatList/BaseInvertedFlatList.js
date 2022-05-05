@@ -59,9 +59,7 @@ class BaseInvertedFlatList extends Component {
     }
 
     componentDidMount() {
-        console.log('over here flatlist did mount');
         if (!this.props.shouldMeasureItems) {
-            console.log('over here flatlist measurementEnd');
             this.props.onMeasurementEnd();
         }
     }

@@ -78,7 +78,6 @@ function getDefaultDrawerState(isSmallScreenWidth) {
     if (didTapNotificationBeforeReady) {
         return 'closed';
     }
-    console.log(`over here drawer: ${isSmallScreenWidth}`);
     // return isSmallScreenWidth ? 'open' : 'closed';
     return 'closed';
 }
