@@ -6,7 +6,7 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Tooltip from '../../components/Tooltip';
 import Text from '../../components/Text';
-import ConfirmModal from '../../components/ConfirmModal';
+// import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -37,7 +37,7 @@ class WorkspaceInitialPage extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
 
         this.state = {
-            isDeleteModalOpen: false,
+            // isDeleteModalOpen: false,
         };
     }
 
@@ -53,7 +53,7 @@ class WorkspaceInitialPage extends React.Component {
      * @param {Boolean} shouldOpen
      */
     toggleDeleteModal(shouldOpen) {
-        this.setState({isDeleteModalOpen: shouldOpen});
+        // this.setState({isDeleteModalOpen: shouldOpen});
     }
 
     /**
@@ -131,7 +131,7 @@ class WorkspaceInitialPage extends React.Component {
                         }, {
                             icon: Expensicons.Trashcan,
                             text: this.props.translate('workspace.common.delete'),
-                            onSelected: () => this.setState({isDeleteModalOpen: true}),
+                            // onSelected: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
@@ -204,18 +204,18 @@ class WorkspaceInitialPage extends React.Component {
                         ))}
                     </View>
                 </ScrollView>
-                // TODO: this is to test something in staging we are having a hard time figuring out in dev. Will revert once we test on staging
-                // More details in https://github.com/Expensify/App/issues/8791
-                {/*<ConfirmModal*/}
-                {/*    title={this.props.translate('workspace.common.delete')}*/}
-                {/*    isVisible={this.state.isDeleteModalOpen}*/}
-                {/*    onConfirm={this.confirmDeleteAndHideModal}*/}
-                {/*    onCancel={() => this.toggleDeleteModal(false)}*/}
-                {/*    prompt={this.props.translate('workspace.common.deleteConfirmation')}*/}
-                {/*    confirmText={this.props.translate('common.delete')}*/}
-                {/*    cancelText={this.props.translate('common.cancel')}*/}
-                {/*    danger*/}
-                {/*/>*/}
+                {/* TODO: this is to test something in staging we are having a hard time figuring out in dev. Will revert once we test on staging - More details in https://github.com/Expensify/App/issues/8791
+                <ConfirmModal
+                    title={this.props.translate('workspace.common.delete')}
+                    isVisible={this.state.isDeleteModalOpen}
+                    onConfirm={this.confirmDeleteAndHideModal}
+                    onCancel={() => this.toggleDeleteModal(false)}
+                    prompt={this.props.translate('workspace.common.deleteConfirmation')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
+                    danger
+                >
+                */}
             </ScreenWrapper>
         );
     }
