@@ -19,11 +19,14 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
+    imageSize: PropTypes.objectOf(PropTypes.number),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     style: {},
+    imageSize: {width: 200, height: 200},
 };
 
 class ThumbnailImage extends PureComponent {
@@ -31,14 +34,16 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-
+        const {width, height} = this.calculateThumbnailImageSize(props.imageSize);
         this.state = {
-            thumbnailWidth: 200,
-            thumbnailHeight: 200,
+            thumbnailWidth: width || defaultProps.imageSize.width,
+            thumbnailHeight: height || defaultProps.imageSize.height,
         };
     }
 
-    updateImageSize({width, height}) {
+    calculateThumbnailImageSize({width, height}) {
+        if (!width || !height) { return {}; }
+
         // Width of the thumbnail works better as a constant than it does
         // a percentage of the screen width since it is relative to each screen
         // Note: Clamp minimum width 40px to support touch device
@@ -54,7 +59,11 @@ class ThumbnailImage extends PureComponent {
         } else {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
+        return {width: thumbnailScreenWidth, height: thumbnailScreenHeight};
+    }
 
+    updateImageSize({width, height}) {
+        const {width: thumbnailScreenWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize({width, height});
         this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
     }
 
