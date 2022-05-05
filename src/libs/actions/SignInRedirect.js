@@ -18,10 +18,10 @@ Onyx.connect({
     callback: val => currentPreferredLocale = val,
 });
 
-let defaultValue;
+let testClearValue;
 Onyx.connect({
     key: ONYXKEYS.DEFAULT_CLEAR_KEY,
-    callback: val => defaultValue = val,
+    callback: val => testClearValue = val,
 });
 
 /**
@@ -37,8 +37,8 @@ function clearStorageAndRedirect(errorMessage) {
     Onyx.clear()
         .then(() => {
             Log.info('Done clearing Onyx');
-            console.assert(_.isEqual(defaultValue, mergedValue), {
-                defaultValue,
+            console.assert(_.isEqual(testClearValue, mergedValue), {
+                testClearValue,
                 mergedValue,
                 errorMessage: "[Onyx test] Onyx value doesn't match the value merged after clearing.",
             });
