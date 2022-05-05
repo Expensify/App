@@ -137,7 +137,7 @@ class PasswordPage extends Component {
     }
 
     render() {
-        const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld;
+        const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld && !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange;
         return (
             <ScreenWrapper onTransitionEnd={() => {
                 if (!this.currentPasswordInputRef) {
@@ -199,7 +199,7 @@ class PasswordPage extends Component {
                                             onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                                             onSubmitEditing={this.submit}
                                         />
-                                        {shouldShowNewPasswordPrompt && !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange && (
+                                        {shouldShowNewPasswordPrompt && (
                                         <Text
                                             style={[
                                                 styles.textLabelSupporting,
