@@ -94,7 +94,7 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.composerMounted = this.setComposerMounted.bind(this);
+        this.setComposerMounted = this.setComposerMounted.bind(this);
 
         this.state = {
             isLoading: true,
