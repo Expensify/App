@@ -27,10 +27,10 @@ const propTypes = {
     /** Should we remove the clipped sub views? */
     shouldRemoveClippedSubviews: PropTypes.bool,
 
+    /** Padding that we should account for in our sizeMap */
     measurementPadding: PropTypes.number,
 
-    onViewableItemsChanged: PropTypes.func,
-
+    /** Callback method to let us know when measurement is done */
     onMeasurementEnd: PropTypes.func,
 };
 
@@ -39,7 +39,6 @@ const defaultProps = {
     shouldMeasureItems: false,
     shouldRemoveClippedSubviews: false,
     measurementPadding: 0,
-    onViewableItemsChanged: () => {},
     onMeasurementEnd: () => {},
 };
 
@@ -49,7 +48,6 @@ class BaseInvertedFlatList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.itemsRendered = new Set();
 
         // Stores each item's computed height after it renders
         // once and is then referenced for the life of this component.
@@ -60,6 +58,7 @@ class BaseInvertedFlatList extends Component {
 
     componentDidMount() {
         if (!this.props.shouldMeasureItems) {
+            // For native devices since we're not measuring let's make this callback sooner.
             this.props.onMeasurementEnd();
         }
     }
@@ -158,14 +157,6 @@ class BaseInvertedFlatList extends Component {
      * @return {React.Component}
      */
     renderItem({item, index}) {
-        this.itemsRendered.add(index);
-
-        // console.log(`over here items rendered: ${this.itemsRendered.size}. data.length: ${this.props.data.length}`);
-        // if (this.itemsRendered.size === this.props.data.length) {
-        //     console.log('over here measurement end');
-        //     this.props.onMeasurementEnd();
-        // }
-
         if (this.props.shouldMeasureItems) {
             return (
                 <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
@@ -173,9 +164,6 @@ class BaseInvertedFlatList extends Component {
                 </View>
             );
         }
-
-        // onscrolltoIndexfailed, if it happens then try again
-        // onViewableItemsChanged,
 
         return this.props.renderItem({item, index});
     }
@@ -198,7 +186,6 @@ class BaseInvertedFlatList extends Component {
                 windowSize={15}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
-                onViewableItemsChanged={this.props.onViewableItemsChanged}
             />
         );
     }
