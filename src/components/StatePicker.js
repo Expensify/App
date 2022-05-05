@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {CONST} from 'expensify-common/lib/CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as FormUtils from '../libs/FormUtils';
 
 const STATES = _.map(CONST.STATES, ({stateISO}) => ({
     value: stateISO,
