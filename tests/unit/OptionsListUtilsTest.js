@@ -7,95 +7,93 @@ import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
 
 describe('OptionsListUtils', () => {
-    let reportCount = 0;
-
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
-        [++reportCount]: {
+        1: {
             lastVisitedTimestamp: 1610666739295,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
             unreadActionCount: 1,
         },
-        [++reportCount]: {
+        2: {
             lastVisitedTimestamp: 1610666739296,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 2,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
             unreadActionCount: 1,
         },
 
         // This is the only report we are pinning in this test
-        [++reportCount]: {
+        3: {
             lastVisitedTimestamp: 1610666739297,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: reportCount,
+            reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
             unreadActionCount: 0,
         },
-        [++reportCount]: {
+        4: {
             lastVisitedTimestamp: 1610666739298,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 4,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
             unreadActionCount: 1,
         },
-        [++reportCount]: {
+        5: {
             lastVisitedTimestamp: 1610666739299,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 5,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
             unreadActionCount: 1,
         },
-        [++reportCount]: {
+        6: {
             lastVisitedTimestamp: 1610666739300,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
             unreadActionCount: 0,
         },
 
         // Note: This report has the largest lastMessageTimestamp
-        [++reportCount]: {
+        7: {
             lastVisitedTimestamp: 1610666739301,
             lastMessageTimestamp: 1611282169,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
             unreadActionCount: 1,
         },
 
         // Note: This report has no lastMessageTimestamp
-        [++reportCount]: {
+        8: {
             lastVisitedTimestamp: 1610666739301,
             lastMessageTimestamp: 0,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 8,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
             unreadActionCount: 0,
         },
 
         // Note: This report has an IOU
-        [++reportCount]: {
+        9: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1611282168,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 9,
             participants: ['mistersinister@marauders.com'],
             reportName: 'Mister Sinister',
             unreadActionCount: 0,
@@ -104,10 +102,10 @@ describe('OptionsListUtils', () => {
         },
 
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
-        [++reportCount]: {
+        10: {
             lastVisitedTimestamp: 1610666739200,
             lastMessageTimestamp: 1,
-            reportID: reportCount,
+            reportID: 10,
             isPinned: false,
             participants: ['captain_britain@expensify.com', 'captain_america@expensify.com'],
             reportName: '',
@@ -166,11 +164,11 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_CONCIERGE = {
         ...REPORTS,
 
-        [++reportCount]: {
+        11: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 11,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
             unreadActionCount: 1,
@@ -179,11 +177,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
-        [++reportCount]: {
+        12: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 12,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
             unreadActionCount: 1,
@@ -192,11 +190,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
-        [++reportCount]: {
+        13: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: reportCount,
+            reportID: 13,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
             unreadActionCount: 1,
@@ -205,20 +203,20 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_MORE_PINS = {
         ...REPORTS,
-        [++reportCount]: {
+        14: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: reportCount,
+            reportID: 14,
             participants: ['d_email@email.com'],
             reportName: 'D report name',
             unreadActionCount: 0,
         },
-        [++reportCount]: {
+        15: {
             lastVisitedTimestamp: 1610666732302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: reportCount,
+            reportID: 15,
             participants: ['z_email@email.com'],
             reportName: 'Z Report Name',
             unreadActionCount: 0,
@@ -606,11 +604,11 @@ describe('OptionsListUtils', () => {
             ...REPORTS,
 
             // Note: This report has no lastMessageTimestamp but is also pinned
-            [++reportCount]: {
+            16: {
                 lastVisitedTimestamp: 1610666739300,
                 lastMessageTimestamp: 0,
                 isPinned: true,
-                reportID: reportCount,
+                reportID: 16,
                 participants: ['captain_britain@expensify.com'],
                 reportName: 'Captain Britain',
             },
