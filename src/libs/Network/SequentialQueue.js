@@ -5,6 +5,11 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
+import createOnReadyTask from '../createOnReadyTask';
+
+// Create a deferred task to hook into and immediately set it as ready
+const queueProcessTask = createOnReadyTask();
+queueProcessTask.setIsReady();
 
 let isSequentialQueueRunning = false;
 
@@ -39,6 +44,7 @@ function flush() {
     }
 
     isSequentialQueueRunning = true;
+    queueProcessTask.reset();
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -46,7 +52,10 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process()
-                .finally(() => isSequentialQueueRunning = false);
+                .finally(() => {
+                    isSequentialQueueRunning = false;
+                    queueProcessTask.setIsReady();
+                });
         },
     });
 }
@@ -61,7 +70,29 @@ function isRunning() {
 // Flush the queue when the connection resumes
 NetworkStore.onConnectivityResumed(flush);
 
+/**
+ * @param {Object} request
+ */
+function push(request) {
+    // Add request to Persisted Requests so that it can be retried if it fails
+    PersistedRequests.save([request]);
+
+    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
+    if (NetworkStore.isOffline()) {
+        return;
+    }
+
+    // If the queue is running this request will run once it has finished processing the current batch
+    if (isSequentialQueueRunning) {
+        queueProcessTask.isReady().then(flush);
+        return;
+    }
+
+    flush();
+}
+
 export {
     flush,
     isRunning,
+    push,
 };

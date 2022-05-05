@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
-import * as PersistedRequests from '../actions/PersistedRequests';
 import HttpUtils from '../HttpUtils';
 import * as Request from '../Request';
 
@@ -23,28 +22,6 @@ function canMakeRequest(request) {
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
-}
-
-/**
- * While we are offline any requests that can be persisted are removed from the main network request queue and moved to a separate map + saved to storage.
- */
-function removeAllPersistableRequestsFromMainQueue() {
-    // We filter persisted requests from the normal queue so they can be processed separately
-    const [networkRequestQueueWithoutPersistedRequests, requestsToPersist] = _.partition(networkRequestQueue, (request) => {
-        const shouldRetry = lodashGet(request, 'data.shouldRetry');
-        const shouldPersist = lodashGet(request, 'data.persist');
-        return !shouldRetry || !shouldPersist;
-    });
-
-    networkRequestQueue = networkRequestQueueWithoutPersistedRequests;
-
-    if (!requestsToPersist.length) {
-        return;
-    }
-
-    // Remove any functions as they are not serializable and cannot be stored to disk
-    const requestsToPersistWithoutFunctions = _.map(requestsToPersist, request => _.omit(request, val => _.isFunction(val)));
-    PersistedRequests.save(requestsToPersistWithoutFunctions);
 }
 
 /**
@@ -69,11 +46,6 @@ function replay(request) {
  */
 function process() {
     if (NetworkStore.isOffline()) {
-        if (!networkRequestQueue.length) {
-            return;
-        }
-
-        removeAllPersistableRequestsFromMainQueue();
         return;
     }
 
