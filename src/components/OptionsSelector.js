@@ -63,11 +63,11 @@ const propTypes = {
     /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
 
-    /** Whether to allow arrow key actions on the list */
-    disableArrowKeysActions: PropTypes.bool,
-
     /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
+
+    /** Whether to allow arrow key actions on the list */
+    disableArrowKeysActions: PropTypes.bool,
 
     /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
