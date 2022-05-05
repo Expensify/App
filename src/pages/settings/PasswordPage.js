@@ -137,8 +137,8 @@ class PasswordPage extends Component {
     }
 
     render() {
-        const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld && 
-        !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange;
+        const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld
+        && !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange;
         return (
             <ScreenWrapper onTransitionEnd={() => {
                 if (!this.currentPasswordInputRef) {
