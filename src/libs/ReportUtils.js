@@ -382,10 +382,10 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
  * @param {String} participant.displayName
  * @param {String} participant.firstName
  * @param {String} participant.login
- * @param {Boolean} [useShortForm]
+ * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(participant, useShortForm = false) {
+function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
     if (!participant) {
         return '';
     }
@@ -397,7 +397,7 @@ function getDisplayNameForParticipant(participant, useShortForm = false) {
     }
     const shortName = participant.firstName || longName;
 
-    return useShortForm ? shortName : longName;
+    return shouldUseShortForm ? shortName : longName;
 }
 
 /**
