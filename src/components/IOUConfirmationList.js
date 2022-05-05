@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
@@ -15,7 +14,8 @@ import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -140,15 +140,6 @@ class IOUConfirmationList extends Component {
         // We need to wait for the transition animation to end before focusing the TextInput,
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            this.confirm,
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
     }
 
     componentWillUnmount() {
@@ -366,6 +357,7 @@ class IOUConfirmationList extends Component {
                 sections={this.state.sections}
                 value={this.props.comment}
                 onSelectRow={this.props.canModifyParticipants ? this.toggleOption : undefined}
+                onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
                 textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
