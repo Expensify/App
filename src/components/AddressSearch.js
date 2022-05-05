@@ -9,7 +9,6 @@ import styles from '../styles/styles';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import * as FormUtils from '../libs/FormUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the

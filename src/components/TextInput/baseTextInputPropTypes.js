@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Input label */

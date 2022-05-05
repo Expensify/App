@@ -6,7 +6,6 @@ import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
-import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Picker label */

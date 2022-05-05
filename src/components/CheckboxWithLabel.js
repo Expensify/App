@@ -6,7 +6,6 @@ import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import InlineErrorText from './InlineErrorText';
-import * as FormUtils from '../libs/FormUtils';
 
 const propTypes = {
     /** Whether the checkbox is checked */
