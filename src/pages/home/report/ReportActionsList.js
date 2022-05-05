@@ -165,6 +165,7 @@ class ReportActionsList extends React.Component {
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+
         return (
             <InvertedFlatList
                 ref={ReportScrollManager.flatListRef}

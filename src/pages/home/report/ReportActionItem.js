@@ -99,7 +99,7 @@ class ReportActionItem extends Component {
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isSelected && this.props.isSelected) {
-            console.log('over here animating background');
+            console.log(`over here animating background. reportActionID: ${this.props.action.reportActionID}. Index: ${this.props.index}`);
             this.animateBackground();
         }
 
@@ -120,7 +120,6 @@ class ReportActionItem extends Component {
             Animated.timing(this.animatedBackgroundColor, {
                 toValue: 0,
                 duration: 5500,
-                delay: 2000,
                 useNativeDriver: false,
             }).start();
         });

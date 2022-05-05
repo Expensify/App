@@ -122,8 +122,8 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
         this.scrollToReportActionID = this.scrollToReportActionID.bind(this);
-        this.onItemRendered = this.onItemRendered.bind(this);
-        this.onMeasurementEnd = this.onMeasurementEnd.bind(this);
+        this.recordReportActionIDRendered = this.recordReportActionIDRendered.bind(this);
+        this.recordMeasurementDone = this.recordMeasurementDone.bind(this);
         this.checkScrollToReportAction = this.checkScrollToReportAction.bind(this);
     }
 
@@ -207,6 +207,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.props.reportActionID !== nextProps.reportActionID) {
+            return true;
+        }
+
+        if (this.state.selectedReportActionID !== nextState.selectedReportActionID) {
             return true;
         }
 
@@ -424,7 +428,7 @@ class ReportActionsView extends React.Component {
     }
 
     scrollToReportActionID() {
-        console.log(`over here scrolling to reportActionID: ${this.props.reportActionID}`);
+        console.log('over here scrolling');
         if (this.props.reportActionID === 0) {
             return;
         }
@@ -437,18 +441,19 @@ class ReportActionsView extends React.Component {
         const test = this.props.reportActions;
 
         if (this.actionIndexID !== -1) {
+            console.log(`over here scrolling to reportActionID: ${this.props.reportActionID}. Index ${this.actionIndexID}`);
             ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
             this.setState({selectedReportActionID: this.props.reportActionID});
         }
     }
 
-    onItemRendered(reportActionID) {
+    recordReportActionIDRendered(reportActionID) {
         this.renderedActionIDs.add(parseInt(reportActionID, 10));
         console.log(`over here Items rendered: (${this.renderedActionIDs.size}), vs sortedActions: (${this.sortedReportActions.length})`);
         this.checkScrollToReportAction();
     }
 
-    onMeasurementEnd() {
+    recordMeasurementDone() {
         this.doneMeasuring = true;
         this.checkScrollToReportAction();
     }
@@ -488,8 +493,8 @@ class ReportActionsView extends React.Component {
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                     isLoadingReportActions={this.props.isLoadingReportActions}
                     scrollToReportActionID={this.scrollToReportActionID}
-                    onItemRendered={this.onItemRendered}
-                    onMeasurementEnd={this.onMeasurementEnd}
+                    onItemRendered={this.recordReportActionIDRendered}
+                    onMeasurementEnd={this.recordMeasurementDone}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
