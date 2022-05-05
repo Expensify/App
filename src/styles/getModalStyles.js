@@ -1,9 +1,10 @@
-import CONST from '../../CONST';
-import colors from '../colors';
-import variables from '../variables';
-import themeColors from '../themes/default';
+import CONST from '../CONST';
+import colors from './colors';
+import variables from './variables';
+import themeColors from './themes/default';
+import getShouldAddTopSafeAreaPadding from '../libs/getShouldAddTopSafeAreaPadding';
 
-export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -16,7 +17,7 @@ export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensi
     let animationOut;
     let hideBackdrop = false;
     let shouldAddBottomSafeAreaPadding = false;
-    const shouldAddTopSafeAreaPadding = shouldModalAddTopSafeAreaPadding[type] || false;
+    let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CONFIRM:
@@ -83,6 +84,7 @@ export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensi
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -113,6 +115,7 @@ export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensi
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -194,6 +197,7 @@ export default ({shouldModalAddTopSafeAreaPadding = {}}) => (type, windowDimensi
             };
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
             break;
         default:
             modalStyle = {};
