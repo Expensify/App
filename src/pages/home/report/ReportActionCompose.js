@@ -53,6 +53,9 @@ const propTypes = {
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
+    /** Called when composer is mounted */
+    onMounted: PropTypes.func.isRequired,
+
     /** The comment left by the user */
     comment: PropTypes.string,
 
@@ -139,6 +142,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        this.props.onMounted();
         ReportActionComposeFocusManager.onComposerFocus(() => {
             if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
                 return;
