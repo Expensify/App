@@ -104,11 +104,11 @@ class AuthScreens extends React.Component {
             Policy.subscribeToPolicyEvents();
         });
 
-        // Fetch some data we need on initialization
-        Session.loadInitialData();
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData(false);
+
+        App.fixAccountAndReloadData();
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
@@ -120,8 +120,6 @@ class AuthScreens extends React.Component {
 
                 Policy.getPolicyList();
             });
-
-        Session.fixAccountAndReloadData();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet

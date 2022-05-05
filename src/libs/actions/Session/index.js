@@ -20,12 +20,6 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
-import NameValuePair from '../NameValuePair';
-import * as App from '../App';
-import * as PersonalDetails from '../PersonalDetails';
-import * as Report from '../Report';
-import * as GeoLocation from '../GeoLocation';
-import * as BankAccounts from '../BankAccounts';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
 
@@ -505,40 +499,6 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
     Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
 }
 
-/**
- * Load all the data we need on app initialization after logging in
- */
-function loadInitialData() {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    App.getLocale();
-    PersonalDetails.fetchPersonalDetails();
-    User.getUserDetails();
-    User.getBetas();
-    User.getDomainInfo();
-    PersonalDetails.fetchLocalCurrency();
-    Report.fetchAllReports(true, true);
-    GeoLocation.fetchCountryCodeByRequestIP();
-    UnreadIndicatorUpdater.listenForReportChanges();
-    BankAccounts.fetchFreePlanVerifiedBankAccount();
-    BankAccounts.fetchUserWallet();
-}
-
-/**
- * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports, new policies, etc. that the user now has access to.
- */
-function fixAccountAndReloadData() {
-    API.User_FixAccount()
-        .then((response) => {
-            if (!response.changed) {
-                return;
-            }
-            console.debug('FixAccount found updates for this user, so data will be reinitalized');
-            loadInitialData();
-        });
-}
-
 export {
     fetchAccountDetails,
     setPassword,
@@ -558,6 +518,4 @@ export {
     setShouldShowComposeInput,
     changePasswordAndSignIn,
     invalidateCredentials,
-    loadInitialData,
-    fixAccountAndReloadData,
 };
