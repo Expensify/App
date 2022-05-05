@@ -94,6 +94,7 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
+        this.composerMounted = this.setComposerMounted.bind(this);
 
         this.state = {
             isLoading: true,
@@ -123,6 +124,10 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addAction(getReportID(this.props.route), text);
+    }
+
+    setComposerMounted() {
+        this.setState({composerMounted: true});
     }
 
     /**
@@ -184,7 +189,7 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
                     {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                    {!this.shouldShowLoader() && (
+                    {!this.shouldShowLoader() && this.state.composerMounted && (
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
@@ -204,6 +209,7 @@ class ReportScreen extends React.Component {
                                     ) : (
                                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                             <ReportActionCompose
+                                                onMounted={this.setComposerMounted}
                                                 onSubmit={this.onSubmitComment}
                                                 reportID={reportID}
                                                 reportActions={this.props.reportActions}
