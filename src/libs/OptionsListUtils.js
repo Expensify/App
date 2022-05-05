@@ -242,7 +242,7 @@ function createOption(logins, personalDetails, report, {
     if (isPolicyExpenseChat && isArchivedRoom) {
         const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: lastActorDetails.displayName,
+            displayName: lodashGet(lastActorDetails, 'displayName', report.lastActorEmail),
             policyName: ReportUtils.getPolicyName(report, policies),
         });
     }
