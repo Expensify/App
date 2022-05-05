@@ -148,32 +148,6 @@ class IOUConfirmationList extends Component {
         // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
 
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            () => {
-                // This can happen when the search bar is highlighted instead of an option from the list
-                if (!this.allOptions[this.state.focusedIndex]) {
-                    return;
-                }
-
-                // If this is a 1:1 request, there's no participant we can toggle, so return early
-                if (!this.props.hasMultipleParticipants) {
-                    return;
-                }
-
-                if (!this.props.canModifyParticipants) {
-                    return;
-                }
-
-                this.toggleOption(this.allOptions[this.state.focusedIndex]);
-            },
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !this.props.hasMultipleParticipants || !this.allOptions[this.state.focusedIndex],
-        );
-
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -185,13 +159,10 @@ class IOUConfirmationList extends Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
+        if (!this.unsubscribeCTRLEnter) {
+            return;
         }
-
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
+        this.unsubscribeCTRLEnter();
     }
 
     /**

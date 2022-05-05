@@ -169,12 +169,11 @@ class OptionsSelector extends Component {
                     return;
                 }
 
-                this.selectRow(focusedOption);
-
                 if (!this.props.canSelectMultipleOptions) {
                     return;
                 }
 
+                this.selectRow(focusedOption);
                 this.scrollToIndex(0);
             },
             enterConfig.descriptionKey,
@@ -292,6 +291,7 @@ class OptionsSelector extends Component {
     }
 
     render() {
+        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !_.isEmpty(this.props.selectedOptions);
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
             ? this.props.translate('common.confirm')
             : this.props.confirmButtonText;
@@ -359,7 +359,7 @@ class OptionsSelector extends Component {
                         )
                         : <FullScreenLoadingIndicator />}
                 </View>
-                {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
+                {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowMaxParticipantsMessage && (
                             <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
