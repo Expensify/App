@@ -25,8 +25,8 @@ const propTypes = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
 
-    /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
-    fallbackIcon: PropTypes.string,
+    /** Function for using fallback avatar */
+    fallbackIcon: PropTypes.func,
 };
 
 const defaultProps = {
