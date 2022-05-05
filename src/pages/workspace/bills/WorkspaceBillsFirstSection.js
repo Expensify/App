@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -14,6 +14,7 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
+import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -54,11 +55,11 @@ const WorkspaceBillsFirstSection = (props) => {
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
-                        <TouchableOpacity
+                        <TextLink
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
-                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
-                        </TouchableOpacity>
+                            example.com@expensify.cash
+                        </TextLink>
                     ) : (
                         <CopyTextToClipboard
                             text={`${emailDomain}@expensify.cash`}

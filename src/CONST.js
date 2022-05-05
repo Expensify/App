@@ -110,7 +110,6 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -314,10 +313,10 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
-        API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -408,6 +407,17 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ATTACHMENT_FILE_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+        VIDEO: 'video',
+    },
+
+    FILE_TYPE_REGEX: {
+        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
+        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+    },
+    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
@@ -633,7 +643,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d+(\.\d*)?$/,
+        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

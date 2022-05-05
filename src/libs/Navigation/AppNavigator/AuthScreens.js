@@ -104,6 +104,9 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         Session.loadInitialData();
+        // Listen for report changes and fetch some data we need on initialization
+        UnreadIndicatorUpdater.listenForReportChanges();
+        App.getAppData(false);
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()

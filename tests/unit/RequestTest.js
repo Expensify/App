@@ -1,13 +1,9 @@
 import * as Request from '../../src/libs/Request';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import * as TestHelper from '../utils/TestHelper';
 
 beforeAll(() => {
-    global.fetch = jest.fn()
-        .mockImplementation(() => Promise.resolve({
-            json: () => Promise.resolve({
-                jsonCode: 200,
-            }),
-        }));
+    global.fetch = TestHelper.getGlobalFetchMock();
 });
 
 beforeEach(() => {
