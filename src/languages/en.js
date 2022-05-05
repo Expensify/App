@@ -980,4 +980,18 @@ export default {
         },
         refresh: 'Refresh',
     },
+    fileDownload: {
+        success: {
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded!',
+        },
+        generalError: {
+            title: 'Attachment Error',
+            message: 'Attachment cannot be downloaded',
+        },
+        permissionError: {
+            title: 'Access needed',
+            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
+    },
 };

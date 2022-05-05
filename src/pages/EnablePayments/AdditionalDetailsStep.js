@@ -278,10 +278,8 @@ class AdditionalDetailsStep extends React.Component {
                                             });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
+                                        hint={this.props.translate('common.noPO')}
                                     />
-                                    <Text style={[styles.mutedTextLabel, styles.mt1]}>
-                                        {this.props.translate('common.noPO')}
-                                    </Text>
                                     {this.props.walletAdditionalDetailsDraft.addressStreet ? (
                                         <>
                                             {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
