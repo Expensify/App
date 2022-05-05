@@ -191,7 +191,7 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                 </Section>
 
-                {Boolean(!this.props.hasVBA) && (
+                {!this.props.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.JewelBoxGreen}
