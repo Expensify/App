@@ -64,8 +64,8 @@ const propTypes = {
     /** Whether the menu item should be interactive at all */
     interactive: PropTypes.bool,
 
-    /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
-    fallbackIcon: PropTypes.string,
+    /** Function for using fallback avatar */
+    fallbackIcon: PropTypes.func,
 };
 
 export default propTypes;

@@ -53,8 +53,8 @@ const propTypes = {
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
-    /** Flag to check if avatar is from workspace, so that we can use fallback avatar accordingly */
-    fallbackIcon: PropTypes.string,
+    /** Function for using fallback avatar */
+    fallbackIcon: PropTypes.func,
 
     ...withLocalizePropTypes,
 };

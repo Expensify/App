@@ -202,7 +202,6 @@ class WorkspaceInitialPage extends React.Component {
                                 iconRight={item.iconRight}
                                 onPress={() => item.action()}
                                 shouldShowRightIcon
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             />
                         ))}
                     </View>
