@@ -31,22 +31,22 @@ function clearStorageAndRedirect(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
-    const setValue = 42;
+    const mergedValue = {value: 42};
 
-    Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
+    Onyx.merge(ONYXKEYS.DEFAULT_CLEAR_KEY, mergedValue)
         .then(() => {
-            Log.info('Done with set');
+            Log.info('Done merging');
 
             // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
             return Onyx.clear();
         })
         .then(() => {
             Log.info('Done clearing Onyx');
-            const defaultKeyState = null;
+            const defaultKeyState = {value: null};
             console.assert(_.isEqual(testClearValue, defaultKeyState), {
                 testClearValue,
                 defaultKeyState,
-                errorMessage: "[Onyx test] Onyx set value wasn't replaced with the default key state when setting and then clearing.",
+                errorMessage: "[Onyx test] Onyx merge value wasn't replaced with the default key state when merging and then clearing.",
             });
             const cachedValue = Onyx.getValueFromCache(ONYXKEYS.DEFAULT_CLEAR_KEY);
             Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
@@ -54,7 +54,7 @@ function clearStorageAndRedirect(errorMessage) {
                     console.assert(_.isEqual(cachedValue, storedValue), {
                         cachedValue,
                         storedValue,
-                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when setting and then clearing.",
+                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when merging and then clearing.",
                     });
                 });
             if (preferredLocale) {
