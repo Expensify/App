@@ -33,14 +33,20 @@ function clearStorageAndRedirect(errorMessage) {
 
     const setValue = 42;
 
-    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
+    Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
+        .then(() => {
+            Log.info('Done with set');
+
+            // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
+            return Onyx.clear();
+        })
         .then(() => {
             Log.info('Done clearing Onyx');
-            console.assert(_.isEqual(testClearValue, setValue), {
+            const defaultKeyState = null;
+            console.assert(_.isEqual(testClearValue, defaultKeyState), {
                 testClearValue,
-                setValue,
-                errorMessage: "[Onyx test] Onyx value doesn't match the value set after clearing.",
+                defaultKeyState,
+                errorMessage: "[Onyx test] Onyx set value wasn't replaced with the default key state when setting and then clearing.",
             });
             const cachedValue = Onyx.getValueFromCache(ONYXKEYS.DEFAULT_CLEAR_KEY);
             Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
@@ -48,7 +54,7 @@ function clearStorageAndRedirect(errorMessage) {
                     console.assert(_.isEqual(cachedValue, storedValue), {
                         cachedValue,
                         storedValue,
-                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when calling set after clearing.",
+                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when setting and then clearing.",
                     });
                 });
             if (preferredLocale) {
@@ -61,12 +67,6 @@ function clearStorageAndRedirect(errorMessage) {
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
             Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
-
-    // Set just after clear, on the next tick
-    setTimeout(() => {
-        Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
-            .then(() => Log.info('Done with set'));
-    }, 0);
 }
 
 /**
