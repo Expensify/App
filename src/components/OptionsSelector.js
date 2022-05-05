@@ -65,6 +65,9 @@ const propTypes = {
     /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
 
+    /** Whether to allow arrow key actions on the list */
+    disableArrowKeysActions: PropTypes.bool,
+
     /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
 
@@ -132,6 +135,8 @@ const defaultProps = {
     shouldShowOfflineMessage: false,
     footerContent: undefined,
     optionHoveredStyle: styles.hoveredComponentBG,
+    shouldShowOptions: true,
+    disableArrowKeysActions: false,
 };
 
 class OptionsSelector extends Component {
@@ -311,7 +316,7 @@ class OptionsSelector extends Component {
             <ArrowKeyFocusManager
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
-                onFocusedIndexChanged={this.updateFocusedIndex}
+                onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
                     {this.props.shouldShowOptions
@@ -343,8 +348,7 @@ class OptionsSelector extends Component {
                                 )}
                             </>
                         )
-                        : <FullScreenLoadingIndicator />
-                    }
+                        : <FullScreenLoadingIndicator />}
                 </View>
                 {this.props.shouldShowConfirmButton && !_.isEmpty(this.props.selectedOptions) && (
                     <FixedFooter>
