@@ -30,6 +30,7 @@ const propTypes = {
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
 
+            /** The reportActionID of the report to scroll to */
             reportActionID: PropTypes.string,
         }).isRequired,
     }).isRequired,

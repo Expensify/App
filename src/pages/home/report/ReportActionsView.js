@@ -110,7 +110,6 @@ class ReportActionsView extends React.Component {
         this.currentScrollOffset = 0;
         this.scrollToReportActionIDAttempt = 0;
         this.doneMeasuring = false;
-        this.itemRendered = false;
         this.doneScrollingToReportActionID = false;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
@@ -155,7 +154,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.fetchData();
-        window.scrollRef = ReportScrollManager;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -163,7 +161,6 @@ class ReportActionsView extends React.Component {
             this.scrollToReportActionIDAttempt = 0;
             this.renderedActionIDs = new Set();
             this.doneMeasuring = false;
-            this.itemRendered = false;
             this.doneScrollingToReportActionID = false;
             this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
             this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
@@ -219,8 +216,8 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        this.actionIndexID = -1;
         if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID) {
+            this.actionIndexID = -1;
             this.scrollToReportActionID();
         }
 
