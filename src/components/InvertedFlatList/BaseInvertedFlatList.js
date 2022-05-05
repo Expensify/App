@@ -30,7 +30,7 @@ const propTypes = {
     /** Padding that we should account for in our sizeMap */
     measurementPadding: PropTypes.number,
 
-    /** Callback method to let us know when measurement is done */
+    /** Callback for when measurement is done */
     onMeasurementEnd: PropTypes.func,
 };
 

@@ -78,8 +78,7 @@ function getDefaultDrawerState(isSmallScreenWidth) {
     if (didTapNotificationBeforeReady) {
         return 'closed';
     }
-    // return isSmallScreenWidth ? 'open' : 'closed';
-    return 'closed';
+    return isSmallScreenWidth ? 'open' : 'closed';
 }
 
 /**
