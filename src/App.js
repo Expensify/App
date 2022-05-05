@@ -34,7 +34,7 @@ const App = () => (
     >
         <CustomStatusBar />
         <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-            <Expensify key={1} />
+            <Expensify />
         </ErrorBoundary>
     </ComposeProviders>
 );
