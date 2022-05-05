@@ -137,7 +137,6 @@ class IOUConfirmationList extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
-        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
     }
 
@@ -340,13 +339,6 @@ class IOUConfirmationList extends Component {
                 selectedParticipants: newSelectedParticipants,
             };
         }, () => this.allOptions = OptionsListUtils.flattenSections(this.state.sections));
-    }
-
-    /**
-     * @param {Number} index
-     */
-    updateFocusedIndex(index) {
-        this.setState({focusedIndex: index}, () => this.scrollToIndex(index));
     }
 
     /**
