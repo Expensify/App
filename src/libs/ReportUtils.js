@@ -302,16 +302,6 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Check if the comment is deleted
- * @param {Object} action
- * @returns {Boolean}
- */
-function isDeletedAction(action) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    return action.message.length === 0 || action.message[0].html === '';
-}
-
-/**
  * Trim the last message text to a fixed limit.
  * @param {String} lastMessageText
  * @returns {String}
@@ -477,7 +467,6 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
 export {
     getReportParticipantsTitle,
-    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,

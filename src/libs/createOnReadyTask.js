@@ -3,16 +3,24 @@
  *
  * @example
  *
- *     const [isSomethingReady, setIsReady] = createOnReadyTask();
- *     isSomethingReady().then(() => doIt());
- *     setIsReady(); // -> doIt() will now execute
- *
- * @returns {Array<Promise, Function>}
+ *     const task = createOnReadyTask();
+ *     task.isReady().then(() => doIt());
+ *     task.setIsReady(); // -> doIt() will now execute
+ *     task.reset() // -> will let us reset the task (useful for testing)
+ * @returns {Object}
  */
 export default function createOnReadyTask() {
     let resolveIsReadyPromise;
-    const isReadyPromise = (new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    }));
-    return [() => isReadyPromise, resolveIsReadyPromise];
+    let isReadyPromise;
+    function reset() {
+        isReadyPromise = (new Promise((resolve) => {
+            resolveIsReadyPromise = resolve;
+        }));
+    }
+    reset();
+    return {
+        isReady: () => isReadyPromise,
+        setIsReady: () => resolveIsReadyPromise(),
+        reset,
+    };
 }

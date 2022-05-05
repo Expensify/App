@@ -6,6 +6,7 @@ import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONS
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -56,7 +57,8 @@ function changePasswordAndNavigate(oldPassword, password) {
                 return;
             }
 
-            Navigation.goBack();
+            const success = lodashGet(response, 'message', 'Password changed successfully.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -295,7 +297,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
@@ -305,7 +307,7 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info(
+            Log.hmmm(
                 '[User] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
@@ -318,7 +320,14 @@ function subscribeToUserEvents() {
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    });
+    })
+        .catch((error) => {
+            Log.hmmm(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
+            );
+        });
 }
 
 /**
@@ -329,7 +338,7 @@ function subscribeToExpensifyCardUpdates() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {

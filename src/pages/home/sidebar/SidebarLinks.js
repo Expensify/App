@@ -25,6 +25,8 @@ import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -65,10 +67,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
@@ -95,7 +94,6 @@ const defaultProps = {
     myPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    network: null,
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     initialReportDataLoaded: false,
@@ -327,6 +325,7 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -336,9 +335,6 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
