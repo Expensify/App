@@ -368,7 +368,7 @@ function clearAccountMessages() {
         error: '',
         errorInCurrentPassword: false,
         errorToNotAllowPasswordChange: false,
-        success: ''
+        success: '',
     });
 }
 
