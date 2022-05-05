@@ -176,6 +176,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'You missed the party in ',
+        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -187,9 +189,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -337,6 +337,11 @@ export default {
             newPasswordSameAsOld: 'New password must be different than your old password',
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Password updated!',
+        allSet: 'You’re all set. Keep your new password safe.',
+        gotIt: 'Got it',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -684,7 +689,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
-        taxIDNumberPlaceholder: '9 digits, no hyphens',
+        taxIDNumberPlaceholder: '9 digits',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         incorporationState: 'Incorporation state',
@@ -879,6 +884,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
+            areYouSure: 'Are you sure?',
         },
     },
     getAssistancePage: {
@@ -971,5 +977,19 @@ export default {
             helpTextConcierge: 'If the problem persists, reach out to',
         },
         refresh: 'Refresh',
+    },
+    fileDownload: {
+        success: {
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded!',
+        },
+        generalError: {
+            title: 'Attachment Error',
+            message: 'Attachment cannot be downloaded',
+        },
+        permissionError: {
+            title: 'Access needed',
+            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
     },
 };

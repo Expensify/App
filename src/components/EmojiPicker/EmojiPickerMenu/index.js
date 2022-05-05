@@ -352,7 +352,7 @@ class EmojiPickerMenu extends Component {
             this.setState({
                 filteredEmojis: this.emojis,
                 headerIndices: this.unfilteredHeaderIndices,
-                highlightedIndex: this.numColumns,
+                highlightedIndex: -1,
             });
             return;
         }

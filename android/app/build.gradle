@@ -152,8 +152,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001015501
-        versionName "1.1.55-1"
+        versionCode 1001015705
+        versionName "1.1.57-5"
     }
     splits {
         abi {
@@ -239,8 +239,10 @@ dependencies {
         implementation jscFlavor
     }
 
+    // Firebase libraries (using the Firebase BoM for consistency - see https://firebase.google.com/docs/android/learn-more#bom)
     implementation platform("com.google.firebase:firebase-bom:29.0.3")
     implementation "com.google.firebase:firebase-perf"
+    implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
     implementation 'com.facebook.fresco:fresco:2.5.0'
@@ -251,9 +253,6 @@ dependencies {
 
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
     implementation 'com.android.support:multidex:1.0.3'
-
-    // Crashlytics
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
 
     // Plaid SDK
     implementation project(':react-native-plaid-link-sdk')

@@ -1,5 +1,6 @@
 import {Animated} from 'react-native';
 import variables from '../../../styles/variables';
+import getCardStyles from '../../../styles/cardStyles';
 
 export default (
     isSmallScreenWidth,
@@ -19,7 +20,7 @@ export default (
     }), inverted);
 
     const opacity = Animated.multiply(progress, inverted);
-    const cardStyle = {};
+    const cardStyle = getCardStyles(isSmallScreenWidth, screen.width);
 
     if (isFullScreenModal && !isSmallScreenWidth) {
         cardStyle.opacity = opacity;

@@ -10,12 +10,15 @@ import {
 } from './genericReportActionContextMenuPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
+import compose from '../../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -49,6 +52,7 @@ class BaseReportActionContextMenu extends React.Component {
                             draftMessage: this.props.draftMessage,
                             selection: this.props.selection,
                         })}
+                        description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
                     />
                 ))}
             </View>
@@ -59,4 +63,7 @@ class BaseReportActionContextMenu extends React.Component {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default withLocalize(BaseReportActionContextMenu);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(BaseReportActionContextMenu);

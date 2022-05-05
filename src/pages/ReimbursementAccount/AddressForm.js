@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
-import Text from '../../components/Text';
 
 const propTypes = {
 
@@ -56,8 +55,8 @@ const AddressForm = props => (
             value={props.values.street}
             onInputChange={props.onFieldChange}
             errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
+            hint={props.translate('common.noPO')}
         />
-        <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
                 <TextInput
@@ -70,9 +69,8 @@ const AddressForm = props => (
             <View style={[styles.flex1]}>
                 <StatePicker
                     value={props.values.state}
-                    onChange={value => props.onFieldChange({state: value})}
+                    onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                    hasError={Boolean(props.errors.state)}
                 />
             </View>
         </View>

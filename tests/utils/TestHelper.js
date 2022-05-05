@@ -77,7 +77,29 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
         });
 }
 
+/**
+ * Use for situations where fetch() is required.
+ *
+ * @example
+ *
+ *     beforeAll(() => {
+ *         global.fetch = TestHelper.getGlobalFetchMock();
+ *     });
+ *
+ * @returns {Function}
+ */
+function getGlobalFetchMock() {
+    return jest.fn()
+        .mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                jsonCode: 200,
+            }),
+        });
+}
+
 export {
+    getGlobalFetchMock,
     signInWithTestUser,
     fetchPersonalDetailsForTestUser,
 };
