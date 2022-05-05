@@ -214,7 +214,6 @@ class ReportActionItem extends Component {
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
-                            <Text>{`INDEX ${this.props.index} :: REPORTACTIONID ${this.props.action.reportActionID}`}</Text>
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered

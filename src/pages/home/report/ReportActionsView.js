@@ -36,6 +36,7 @@ const propTypes = {
     /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
+    /** The report actionID to scroll to */
     reportActionID: PropTypes.number.isRequired,
 
     /* Onyx Props */
@@ -427,8 +428,10 @@ class ReportActionsView extends React.Component {
         }
     }
 
+    /**
+     * Scrolls to a specific report action ID
+     */
     scrollToReportActionID() {
-        console.log('over here scrolling');
         if (this.props.reportActionID === 0) {
             return;
         }
@@ -437,36 +440,49 @@ class ReportActionsView extends React.Component {
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
-        // Check if reportID is deleted
-        const test = this.props.reportActions;
-
         if (this.actionIndexID !== -1) {
-            console.log(`over here scrolling to reportActionID: ${this.props.reportActionID}. Index ${this.actionIndexID}`);
             ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
             this.setState({selectedReportActionID: this.props.reportActionID});
         }
     }
 
+    /**
+     * Records when a report actionID is done rendering.
+     *
+     * @param {string} reportActionID
+     */
     recordReportActionIDRendered(reportActionID) {
         this.renderedActionIDs.add(parseInt(reportActionID, 10));
-        console.log(`over here Items rendered: (${this.renderedActionIDs.size}), vs sortedActions: (${this.sortedReportActions.length})`);
         this.checkScrollToReportAction();
     }
 
+    /**
+     * Records when our FlatList is done measuring the heights and offset of items.
+     */
     recordMeasurementDone() {
         this.doneMeasuring = true;
         this.checkScrollToReportAction();
     }
 
+    /**
+     * Determine if we can scroll now or not.
+     * On web we can scroll only after measurements of all rendered items are done while on native we can scroll after rendering of the specific item is done.
+     */
     checkScrollToReportAction() {
         if (!this.props.reportActionID) {
             return;
         }
 
-        if (this.doneMeasuring && this.renderedActionIDs.has(this.props.reportActionID) && !this.doneScrollingToReportActionID) {
-            // We give a slight delay because if we attempt this too fast things break as the front end hasn't loaded images/content yet.
-            this.doneScrollingToReportActionID = true;
-            setTimeout(this.scrollToReportActionID, 1000);
+        if (this.doneMeasuring && !this.doneScrollingToReportActionID) {
+            if (this.renderedActionIDs.has(this.props.reportActionID)) {
+                this.doneScrollingToReportActionID = true;
+
+                // We give a slight delay because if we attempt this too fast the scroll is buggy.
+                setTimeout(this.scrollToReportActionID, 500);
+            } else if (this.renderedActionIDs.size === this.sortedReportActions.length && this.scrollToReportActionIDAttempt < 3) {
+                this.loadMoreChats();
+                ++this.scrollToReportActionIDAttempt;
+            }
         }
     }
 
