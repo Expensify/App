@@ -443,6 +443,7 @@ class IOUConfirmationList extends Component {
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                disableArrowKeysActions={!this.props.canModifyParticipants}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
