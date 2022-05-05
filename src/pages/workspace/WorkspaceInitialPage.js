@@ -204,16 +204,18 @@ class WorkspaceInitialPage extends React.Component {
                         ))}
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title={this.props.translate('workspace.common.delete')}
-                    isVisible={this.state.isDeleteModalOpen}
-                    onConfirm={this.confirmDeleteAndHideModal}
-                    onCancel={() => this.toggleDeleteModal(false)}
-                    prompt={this.props.translate('workspace.common.deleteConfirmation')}
-                    confirmText={this.props.translate('common.delete')}
-                    cancelText={this.props.translate('common.cancel')}
-                    danger
-                />
+                // TODO: this is to test something in staging we are having a hard time figuring out in dev. Will revert once we test on staging
+                // More details in https://github.com/Expensify/App/issues/8791
+                {/*<ConfirmModal*/}
+                {/*    title={this.props.translate('workspace.common.delete')}*/}
+                {/*    isVisible={this.state.isDeleteModalOpen}*/}
+                {/*    onConfirm={this.confirmDeleteAndHideModal}*/}
+                {/*    onCancel={() => this.toggleDeleteModal(false)}*/}
+                {/*    prompt={this.props.translate('workspace.common.deleteConfirmation')}*/}
+                {/*    confirmText={this.props.translate('common.delete')}*/}
+                {/*    cancelText={this.props.translate('common.cancel')}*/}
+                {/*    danger*/}
+                {/*/>*/}
             </ScreenWrapper>
         );
     }
