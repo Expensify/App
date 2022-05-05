@@ -142,13 +142,6 @@ class IOUConfirmationList extends Component {
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
     }
 
-    componentWillUnmount() {
-        if (!this.unsubscribeCTRLEnter) {
-            return;
-        }
-        this.unsubscribeCTRLEnter();
-    }
-
     /**
      * Returns the participants with amount
      * @param {Array} participants
