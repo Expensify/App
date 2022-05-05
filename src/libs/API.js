@@ -518,7 +518,7 @@ function User_UploadAvatar(parameters) {
 /**
  * Runs command that will fix malformed data in a users account and also run migrations.
  * It returns whether anything was changed.
- * 
+ *
  * @returns {Promise}
  */
 function User_FixAccount() {
