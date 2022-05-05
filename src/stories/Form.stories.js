@@ -140,7 +140,6 @@ const WithNativeEventHandler = (args) => {
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}
-                isFormInput
                 shouldSaveDraft
             />
             <Text>
