@@ -59,10 +59,10 @@ const propTypes = {
     /** Callback executed on scroll */
     onScroll: PropTypes.func.isRequired,
 
-    scrollToReportActionID: PropTypes.func.isRequired,
-
+    /** Callback for when the item is rendered */
     onItemRendered: PropTypes.func.isRequired,
 
+    /** Callback for when measurement is done */
     onMeasurementEnd: PropTypes.func.isRequired,
 
     ...withDrawerPropTypes,
@@ -124,7 +124,6 @@ class ReportActionsList extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
-
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
@@ -134,7 +133,6 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                scrollToReportActionID={this.props.scrollToReportActionID}
                 isSelected={this.props.selectedReportActionID == item.action.reportActionID}
                 onItemRendered={this.props.onItemRendered}
             />
@@ -165,7 +163,6 @@ class ReportActionsList extends React.Component {
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
-
         return (
             <InvertedFlatList
                 ref={ReportScrollManager.flatListRef}

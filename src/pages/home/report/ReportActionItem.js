@@ -26,7 +26,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
-import Text from '../../../components/Text';
+import colors from '../../../styles/colors';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -53,8 +53,10 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** Is the current item selected to scroll to */
     isSelected: PropTypes.bool,
 
+    /** Callback for when the item is rendered */
     onItemRendered: PropTypes.func.isRequired,
 
     ...windowDimensionsPropTypes,
@@ -83,10 +85,6 @@ class ReportActionItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.isSelected) {
-            console.log(`over here shouldUpdate: ${this.props.reportID}`);
-        }
-
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
@@ -99,7 +97,6 @@ class ReportActionItem extends Component {
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isSelected && this.props.isSelected) {
-            console.log(`over here animating background. reportActionID: ${this.props.action.reportActionID}. Index: ${this.props.index}`);
             this.animateBackground();
         }
 
@@ -111,6 +108,9 @@ class ReportActionItem extends Component {
         this.textInput.focus();
     }
 
+    /**
+     * Animate the background of the item
+     */
     animateBackground() {
         Animated.timing(this.animatedBackgroundColor, {
             toValue: 1,
@@ -189,7 +189,7 @@ class ReportActionItem extends Component {
         const interpolatedBackgroundColor = this.animatedBackgroundColor.interpolate(
             {
                 inputRange: [0, 1],
-                outputRange: ["#FFFFFF", "#ffe4c4"],
+                outputRange: [colors.white, colors.greenHover],
             },
         );
         const animatedBackgroundStyle = {
