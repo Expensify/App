@@ -110,7 +110,6 @@
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
     "shim-keyboard-event-key": "^1.0.3",
-    "smoothscroll-polyfill": "^0.4.4",
     "underscore": "^1.13.1",
     "urbanairship-react-native": "^11.0.2"
   },
