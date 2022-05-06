@@ -154,7 +154,7 @@ class OptionsSelector extends Component {
         this.relatedTarget = null;
 
         this.state = {
-            allOptions: OptionsListUtils.flattenSections(this.props.sections),
+            allOptions: this.flattenSections(),
         };
         this.state.focusedIndex = this.props.shouldTextInputAppearBelowOptions ? this.state.allOptions.length : 0;
     }
@@ -214,7 +214,7 @@ class OptionsSelector extends Component {
             return;
         }
 
-        const newOptions = OptionsListUtils.flattenSections(this.props.sections);
+        const newOptions = this.flattenSections();
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
             allOptions: newOptions,
@@ -237,6 +237,29 @@ class OptionsSelector extends Component {
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
         }
+    }
+
+    /**
+     * Flattens the sections into a single array of options.
+     * Each object in this array is enhanced to have:
+     *
+     *   1. A `sectionIndex`, which represents the index of the section it came from
+     *   2. An `index`, which represents the index of the option within the section it came from.
+     *
+     * @returns {Array<Object>}
+     */
+    flattenSections() {
+        const allOptions = [];
+        _.each(this.props.sections, (section, sectionIndex) => {
+            _.each(section.data, (option, optionIndex) => {
+                allOptions.push({
+                    ...option,
+                    sectionIndex,
+                    index: optionIndex,
+                });
+            });
+        });
+        return allOptions;
     }
 
     /**

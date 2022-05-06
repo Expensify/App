@@ -798,30 +798,6 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
-/**
- * Flattens an array of sections into a single array of options.
- * Each object in this array is enhanced to have:
- *
- *   1. A `sectionIndex`, which represents the index of the section it came from
- *   2. An `index`, which represents the index of the option within the section it came from.
- *
- * @param {Array<Object>} sections
- * @returns {Array<Object>}
- */
-function flattenSections(sections) {
-    const allOptions = [];
-    _.each(sections, (section, sectionIndex) => {
-        _.each(section.data, (option, optionIndex) => {
-            allOptions.push({
-                ...option,
-                sectionIndex,
-                index: optionIndex,
-            });
-        });
-    });
-    return allOptions;
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -833,5 +809,4 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
-    flattenSections,
 };
