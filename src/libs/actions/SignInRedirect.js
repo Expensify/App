@@ -55,11 +55,6 @@ function clearStorageAndRedirect(errorMessage) {
             Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
                 .then((storedValue) => {
                     Log.info('[Onyx test] After merge and clear the cached and stored values are', false, {cachedValue, storedValue});
-                    console.assert(_.isEqual(cachedValue, storedValue), {
-                        cachedValue,
-                        storedValue,
-                        errorMessage: "[Onyx test] The cached value doesn't match the stored value when merging and then clearing.",
-                    });
                 });
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
