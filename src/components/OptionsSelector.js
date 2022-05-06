@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, findNodeHandle} from 'react-native';
+import {View, ScrollView, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
@@ -343,6 +343,22 @@ class OptionsSelector extends Component {
                 selectTextOnFocus
             />
         );
+        const optionsList = this.props.shouldShowOptions ? (
+            <OptionsList
+                ref={el => this.list = el}
+                optionHoveredStyle={this.props.optionHoveredStyle}
+                onSelectRow={this.selectRow}
+                sections={this.props.sections}
+                focusedIndex={this.state.focusedIndex}
+                selectedOptions={this.props.selectedOptions}
+                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                hideSectionHeaders={this.props.hideSectionHeaders}
+                headerMessage={this.props.headerMessage}
+                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                showTitleTooltip={this.props.showTitleTooltip}
+            />
+        ) : <FullScreenLoadingIndicator />;
         return (
             <ArrowKeyFocusManager
                 focusedIndex={this.state.focusedIndex}
@@ -350,34 +366,26 @@ class OptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
-                    {!this.props.shouldTextInputAppearBelowOptions && (
-                        <View style={[styles.ph5, styles.pv3]}>
-                            {textInput}
-                        </View>
-                    )}
-                    {this.props.shouldShowOptions
-                        ? (
-                            <OptionsList
-                                ref={el => this.list = el}
-                                optionHoveredStyle={this.props.optionHoveredStyle}
-                                onSelectRow={this.selectRow}
-                                sections={this.props.sections}
-                                focusedIndex={this.state.focusedIndex}
-                                selectedOptions={this.props.selectedOptions}
-                                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                                hideSectionHeaders={this.props.hideSectionHeaders}
-                                headerMessage={this.props.headerMessage}
-                                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                                showTitleTooltip={this.props.showTitleTooltip}
-                            />
-                        )
-                        : <FullScreenLoadingIndicator />}
-                    {this.props.shouldTextInputAppearBelowOptions && (
-                        <View style={[styles.ph5, styles.pv5, styles.iouConfirmComment]}>
-                            {textInput}
-                        </View>
-                    )}
+                    {
+                        this.props.shouldTextInputAppearBelowOptions
+                            ? (
+                                <>
+                                    <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
+                                        {optionsList}
+                                    </ScrollView>
+                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
+                                        {textInput}
+                                    </View>
+                                </>
+                            ) : (
+                                <>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        {textInput}
+                                    </View>
+                                    {optionsList}
+                                </>
+                            )
+                    }
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>
