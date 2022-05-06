@@ -355,6 +355,16 @@ function isExistingRoomName(roomName, reports, policyID) {
     );
 }
 
+/**
+ * Checks if tax ID consists of 9 digits
+ *
+ * @param {String} taxID
+ * @returns {Boolean}
+ */
+function isValidTaxID(taxID) {
+    return CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -381,4 +391,5 @@ export {
     doesFailCharacterLimit,
     isReservedRoomName,
     isExistingRoomName,
+    isValidTaxID,
 };

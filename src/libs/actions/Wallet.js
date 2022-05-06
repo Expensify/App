@@ -22,15 +22,19 @@ function fetchOnfidoToken(firstName, lastName, dob) {
     Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
     API.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
         .then((response) => {
-            const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-            Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
-                applicantID: apiResult.applicantID,
-                sdkToken: apiResult.sdkToken,
-                loading: false,
-                hasAcceptedPrivacyPolicy: true,
-            });
-        })
-        .catch(() => Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED}));
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
+                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
+                    applicantID: apiResult.applicantID,
+                    sdkToken: apiResult.sdkToken,
+                    loading: false,
+                    hasAcceptedPrivacyPolicy: true,
+                });
+                return;
+            }
+
+            Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
+        });
 }
 
 /**
@@ -263,6 +267,8 @@ function activateWallet(currentStep, parameters) {
                             'resultcode.pa.dob.match',
                             'resultcode.pa.dob.not.available',
                             'resultcode.pa.dob.does.not.match',
+                            'resultcode.blacklist.alert.ssn',
+                            'resultcode.blacklist.alert.address',
                         ];
                         if (_.some(hardFailures, hardFailure => _.contains(idologyErrors, hardFailure))) {
                             setWalletShouldShowFailedKYC(true);
