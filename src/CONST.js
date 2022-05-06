@@ -86,7 +86,6 @@ const CONST = {
             PENDING: 'PENDING',
         },
         MAX_LENGTH: {
-            TAX_ID_NUMBER: 9,
             SSN: 4,
             ZIP_CODE: 5,
         },
@@ -111,7 +110,6 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -315,10 +313,10 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
-        API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -401,12 +399,25 @@ const CONST = {
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
+    ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
     },
 
+    ATTACHMENT_FILE_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+        VIDEO: 'video',
+    },
+
+    FILE_TYPE_REGEX: {
+        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
+        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+    },
+    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
@@ -632,7 +643,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d+(\.\d*)?$/,
+        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -640,6 +651,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
+        TAX_ID: /^\d{9}$/,
+        NON_NUMERIC: /\D/g,
     },
 
     PRONOUNS: {

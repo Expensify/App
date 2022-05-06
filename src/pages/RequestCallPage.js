@@ -32,6 +32,8 @@ import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
 import FormElement from '../components/FormElement';
+import {withNetwork} from '../components/OnyxProvider';
+import networkPropTypes from '../components/networkPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -79,6 +81,9 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -117,14 +122,15 @@ class RequestCallPage extends Component {
     }
 
     componentDidMount() {
-        // If it is the weekend don't check the wait time
-        if (moment().day() === 0 || moment().day() === 6) {
-            this.setState({
-                onTheWeekend: true,
-            });
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
-        Inbox.getInboxCallWaitTime();
+
+        this.fetchData();
     }
 
     onSubmit() {
@@ -217,6 +223,18 @@ class RequestCallPage extends Component {
             waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
         }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+    }
+
+    fetchData() {
+        // If it is the weekend don't check the wait time
+        if (moment().day() === 0 || moment().day() === 6) {
+            this.setState({
+                onTheWeekend: true,
+            });
+            return;
+        }
+
+        Inbox.getInboxCallWaitTime();
     }
 
     validatePhoneInput() {
@@ -314,6 +332,7 @@ class RequestCallPage extends Component {
                         )}
                         <Button
                             success
+                            pressOnEnter
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
@@ -332,6 +351,7 @@ RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
