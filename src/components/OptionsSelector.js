@@ -147,9 +147,11 @@ class OptionsSelector extends Component {
         this.selectRow = this.selectRow.bind(this);
         this.relatedTarget = null;
 
-        this.allOptions = this.flattenSections();
-
-        this.state.focusedIndex = this.props.shouldTextInputAppearBelowOptions ? this.allOptions.length : 0;
+        const allOptions = this.flattenSections();
+        this.state = {
+            allOptions,
+            focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
+        };
     }
 
     componentDidMount() {
@@ -157,7 +159,7 @@ class OptionsSelector extends Component {
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
             () => {
-                const focusedOption = this.allOptions[this.state.focusedIndex];
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
                 if (!focusedOption) {
                     return;
                 }
@@ -172,14 +174,14 @@ class OptionsSelector extends Component {
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
-            () => !this.allOptions[this.state.focusedIndex],
+            () => !this.state.allOptions[this.state.focusedIndex],
         );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                const focusedOption = this.allOptions[this.state.focusedIndex];
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
                 if (!this.canSelectMultipleOptions && !focusedOption) {
                     return;
                 }
@@ -203,21 +205,18 @@ class OptionsSelector extends Component {
             return;
         }
 
-        const prevAllOptions = this.allOptions;
-        this.allOptions = this.flattenSections();
-        if (prevAllOptions.length === this.allOptions.length) {
-            return;
-        }
-
-        const focusedIndex = this.props.selectedOptions.length;
+        const newOptions = this.flattenSections();
+        const newFocusedIndex = newOptions.length === lodashGet(prevState, 'allOptions.length') ? prevState.focusedIndex : this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({focusedIndex});
+        this.setState({
+            allOptions: newOptions,
+            focusedIndex: newFocusedIndex,
+        });
 
-        if (this.allOptions.length <= focusedIndex) {
+        if (newOptions.length <= newFocusedIndex) {
             return;
         }
-
-        this.scrollToIndex(focusedIndex);
+        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
@@ -266,7 +265,7 @@ class OptionsSelector extends Component {
      * @param {Number} index
      */
     scrollToIndex(index) {
-        const option = this.allOptions[index];
+        const option = this.state.allOptions[index];
         if (!this.list || !option) {
             return;
         }
@@ -338,7 +337,7 @@ class OptionsSelector extends Component {
         return (
             <ArrowKeyFocusManager
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.props.canSelectMultipleOptions ? this.allOptions.length : this.allOptions.length - 1}
+                maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
