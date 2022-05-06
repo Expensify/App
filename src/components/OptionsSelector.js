@@ -350,36 +350,34 @@ class OptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
+                    {!this.props.shouldTextInputAppearBelowOptions && (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            {textInput}
+                        </View>
+                    )}
                     {this.props.shouldShowOptions
                         ? (
-                            <>
-                                {!this.props.shouldTextInputAppearBelowOptions && (
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        {textInput}
-                                    </View>
-                                )}
-                                <OptionsList
-                                    ref={el => this.list = el}
-                                    optionHoveredStyle={this.props.optionHoveredStyle}
-                                    onSelectRow={this.selectRow}
-                                    sections={this.props.sections}
-                                    focusedIndex={this.state.focusedIndex}
-                                    selectedOptions={this.props.selectedOptions}
-                                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                                    hideSectionHeaders={this.props.hideSectionHeaders}
-                                    headerMessage={this.props.headerMessage}
-                                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                                    showTitleTooltip={this.props.showTitleTooltip}
-                                />
-                                {this.props.shouldTextInputAppearBelowOptions && (
-                                    <View style={[styles.ph5, styles.pv5, styles.iouConfirmComment]}>
-                                        {textInput}
-                                    </View>
-                                )}
-                            </>
+                            <OptionsList
+                                ref={el => this.list = el}
+                                optionHoveredStyle={this.props.optionHoveredStyle}
+                                onSelectRow={this.selectRow}
+                                sections={this.props.sections}
+                                focusedIndex={this.state.focusedIndex}
+                                selectedOptions={this.props.selectedOptions}
+                                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                                hideSectionHeaders={this.props.hideSectionHeaders}
+                                headerMessage={this.props.headerMessage}
+                                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                                showTitleTooltip={this.props.showTitleTooltip}
+                            />
                         )
                         : <FullScreenLoadingIndicator />}
+                    {this.props.shouldTextInputAppearBelowOptions && (
+                        <View style={[styles.ph5, styles.pv5, styles.iouConfirmComment]}>
+                            {textInput}
+                        </View>
+                    )}
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>
