@@ -118,7 +118,7 @@ function getAppData(shouldSyncPolicyList = true) {
 
 /**
  * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports, new policies, etc. that the user now has access to.
+ * because some migrations might create new chat reports or their change data.
  */
 function fixAccountAndReloadData() {
     API.User_FixAccount()
