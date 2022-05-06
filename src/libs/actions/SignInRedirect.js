@@ -42,7 +42,7 @@ function clearStorageAndRedirect(errorMessage) {
         })
         .then(() => {
             Log.info('Done clearing Onyx');
-            const defaultKeyState = null;
+            const defaultKeyState = 0;
             console.assert(_.isEqual(testClearValue, defaultKeyState), {
                 testClearValue,
                 defaultKeyState,

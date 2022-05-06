@@ -34,7 +34,7 @@ export default function () {
                 loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.DEFAULT_CLEAR_KEY]: null,
+            [ONYXKEYS.DEFAULT_CLEAR_KEY]: 0,
         },
     });
 
