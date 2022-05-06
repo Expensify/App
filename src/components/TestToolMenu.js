@@ -11,6 +11,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import Button from './Button';
 import * as NetworkStore from '../libs/Network/NetworkStore';
 import TestToolRow from './TestToolRow';
+import networkPropTypes from './networkPropTypes';
+import compose from '../libs/compose';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** User object in Onyx */
@@ -20,18 +23,12 @@ const propTypes = {
     }),
 
     /** Network object in Onyx */
-    network: PropTypes.shape({
-        /** Whether we should fail all network requests */
-        shouldFailAllRequests: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
     user: {
         shouldUseSecureStaging: false,
-    },
-    network: {
-        shouldFailAllRequests: false,
     },
 };
 
@@ -80,11 +77,11 @@ const TestToolMenu = props => (
 
 TestToolMenu.propTypes = propTypes;
 TestToolMenu.defaultProps = defaultProps;
-export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-})(TestToolMenu);
+export default compose(
+    withNetwork(),
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(TestToolMenu);

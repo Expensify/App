@@ -598,7 +598,12 @@ function getOptions(reports, personalDetails, activeReportID, {
             if (!option.login) {
                 return 2;
             }
-            return 1;
+            if (option.login.toLowerCase() !== searchValue.toLowerCase()) {
+                return 1;
+            }
+
+            // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
+            return 0;
         }], ['asc']);
     }
 
