@@ -196,11 +196,11 @@ function isActiveRoute(routePath) {
  * @returns {Boolean} isNavigationReady
  */
 function isNavigationReady() {
-    return navigationReadyTask.isNavigationReady;
+    return navigationReadyTask.isReady();
 }
 
 function setIsNavigationReady() {
-    navigationReadyTask.setIsNavigationReady();
+    navigationReadyTask.setIsReady();
 }
 
 /**
