@@ -36,7 +36,7 @@ const CheckboxButton = props => (
         disabled={props.disabled}
         onPress={props.onPress}
         ref={props.forwardedRef}
-        style={this.props.style}
+        style={props.style}
     >
         {props.children}
     </Pressable>
