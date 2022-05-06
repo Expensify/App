@@ -34,17 +34,20 @@ function clearStorageAndRedirect(errorMessage) {
     const mergedValue = {value: 42};
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Log.info('Clearing Onyx');
+    Log.info('[Onyx test] Clearing Onyx');
     const afterClear = Onyx.clear()
-        .then(() => Log.info('Done clearing Onyx'));
+        .then(() => Log.info('[Onyx test] Done clearing Onyx'));
 
-    // Merge immediately after clear
-    Log.info('Calling Onyx.merge');
-    const afterMerge = Onyx.merge(ONYXKEYS.DEFAULT_CLEAR_KEY, mergedValue)
-        .then(() => Log.info('Value stored from merge'));
-
+    // Merge just after clear, on the next tick
+    const afterMerge = new Promise(resolve => setTimeout(() => {
+        Log.info('[Onyx test] Calling Onyx.merge');
+        Onyx.merge(ONYXKEYS.DEFAULT_CLEAR_KEY, mergedValue)
+            .then(() => Log.info('[Onyx test] Value stored from merge'))
+            .then(resolve);
+    }, 0));
     Promise.all([afterClear, afterMerge])
         .then(() => {
+            Log.info('[Onyx test] After merge and clear the onyx subscriber value is', false, testClearValue);
             console.assert(_.isEqual(testClearValue, mergedValue), {
                 testClearValue,
                 mergedValue,
@@ -53,6 +56,7 @@ function clearStorageAndRedirect(errorMessage) {
             const cachedValue = Onyx.getValueFromCache(ONYXKEYS.DEFAULT_CLEAR_KEY);
             Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
                 .then((storedValue) => {
+                    Log.info('[Onyx test] After merge and clear the cached and stored values are', false, {cachedValue, storedValue});
                     console.assert(_.isEqual(cachedValue, storedValue), {
                         cachedValue,
                         storedValue,
