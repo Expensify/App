@@ -11,7 +11,7 @@ import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import createOnReadyTask from '../createOnReadyTask';
 
-const [isNavigationReady, setIsNavigationReady] = createOnReadyTask();
+const navigationReadyTask = createOnReadyTask();
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -43,6 +43,7 @@ function canNavigate(methodName, params = {}) {
     }
 
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
+    navigationReadyTask.reset();
     return false;
 }
 
@@ -188,6 +189,45 @@ function isActiveRoute(routePath) {
     // We remove First forward slash from the URL before matching
     return getActiveRoute().substring(1) === routePath;
 }
+
+/**
+ * @returns {Boolean} isNavigationReady
+ */
+function isNavigationReady() {
+    return navigationReadyTask.isNavigationReady;
+}
+
+function setIsNavigationReady() {
+    navigationReadyTask.setIsNavigationReady();
+}
+
+/**
+ * Alternative to the `Navigation.dismissModal()` function that we can use inside
+ * the render function of other components to avoid breaking React rules about side-effects.
+ *
+ * Example:
+ * ```jsx
+ * if (!Permissions.canUseFreePlan(this.props.betas)) {
+ *     return <Navigation.DismissModal />;
+ * }
+ * ```
+ */
+class DismissModal extends React.Component {
+    componentDidMount() {
+        dismissModal(this.props.shouldOpenDrawer);
+    }
+
+    render() {
+        return null;
+    }
+}
+
+DismissModal.propTypes = {
+    shouldOpenDrawer: PropTypes.bool,
+};
+DismissModal.defaultProps = {
+    shouldOpenDrawer: false,
+};
 
 export default {
     canNavigate,
