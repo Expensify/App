@@ -836,51 +836,6 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
-/**
- * Returns the appropriate icons for the given chat report using personalDetails if applicable
- *
- * @param {Object} report
- * @param {Object} personalDetails
- * @returns {String}
- */
-function getReportIcons(report, personalDetails) {
-    // Default rooms have a specific avatar so we can return any non-empty array
-    if (ReportUtils.isChatRoom(report)) {
-        return [''];
-    }
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
-            || getDefaultAvatar(dmParticipant),
-    }))
-        .sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
-}
-
-/**
- * Flattens an array of sections into a single array of options.
- * Each object in this array is enhanced to have:
- *
- *   1. A `sectionIndex`, which represents the index of the section it came from
- *   2. An `index`, which represents the index of the option within the section it came from.
- *
- * @param {Array<Object>} sections
- * @returns {Array<Object>}
- */
-function flattenSections(sections) {
-    const allOptions = [];
-    _.each(sections, (section, sectionIndex) => {
-        _.each(section.data, (option, optionIndex) => {
-            allOptions.push({
-                ...option,
-                sectionIndex,
-                index: optionIndex,
-            });
-        });
-    });
-    return allOptions;
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -893,7 +848,4 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
-    getDefaultAvatar,
-    getReportIcons,
-    flattenSections,
 };
