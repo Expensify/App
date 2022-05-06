@@ -126,7 +126,7 @@ function fixAccountAndReloadData() {
             if (!response.changed) {
                 return;
             }
-            Log.info('FixAccount found updates for this user, so data will be reinitalized', true, response);
+            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
             getAppData(false);
         });
 }
