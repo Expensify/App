@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import * as API from '../../API';
@@ -198,7 +197,7 @@ function createTemporaryLogin(authToken, email) {
         .then((createLoginResponse) => {
             if (createLoginResponse.jsonCode !== 200) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: createLoginResponse.message});
-                return;
+                return createLoginResponse;
             }
 
             setSuccessfulSignInData(createLoginResponse);
@@ -284,13 +283,12 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
             accountID,
             email,
         });
-        if (response.jsonCode === 200) {
-            User.getUserDetails();
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+        if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
         }
+
+        User.getUserDetails();
+        Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
     });
