@@ -1042,7 +1042,7 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
+    multipleEmojisText: {
         fontSize: variables.fontSizeSingleEmoji,
         lineHeight: variables.fontSizeSingleEmojiHeight,
     },

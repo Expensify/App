@@ -71,6 +71,30 @@ function isSingleEmoji(message) {
 }
 
 /**
+ * Validates that this string contains only emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function containsOnlyEmojis(message) {
+    const match = message.match(CONST.REGEX.EMOJIS);
+    if (match) {
+        const codes = [];
+
+        _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
+            if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+                codes.push(code);
+            }
+            return code;
+        }));
+
+        const messageCodes = _.filter(_.map([...message], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+        return codes.length === messageCodes.length;
+    }
+    return false;
+}
+
+/**
  * Get the header indices based on the max emojis per row
  * @param {Object[]} emojis
  * @returns {Number[]}
@@ -176,4 +200,5 @@ export {
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
+    containsOnlyEmojis,
 };

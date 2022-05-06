@@ -387,6 +387,8 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
+    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
