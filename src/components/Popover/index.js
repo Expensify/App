@@ -17,8 +17,6 @@ const Popover = (props) => {
                 popoverAnchorPosition={props.anchorPosition}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
-                animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
                 animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
                 animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
                 shouldCloseOnOutsideClick
@@ -33,8 +31,6 @@ const Popover = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
-            animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
-            animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
             animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
             animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
         />
