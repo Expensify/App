@@ -34,9 +34,20 @@ function clearStorageAndRedirect(errorMessage) {
     const setValue = 42;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
+    Log.info('Clearing Onyx');
+    const afterClear = Onyx.clear()
+        .then(() => Log.info('Done clearing Onyx'));
+
+    // Set just after clear, on the next tick
+    const afterSet = new Promise(resolve => setTimeout(() => {
+        Log.info('Calling Onyx.set');
+        Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
+            .then(() => Log.info('Value stored from set'))
+            .then(resolve);
+    }, 0));
+
+    Promise.all([afterClear, afterSet])
         .then(() => {
-            Log.info('Done clearing Onyx');
             console.assert(_.isEqual(testClearValue, setValue), {
                 testClearValue,
                 setValue,
@@ -61,12 +72,6 @@ function clearStorageAndRedirect(errorMessage) {
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
             Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
-
-    // Set just after clear, on the next tick
-    setTimeout(() => {
-        Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
-            .then(() => Log.info('Done with set'));
-    }, 0);
 }
 
 /**
