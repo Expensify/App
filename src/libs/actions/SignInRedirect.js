@@ -34,20 +34,21 @@ function clearStorageAndRedirect(errorMessage) {
     const setValue = 42;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Log.info('Clearing Onyx');
+    Log.info('[Onyx test] Clearing Onyx');
     const afterClear = Onyx.clear()
-        .then(() => Log.info('Done clearing Onyx'));
+        .then(() => Log.info('[Onyx test] Done clearing Onyx'));
 
     // Set just after clear, on the next tick
     const afterSet = new Promise(resolve => setTimeout(() => {
-        Log.info('Calling Onyx.set');
+        Log.info('[Onyx test] Calling Onyx.set');
         Onyx.set(ONYXKEYS.DEFAULT_CLEAR_KEY, setValue)
-            .then(() => Log.info('Value stored from set'))
+            .then(() => Log.info('[Onyx test] Value stored from set'))
             .then(resolve);
     }, 0));
 
     Promise.all([afterClear, afterSet])
         .then(() => {
+            Log.info('[Onyx test] After set and clear the onyx subscriber value is', false, testClearValue);
             console.assert(_.isEqual(testClearValue, setValue), {
                 testClearValue,
                 setValue,
@@ -56,6 +57,7 @@ function clearStorageAndRedirect(errorMessage) {
             const cachedValue = Onyx.getValueFromCache(ONYXKEYS.DEFAULT_CLEAR_KEY);
             Onyx.getValueFromStorage(ONYXKEYS.DEFAULT_CLEAR_KEY)
                 .then((storedValue) => {
+                    Log.info('[Onyx test] After set and clear the cached and stored values are', false, {cachedValue, storedValue});
                     console.assert(_.isEqual(cachedValue, storedValue), {
                         cachedValue,
                         storedValue,
