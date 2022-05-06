@@ -19,14 +19,17 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
-    imageSize: PropTypes.objectOf(PropTypes.number),
+    /** Image size */
+    imageWidth: PropTypes.number,
+    imageHeight: PropTypes.number,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     style: {},
-    imageSize: {width: 200, height: 200},
+    imageWidth: 200,
+    imageHeight: 200,
 };
 
 class ThumbnailImage extends PureComponent {
@@ -34,10 +37,10 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-        const {width, height} = this.calculateThumbnailImageSize(props.imageSize);
+        const {width, height} = this.calculateThumbnailImageSize({width: props.imageWidth, height: props.imageHeight});
         this.state = {
-            thumbnailWidth: width || defaultProps.imageSize.width,
-            thumbnailHeight: height || defaultProps.imageSize.height,
+            thumbnailWidth: width,
+            thumbnailHeight: height,
         };
     }
 
