@@ -99,7 +99,7 @@ function isDefaultRoom(report) {
  * @param {String} report.chatType
  * @returns {Boolean}
  */
- function isDomainRoom(report) {
+function isDomainRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
