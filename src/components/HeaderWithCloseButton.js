@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity,
+    View, TouchableOpacity, Keyboard,
 } from 'react-native';
 import styles from '../styles/styles';
 import Header from './Header';
@@ -12,6 +12,7 @@ import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
+import virtualKeyboard from '../libs/VirtualKeyboard';
 
 const propTypes = {
     /** Title of the Header */
@@ -113,7 +114,12 @@ const HeaderWithCloseButton = props => (
             {props.shouldShowBackButton && (
                 <Tooltip text={props.translate('common.back')}>
                     <TouchableOpacity
-                        onPress={props.onBackButtonPress}
+                        onPress={() => {
+                            if (virtualKeyboard.isOpen()) {
+                                Keyboard.dismiss();
+                            }
+                            props.onBackButtonPress();
+                        }}
                         style={[styles.touchableButtonImage]}
                     >
                         <Icon src={Expensicons.BackArrow} />
