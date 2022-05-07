@@ -177,6 +177,8 @@ export default {
     reportActionsView: {
         begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
