@@ -14,8 +14,7 @@ class PreRenderer extends React.Component {
         if (!this.ref) {
             return;
         }
-        this.ref
-            .getScrollableNode()
+        this.ref.getScrollableNode()
             .addEventListener('wheel', this.scrollNode);
     }
 
@@ -24,6 +23,10 @@ class PreRenderer extends React.Component {
             .removeEventListener('wheel', this.scrollNode);
     }
 
+    /**
+     * Manually scrolls the code block if code block horizontal scrollable, then prevents the event from being passed up to the parent.
+     * @param {Object} event native event
+     */
     scrollNode(event) {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;

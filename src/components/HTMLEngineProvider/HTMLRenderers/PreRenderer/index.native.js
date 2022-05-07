@@ -4,10 +4,8 @@ import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
 const PreRenderer = props => (
-    <BasePreRenderer
     // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    />
+    <BasePreRenderer {...props} />
 );
 
 PreRenderer.propTypes = htmlRendererPropTypes;
