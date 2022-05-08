@@ -23,7 +23,7 @@ const ReportActionsSkeletonView = (props) => {
                 skeletonViewLines.push(<SkeletonViewLines numberOfRows={1} key={`skeletonViewLines${index}`} />);
         }
     }
-    return skeletonViewLines;
+    return <>{skeletonViewLines}</>;
 };
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
