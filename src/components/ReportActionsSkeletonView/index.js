@@ -1,14 +1,16 @@
 import React from 'react';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import PropTypes from 'prop-types';
 import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
+    /** Height of the container component */
+    containerHeight: PropTypes.number.isRequired,
 };
 
 const ReportActionsSkeletonView = (props) => {
-    const possibleVisibleContentItems = Math.floor(props.windowHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
+    // Determines the number of content items based on container height
+    const possibleVisibleContentItems = Math.floor(props.containerHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
     for (let index = 0; index < possibleVisibleContentItems; index++) {
         const iconIndex = (index + 1) % 4;
@@ -28,4 +30,4 @@ const ReportActionsSkeletonView = (props) => {
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 ReportActionsSkeletonView.propTypes = propTypes;
-export default withWindowDimensions(ReportActionsSkeletonView);
+export default ReportActionsSkeletonView;
