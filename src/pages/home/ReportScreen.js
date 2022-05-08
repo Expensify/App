@@ -109,6 +109,7 @@ class ReportScreen extends React.Component {
         this.state = {
             isLoading: true,
             isSkeletonViewVisible: true,
+            skeletonViewContainerHeight: 0,
         };
     }
 
@@ -221,10 +222,15 @@ class ReportScreen extends React.Component {
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
 
                     {this.shouldShowLoader()
-                        ? <ReportActionsSkeletonView />
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={this.state.skeletonViewContainerHeight}
+                            />
+                        )
                         : (
                             <ReportActionsView
                                 reportID={reportID}
