@@ -12,7 +12,7 @@ import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
-import virtualKeyboard from '../libs/VirtualKeyboard';
+import VirtualKeyboard from '../libs/VirtualKeyboard';
 
 const propTypes = {
     /** Title of the Header */
@@ -115,7 +115,7 @@ const HeaderWithCloseButton = props => (
                 <Tooltip text={props.translate('common.back')}>
                     <TouchableOpacity
                         onPress={() => {
-                            if (virtualKeyboard.isOpen()) {
+                            if (VirtualKeyboard.isOpen()) {
                                 Keyboard.dismiss();
                             }
                             props.onBackButtonPress();
