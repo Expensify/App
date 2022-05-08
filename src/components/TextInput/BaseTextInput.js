@@ -64,7 +64,7 @@ class BaseTextInput extends Component {
     }
 
     componentDidUpdate(prevState) {
-        // back to This screen so need to assign key to textinput to render it again and specifically for MobileWeb
+        // when come back to this component need to update key value of textinput(split-digit) to render it again and specifically for MobileWeb
         this.updateCustomKeyValue(prevState);
 
         // Activate or deactivate the label when value is changed programmatically from outside
@@ -140,7 +140,7 @@ class BaseTextInput extends Component {
 
     updateCustomKeyValue(prevState) {
         const operatingSystem = getOperatingSystem();
-        if (prevState.isFocused !== this.state.isFocused && this.state.value === this.props.value) {
+        if (prevState.isFocused !== this.state.isFocused && this.state.value === this.props.value && this.state.customKey === '') {
             if ((operatingSystem === 'iOS' || operatingSystem === 'Android') && Platform.OS === 'web') {
                 const uniqueKey = `${this.props.value}_${Date.now()}`;
                 this.setState({customKey: uniqueKey});
