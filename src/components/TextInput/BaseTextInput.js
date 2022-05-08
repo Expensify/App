@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
+    Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard, Platform,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import getOperatingSystem from '../../libs/getOperatingSystem';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -32,6 +33,7 @@ class BaseTextInput extends Component {
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
+            customKey: '',
         };
 
         this.input = null;
@@ -61,7 +63,10 @@ class BaseTextInput extends Component {
         this.input.focus();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevState) {
+        // back to This screen so need to assign key to textinput to render it again and specifically for MobileWeb
+        this.updateCustomKeyValue(prevState);
+
         // Activate or deactivate the label when value is changed programmatically from outside
         // Only update when value prop is provided
         if (_.isUndefined(this.props.value) || this.state.value === this.props.value) {
@@ -131,6 +136,16 @@ class BaseTextInput extends Component {
         this.setState({value});
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
+    }
+
+    updateCustomKeyValue(prevState) {
+        const operatingSystem = getOperatingSystem();
+        if (prevState.isFocused !== this.state.isFocused && this.state.value === this.props.value) {
+            if ((operatingSystem === 'iOS' || operatingSystem === 'Android') && Platform.OS === 'web') {
+                const uniqueKey = `${this.props.value}_${Date.now()}`;
+                this.setState({customKey: uniqueKey});
+            }
+        }
     }
 
     activateLabel() {
@@ -246,6 +261,7 @@ class BaseTextInput extends Component {
                                         </Text>
                                     )}
                                     <RNTextInput
+                                        key={this.state.customKey && this.state.customKey}
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                             this.input = ref;
