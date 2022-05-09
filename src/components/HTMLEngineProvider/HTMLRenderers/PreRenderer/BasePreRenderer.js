@@ -15,10 +15,8 @@ const BasePreRenderer = forwardRef((props, ref) => {
             horizontal
         >
             <View onStartShouldSetResponder={() => true}>
-                <TDefaultRenderer
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...defaultRendererProps}
-                />
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <TDefaultRenderer {...defaultRendererProps} />
             </View>
         </ScrollView>
     );
