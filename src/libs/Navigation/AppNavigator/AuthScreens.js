@@ -122,8 +122,8 @@ class AuthScreens extends React.Component {
                     const email = params.get('email');
                     const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
                     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                    && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
-                    && exitTo === ROUTES.WORKSPACE_NEW;
+                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
+                        && exitTo === ROUTES.WORKSPACE_NEW;
                     if (shouldCreateFreePolicy) {
                         Policy.createAndGetPolicyList();
                         return;
