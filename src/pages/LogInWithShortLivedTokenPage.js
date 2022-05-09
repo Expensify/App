@@ -7,36 +7,25 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
     route: PropTypes.shape({
-        /** The name of the route */
-        name: PropTypes.string,
-
-        /** Unique key associated with the route */
-        key: PropTypes.string,
-
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-            /** AccountID associated with the validation link */
-            accountID: PropTypes.string,
-
-            /** Short lived token */
+            /** Short lived token to sign in a user */
             shortLivedToken: PropTypes.string,
 
-            /** URL to exit to */
-            exitTo: PropTypes.string,
+            /** The email of the transitioning user */
+            email: PropTypes.string,
         }),
     }),
 };
 
 const defaultProps = {
-    route: {
-        params: {},
-    },
+    route: null,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+        const email = lodashGet(this.props, 'route.params.email', '');
+        const shortLivedToken = lodashGet(this.props, 'route.params.shortLivedToken', '');
         Session.signInWithShortLivedToken(email, shortLivedToken);
     }
 
