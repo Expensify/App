@@ -9,7 +9,7 @@ import * as User from './actions/User';
  * @param {String} input
  * @returns {String}
  */
-function getEmojiUnicode(input) {
+const getEmojiUnicode = _.memoize((input) => {
     if (input.length === 0) {
         return '';
     }
@@ -40,7 +40,7 @@ function getEmojiUnicode(input) {
         }
     }
     return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
-}
+});
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
