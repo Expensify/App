@@ -51,6 +51,7 @@ class LogOutPreviousUserPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         if (this.props.session && this.props.session.email !== email) {
             Session.signOutAndRedirectToSignIn();
+            return;
         }
 
         // Set isNavigationReady so that we can navigate in the AuthScreens
