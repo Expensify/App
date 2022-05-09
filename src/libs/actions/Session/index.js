@@ -364,7 +364,12 @@ function cleanupSession() {
 }
 
 function clearAccountMessages() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        error: '',
+        errorInCurrentPassword: false,
+        errorToNotAllowPasswordChange: false,
+        success: '',
+    });
 }
 
 /**
