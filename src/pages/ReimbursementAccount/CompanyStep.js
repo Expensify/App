@@ -18,6 +18,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
@@ -154,7 +155,7 @@ class CompanyStep extends React.Component {
             errors.incorporationDateFuture = true;
         }
 
-        if (!ValidationUtils.isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+        if (!ValidationUtils.isValidUSPhone(this.state.companyPhone, true)) {
             errors.companyPhone = true;
         }
 
@@ -176,7 +177,12 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate, companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, '')});
+        BankAccounts.setupWithdrawalAccount({
+            ...this.state,
+            incorporationDate,
+            companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
+            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
+        });
     }
 
     render() {
@@ -242,9 +248,8 @@ class CompanyStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
                         value={this.state.companyPhone}
-                        placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
+                        placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
-                        maxLength={CONST.PHONE_MAX_LENGTH}
                     />
                     <TextInput
                         label={this.props.translate('companyStep.companyWebsite')}
