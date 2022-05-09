@@ -40,7 +40,9 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import LogOutOldUserPage from '../../../pages/LogOutOldUserPage';
+import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
+import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -248,7 +250,7 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name={SCREENS.TRANSITION}
                     options={defaultScreenOptions}
-                    component={LogOutOldUserPage}
+                    component={LogOutPreviousUserPage}
                 />
 
                 {/* These are the various modal routes */}

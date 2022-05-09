@@ -46,7 +46,7 @@ const defaultProps = {
     session: {},
 };
 
-class LogOutOldUserPage extends Component {
+class LogOutPreviousUserPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props.route.params, 'email', '');
         if (this.props.session && this.props.session.email !== email) {
@@ -62,11 +62,11 @@ class LogOutOldUserPage extends Component {
     }
 }
 
-LogOutOldUserPage.propTypes = propTypes;
-LogOutOldUserPage.defaultProps = defaultProps;
+LogOutPreviousUserPage.propTypes = propTypes;
+LogOutPreviousUserPage.defaultProps = defaultProps;
 
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(LogOutOldUserPage);
+})(LogOutPreviousUserPage);
