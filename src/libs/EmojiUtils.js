@@ -78,20 +78,21 @@ function isSingleEmoji(message) {
  */
 function containsOnlyEmojis(message) {
     const match = message.match(CONST.REGEX.EMOJIS);
-    if (match) {
-        const codes = [];
 
-        _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-            if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
-                codes.push(code);
-            }
-            return code;
-        }));
-
-        const messageCodes = _.filter(_.map([...message], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
-        return codes.length === messageCodes.length;
+    if (!match) {
+        return false;
     }
-    return false;
+
+    const codes = [];
+    _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
+        if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+            codes.push(code);
+        }
+        return code;
+    }));
+
+    const messageCodes = _.filter(_.map([...message], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    return codes.length === messageCodes.length;
 }
 
 /**
