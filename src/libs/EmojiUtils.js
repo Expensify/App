@@ -71,7 +71,7 @@ function isSingleEmoji(message) {
 }
 
 /**
- * Validates that this string contains only emojis
+ * Validates that this message contains only emojis
  *
  * @param {String} message
  * @returns {Boolean}
