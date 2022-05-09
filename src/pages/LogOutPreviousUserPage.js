@@ -10,31 +10,16 @@ import Navigation from '../libs/Navigation/Navigation';
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
     route: PropTypes.shape({
-        /** The name of the route */
-        name: PropTypes.string,
-
-        /** Unique key associated with the route */
-        key: PropTypes.string,
-
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-            /** AccountID associated with the validation link */
-            accountID: PropTypes.string,
-
-            /** Short lived token */
-            shortLivedToken: PropTypes.string,
-
-            /** URL to exit to */
-            exitTo: PropTypes.string,
+            /** The email of the transitioning user */
+            email: PropTypes.string,
         }),
     }),
 
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
     session: PropTypes.shape({
-        /** The authToken for the current session */
-        authToken: PropTypes.string,
-
-        /** The authToken for the current session */
+        /** The user's email for the current session */
         email: PropTypes.string,
     }),
 };
