@@ -26,7 +26,6 @@ import * as Modal from '../../actions/Modal';
 import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import Log from '../../Log';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
