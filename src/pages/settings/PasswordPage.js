@@ -243,4 +243,4 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
         },
     }),
-)();
+)(PasswordPage);
