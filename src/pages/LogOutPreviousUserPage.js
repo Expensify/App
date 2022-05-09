@@ -40,16 +40,15 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {},
-    },
-    session: {},
+    route: null,
+    session: null,
 };
 
 class LogOutPreviousUserPage extends Component {
     componentDidMount() {
-        const email = lodashGet(this.props.route.params, 'email', '');
-        if (this.props.session && this.props.session.email !== email) {
+        const paramsEmail = lodashGet(this.props, 'route.params.email', null);
+        const sessionEmail = lodashGet(this.props.session, 'email', '');
+        if (paramsEmail !== sessionEmail) {
             Session.signOutAndRedirectToSignIn();
             return;
         }
