@@ -14,7 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CheckboxButton from '../Checkbox/CheckboxButton';
+import CheckboxButton from '../CheckboxButton';
 
 class BaseTextInput extends Component {
     constructor(props) {

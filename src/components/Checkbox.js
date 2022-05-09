@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
+import styles from '../styles/styles';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import CheckboxButton from './CheckboxButton';
 
 const propTypes = {
