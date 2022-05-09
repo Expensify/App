@@ -52,7 +52,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            // The width of toolttip's inner text
+            // The width of tooltip's inner text
             tooltipTextWidth: 0,
 
             // The width and height of the tooltip itself
