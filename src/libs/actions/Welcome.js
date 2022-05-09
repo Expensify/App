@@ -9,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
 import createOnReadyTask from '../createOnReadyTask';
+import SCREENS from '../../SCREENS';
 
 const readyTask = createOnReadyTask();
 
@@ -109,8 +110,8 @@ function show({routes, showCreateMenu}) {
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now.
         const topRouteName = lodashGet(_.last(routes), 'name', '');
-        const loginWithShortLivedTokenRoute = _.find(routes, route => route.name === 'LogInWithShortLivedToken');
-        const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
+        const transitionRoute = _.find(routes, route => route.name === SCREENS.TRANSITION);
+        const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
         const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
