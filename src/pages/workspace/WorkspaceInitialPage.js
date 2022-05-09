@@ -120,21 +120,7 @@ class WorkspaceInitialPage extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    shouldShowThreeDotsButton
-                    shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Plus,
-                            text: this.props.translate('workspace.new.newWorkspace'),
-                            onSelected: () => PolicyActions.createAndNavigate(),
-                        }, {
-                            icon: Expensicons.Trashcan,
-                            text: this.props.translate('workspace.common.delete'),
-                            onSelected: () => this.setState({isDeleteModalOpen: true}),
-                        },
-                    ]}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
                 />
                 <ScrollView
                     contentContainerStyle={[
