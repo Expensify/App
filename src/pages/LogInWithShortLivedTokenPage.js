@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Log from '../libs/Log';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -38,7 +37,6 @@ class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        Log.info('[LoginWithShortLivedTokenPage] signing in the transitioning user');
         Session.signInWithShortLivedToken(email, shortLivedToken);
     }
 

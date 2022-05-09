@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Log from '../libs/Log';
 import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
@@ -51,7 +50,6 @@ class LogOutOldUserPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props.route.params, 'email', '');
         if (this.props.session && this.props.session.email !== email) {
-            Log.info('[LogOutOldUserPage] Different user signed in - signing out');
             Session.signOutAndRedirectToSignIn();
         }
 
