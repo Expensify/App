@@ -70,6 +70,9 @@ const propTypes = {
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
 
+    /** Is the composer full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -404,7 +407,7 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <View style={[styles.flex0]}>
+            <View style={[this.props.isComposerFullSize && styles.flex0]}>
                 <FloatingMessageCounter
                     active={this.state.isFloatingMessageCounterVisible}
                     count={this.state.messageCounterCount}

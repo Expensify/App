@@ -105,6 +105,7 @@ export default {
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
+        REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
     },
 
     // Indicates which locale should be used

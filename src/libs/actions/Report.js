@@ -1569,6 +1569,10 @@ function renameReport(reportID, reportName) {
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1600,4 +1604,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };

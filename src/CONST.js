@@ -271,6 +271,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        FULL_COMPOSER_MIN_LINES: 3,
     },
     MODAL: {
         MODAL_TYPE: {

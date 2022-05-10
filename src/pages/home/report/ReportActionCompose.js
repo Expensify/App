@@ -87,6 +87,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is the composer full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -126,6 +129,7 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.comment = props.comment;
@@ -137,6 +141,7 @@ class ReportActionCompose extends React.Component {
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
+            isFullComposerAvailable: this.props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -191,6 +196,11 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
+    }
+
+    setIsFullComposerAvailable(isFullComposerAvailable) {
+        console.log('ReportActionCompose isFullComposerAvailable = ', isFullComposerAvailable);
+        this.setState({isFullComposerAvailable});
     }
 
     /**
@@ -276,6 +286,18 @@ class ReportActionCompose extends React.Component {
             });
         }
         return iouOptions;
+    }
+
+    /**
+     * Return the maximum number of lines for the composer
+     *
+     * @returns {Number} maxLines
+     */
+    getMaxLines() {
+        if (this.props.setIsComposerFullSize) {
+            return -1;
+        }
+        return this.props.isSmallScreenWidth ? 6 : 16; // This is the same that slack has
     }
 
     /**
@@ -438,8 +460,9 @@ class ReportActionCompose extends React.Component {
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        // const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
-        const shouldShowReportRecipientLocalTime = false;
+
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
+            && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -448,17 +471,16 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[styles.flex1, styles.h100, shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
+            <View style={[shouldShowReportRecipientLocalTime ? styles.chatItemComposeWithFirstRow : styles.chatItemFullComposeRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
-                    styles.chatItemComposeBox,
                     styles.flexRow,
-                    styles.flex1,
-                    styles.mt4,
+                    styles.chatItemComposeBox,
+                    this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                     hasExceededMaxCommentLength && styles.borderColorDanger,
                 ]}
                 >
@@ -475,7 +497,38 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[styles.justifyContentEnd]}>
+                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween]}>
+                                                {this.props.isComposerFullSize && (
+                                                    <Tooltip text={this.props.translate('reportActionCompose.collapseComposer')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                Report.setIsComposerFullSize(this.props.reportID, false);
+                                                            }}
+                                                            style={styles.chatItemAttachButton}
+                                                            underlayColor={themeColors.componentBG}
+                                                            disabled={isBlockedFromConcierge}
+                                                        >
+                                                            <Icon src={Expensicons.DownArrow} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
+
+                                                )}
+                                                {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
+                                                    <Tooltip text={this.props.translate('reportActionCompose.expandComposer')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                Report.setIsComposerFullSize(this.props.reportID, true);
+                                                            }}
+                                                            style={styles.chatItemAttachButton}
+                                                            underlayColor={themeColors.componentBG}
+                                                            disabled={isBlockedFromConcierge}
+                                                        >
+                                                            <Icon src={Expensicons.UpArrow} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
+                                                )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
                                                         onPress={(e) => {
@@ -547,9 +600,9 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInputCompose]}
+                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                     defaultValue={this.props.comment}
-                                    maxLines={-1} // This is the same that slack has
+                                    maxLines={this.getMaxLines()}
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
@@ -558,6 +611,7 @@ class ReportActionCompose extends React.Component {
                                     isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
+                                    setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                 />
                             </>
                         )}

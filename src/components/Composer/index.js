@@ -63,6 +63,8 @@ const propTypes = {
         end: PropTypes.number,
     }),
 
+    setIsFullComposerAvailable: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -86,6 +88,7 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    setIsFullComposerAvailable: () => {},
 };
 
 const IMAGE_EXTENSIONS = {
@@ -116,6 +119,7 @@ class Composer extends React.Component {
                 start: initialValue.length,
                 end: initialValue.length,
             },
+            isFullComposerAvailable: null,
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
@@ -332,12 +336,23 @@ class Composer extends React.Component {
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
+        const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+
+        // Update isFullComposerAvailable if needed
+        let isFullComposerAvailable = false;
+        if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
+            isFullComposerAvailable = true;
+        }
+        if (isFullComposerAvailable !== this.state.isFullComposerAvailable) {
+            this.props.setIsFullComposerAvailable(isFullComposerAvailable);
+            this.setState({isFullComposerAvailable});
+        }
 
         // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
+                numberOfLines,
             });
         });
     }

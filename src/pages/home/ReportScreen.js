@@ -58,6 +58,8 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
@@ -190,10 +192,11 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
+                            isComposerFullSize={this.props.isComposerFullSize}
                         />
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={styles.chatFooter}>
+                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.flex1]}>
                             {
                                 isArchivedRoom
                                     ? (
@@ -208,6 +211,7 @@ class ReportScreen extends React.Component {
                                                 reportID={reportID}
                                                 reportActions={this.props.reportActions}
                                                 report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
                                             />
                                         </SwipeableView>
                                     )
@@ -237,6 +241,9 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    isComposerFullSize: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
     },
     betas: {
         key: ONYXKEYS.BETAS,
