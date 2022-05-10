@@ -438,7 +438,8 @@ class ReportActionCompose extends React.Component {
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+        // const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+        const shouldShowReportRecipientLocalTime = false;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -447,7 +448,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
+            <View style={[styles.flex1, styles.chatItemComposeWithFirstRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -456,6 +457,8 @@ class ReportActionCompose extends React.Component {
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow,
+                    styles.flex1,
+                    styles.mt4,
                     hasExceededMaxCommentLength && styles.borderColorDanger,
                 ]}
                 >
@@ -544,9 +547,9 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInputCompose, styles.flex4]}
+                                    style={[styles.textInputCompose]}
                                     defaultValue={this.props.comment}
-                                    maxLines={this.props.isSmallScreenWidth ? 6 : 16} // This is the same that slack has
+                                    maxLines={-1} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
