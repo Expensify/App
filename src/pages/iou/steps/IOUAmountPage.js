@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    TouchableOpacity,
     InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -16,11 +15,10 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import Text from '../../../components/Text';
 import CONST from '../../../CONST';
-import TextInput from '../../../components/TextInput';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import * as CurrencySymbolUtils from '../../../libs/CurrencySymbolUtils';
+import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -210,30 +208,6 @@ class IOUAmountPage extends React.Component {
         const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
         const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
 
-        const currencySymbolElement = (
-            <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
-            >
-                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
-            </TouchableOpacity>
-        );
-
-        const amountTextInput = (
-            <TextInput
-                disableKeyboard
-                autoGrow
-                hideFocusedState
-                inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
-                onChangeText={this.updateAmount}
-                ref={el => this.textInput = el}
-                value={formattedAmount}
-                placeholder={this.props.numberFormat(0)}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-            />
-        );
-
         return (
             <>
                 <View style={[
@@ -244,7 +218,17 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    {isCurrencySymbolLTR ? [currencySymbolElement, amountTextInput] : [amountTextInput, currencySymbolElement]}
+                    <TextInputWithCurrencySymbol
+                        currencySymbol={currencySymbol}
+                        formattedAmount={formattedAmount}
+                        isCurrencySymbolLTR={isCurrencySymbolLTR}
+                        onChangeAmount={this.updateAmount}
+                        onCurrencyButtonPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                            ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                        placeholder={this.props.numberFormat(0)}
+                        ref={el => this.textInput = el}
+                    />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {canUseTouchScreen()
