@@ -140,67 +140,69 @@ class WorkspaceInitialPage extends React.Component {
                     contentContainerStyle={[
                         styles.flexGrow1,
                         styles.flexColumn,
-                        styles.w100,
+                        styles.justifyContentBetween,
                     ]}
                 >
-                    <View style={styles.pageWrapper}>
-                        <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <Pressable
-                                style={[styles.pRelative, styles.avatarLarge]}
-                                onPress={this.openEditor}
-                            >
-                                {this.props.policy.avatarURL
-                                    ? (
-                                        <Avatar
-                                            containerStyles={styles.avatarLarge}
-                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                            source={this.props.policy.avatarURL}
-                                        />
-                                    )
-                                    : (
-                                        <Icon
-                                            src={Expensicons.Workspace}
-                                            height={80}
-                                            width={80}
-                                            fill={themedefault.iconSuccessFill}
-                                        />
-                                    )}
-                            </Pressable>
-                            {!_.isEmpty(this.props.policy.name) && (
+                    <View style={[styles.flex1]}>
+                        <View style={styles.pageWrapper}>
+                            <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                 <Pressable
-                                    style={[
-                                        styles.alignSelfCenter,
-                                        styles.mt4,
-                                        styles.mb6,
-                                        styles.w100,
-                                    ]}
+                                    style={[styles.pRelative, styles.avatarLarge]}
                                     onPress={this.openEditor}
                                 >
-                                    <Tooltip text={this.props.policy.name}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[
-                                                styles.displayName,
-                                                styles.alignSelfCenter,
-                                            ]}
-                                        >
-                                            {this.props.policy.name}
-                                        </Text>
-                                    </Tooltip>
+                                    {this.props.policy.avatarURL
+                                        ? (
+                                            <Avatar
+                                                containerStyles={styles.avatarLarge}
+                                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                source={this.props.policy.avatarURL}
+                                            />
+                                        )
+                                        : (
+                                            <Icon
+                                                src={Expensicons.Workspace}
+                                                height={80}
+                                                width={80}
+                                                fill={themedefault.iconSuccessFill}
+                                            />
+                                        )}
                                 </Pressable>
-                            )}
+                                {!_.isEmpty(this.props.policy.name) && (
+                                    <Pressable
+                                        style={[
+                                            styles.alignSelfCenter,
+                                            styles.mt4,
+                                            styles.mb6,
+                                            styles.w100,
+                                        ]}
+                                        onPress={this.openEditor}
+                                    >
+                                        <Tooltip text={this.props.policy.name}>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[
+                                                    styles.displayName,
+                                                    styles.alignSelfCenter,
+                                                ]}
+                                            >
+                                                {this.props.policy.name}
+                                            </Text>
+                                        </Tooltip>
+                                    </Pressable>
+                                )}
+                            </View>
                         </View>
+                        {_.map(menuItems, item => (
+                            <MenuItem
+                                key={item.translationKey}
+                                title={this.props.translate(item.translationKey)}
+                                icon={item.icon}
+                                iconRight={item.iconRight}
+                                onPress={() => item.action()}
+                                shouldShowRightIcon
+                            />
+                        ))}
                     </View>
-                    {_.map(menuItems, item => (
-                        <MenuItem
-                            key={item.translationKey}
-                            title={this.props.translate(item.translationKey)}
-                            icon={item.icon}
-                            iconRight={item.iconRight}
-                            onPress={() => item.action()}
-                            shouldShowRightIcon
-                        />
-                    ))}
                 </ScrollView>
                 <ConfirmModal
                     title={this.props.translate('workspace.common.delete')}
