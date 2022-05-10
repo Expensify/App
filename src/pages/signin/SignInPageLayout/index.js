@@ -8,6 +8,7 @@ import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
+import variables from '../../../styles/variables'; 
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -64,7 +65,7 @@ const SignInPageLayout = (props) => {
     if (props.isMediumScreenWidth) {
         return (
             <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
-                {props.windowHeight >= 854 && graphicLayout}
+                {props.windowHeight >= variables.minHeigthToShowGraphics && graphicLayout}
                 <View style={styles.flex1}>
                     {content}
                 </View>
