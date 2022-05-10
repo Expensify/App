@@ -7,7 +7,7 @@ import CONST from '../CONST';
  * @returns {String}
  */
 function getEmailWithoutMergedAccountPrefix(email) {
-    return email.replace(/^MERGED_0@/, '');
+    return email.replace(/^MERGED_\d@/, '');
 }
 
 /**
