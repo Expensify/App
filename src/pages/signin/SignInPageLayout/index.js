@@ -8,7 +8,7 @@ import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
-import variables from '../../../styles/variables'; 
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */
