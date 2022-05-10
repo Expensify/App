@@ -77,7 +77,7 @@ function isSingleEmoji(message) {
  * @returns {Boolean}
  */
 function containsOnlyEmojis(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
+    const match = message.replace(/ /g, '').match(CONST.REGEX.EMOJIS);
 
     if (!match) {
         return false;
@@ -91,7 +91,7 @@ function containsOnlyEmojis(message) {
         return code;
     }));
 
-    const messageCodes = _.filter(_.map([...message], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    const messageCodes = _.filter(_.map([...message.replace(/ /g, '')], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
     return codes.length === messageCodes.length;
 }
 
