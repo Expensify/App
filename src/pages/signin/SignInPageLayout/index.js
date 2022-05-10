@@ -62,10 +62,10 @@ const SignInPageLayout = (props) => {
         return content;
     }
 
-    if (props.isMediumScreenWidth) {
+    if (props.isMediumScreenWidth && props.windowHeight >= variables.minHeigthToShowGraphics) {
         return (
             <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
-                {props.windowHeight >= variables.minHeigthToShowGraphics && graphicLayout}
+                {graphicLayout}
                 <View style={styles.flex1}>
                     {content}
                 </View>
