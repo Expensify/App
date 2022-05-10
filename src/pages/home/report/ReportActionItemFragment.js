@@ -106,7 +106,7 @@ const ReportActionItemFragment = (props) => {
                 ) : (
                     <Text
                         selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.multipleEmojisText : undefined}
+                        style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
                     >
                         {Str.htmlDecode(props.fragment.text)}
                         {props.fragment.isEdited && (
