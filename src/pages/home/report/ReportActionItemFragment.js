@@ -68,7 +68,7 @@ const defaultProps = {
 
 const ReportActionItemFragment = (props) => {
     switch (props.fragment.type) {
-        case 'COMMENT':
+        case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
                 return (
@@ -97,6 +97,13 @@ const ReportActionItemFragment = (props) => {
                 );
             }
 
+            const differByLineBreaksOnly = props.fragment.html.replaceAll('<br />', ' ') === props.fragment.text;
+            if (differByLineBreaksOnly) {
+                const textWithLineBreaks = props.fragment.html.replaceAll('<br />', '\n');
+                // eslint-disable-next-line no-param-reassign
+                props.fragment = {...props.fragment, text: textWithLineBreaks, html: textWithLineBreaks};
+            }
+
             // Only render HTML if we have html in the fragment
             return props.fragment.html !== props.fragment.text
                 ? (
@@ -119,6 +126,7 @@ const ReportActionItemFragment = (props) => {
                         )}
                     </Text>
                 );
+        }
         case 'TEXT':
             return (
                 <Tooltip text={props.tooltipText}>
