@@ -1324,7 +1324,8 @@ const styles = {
     },
 
     chatItemComposeWithFirstRow: {
-        minHeight: 90,
+        // minHeight: 90,
+        height: '100%',
     },
 
     chatItemComposeBoxColor: {
@@ -1348,6 +1349,7 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        flex: 1,
         backgroundColor: themeColors.appBG,
     },
 
@@ -1359,6 +1361,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
+
         height: 'auto',
         lineHeight: 20,
         ...overflowXHidden,
@@ -1367,10 +1370,21 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        marginVertical: 5,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
-        textAlignVertical: 'center',
+
+        // marginVertical: 5,
+        // paddingVertical: 0,
+
+        // ...textInputAlignSelf.center,
+        // textAlignVertical: 'center',
+        alignSelf: 'end',
+        textAlignVertical: 'end',
+        flex: 1,
+
+        // height: '100%',
+        maxHeight: '100%',
+        marginVertical: 0,
+        overflowY: 'hidden',
+        paddingVertical: 5,
     }, 0),
 
     chatItemSubmitButton: {

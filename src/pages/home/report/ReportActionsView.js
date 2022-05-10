@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Keyboard,
     AppState,
+    View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -31,6 +32,7 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -402,7 +404,7 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <>
+            <View style={[styles.flex0]}>
                 <FloatingMessageCounter
                     active={this.state.isFloatingMessageCounterVisible}
                     count={this.state.messageCounterCount}
@@ -420,7 +422,7 @@ class ReportActionsView extends React.Component {
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
-            </>
+            </View>
         );
     }
 }
