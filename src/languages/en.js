@@ -163,6 +163,8 @@ export default {
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
+        collapseComposer: 'Collapse chat composer',
+        expandComposer: 'Expand chat composer',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',

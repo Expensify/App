@@ -1328,6 +1328,11 @@ const styles = {
         minHeight: 90,
     },
 
+    chatItemFullComposeRow: {
+        ...flex.flex1,
+        ...sizing.h100,
+    },
+
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
@@ -1343,13 +1348,17 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
+    chatItemFullComposeBox: {
+        ...flex.flex1,
+        ...spacing.mt4,
+    },
+
     chatFooter: {
         minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
-        flex: 1,
         backgroundColor: themeColors.appBG,
     },
 
@@ -1369,21 +1378,21 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        ...textInputAlignSelf.center,
+        textAlignVertical: 'center',
+    }, 0),
 
-        // marginVertical: 5,
-        // paddingVertical: 0,
-
-        // ...textInputAlignSelf.center,
-        // textAlignVertical: 'center',
-        alignSelf: 'end',
-        textAlignVertical: 'end',
+    textInputFullCompose: {
+        alignSelf: 'flex-end',
+        textAlignVertical: 'flex-end',
         flex: 1,
-
         maxHeight: '100%',
         marginVertical: 0,
         overflowY: 'hidden',
         paddingVertical: 5,
-    }, 0),
+    },
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',

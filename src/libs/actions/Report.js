@@ -1486,111 +1486,9 @@ function renameReport(reportID, reportName) {
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
 
-/**
- * @param {Number} reportID
- * @param {Object} action
- */
-function viewNewReportAction(reportID, action) {
-    const newMaxSequenceNumber = action.sequenceNumber;
-    const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-
-    // When handling an action from the current users we can assume that their
-    // last read actionID has been updated in the server but not necessarily reflected
-    // locally so we must first update it and then calculate the unread (which should be 0)
-    if (isFromCurrentUser) {
-        setLocalLastRead(reportID, newMaxSequenceNumber);
-    }
-
-    const updatedReportObject = {
-        // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
-    };
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
-
-    // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.IOUReportID) {
-        const iouReportID = action.originalMessage.IOUReportID;
-
-        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
-        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
-        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
-        if (action.originalMessage.IOUDetails === undefined) {
-            fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
-        }
-    }
-
-    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
-    }
-
-    // We don't want to send a local notification if the user preference is daily or mute
-    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
-    }
-
-    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
-    }
-
-    // If we are currently viewing this report do not show a notification.
-    if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
-        return;
-    }
-
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
-    }
-
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
-    const report = lodashGet(allReports, 'reportID', {});
-    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
-        const oldestUnreadSeq = (report.maxSequenceNumber - report.unreadActionCount) + 1;
-        setNewMarkerPosition(reportID, oldestUnreadSeq);
-    }
-
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
-    LocalNotification.showCommentNotification({
-        reportAction: action,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        },
-    });
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    initWithStoredValues: false,
-    callback: (actions, key) => {
-        // reportID can be derived from the Onyx key
-        const reportID = parseInt(key.split('_')[1], 10);
-        if (!reportID) {
-            return;
-        }
-
-        _.each(actions, (action) => {
-            if (!action.timestamp) {
-                return;
-            }
-
-            // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
-                return;
-            }
-
-            viewNewReportAction(reportID, action);
-        });
-    },
-});
 
 export {
     fetchAllReports,
@@ -1623,4 +1521,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };
