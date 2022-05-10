@@ -206,15 +206,6 @@ function meetsAgeRequirements(date) {
 }
 
 /**
- *
- * @param {String} phoneNumber
- * @returns {Boolean}
- */
-function isValidPhoneWithSpecialChars(phoneNumber) {
-    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH && phoneNumber.length >= CONST.PHONE_MIN_LENGTH;
-}
-
-/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -262,11 +253,16 @@ function validateIdentity(identity) {
 
 /**
  * @param {String} phoneNumber
+ * @param {Boolean} [isCountryCodeOptional]
  * @returns {Boolean}
  */
-function isValidUSPhone(phoneNumber) {
-    // Remove alphanumeric characters and validate that this is in fact a phone number
-    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
+function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
+    // Remove non alphanumeric characters from the phone number
+    const sanitizedPhone = phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
+    const isUsPhone = isCountryCodeOptional
+        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+
+    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
 }
 
 /**
@@ -377,7 +373,6 @@ export {
     isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
-    isValidPhoneWithSpecialChars,
     isValidUSPhone,
     isValidURL,
     validateIdentity,
