@@ -25,8 +25,13 @@ import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
+
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -34,6 +39,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     betas: [],
 
@@ -58,6 +64,18 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         PersonalDetails.getCurrencyList();
     }
 
@@ -196,4 +214,5 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
+    withNetwork(),
 )(WorkspaceSettingsPage);
