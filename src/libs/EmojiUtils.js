@@ -91,6 +91,8 @@ function containsOnlyEmojis(message) {
         return code;
     }));
 
+    // Emojis are stored as multiple characters, so we're using spread operator
+    // to iterate over the actual emojis, not just characters that compose them
     const messageCodes = _.filter(_.map([...message.replace(/ /g, '').replaceAll('\n', '')],
         char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
     return codes.length === messageCodes.length;
