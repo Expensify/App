@@ -75,10 +75,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.fetchData();
     }
 
-    fetchData() {
-        PersonalDetails.getCurrencyList();
-    }
-
     /**
      * @returns {Object[]}
      */
@@ -88,6 +84,10 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
+    }
+
+    fetchData() {
+        PersonalDetails.getCurrencyList();
     }
 
     removeAvatar() {
