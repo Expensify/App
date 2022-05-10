@@ -1324,8 +1324,7 @@ const styles = {
     },
 
     chatItemComposeWithFirstRow: {
-        // minHeight: 90,
-        height: '100%',
+        minHeight: 90,
     },
 
     chatItemComposeBoxColor: {
@@ -1361,7 +1360,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
-
         height: 'auto',
         lineHeight: 20,
         ...overflowXHidden,
@@ -1380,7 +1378,6 @@ const styles = {
         textAlignVertical: 'end',
         flex: 1,
 
-        // height: '100%',
         maxHeight: '100%',
         marginVertical: 0,
         overflowY: 'hidden',
