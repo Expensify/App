@@ -37,14 +37,14 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-        const {width, height} = this.calculateThumbnailImageSize({width: props.imageWidth, height: props.imageHeight});
+        const {width, height} = this.calculateThumbnailImageSize(props.imageWidth, props.imageHeight);
         this.state = {
             thumbnailWidth: width,
             thumbnailHeight: height,
         };
     }
 
-    calculateThumbnailImageSize({width, height}) {
+    calculateThumbnailImageSize(width, height) {
         if (!width || !height) { return {}; }
 
         // Width of the thumbnail works better as a constant than it does
@@ -66,7 +66,7 @@ class ThumbnailImage extends PureComponent {
     }
 
     updateImageSize({width, height}) {
-        const {width: thumbnailScreenWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize({width, height});
+        const {width: thumbnailScreenWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize(width, height);
         this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
     }
 
