@@ -80,6 +80,26 @@ function canDeleteReportAction(reportAction) {
 }
 
 /**
+ * Whether the provided report is an Admin room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAdminRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+}
+
+/**
+ * Whether the provided report is a Announce room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isAnnounceRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
  * Whether the provided report is a default room
  * @param {Object} report
  * @param {String} report.chatType
@@ -101,26 +121,6 @@ function isDefaultRoom(report) {
  */
 function isDomainRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
-}
-
-/**
- * Whether the provided report is an Admin room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
- */
-function isAdminRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-}
-
-/**
- * Whether the provided report is a Announce room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
- */
-function isAnnounceRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
 /**
