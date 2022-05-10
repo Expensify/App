@@ -80,20 +80,6 @@ function canDeleteReportAction(reportAction) {
 }
 
 /**
- * Whether the provided report is a default room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
- */
-function isDefaultRoom(report) {
-    return _.contains([
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], lodashGet(report, ['chatType'], ''));
-}
-
-/**
  * Whether the provided report is an Admin room
  * @param {Object} report
  * @param {String} report.chatType
@@ -111,6 +97,30 @@ function isAdminRoom(report) {
  */
 function isAnnounceRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
+ * Whether the provided report is a default room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDefaultRoom(report) {
+    return _.contains([
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+    ], lodashGet(report, ['chatType'], ''));
+}
+
+/**
+ * Whether the provided report is a Domain room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDomainRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
@@ -226,6 +236,9 @@ function getRoomWelcomeMessage(report, policiesMap) {
     if (isArchivedRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isDomainRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
@@ -327,6 +340,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
     if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
+    }
+    if (isDomainRoom(report)) {
+        return [Expensicons.DomainRoomAvatar];
     }
     if (isAdminRoom(report)) {
         return [Expensicons.AdminRoomAvatar];
