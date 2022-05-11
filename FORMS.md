@@ -200,7 +200,7 @@ function onSubmit(values) {
 
 ### Props provided to Form inputs
 
-The following props are available to form inputs:
+The following props is available to form inputs:
 
 - inputID: An unique identifier for the input.
 
