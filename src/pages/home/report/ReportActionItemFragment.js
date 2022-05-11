@@ -97,6 +97,9 @@ const ReportActionItemFragment = (props) => {
                 );
             }
 
+            // If the only difference between fragment.text and fragment.html is <br /> tags
+            // we replace them with line breaks and render it as text, not as html.
+            // This is done to render emojis with line breaks between them as text.
             const differByLineBreaksOnly = props.fragment.html.replaceAll('<br />', ' ') === props.fragment.text;
             if (differByLineBreaksOnly) {
                 const textWithLineBreaks = props.fragment.html.replaceAll('<br />', '\n');
