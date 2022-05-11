@@ -83,7 +83,9 @@ class PasswordForm extends React.Component {
      * Trigger the reset password flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     resetPassword() {
-        this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
+        if (this.input2FA) {
+            this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
+        }
         Session.resetPassword();
     }
 
