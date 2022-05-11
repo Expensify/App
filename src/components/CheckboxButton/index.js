@@ -80,7 +80,6 @@ class CheckboxButton extends Component {
 
 CheckboxButton.propTypes = propTypes;
 CheckboxButton.defaultProps = defaultProps;
-CheckboxButton.displayName = 'CheckboxButton';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
