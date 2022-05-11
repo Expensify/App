@@ -13,6 +13,7 @@ import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import KYCWall from './KYCWall';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -131,7 +132,7 @@ class SettlementButton extends React.Component {
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu
-                        isDisabled={this.props.isDisabled}
+                        isDisabled={this.props.isDisabled || this.props.network.isOffline}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
                             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -153,6 +154,7 @@ SettlementButton.propTypes = propTypes;
 SettlementButton.defaultProps = defaultProps;
 
 export default compose(
+    withNetwork(),
     withNavigation,
     withLocalize,
     withOnyx({
