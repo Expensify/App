@@ -1,8 +1,7 @@
-import CONST from '../CONST';
-import colors from './colors';
-import variables from './variables';
-import themeColors from './themes/default';
-import getShouldAddTopSafeAreaPadding from '../libs/getShouldAddTopSafeAreaPadding';
+import CONST from '../../CONST';
+import colors from '../../styles/colors';
+import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
@@ -84,7 +83,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
+            shouldAddTopSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -115,7 +114,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
+            shouldAddTopSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -197,7 +196,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
-            shouldAddTopSafeAreaPadding = getShouldAddTopSafeAreaPadding(type);
+            shouldAddTopSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
