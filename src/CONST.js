@@ -390,6 +390,8 @@ const CONST = {
 
     EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
 
+    TOOLTIP_MAX_LINES: 3,
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
