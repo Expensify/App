@@ -387,6 +387,8 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
+    TOOLTIP_MAX_LINES: 3,
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
