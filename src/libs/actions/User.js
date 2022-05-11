@@ -190,6 +190,9 @@ function setSecondaryLoginAndNavigate(login, password) {
         if (error.includes('already belongs to an existing Expensify account.')) {
             error = 'This login already belongs to an existing Expensify account.';
         }
+        if (error.includes('I couldn\'t validate the phone number')) {
+            error = Localize.translateLocal('common.error.phoneNumber');
+        }
 
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
