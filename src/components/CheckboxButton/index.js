@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Should the input be disabled  */
@@ -45,8 +46,7 @@ class CheckboxButton extends Component {
     }
 
     onKeyDown(event) {
-        const SPACE_KEY_CODE = 32;
-        if (event.keyCode !== SPACE_KEY_CODE) {
+        if (event.keyCode !== CONST.KEYCODE.SPACE) {
             return;
         }
 
