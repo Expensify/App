@@ -17,8 +17,13 @@ import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursement
 import userPropTypes from '../settings/userPropTypes';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withFullPolicy from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
+
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
 
@@ -65,6 +70,18 @@ const defaultProps = {
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
     }
@@ -118,4 +135,5 @@ export default compose(
         },
     }),
     withFullPolicy,
+    withNetwork(),
 )(WorkspacePageWithSections);
