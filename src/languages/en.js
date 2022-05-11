@@ -30,6 +30,7 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'and',
         details: 'Details',
@@ -177,6 +178,8 @@ export default {
     reportActionsView: {
         begginningOfArchivedRoomPartOne: 'You missed the party in ',
         begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -698,7 +701,6 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
