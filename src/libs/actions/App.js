@@ -116,6 +116,21 @@ function getAppData(shouldSyncPolicyList = true) {
     ]);
 }
 
+/**
+ * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
+ * because some migrations might create new chat reports or their change data.
+ */
+function fixAccountAndReloadData() {
+    API.User_FixAccount()
+        .then((response) => {
+            if (!response.changed) {
+                return;
+            }
+            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
+            getAppData(false);
+        });
+}
+
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(getAppData);
 
@@ -125,4 +140,5 @@ export {
     setSidebarLoaded,
     getLocale,
     getAppData,
+    fixAccountAndReloadData,
 };
