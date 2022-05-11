@@ -1,6 +1,3 @@
-import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
-import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
-import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Android from '../../../assets/images/android.svg';
 import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
@@ -20,9 +17,7 @@ import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Concierge from '../../../assets/images/concierge.svg';
-import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
-import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -31,8 +26,6 @@ import Exit from '../../../assets/images/exit.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
-import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
-import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
@@ -77,6 +70,14 @@ import Users from '../../../assets/images/users.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
+import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
+import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
+import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
+import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
+import Connect from '../../../assets/images/connect.svg';
+import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 
 export {
     ActiveRoomAvatar,
@@ -104,6 +105,7 @@ export {
     Connect,
     CreditCard,
     DeletedRoomAvatar,
+    DomainRoomAvatar,
     DownArrow,
     Download,
     Emoji,
