@@ -20,6 +20,10 @@ import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
 
+import {BackArrow, ArrowRight} from './Icon/Expensicons';
+import Icon from './icon'
+
+
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
  * to display a full size image or PDF modally with optional confirmation button.
@@ -179,8 +183,18 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={attachmentViewStyles}>
-                        {this.state.sourceURL && (
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                        {this.state.sourceURL && ( 
+                            <>                        
+                                <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                                <View style={{ width: "90%", position: "absolute",  justifyContent: "space-between", alignItems: "center", flexDirection: "row" }}>
+                                    <View style={{ cursor: "pointer" }}>
+                                        <Icon src={BackArrow} height={42} width={42} />
+                                    </View>        
+                                    <View style={{ cursor: "pointer" }}>
+                                        <Icon src={ArrowRight} height={42} width={42} />
+                                    </View>
+                                </View>                            
+                            </>
                         )}
                     </View>
 
