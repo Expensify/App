@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
@@ -100,6 +101,11 @@ class PasswordForm extends React.Component {
 
         if (!this.state.password.trim()) {
             this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            return;
+        }
+
+        if (!ValidationUtils.isValidPassword(this.state.password)) {
+            this.setState({formError: 'passwordForm.error.incorrectLoginOrPassword'});
             return;
         }
 
