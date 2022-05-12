@@ -77,7 +77,8 @@ function isSingleEmoji(message) {
  * @returns {Boolean}
  */
 function containsOnlyEmojis(message) {
-    const match = message.replace(/ /g, '').replaceAll('\n', '').match(CONST.REGEX.EMOJIS);
+    const trimmedMessage = message.replace(/ /g, '').replaceAll('\n', '');
+    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
     if (!match) {
         return false;
@@ -93,8 +94,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...message.replace(/ /g, '').replaceAll('\n', '')],
-        char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
     return codes.length === messageCodes.length;
 }
 
