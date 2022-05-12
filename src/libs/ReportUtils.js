@@ -8,6 +8,8 @@ import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
+import Navigation from './Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 let sessionEmail;
 Onyx.connect({
@@ -481,6 +483,24 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
 
+/**
+ * Navigate to the details page of a given report
+ *
+ * @param {Object} report
+ * @param {Array} participants
+ */
+function navigateToDetailsPage(report, participants) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report)) {
+        Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+        return;
+    }
+    if (participants.length === 1) {
+        Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+        return;
+    }
+    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -507,4 +527,5 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    navigateToDetailsPage,
 };

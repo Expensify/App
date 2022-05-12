@@ -9,8 +9,6 @@ import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -20,9 +18,6 @@ const propTypes = {
 
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat: PropTypes.bool,
-
-        /** ID of the report */
-        reportID: PropTypes.number,
     }),
 
     /** Personal details of all the users */
@@ -42,19 +37,8 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-
-    function navigateToDetailsPage() {
-        if (isChatRoom || isPolicyExpenseChat) {
-            return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
-        }
-        if (participants.length === 1) {
-            return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
-        }
-        Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
-    }
 
     return (
         <View style={[
@@ -64,7 +48,7 @@ const ReportActionItemCreated = (props) => {
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                <Pressable onPress={navigateToDetailsPage}>
+                <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report, participants)}>
                     <RoomHeaderAvatars
                         icons={icons}
                         shouldShowLargeAvatars={isPolicyExpenseChat}
