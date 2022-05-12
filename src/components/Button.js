@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
+import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withNavigationFocus} from '@react-navigation/compat';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
@@ -11,13 +11,29 @@ import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
+import withNavigationFallback from './withNavigationFallback';
+import compose from '../libs/compose';
+import * as Expensicons from './Icon/Expensicons';
+import colors from '../styles/colors';
 
 const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: PropTypes.bool,
+
     /** The icon asset to display to the left of the text */
     icon: PropTypes.func,
+
+    /** The icon asset to display to the right of the text */
+    iconRight: PropTypes.func,
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -27,6 +43,9 @@ const propTypes = {
 
     /** medium sized button */
     medium: PropTypes.bool,
+
+    /** Extra large sized button */
+    extraLarge: PropTypes.bool,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -88,12 +107,17 @@ const propTypes = {
 
 const defaultProps = {
     text: '',
+    shouldShowRightIcon: false,
     icon: null,
+    iconRight: Expensicons.ArrowRight,
+    iconFill: colors.white,
+    iconStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
     large: false,
     medium: false,
+    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -162,6 +186,7 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
+                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -173,15 +198,29 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={styles.mr1}>
-                        <Icon
-                            src={this.props.icon}
-                            fill={themeColors.heading}
-                            small={this.props.small}
-                        />
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
+                            styles.mr1,
+                            ...this.props.iconStyles,
+                        ]}
+                        >
+                            <Icon
+                                src={this.props.icon}
+                                fill={this.props.iconFill}
+                                small={this.props.small}
+                            />
+                        </View>
+                        {textComponent}
                     </View>
-                    {textComponent}
+                    {this.props.shouldShowRightIcon && (
+                        <View>
+                            <Icon
+                                src={this.props.iconRight}
+                                fill={this.props.iconFill}
+                            />
+                        </View>
+                    )}
                 </View>
             );
         }
@@ -220,6 +259,7 @@ class Button extends Component {
                             this.props.small ? styles.buttonSmall : undefined,
                             this.props.medium ? styles.buttonMedium : undefined,
                             this.props.large ? styles.buttonLarge : undefined,
+                            this.props.extraLarge ? styles.buttonExtraLarge : undefined,
                             this.props.success ? styles.buttonSuccess : undefined,
                             this.props.danger ? styles.buttonDanger : undefined,
                             (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
@@ -243,4 +283,7 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default withNavigationFocus(Button);
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(Button);

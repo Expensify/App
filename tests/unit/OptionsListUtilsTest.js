@@ -100,6 +100,18 @@ describe('OptionsListUtils', () => {
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
+
+        // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
+        10: {
+            lastVisitedTimestamp: 1610666739200,
+            lastMessageTimestamp: 1,
+            reportID: 10,
+            isPinned: false,
+            participants: ['captain_britain@expensify.com', 'captain_america@expensify.com'],
+            reportName: '',
+            oldPolicyName: "SHIELD's workspace",
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        },
     };
 
     // And a set of personalDetails some with existing reports and some without
@@ -152,11 +164,11 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_CONCIERGE = {
         ...REPORTS,
 
-        10: {
+        11: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: 11,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
             unreadActionCount: 1,
@@ -165,11 +177,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
-        11: {
+        12: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: 12,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
             unreadActionCount: 1,
@@ -178,11 +190,11 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
-        12: {
+        13: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 10,
+            reportID: 13,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
             unreadActionCount: 1,
@@ -191,20 +203,20 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_MORE_PINS = {
         ...REPORTS,
-        13: {
+        14: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: 13,
+            reportID: 14,
             participants: ['d_email@email.com'],
             reportName: 'D report name',
             unreadActionCount: 0,
         },
-        14: {
+        15: {
             lastVisitedTimestamp: 1610666732302,
             lastMessageTimestamp: 1,
             isPinned: true,
-            reportID: 14,
+            reportID: 15,
             participants: ['z_email@email.com'],
             reportName: 'Z Report Name',
             unreadActionCount: 0,
@@ -235,6 +247,15 @@ describe('OptionsListUtils', () => {
         'receipts@expensify.com': {
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_PERIODS = {
+        ...PERSONAL_DETAILS,
+
+        'barry.allen@expensify.com': {
+            displayName: 'The Flash',
+            login: 'barry.allen@expensify.com',
         },
     };
 
@@ -277,6 +298,13 @@ describe('OptionsListUtils', () => {
         // Then we get both values with the pinned value still on top
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
+
+        // When we filter again but provide a searchValue that should match with periods
+        results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+
+        // Then we expect to have the personal detail with period filtered
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].text).toBe('The Flash');
     });
 
     it('getNewChatOptions()', () => {
@@ -457,6 +485,13 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
 
+        // When we add a search term for which exist options for it excluding its period.
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
+
+        // Then we will have an options at all and there should be a userToInvite too.
+        expect(results.recentReports.length).toBe(1);
+        expect(results.userToInvite).not.toBe(null);
+
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number without country code added
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '5005550006');
@@ -569,11 +604,11 @@ describe('OptionsListUtils', () => {
             ...REPORTS,
 
             // Note: This report has no lastMessageTimestamp but is also pinned
-            10: {
+            16: {
                 lastVisitedTimestamp: 1610666739300,
                 lastMessageTimestamp: 0,
                 isPinned: true,
-                reportID: 10,
+                reportID: 16,
                 participants: ['captain_britain@expensify.com'],
                 reportName: 'Captain Britain',
             },
@@ -600,16 +635,20 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // And the most recent pinned report is first in the list of reports
-                expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
+                let index = 0;
+                expect(results.recentReports[index].login).toBe('captain_britain@expensify.com');
 
                 // And the third report is the report with an IOU debt
-                expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
+                index += 2;
+                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
 
                 // And the fourth report is the report with a draft comment
-                expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+                expect(results.recentReports[++index].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
 
                 // And the fifth report is the report with the lastMessage timestamp
-                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
+
+                expect(_.last(results.recentReports).text).toBe("SHIELD's workspace");
             });
     });
 
@@ -628,28 +667,130 @@ describe('OptionsListUtils', () => {
 
                 // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
                 // D report name (Alphabetically first among pinned reports)
-                expect(results.recentReports[0].login).toBe('d_email@email.com');
+                let index = 0;
+                expect(results.recentReports[index].login).toBe('d_email@email.com');
 
                 // Mister Fantastic report name (Alphabetically second among pinned reports)
-                expect(results.recentReports[1].login).toBe('reedrichards@expensify.com');
+                expect(results.recentReports[++index].login).toBe('reedrichards@expensify.com');
 
                 // Z report name (Alphabetically third among pinned reports)
-                expect(results.recentReports[2].login).toBe('z_email@email.com');
+                expect(results.recentReports[++index].login).toBe('z_email@email.com');
 
                 // Unpinned report name ordered alphabetically after pinned reports
                 // Black Panther report name has unread message
-                expect(results.recentReports[3].login).toBe('tchalla@expensify.com');
+                expect(results.recentReports[++index].text).toBe("SHIELD's workspace");
+
+                expect(results.recentReports[++index].login).toBe('tchalla@expensify.com');
 
                 // Captain America report name has unread message
-                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
 
                 // Invisible woman report name has unread message
-                expect(results.recentReports[5].login).toBe('suestorm@expensify.com');
+                expect(results.recentReports[++index].login).toBe('suestorm@expensify.com');
 
                 // Mister Sinister report name has IOU debt
-                expect(results.recentReports[7].login).toBe('mistersinister@marauders.com');
+                index += 2;
+                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
 
                 // Spider-Man report name is last report and has unread message
-                expect(results.recentReports[8].login).toBe('peterparker@expensify.com');
+                expect(results.recentReports[++index].login).toBe('peterparker@expensify.com');
             }));
+
+    it('getSidebarOptions() with empty policyExpenseChats and defaultRooms', () => {
+        const reportsWithEmptyChatRooms = {
+            // This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
+            10: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 10,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+
+            // This is an archived version of the above policyExpenseChat
+            11: {
+                chatType: 'policyExpenseChat',
+                hasOutstandingIOU: false,
+                isOwnPolicyExpenseChat: true,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 11,
+                reportName: "Someone's workspace",
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+
+            // This report is a defaultRoom without any messages in it (i.e. no lastMessageTimestamp)
+            12: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 12,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+            },
+
+            // This is an archived version of the above defaultRoom
+            13: {
+                chatType: 'policyAdmins',
+                hasOutstandingIOU: false,
+                isPinned: false,
+                lastMessageTimestamp: 0,
+                lastVisitedTimestamp: 1610666739302,
+                participants: ['test3@instantworkspace.com'],
+                policyID: 'Whatever',
+                reportID: 13,
+                reportName: '#admins',
+                unreadActionCount: 0,
+                visibility: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        };
+
+        // First we call getSidebarOptions() with no search value and default priority mode
+        let results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.DEFAULT,
+        );
+
+        // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms
+        expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 2);
+
+        expect(results.recentReports[0].isPolicyExpenseChat).toBe(true);
+        expect(results.recentReports[0].text).toBe("Someone's workspace");
+
+        expect(results.recentReports[1].isChatRoom).toBe(true);
+        expect(results.recentReports[1].text).toBe('#admins');
+
+        // Now we call getSidebarOptions() with no search value and GSD priority mode
+        results = OptionsListUtils.getSidebarOptions(
+            reportsWithEmptyChatRooms,
+            PERSONAL_DETAILS,
+            0,
+            CONST.PRIORITY_MODE.GSD,
+        );
+
+        // None of the chats should be here since they've all been read
+        expect(results.recentReports.length).toBe(0);
+    });
 });

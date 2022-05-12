@@ -40,6 +40,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
             shouldShowConfirmPopover: false,
+            isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
@@ -112,8 +113,9 @@ class BasePaymentsPage extends React.Component {
      * @param {Object} nativeEvent
      * @param {String} accountType
      * @param {String} account
+     * @param {Boolean} isDefault
      */
-    paymentMethodPressed(nativeEvent, accountType, account) {
+    paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
         const position = getClickedElementLocation(nativeEvent);
         this.setState({
             addPaymentMethodButton: nativeEvent,
@@ -143,6 +145,7 @@ class BasePaymentsPage extends React.Component {
                 };
             }
             this.setState({
+                isSelectedPaymentMethodDefault: isDefault,
                 shouldShowDefaultDeleteMenu: true,
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
@@ -229,6 +232,7 @@ class BasePaymentsPage extends React.Component {
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
+        const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
@@ -275,7 +279,6 @@ class BasePaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                             actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
                                 ? this.state.selectedPaymentMethodType
@@ -318,7 +321,7 @@ class BasePaymentsPage extends React.Component {
                                     interactive={false}
                                 />
                             )}
-                            {Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && (
+                            {shouldShowMakeDefaultButton && (
                                 <TouchableOpacity
                                     onPress={() => {
                                         this.setState({
@@ -356,7 +359,7 @@ class BasePaymentsPage extends React.Component {
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
-                                    Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected && styles.mt4,
+                                    shouldShowMakeDefaultButton && styles.mt4,
                                     styles.alignSelfCenter,
                                     styles.w100,
                                 ]}
@@ -435,10 +438,6 @@ export default compose(
         },
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
-        },
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

@@ -12,7 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
-import * as ReportUtils from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardSpacer from '../../components/KeyboardSpacer';
@@ -183,7 +183,7 @@ class ReportScreen extends React.Component {
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
-                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
                     {!this.shouldShowLoader() && (
                         <ReportActionsView
                             reportID={reportID}

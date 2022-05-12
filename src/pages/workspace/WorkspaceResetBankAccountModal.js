@@ -36,7 +36,7 @@ const WorkspaceResetBankAccountModal = (props) => {
     const bankShortName = account ? `${account.addressName} ${account.accountNumber.slice(-4)}` : '';
     return (
         <ConfirmModal
-            title="Are you sure?"
+            title={props.translate('workspace.bankAccount.areYouSure')}
             confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
             cancelText={props.translate('common.cancel')}
             prompt={isInOpenState ? (

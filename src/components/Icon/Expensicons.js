@@ -20,8 +20,10 @@ import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Concierge from '../../../assets/images/concierge.svg';
+import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
+import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -101,8 +103,10 @@ export {
     Close,
     ClosedSign,
     Concierge,
+    Connect,
     CreditCard,
     DeletedRoomAvatar,
+    DomainRoomAvatar,
     DownArrow,
     Download,
     Emoji,

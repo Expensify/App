@@ -387,9 +387,7 @@ class IOUModal extends Component {
                             </View>
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
-                            <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd}
-                            />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
@@ -431,7 +429,7 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={this.state.participants}
+                                                participants={_.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}

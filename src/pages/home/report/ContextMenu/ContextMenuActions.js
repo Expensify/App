@@ -4,10 +4,14 @@ import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
 import Clipboard from '../../../../libs/Clipboard';
-import * as ReportUtils from '../../../../libs/reportUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
+import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
+import fileDownload from '../../../../libs/fileDownload';
+import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
+import * as ContextMenuUtils from './ContextMenuUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -28,6 +32,29 @@ const CONTEXT_MENU_TYPES = {
 // A list of all the context actions in this menu.
 export default [
     {
+        textTranslateKey: 'common.download',
+        icon: Expensicons.Download,
+        successTextTranslateKey: 'common.download',
+        successIcon: Expensicons.Download,
+        shouldShow: (type, reportAction) => {
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const isAttachment = _.has(reportAction, 'isAttachment')
+                ? reportAction.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
+            return isAttachment && reportAction.reportActionID;
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const html = lodashGet(message, 'html', '');
+            const attachmentDetails = getAttachmentDetails(html);
+            const {originalFileName} = attachmentDetails;
+            let {sourceURL} = attachmentDetails;
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
+            fileDownload(sourceURL, originalFileName);
+        },
+        getDescription: () => {},
+    },
+    {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Clipboard,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -37,6 +64,7 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: ContextMenuUtils.getPopoverDescription,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
@@ -48,6 +76,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
@@ -62,7 +91,7 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const message = _.last(lodashGet(reportAction, 'message', null));
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
 
             const parser = new ExpensiMark();
@@ -72,7 +101,7 @@ export default [
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
-                : ReportUtils.isReportMessageAttachment(text);
+                : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 Clipboard.setString(text);
             } else {
@@ -82,6 +111,7 @@ export default [
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -89,6 +119,7 @@ export default [
         icon: Expensicons.LinkCopy,
         shouldShow: () => false,
         onPress: () => {},
+        getDescription: () => {},
     },
 
     {
@@ -97,12 +128,13 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber);
+            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber, true);
             Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
+        getDescription: () => {},
     },
 
     {
@@ -127,6 +159,7 @@ export default [
             // No popover to hide, call editAction immediately
             editAction();
         },
+        getDescription: () => {},
     },
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
@@ -146,6 +179,7 @@ export default [
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
         },
+        getDescription: () => {},
     },
 ];
 

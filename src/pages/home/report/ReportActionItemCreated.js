@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
-import * as ReportUtils from '../../../libs/reportUtils';
+import participantPropTypes from '../../../components/participantPropTypes';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -17,15 +17,27 @@ const propTypes = {
 
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat: PropTypes.bool,
+
+    }),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
     }),
 };
 const defaultProps = {
     report: {},
+    personalDetails: {},
+    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[
             styles.chatContent,
@@ -35,7 +47,7 @@ const ReportActionItemCreated = (props) => {
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <RoomHeaderAvatars
-                    avatarIcons={avatarIcons}
+                    icons={icons}
                     shouldShowLargeAvatars={isPolicyExpenseChat}
                 />
                 <ReportWelcomeText report={props.report} />
@@ -51,5 +63,11 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 export default withOnyx({
     report: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(ReportActionItemCreated);

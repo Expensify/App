@@ -23,7 +23,7 @@ module.exports = {
     },
     dmg: {
         title: 'New Expensify',
-        artifactName: `NewExpensify${process.env.ARTIFACT_SUFFIX || ''}.dmg`,
+        artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
     publish: [{

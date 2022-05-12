@@ -4,7 +4,6 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -24,11 +23,14 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
+    /** The ID of the report */
+    reportID: PropTypes.number.isRequired,
+
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
@@ -41,9 +43,6 @@ const propTypes = {
 
         /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** ID of the report */
-        reportID: PropTypes.number,
 
         /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
@@ -74,23 +73,12 @@ const HeaderView = (props) => {
     }
 
     const participants = lodashGet(props.report, 'participants', []);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = _.map(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, firstName, login}) => {
-            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
-
-            return {
-                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                tooltip: Str.removeSMSDomain(login),
-            };
-        },
-    );
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = (isChatRoom || isPolicyExpenseChat)
-        ? props.report.reportName
-        : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const title = ReportUtils.getReportName(props.report, participantPersonalDetails, props.policies);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
@@ -100,8 +88,8 @@ const HeaderView = (props) => {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat;
-    const avatarIcons = OptionsListUtils.getAvatarSources(props.report);
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -127,7 +115,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (isChatRoom || isPolicyExpenseChat) {
-                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
+                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.reportID));
                                 }
                                 if (participants.length === 1) {
                                     return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
@@ -138,14 +126,14 @@ const HeaderView = (props) => {
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
-                                    mainAvatar={avatarIcons[0]}
-                                    secondaryAvatar={avatarIcons[1]}
+                                    mainAvatar={icons[0]}
+                                    secondaryAvatar={icons[1]}
                                     mainTooltip={props.report.ownerEmail}
                                     secondaryTooltip={subtitle}
                                 />
                             ) : (
                                 <MultipleAvatars
-                                    avatarIcons={avatarIcons}
+                                    icons={icons}
                                     avatarTooltips={avatarTooltip}
                                 />
                             )}

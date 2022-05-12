@@ -1,18 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as Localize from '../libs/Localize';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -54,28 +51,11 @@ const ReportWelcomeText = (props) => {
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = _.map(
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({
-            displayName, firstName, login, pronouns,
-        }) => {
-            const longName = displayName || Str.removeSMSDomain(login);
-            const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
-            const shortName = firstName || longNameLocalized;
-            let finalPronouns = pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                finalPronouns = props.translate(`pronouns.${localeKey}`);
-            }
-            return {
-                displayName: isMultipleParticipant ? shortName : longNameLocalized,
-                tooltip: Str.removeSMSDomain(login),
-                pronouns: finalPronouns,
-            };
-        },
+        isMultipleParticipant,
     );
-    const isResctrictedRoom = lodashGet(props, 'report.visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED;
-
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
@@ -92,7 +72,7 @@ const ReportWelcomeText = (props) => {
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                     </Text>
                     <Text style={[styles.textStrong]}>
-                        {lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`, 'name'], Localize.translateLocal('workspace.common.unavailable'))}
+                        {ReportUtils.getPolicyName(props.report, props.policies)}
                     </Text>
                     <Text>
                         {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
@@ -103,17 +83,13 @@ const ReportWelcomeText = (props) => {
                 <>
                     {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                     <Text style={styles.textAlignCenter}>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartOne')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`}
+                        {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]}>
                         {props.report.reportName}
                     </Text>
                     <Text>
-                        {isResctrictedRoom
-                            ? `${props.translate('reportActionsView.beginningOfChatHistoryRestrictedPartTwo')}`
-                            : `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}`}
+                        {roomWelcomeMessage.phrase2}
                     </Text>
                 </>
             )}

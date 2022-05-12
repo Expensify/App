@@ -14,8 +14,11 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
+import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -33,6 +36,18 @@ const propTypes = {
     /** A ref to forward to the text input */
     forwardedRef: PropTypes.func,
 
+    /** The report currently being looked at */
+    report: PropTypes.shape({
+        /** Participants associated with current report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
+
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -42,6 +57,8 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
+    report: {},
+    blockedFromConcierge: {},
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -53,6 +70,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -140,6 +158,21 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     /**
+     * @param {String} emoji
+     */
+    addEmojiToTextBox(emoji) {
+        const newComment = this.state.draft.slice(0, this.state.selection.start)
+            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
+            },
+        }));
+        this.updateDraft(newComment);
+    }
+
+    /**
      * Key event handlers that short cut to saving/canceling.
      *
      * @param {Event} e
@@ -155,6 +188,10 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
+        const shouldDisableEmojiPicker = (ReportUtils.chatIncludesConcierge(this.props.report)
+                                            && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                                            || ReportUtils.isArchivedRoom(this.props.report);
+
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -176,6 +213,14 @@ class ReportActionItemMessageEdit extends React.Component {
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
+                    <View style={styles.editChatItemEmojiWrapper}>
+                        <EmojiPickerButton
+                            isDisabled={shouldDisableEmojiPicker}
+                            onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
+                            onEmojiSelected={this.addEmojiToTextBox}
+                        />
+                    </View>
+
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
