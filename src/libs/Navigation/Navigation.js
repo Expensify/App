@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import React from 'react';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
