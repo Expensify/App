@@ -13,6 +13,7 @@ import * as Report from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -191,20 +192,20 @@ describe('actions/Report', () => {
                 },
             }))
             .then(() => {
-                global.fetch = jest.fn()
-                    .mockImplementation(() => Promise.resolve({
-                        json: () => Promise.resolve({
-                            jsonCode: 200,
-                        }),
-                    }));
+                global.fetch = TestHelper.getGlobalFetchMock();
 
-                // WHEN we add 1 less than the max before a log packet is sent
-                for (let i = 0; i < LOGGER_MAX_LOG_LINES; i++) {
+                // WHEN we add enough logs to send a packet
+                for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
                     Log.info('Test log info');
                 }
 
-                // And leave a comment on a report which will trigger the log packet to be sent in the same call
+                // And leave a comment on a report
                 Report.addAction(REPORT_ID, 'Testing a comment');
+
+                // Then we should expect that there is on persisted request
+                expect(PersistedRequests.getAll().length).toBe(1);
+
+                // When we wait for the queue to run
                 return waitForPromisesToResolve();
             })
             .then(() => {

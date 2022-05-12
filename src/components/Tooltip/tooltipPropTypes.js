@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Enable support for the absolute positioned native(View|Text) children. It will only work for single native child  */
@@ -24,6 +26,12 @@ const propTypes = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+
+    /** Number of pixels to set max-width on tooltip  */
+    maxWidth: PropTypes.number,
+
+    /** Maximum number of lines to show in tooltip */
+    numberOfLines: PropTypes.number,
 };
 
 const defaultProps = {
@@ -32,6 +40,8 @@ const defaultProps = {
     shiftVertical: 0,
     containerStyles: [],
     text: '',
+    maxWidth: variables.sideBarWidth,
+    numberOfLines: CONST.TOOLTIP_MAX_LINES,
 };
 
 export {
