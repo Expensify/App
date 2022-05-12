@@ -1,6 +1,10 @@
 import PropTypes from 'prop-types';
-import React, {memo, useCallback, useEffect} from 'react';
-import {Image, Pressable, View} from 'react-native';
+import React, {
+    memo, useCallback, useEffect, useState,
+} from 'react';
+import {
+    Image, Pressable, SafeAreaView, View,
+} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
     interpolate,
@@ -9,12 +13,10 @@ import {
     useSharedValue,
     useWorkletCallback,
 } from 'react-native-reanimated';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
 import Button from '../Button';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Icon from '../Icon';
@@ -27,10 +29,9 @@ import ImageCropView from './components/ImageCropView';
 import Slider from './components/Slider';
 import imageManipulator from './libs/imageManipulator';
 
-const IMAGE_CONTAINER_PADDING = 40;
-const MAX_IMAGE_CONTAINER_SIZE = 500;
 const MAX_SCALE = 3;
 const MIN_SCALE = 1;
+const INITIAL_SIZE = 1;
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -54,21 +55,16 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 const AvatarCropModal = (props) => {
-    const originalImageWidth = useSharedValue(1);
-    const originalImageHeight = useSharedValue(1);
+    const originalImageWidth = useSharedValue(INITIAL_SIZE);
+    const originalImageHeight = useSharedValue(INITIAL_SIZE);
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
     const scale = useSharedValue(MIN_SCALE);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
 
-    // TODO: calculate variable using onLayout callback
-    const imageContainerSize = props.isSmallScreenWidth
-        ? Math.min(props.windowWidth, MAX_IMAGE_CONTAINER_SIZE) - IMAGE_CONTAINER_PADDING
-        : variables.sideBarWidth - IMAGE_CONTAINER_PADDING;
-
-    // TODO: calculate variable using onLayout callback
-    const sliderLineWidth = imageContainerSize - 105;
+    const [imageContainerSize, setImageContainerSize] = useState(INITIAL_SIZE);
+    const [sliderLineWidth, setSliderContainerSize] = useState(INITIAL_SIZE);
 
     /**
      * Changes the modal state values to initial
@@ -181,7 +177,7 @@ const AvatarCropModal = (props) => {
             const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale]);
+    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderLineWidth]);
 
     const imageStyle = useAnimatedStyle(() => {
         const height = originalImageHeight.value;
@@ -244,13 +240,13 @@ const AvatarCropModal = (props) => {
                 : CONST.MODAL.MODAL_TYPE.CONFIRM}
             containerStyle={props.isSmallScreenWidth && styles.h100}
         >
-            <SafeAreaProvider style={[styles.pb5, styles.flex1]}>
+            <SafeAreaView style={[styles.flex1]}>
                 <HeaderWithCloseButton
                     title={props.translate('avatarCropModal.title')}
                     onCloseButtonPress={props.onClose}
                 />
                 <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView style={[{width: imageContainerSize}, styles.alignSelfCenter, styles.mv5, styles.flex1]}>
+                <GestureHandlerRootView onLayout={event => setImageContainerSize(event.nativeEvent.layout.width)} style={[{flex: 1}, styles.alignSelfStretch, styles.m5, styles.flex1]}>
                     <ImageCropView
                         imageUri={props.imageUri}
                         style={[imageStyle, styles.h100, styles.w100]}
@@ -258,16 +254,21 @@ const AvatarCropModal = (props) => {
                         panGestureEvent={panGestureEvent}
                         onLayout={initializeImage}
                     />
-                    <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
-                        <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                        <Slider sliderValue={translateSlider} onGestureEvent={panSliderGestureEvent} sliderLineWidth={sliderLineWidth} />
-                        <Pressable
-                            onPress={handleRotate}
-                            style={[styles.imageCropRotateButton]}
-                        >
-                            <Icon src={Expensicons.Rotate} fill={colors.black} />
-                        </Pressable>
-                    </View>
+                    {/* To avoid layout shift we should hide this component until the parent container is initialized */}
+                    {imageContainerSize !== INITIAL_SIZE && (
+                        <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
+                            <Icon src={Expensicons.Zoom} fill={colors.gray3} />
+                            <View style={[styles.mh5, styles.flex1]} onLayout={event => setSliderContainerSize(event.nativeEvent.layout.width)}>
+                                <Slider sliderValue={translateSlider} onGestureEvent={panSliderGestureEvent} sliderLineWidth={sliderLineWidth} />
+                            </View>
+                            <Pressable
+                                onPress={handleRotate}
+                                style={[styles.imageCropRotateButton]}
+                            >
+                                <Icon src={Expensicons.Rotate} fill={colors.black} />
+                            </Pressable>
+                        </View>
+                    )}
                 </GestureHandlerRootView>
                 <Button
                     success
@@ -276,7 +277,7 @@ const AvatarCropModal = (props) => {
                     pressOnEnter
                     text={props.translate('common.save')}
                 />
-            </SafeAreaProvider>
+            </SafeAreaView>
         </Modal>
     );
 };
