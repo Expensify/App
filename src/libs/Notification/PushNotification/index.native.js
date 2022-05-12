@@ -4,6 +4,8 @@ import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
+import NVP from '../../actions/NameValuePair';
+import CONST from '../../../CONST';
 
 const notificationEventActionMap = {};
 
@@ -69,6 +71,16 @@ function init() {
     // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+    });
+
+    // Keep track of which users have enabled push notifications via an NVP.
+    UrbanAirship.addListener(EventType.NotificationOptInStatus, () => {
+        UrbanAirship.getNotificationStatus()
+            .then((notificationStatus) => {
+                const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+                Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
+                NVP.set(CONST.NVP.PUSH_NOTIFICATIONS_ENABLED, isOptedIn);
+            });
     });
 }
 
