@@ -77,7 +77,7 @@ const defaultProps = {
         </>
     ),
     size: 'normal',
-    onBlur: undefined,
+    onBlur: () => {},
 };
 
 export {
