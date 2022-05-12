@@ -2,31 +2,34 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
+import * as CurrencySymbolUtils from '../libs/CurrencySymbolUtils';
 
 const propTypes = {
-    currencySymbol: PropTypes.string.isRequired,
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
     formattedAmount: PropTypes.string.isRequired,
-    isCurrencySymbolLTR: PropTypes.bool,
     onChangeAmount: PropTypes.func,
     onCurrencyButtonPress: PropTypes.func,
     placeholder: PropTypes.string.isRequired,
+    preferredLocale: PropTypes.string.isRequired,
+    selectedCurrencyCode: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
-    isCurrencySymbolLTR: true,
     onChangeAmount: () => {},
     onCurrencyButtonPress: () => {},
 };
 
 function TextInputWithCurrencySymbol(props) {
+    const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(props.preferredLocale, props.selectedCurrencyCode);
+    const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(props.preferredLocale, props.selectedCurrencyCode);
+
     const currencySymbolButton = (
         <CurrencySymbolButton
-            currencySymbol={props.currencySymbol}
+            currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
         />
     );
@@ -40,7 +43,7 @@ function TextInputWithCurrencySymbol(props) {
         />
     );
 
-    if (props.isCurrencySymbolLTR) {
+    if (isCurrencySymbolLTR) {
         return (
             <>
                 {currencySymbolButton}
