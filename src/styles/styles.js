@@ -719,7 +719,7 @@ const styles = {
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
         paddingTop: 23,
-        paddingBottom: 8,
+        // paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,

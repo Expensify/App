@@ -141,6 +141,7 @@ class LoginForm extends React.Component {
                 <View style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
+                        inputStyle={[styles.pb0]}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"

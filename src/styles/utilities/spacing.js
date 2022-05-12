@@ -318,6 +318,10 @@ export default {
         paddingTop: 16,
     },
 
+    pb0: {
+        paddingBottom: 0
+    },
+
     pb1: {
         paddingBottom: 4,
     },
