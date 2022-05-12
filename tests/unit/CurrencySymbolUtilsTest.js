@@ -1,8 +1,4 @@
-// currencyList can get outdated, you can get the latest list from server
-// src/libs/API.js
-// GetCurrencyList().then(data => console.log(data.currencyList));
-// it will output the json in console, you can copy it and use any external json formatter
-// finally update currencyList.json
+// Taken from GetCurrencyList API.
 
 import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
