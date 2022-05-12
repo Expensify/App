@@ -135,9 +135,9 @@ class Form extends React.Component {
                 });
             }
 
-            // We check if the child has the isFormInput prop.
+            // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
-            if (!child.props.isFormInput) {
+            if (!child.props.inputID) {
                 return child;
             }
 
