@@ -17,7 +17,6 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import * as CurrencySymbolUtils from '../../../libs/CurrencySymbolUtils';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 
 const propTypes = {
@@ -212,8 +211,6 @@ class IOUAmountPage extends React.Component {
 
     render() {
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
-        const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
-        const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
 
         return (
             <>
@@ -226,13 +223,13 @@ class IOUAmountPage extends React.Component {
                 ]}
                 >
                     <TextInputWithCurrencySymbol
-                        currencySymbol={currencySymbol}
                         formattedAmount={formattedAmount}
-                        isCurrencySymbolLTR={isCurrencySymbolLTR}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
+                        preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
