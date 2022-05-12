@@ -5,15 +5,28 @@ import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencySymbolUtils from '../libs/CurrencySymbolUtils';
 
 const propTypes = {
+    /** A ref to forward to amount text input */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
+
+    /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
+
+    /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func,
+
+    /** Function to call when currency button is pressed */
     onCurrencyButtonPress: PropTypes.func,
+
+    /** Placeholder value for amount text input */
     placeholder: PropTypes.string.isRequired,
+
+    /** Preferred locale of the user */
     preferredLocale: PropTypes.string.isRequired,
+
+    /** Currency code of user's selected currency */
     selectedCurrencyCode: PropTypes.string.isRequired,
 };
 
