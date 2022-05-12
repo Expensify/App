@@ -5,7 +5,10 @@ import Text from './Text';
 import styles from '../styles/styles';
 
 const propTypes = {
+    /** Currency symbol of selected currency */
     currencySymbol: PropTypes.string.isRequired,
+
+    /** Function to call when currency button is pressed */
     onCurrencyButtonPress: PropTypes.func.isRequired,
 };
 

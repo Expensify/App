@@ -5,12 +5,19 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 
 const propTypes = {
+    /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
+
+    /** A ref to forward to amount text input */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
+
+    /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,
+
+    /** Placeholder value for amount text input */
     placeholder: PropTypes.string.isRequired,
 };
 
