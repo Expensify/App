@@ -109,11 +109,6 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
-            Log.info('Not showing workspace editor page because user is not on free plan beta');
-            return <Navigation.DismissModal />;
-        }
-
         if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
