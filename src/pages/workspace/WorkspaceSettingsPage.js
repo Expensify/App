@@ -21,12 +21,18 @@ import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
+
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     ...fullPolicyDefaultProps,
 };
@@ -49,7 +55,15 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     componentDidMount() {
-        PersonalDetails.getCurrencyList();
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     /**
@@ -61,6 +75,10 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
+    }
+
+    fetchData() {
+        PersonalDetails.getCurrencyList();
     }
 
     removeAvatar() {
@@ -179,4 +197,5 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
+    withNetwork(),
 )(WorkspaceSettingsPage);
