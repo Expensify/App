@@ -6,7 +6,6 @@ import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
-import * as FormUtils from '../../libs/FormUtils';
 
 const propTypes = {
     /** Picker label */
@@ -24,16 +23,8 @@ const propTypes = {
     /** Customize the Picker container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
@@ -44,7 +35,6 @@ const defaultProps = {
     isDisabled: false,
     errorText: '',
     containerStyles: [],
-    isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
     value: undefined,

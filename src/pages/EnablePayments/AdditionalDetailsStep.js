@@ -23,6 +23,7 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as LoginUtils from '../../libs/LoginUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
@@ -167,6 +168,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
+        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+            errors.phoneNumber = true;
+        }
+
         if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn) && !ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
@@ -189,7 +194,10 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: this.props.walletAdditionalDetailsDraft,
+            personalDetails: {
+                ...this.props.walletAdditionalDetailsDraft,
+                phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+            },
         });
     }
 
@@ -278,10 +286,8 @@ class AdditionalDetailsStep extends React.Component {
                                             });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
+                                        hint={this.props.translate('common.noPO')}
                                     />
-                                    <Text style={[styles.mutedTextLabel, styles.mt1]}>
-                                        {this.props.translate('common.noPO')}
-                                    </Text>
                                     {this.props.walletAdditionalDetailsDraft.addressStreet ? (
                                         <>
                                             {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
@@ -315,6 +321,7 @@ class AdditionalDetailsStep extends React.Component {
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                     value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                    placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                     errorText={this.getErrorText('phoneNumber')}
                                 />
                                 <DatePicker
