@@ -106,9 +106,9 @@ function getLastVisibleMessageText(reportID) {
         !ReportUtils.isDeletedAction(action)
     ));
 
-    return ReportUtils.formatReportLastMessageText(
+    return lastMessageIndex ? ReportUtils.formatReportLastMessageText(
         lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'text'], ''),
-    );
+    ) : '';
 }
 
 export {
