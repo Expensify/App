@@ -62,6 +62,8 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
+        this.focusEmptyInput = this.focusEmptyInput.bind(this);
+        this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -192,6 +194,12 @@ class IOUAmountPage extends React.Component {
             .value();
     }
 
+    navigateToCurrencySelectionPage() {
+        Navigation.navigate(this.props.hasMultipleParticipants
+            ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+    }
+
     render() {
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
         const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, this.props.iou.selectedCurrencyCode);
@@ -212,9 +220,7 @@ class IOUAmountPage extends React.Component {
                         formattedAmount={formattedAmount}
                         isCurrencySymbolLTR={isCurrencySymbolLTR}
                         onChangeAmount={this.updateAmount}
-                        onCurrencyButtonPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                            ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                        onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
                         ref={el => this.textInput = el}
                     />
