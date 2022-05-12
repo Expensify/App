@@ -240,13 +240,13 @@ const AvatarCropModal = (props) => {
                 : CONST.MODAL.MODAL_TYPE.CONFIRM}
             containerStyle={props.isSmallScreenWidth && styles.h100}
         >
-            <SafeAreaView style={[styles.flex1]}>
+            <SafeAreaView style={[styles.flex1, styles.pb5]}>
                 <HeaderWithCloseButton
                     title={props.translate('avatarCropModal.title')}
                     onCloseButtonPress={props.onClose}
                 />
                 <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView onLayout={event => setImageContainerSize(event.nativeEvent.layout.width)} style={[{flex: 1}, styles.alignSelfStretch, styles.m5, styles.flex1]}>
+                <GestureHandlerRootView onLayout={event => setImageContainerSize(event.nativeEvent.layout.width)} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
                     <ImageCropView
                         imageUri={props.imageUri}
                         style={[imageStyle, styles.h100, styles.w100]}
