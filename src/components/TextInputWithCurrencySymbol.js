@@ -40,9 +40,21 @@ function TextInputWithCurrencySymbol(props) {
         />
     );
 
-    return props.isCurrencySymbolLTR
-        ? [currencySymbolButton, amountTextInput]
-        : [amountTextInput, currencySymbolButton];
+    if (props.isCurrencySymbolLTR) {
+        return (
+            <>
+                {currencySymbolButton}
+                {amountTextInput}
+            </>
+        );
+    }
+
+    return (
+        <>
+            {amountTextInput}
+            {currencySymbolButton}
+        </>
+    );
 }
 
 TextInputWithCurrencySymbol.propTypes = propTypes;
