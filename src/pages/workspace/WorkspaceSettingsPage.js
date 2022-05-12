@@ -1,13 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -29,20 +25,12 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    betas: [],
-
     ...fullPolicyDefaultProps,
 };
 
@@ -203,9 +191,6 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 export default compose(
     withFullPolicy,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
