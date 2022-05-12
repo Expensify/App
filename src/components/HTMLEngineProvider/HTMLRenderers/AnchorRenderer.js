@@ -6,6 +6,8 @@ import {
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
+import * as Link from '../../../libs/actions/Link';
+import CONFIG from '../../../CONFIG';
 import Text from '../../Text';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
@@ -20,16 +22,29 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
+    const internalNewExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (internalExpensifyPath) {
+    if (internalNewExpensifyPath) {
         return (
             <Text
                 style={styles.link}
-                onPress={() => Navigation.navigate(internalExpensifyPath)}
+                onPress={() => Navigation.navigate(internalNewExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={props.tnode} />
+            </Text>
+        );
+    }
+
+    // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
+    if (internalExpensifyPath && !isAttachment) {
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => Link.openOldDotLink(internalExpensifyPath)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
