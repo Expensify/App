@@ -417,6 +417,7 @@ class ReportActionsView extends React.Component {
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                     isLoadingReportActions={this.props.isLoadingReportActions}
+                    loadMoreChats={this.loadMoreChats}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
