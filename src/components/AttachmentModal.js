@@ -1,11 +1,14 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
 import CONST from '../CONST';
 import Modal from './Modal';
+import ONYXKEYS from '../ONYXKEYS';
+import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -54,6 +57,11 @@ const propTypes = {
     /** Title shown in the header of the modal */
     headerTitle: PropTypes.string,
 
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    reportId: PropTypes.string,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -66,21 +74,25 @@ const defaultProps = {
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
+    reportActions: {},
+    reportId: null,
     onModalHide: () => {},
 };
 
 class AttachmentModal extends PureComponent {
     constructor(props) {
         super(props);
-
+            
         this.state = {
+            page: -1,
+            attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
-
+        
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
@@ -186,14 +198,17 @@ class AttachmentModal extends PureComponent {
                         {this.state.sourceURL && ( 
                             <>                        
                                 <AttachmentView sourceURL={sourceURL} file={this.state.file} />
-                                <View style={{ width: "90%", position: "absolute",  justifyContent: "space-between", alignItems: "center", flexDirection: "row" }}>
-                                    <View style={{ cursor: "pointer" }}>
-                                        <Icon src={BackArrow} height={42} width={42} />
-                                    </View>        
-                                    <View style={{ cursor: "pointer" }}>
-                                        <Icon src={ArrowRight} height={42} width={42} />
-                                    </View>
-                                </View>                            
+                                
+                                {this.props.reportId && (
+                                    <View style={{ width: "90%", position: "absolute",  justifyContent: "space-between", alignItems: "center", flexDirection: "row" }}>
+                                        <View style={{ cursor: "pointer" }}>
+                                            <Icon src={BackArrow} height={42} width={42} />
+                                        </View>        
+                                        <View style={{ cursor: "pointer" }}>
+                                            <Icon src={ArrowRight} height={42} width={42} />
+                                        </View>
+                                    </View>                            
+                                )}
                             </>
                         )}
                     </View>
@@ -239,7 +254,15 @@ class AttachmentModal extends PureComponent {
                         }
                     },
                     show: () => {
-                        this.setState({isModalOpen: true});
+                        const attachments = Object.values(this.props.reportActions)
+                            .reduce((arr, rep) => {
+                                if(rep.originalMessage?.html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE))
+                                    arr.push(rep.originalMessage?.html)
+                                return arr
+                            }, [])
+                        
+                        const page = attachments.findIndex(a => a.includes(this.props.sourceURL))                        
+                        this.setState({attachments, page, isModalOpen: true});
                     },
                 })}
             </>
@@ -252,4 +275,10 @@ AttachmentModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        reportActions: {
+            key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            canEvict: true
+        },
+    }),
 )(AttachmentModal);
