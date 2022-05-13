@@ -110,10 +110,10 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
         this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
-        this.loadMoreChats = _.once(this.loadMoreChats.bind(this));
     }
 
     componentDidMount() {
