@@ -8,7 +8,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import * as Modal from '../../libs/actions/Modal';
-import getModalStyles from '../../libs/getModalStyles';
+import getModalStyles from '../../styles/getModalStyles';
 
 const propTypes = {
     ...modalPropTypes,

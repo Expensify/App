@@ -1,7 +1,7 @@
 import CONST from '../../CONST';
-import colors from '../../styles/colors';
-import variables from '../../styles/variables';
-import themeColors from '../../styles/themes/default';
+import colors from '../colors';
+import variables from '../variables';
+import themeColors from '../themes/default';
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
