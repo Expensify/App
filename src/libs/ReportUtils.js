@@ -450,7 +450,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
-        return report.reportName || '';
+        return lodashGet(report, 'reportName', '');
     }
 
     let formattedName;
