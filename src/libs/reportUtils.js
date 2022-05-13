@@ -223,7 +223,10 @@ function getRoomWelcomeMessage(report, policiesMap) {
     const welcomeMessage = {};
     const workspaceName = getPolicyName(report, policiesMap);
 
-    if (isAdminRoom(report)) {
+    if (isArchivedRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAnnounceRoom(report)) {
@@ -284,16 +287,6 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
-}
-
-/**
- * Check if the comment is deleted
- * @param {Object} action
- * @returns {Boolean}
- */
-function isDeletedAction(action) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    return action.message.length === 0 || action.message[0].html === '';
 }
 
 /**
@@ -372,7 +365,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 
 export {
     getReportParticipantsTitle,
-    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,

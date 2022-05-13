@@ -8,6 +8,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
 import userWalletPropTypes from './userWalletPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 // Steps
 import OnfidoStep from './OnfidoStep';
@@ -22,15 +24,31 @@ import compose from '../../libs/compose';
 import withLocalize from '../../components/withLocalize';
 
 const propTypes = {
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
+
     ...userWalletPropTypes,
 };
 
 const defaultProps = {
+    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
 
 class EnablePaymentsPage extends React.Component {
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         BankAccounts.fetchUserWallet();
     }
 
@@ -83,4 +101,5 @@ export default compose(
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
+    withNetwork(),
 )(EnablePaymentsPage);

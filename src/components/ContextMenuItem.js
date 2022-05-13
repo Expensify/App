@@ -29,6 +29,9 @@ const propTypes = {
 
     /** Automatically reset the success status */
     autoReset: PropTypes.bool,
+
+    /** A description text to show under the title */
+    description: PropTypes.string,
 };
 
 const defaultProps = {
@@ -36,6 +39,7 @@ const defaultProps = {
     successIcon: null,
     successText: '',
     autoReset: false,
+    description: '',
 };
 
 class ContextMenuItem extends Component {
@@ -109,6 +113,7 @@ class ContextMenuItem extends Component {
                         onPress={this.triggerPressAndUpdateSuccess}
                         wrapperStyle={styles.pr9}
                         success={this.state.success}
+                        description={this.props.description}
                     />
                 )
         );

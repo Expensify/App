@@ -249,7 +249,6 @@ class DebitCardPage extends Component {
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                         value={this.state.expirationDate}
-                                        maxLength={7}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                         onChangeText={this.addOrRemoveSlashToExpiryDate}
@@ -299,9 +298,9 @@ class DebitCardPage extends Component {
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <StatePicker
-                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                        onInputChange={value => this.clearErrorAndSetValue('addressState', value)}
                                         value={this.state.addressState}
-                                        hasError={lodashGet(this.state.errors, 'addressState', false)}
+                                        errorText={this.getErrorText('addressState')}
                                     />
                                 </View>
                             </View>
@@ -318,7 +317,7 @@ class DebitCardPage extends Component {
                             </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
-                                onPress={() => {
+                                onInputChange={() => {
                                     this.setState(prevState => ({
                                         acceptedTerms: !prevState.acceptedTerms,
                                         errors: {
