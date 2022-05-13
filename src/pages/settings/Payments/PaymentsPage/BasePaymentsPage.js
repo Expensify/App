@@ -58,7 +58,6 @@ class BasePaymentsPage extends React.Component {
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
-        this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
