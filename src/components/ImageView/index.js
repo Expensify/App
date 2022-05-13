@@ -135,7 +135,7 @@ class ImageView extends PureComponent {
         const containerWidth = this.state.containerWidth;
 
         // return if image not loaded yet
-        if (imageHeight <= 0) {
+        if (imageHeight <= 0 && containerHeight <= 0) {
             return;
         }
 
