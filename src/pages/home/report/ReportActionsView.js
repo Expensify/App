@@ -32,7 +32,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
 import Performance from '../../../libs/Performance';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import participantPropTypes from '../../../components/participantPropTypes';
