@@ -278,10 +278,8 @@ class AdditionalDetailsStep extends React.Component {
                                             });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
+                                        hint={this.props.translate('common.noPO')}
                                     />
-                                    <Text style={[styles.mutedTextLabel, styles.mt1]}>
-                                        {this.props.translate('common.noPO')}
-                                    </Text>
                                     {this.props.walletAdditionalDetailsDraft.addressStreet ? (
                                         <>
                                             {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
@@ -320,8 +318,8 @@ class AdditionalDetailsStep extends React.Component {
                                 <DatePicker
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onChange={val => this.clearErrorAndSetValue('dob', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.dob || ''}
+                                    onInputChange={val => this.clearErrorAndSetValue('dob', val)}
+                                    defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                     placeholder={this.props.translate('common.dob')}
                                     errorText={this.getErrorText('dob')}
                                     maximumDate={new Date()}
