@@ -1,3 +1,3 @@
-import baseGetModalStyles from './baseGetModalStyles';
+import getBaseModalStyles from './getBaseModalStyles';
 
-export default baseGetModalStyles;
+export default getBaseModalStyles;
