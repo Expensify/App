@@ -731,7 +731,7 @@ function getReportChannelName(reportID) {
  * @param {Boolean} isChunked
  */
 function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
      * @param {Object} pushJSON
@@ -772,7 +772,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
