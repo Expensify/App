@@ -9,7 +9,6 @@ import styles from '../styles/styles';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import * as FormUtils from '../libs/FormUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -17,16 +16,8 @@ import * as FormUtils from '../libs/FormUtils';
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
@@ -59,7 +50,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
@@ -174,13 +164,12 @@ const AddressSearch = (props) => {
                         hint: props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
-                        isFormInput: props.isFormInput,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: props.onBlur,
                         autoComplete: 'off',
                         onInputChange: (text) => {
-                            if (props.isFormInput) {
+                            if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
                                 props.onInputChange({street: text});
