@@ -113,6 +113,7 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
+        this.loadMoreChats = _.once(this.loadMoreChats.bind(this));
     }
 
     componentDidMount() {
