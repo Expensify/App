@@ -56,6 +56,9 @@ const propTypes = {
     /** Callback executed on scroll */
     onScroll: PropTypes.func.isRequired,
 
+    /** Function to load more chats */
+    loadMoreChats: PropTypes.func.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -165,7 +168,7 @@ class ReportActionsList extends React.Component {
                 keyExtractor={this.keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={this.calculateInitialNumToRender()}
-                onEndReached={this.loadMoreChats}
+                onEndReached={this.props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.props.isLoadingReportActions
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
