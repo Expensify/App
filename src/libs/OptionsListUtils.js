@@ -373,7 +373,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    sortByLastMessageTimestamp = false,
+    sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
@@ -470,7 +470,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         })
     ));
 
-    // PersonalDetails should be ordered Alphabetically by default acording to issue #8220
+    // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
     allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
 
     // Always exclude already selected options and the currently logged in user
@@ -643,7 +643,6 @@ function getSearchOptions(
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
     });
@@ -709,7 +708,6 @@ function getNewChatOptions(
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
         excludeLogins,
-        sortByLastMessageTimestamp: true,
     });
 }
 
@@ -746,7 +744,6 @@ function getSidebarOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,

@@ -283,7 +283,7 @@ describe('OptionsListUtils', () => {
         // When we filter again but provide a searchValue that should match multiple times
         results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, 'fantastic');
 
-        // lastMessageTimestamp value should be top
+        // Value with latest lastMessageTimestamp should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
         expect(results.recentReports[1].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
@@ -323,7 +323,7 @@ describe('OptionsListUtils', () => {
         );
         expect(personalDetailWithExistingReport.reportID).toBe(2);
 
-        // When we call only pass personal details
+        // When we only pass personal details
         results = OptionsListUtils.getNewChatOptions([], PERSONAL_DETAILS, [], '');
 
         // We should expect personal details sorted alphabetically
@@ -352,7 +352,7 @@ describe('OptionsListUtils', () => {
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
-        // should be ordered by lastMessageTimestamp values
+        // Should be ordered by lastMessageTimestamp values.
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
@@ -449,7 +449,7 @@ describe('OptionsListUtils', () => {
         // When we search for an option that matches things in both personalDetails and reports
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '.com');
 
-        // Then all single participant reports that match will show up in the recentReports array, Recent used person should be top
+        // Then all single participant reports that match will show up in the recentReports array, Recently used contact should be at the top
         expect(results.recentReports.length).toBe(5);
         expect(results.recentReports[0].text).toBe('Captain America');
 
