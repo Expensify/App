@@ -120,7 +120,7 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When open image, set image width and height. If containerHeight is set before set zoomScale
+     * When open image, set image width, height and zoomScale.
      * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
@@ -134,11 +134,11 @@ class ImageView extends PureComponent {
         const height = imageHeight;
         const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
 
-        this.setState(prevState => ({
+        this.setState({
             imgWidth: width,
             imgHeight: height,
-            zoomScale: containerHeight ? newZoomScale : prevState.zoomScale,
-        }));
+            zoomScale: newZoomScale,
+        });
     }
 
     /**
