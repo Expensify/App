@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**

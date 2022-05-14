@@ -313,10 +313,10 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
-        API_OFFLINE: 'session.offlineMessageRetry',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -387,6 +387,8 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
+    TOOLTIP_MAX_LINES: 3,
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
@@ -407,6 +409,17 @@ const CONST = {
         IMAGE: 'image',
     },
 
+    ATTACHMENT_FILE_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+        VIDEO: 'video',
+    },
+
+    FILE_TYPE_REGEX: {
+        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
+        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+    },
+    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
@@ -610,11 +623,10 @@ const CONST = {
         COMPACT: 'compact',
         DEFAULT: 'default',
     },
-    PHONE_MAX_LENGTH: 15,
-    PHONE_MIN_LENGTH: 5,
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,
+        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
