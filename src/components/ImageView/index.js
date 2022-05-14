@@ -23,7 +23,6 @@ class ImageView extends PureComponent {
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
-        this.onContainerPressOut = this.onContainerPressOut.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.state = {
@@ -96,43 +95,26 @@ class ImageView extends PureComponent {
     onContainerPress(e) {
         let scrollX;
         let scrollY;
-        if (this.isZoomed && !this.state.isDragging) {
+        if (!this.state.isZoomed && !this.state.isDragging) {
             const {offsetX, offsetY} = e.nativeEvent;
 
-            // We divide the clicked positions by the zoomScale.
-            // We need pixel coordinates.
+            // Dividing clicked positions by the zoom scale to get coordinates
+            // so that once we zoom we will scroll to the clicked location.
             const delta = this.getScrollOffset(offsetX / this.state.zoomScale, offsetY / this.state.zoomScale);
             scrollX = delta.offsetX;
             scrollY = delta.offsetY;
         }
 
-        if (this.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
-        } else if (this.isZoomed) {
-            // We set isZoomed state then scroll image for calculating positions
-            this.setState({isZoomed: this.isZoomed}, () => {
+        } else {
+            // We first zoom and once its done then we scroll to the location the user clicked.
+            this.setState(prevState => ({
+                isZoomed: !prevState.isZoomed,
+                isMouseDown: false,
+            }), () => {
                 this.scrollableRef.scrollTop = scrollY;
                 this.scrollableRef.scrollLeft = scrollX;
-            });
-        }
-    }
-
-    onContainerPressOut() {
-        if (this.state.isDragging) {
-            return;
-        }
-
-        // We hold for set isZoomed state if true
-        // Because when set isZoomed state can't getting actual position user clicked
-        this.isZoomed = !this.state.isZoomed;
-        if (this.isZoomed === false) {
-            this.setState(prevState => ({
-                isMouseDown: false,
-                isZoomed: !prevState.isZoomed,
-            }));
-        } else {
-            this.setState({
-                isMouseDown: false,
             });
         }
     }
@@ -170,7 +152,7 @@ class ImageView extends PureComponent {
         let offsetY;
 
         // Container size bigger than clicked position offset
-        if (x <= (this.state.containerWidth / 2)) {
+        if (x <= this.state.containerWidth / 2) {
             offsetX = 0;
         } else if (x > this.state.containerWidth / 2) {
             // Minus half of container size because we want to be center clicked position
@@ -255,7 +237,6 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
-                    onPressOut={this.onContainerPressOut}
                 >
                     <Image
                         source={{uri: this.props.url}}
