@@ -1,11 +1,12 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
 import CONST from '../CONST';
+import Config from '../CONFIG';
 import Modal from './Modal';
 import ONYXKEYS from '../ONYXKEYS';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -96,6 +97,25 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+        this.onArrowPress = this.onArrowPress.bind(this);
+    }
+
+    /**
+     * 
+     * @param {*} sourceUrl 
+     * @param {*} file 
+     * @returns 
+     */
+    onArrowPress(isBack){
+        const {attachments, page} = this.state
+        if(isBack ? page-1 < 0 : page+1 === attachments.length) return
+        
+        const nextIndex = isBack ? page-1 : page+1
+        this.setState({
+            page: nextIndex,
+            sourceURL: attachments[nextIndex]
+        })
+        
     }
 
     /**
@@ -198,15 +218,14 @@ class AttachmentModal extends PureComponent {
                         {this.state.sourceURL && ( 
                             <>                        
                                 <AttachmentView sourceURL={sourceURL} file={this.state.file} />
-                                
                                 {this.props.reportId && (
                                     <View style={{ width: "90%", position: "absolute",  justifyContent: "space-between", alignItems: "center", flexDirection: "row" }}>
-                                        <View style={{ cursor: "pointer" }}>
+                                        <Pressable onPress={() => this.onArrowPress(true)} style={{ cursor: "pointer" }}>
                                             <Icon src={BackArrow} height={42} width={42} />
-                                        </View>        
-                                        <View style={{ cursor: "pointer" }}>
+                                        </Pressable>        
+                                        <Pressable onPress={() => this.onArrowPress()} style={{ cursor: "pointer" }}>
                                             <Icon src={ArrowRight} height={42} width={42} />
-                                        </View>
+                                        </Pressable>
                                     </View>                            
                                 )}
                             </>
@@ -256,12 +275,18 @@ class AttachmentModal extends PureComponent {
                     show: () => {
                         const attachments = Object.values(this.props.reportActions)
                             .reduce((arr, rep) => {
-                                if(rep.originalMessage?.html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE))
-                                    arr.push(rep.originalMessage?.html)
+                                const matches = CONST.REGEX.ATTACHMENT_SRC.exec(rep.originalMessage?.html)
+                                if(matches){
+                                    const url = matches[1].replace(
+                                        Config.EXPENSIFY.EXPENSIFY_URL,
+                                        Config.EXPENSIFY.URL_API_ROOT,
+                                    )
+                                    arr.push(url)
+                                }                                    
                                 return arr
                             }, [])
                         
-                        const page = attachments.findIndex(a => a.includes(this.props.sourceURL))                        
+                        const page = attachments.findIndex(a => a.includes(this.props.sourceURL))
                         this.setState({attachments, page, isModalOpen: true});
                     },
                 })}
