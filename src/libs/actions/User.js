@@ -6,6 +6,7 @@ import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONS
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -189,6 +190,9 @@ function setSecondaryLoginAndNavigate(login, password) {
         if (error.includes('already belongs to an existing Expensify account.')) {
             error = 'This login already belongs to an existing Expensify account.';
         }
+        if (error.includes('I couldn\'t validate the phone number')) {
+            error = Localize.translateLocal('common.error.phoneNumber');
+        }
 
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
@@ -296,7 +300,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
@@ -337,7 +341,7 @@ function subscribeToExpensifyCardUpdates() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {

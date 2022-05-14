@@ -60,8 +60,10 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the top edge of the wrapped component.
  * @param {Number} componentWidth - The width of the wrapped component.
  * @param {Number} componentHeight - The height of the wrapped component.
+ * @param {Number} maxWidth - The tooltip's max width.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
+ * @param {Number} tooltipTextWidth - The tooltip's inner text width.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
@@ -76,8 +78,10 @@ export default function getTooltipStyles(
     yOffset,
     componentWidth,
     componentHeight,
+    maxWidth,
     tooltipWidth,
     tooltipHeight,
+    tooltipTextWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 ) {
@@ -92,6 +96,13 @@ export default function getTooltipStyles(
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
+
+    // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
+    // If the text width is less than the maximum available width, add horizontal padding.
+    // Note: tooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
+    const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
+        ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
+        : maxWidth;
 
     return {
         animationStyle: {
@@ -109,6 +120,7 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
+            width: wrapperWidth,
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
@@ -144,6 +156,8 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
+            overflowWrap: 'normal',
+            overflow: 'hidden',
         },
         pointerWrapperStyle: {
             position: 'fixed',

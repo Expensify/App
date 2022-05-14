@@ -42,7 +42,6 @@ const Template = (args) => {
                 <TextInput
                     label="Routing number"
                     inputID="routingNumber"
-                    isFormInput
                     shouldSaveDraft
                 />
             </View>
@@ -50,19 +49,17 @@ const Template = (args) => {
                 label="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <AddressSearch
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
-                isFormInput
+                hint="No PO box"
             />
             <DatePicker
                 label="Date of birth"
                 inputID="dob"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <View>
                 <Picker
@@ -84,7 +81,6 @@ const Template = (args) => {
                             value: 'apple',
                         },
                     ]}
-                    isFormInput
                 />
             </View>
             <Picker
@@ -105,19 +101,16 @@ const Template = (args) => {
                         value: 'apple',
                     },
                 ]}
-                isFormInput
             />
             <View style={styles.mt4}>
                 <StatePicker
                     inputID="pickState"
                     shouldSaveDraft
-                    isFormInput
                 />
             </View>
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                isFormInput
                 shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
@@ -147,7 +140,6 @@ const WithNativeEventHandler = (args) => {
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}
-                isFormInput
                 shouldSaveDraft
             />
             <Text>
@@ -174,6 +166,9 @@ const defaultArgs = {
         }
         if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
+        }
+        if (!values.street) {
+            errors.street = 'Please enter an address';
         }
         if (!values.dob) {
             errors.dob = 'Please enter your date of birth';
@@ -205,6 +200,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
+        street: '123 Happy St, Happyland HP 12345',
         dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
@@ -221,6 +217,7 @@ InputError.args = {
     draftValues: {
         routingNumber: '',
         accountNumber: '',
+        street: '',
         pickFruit: '',
         dob: '',
         pickAnotherFruit: '',
