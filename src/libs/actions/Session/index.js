@@ -156,7 +156,7 @@ function fetchAccountDetails(login) {
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     error: ValidationUtils.isNumericWithSpecialChars(login)
-                        ? Localize.translateLocal('messages.errorMessageInvalidPhone')
+                        ? Localize.translateLocal('common.error.phoneNumber')
                         : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
             } else if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
