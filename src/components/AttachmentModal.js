@@ -1,16 +1,15 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
 import CONST from '../CONST';
-import Config from '../CONFIG';
+import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
-import ONYXKEYS from '../ONYXKEYS';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import AttachmentView from './AttachmentView';
+import AttachmentNav from './AttachmentNav';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
@@ -23,9 +22,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
-
-import {BackArrow, ArrowRight} from './Icon/Expensicons';
-import Icon from './icon'
 
 
 /**
@@ -99,23 +95,25 @@ class AttachmentModal extends PureComponent {
         this.isValidSize = this.isValidSize.bind(this);
         this.onArrowPress = this.onArrowPress.bind(this);
     }
+    
+    /**
+     * delegates AttachmentNav to change the sourceUrl
+     * @param {*} sourceUrl 
+     */
+    onArrowPress(sourceURL){
+        this.setState({sourceURL})
+    }
 
     /**
-     * 
-     * @param {*} sourceUrl 
-     * @param {*} file 
-     * @returns 
+     * Returns the filename split into fileName and fileExtension
+     * @returns {Object}
      */
-    onArrowPress(isBack){
-        const {attachments, page} = this.state
-        if(isBack ? page-1 < 0 : page+1 === attachments.length) return
-        
-        const nextIndex = isBack ? page-1 : page+1
-        this.setState({
-            page: nextIndex,
-            sourceURL: attachments[nextIndex]
-        })
-        
+    splitExtensionFromFileName() {
+        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
+        const splittedFileName = fullFileName.split('.');
+        const fileExtension = splittedFileName.pop();
+        const fileName = splittedFileName.join('.');
+        return {fileName, fileExtension};
     }
 
     /**
@@ -130,18 +128,6 @@ class AttachmentModal extends PureComponent {
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
         return modalType;
-    }
-
-    /**
-     * Returns the filename split into fileName and fileExtension
-     * @returns {Object}
-     */
-    splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
-        const splittedFileName = fullFileName.split('.');
-        const fileExtension = splittedFileName.pop();
-        const fileName = splittedFileName.join('.');
-        return {fileName, fileExtension};
     }
 
     /**
@@ -177,6 +163,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
+
         const sourceURL = this.props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
@@ -215,21 +202,16 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={attachmentViewStyles}>
-                        {this.state.sourceURL && ( 
                             <>                        
-                                <AttachmentView sourceURL={sourceURL} file={this.state.file} />
-                                {this.props.reportId && (
-                                    <View style={{ width: "90%", position: "absolute",  justifyContent: "space-between", alignItems: "center", flexDirection: "row" }}>
-                                        <Pressable onPress={() => this.onArrowPress(true)} style={{ cursor: "pointer" }}>
-                                            <Icon src={BackArrow} height={42} width={42} />
-                                        </Pressable>        
-                                        <Pressable onPress={() => this.onArrowPress()} style={{ cursor: "pointer" }}>
-                                            <Icon src={ArrowRight} height={42} width={42} />
-                                        </Pressable>
-                                    </View>                            
+                                <AttachmentView sourceURL={sourceURL} file={this.state.file} />                                                                     
+                                {this.state.reportId && ( 
+                                    <AttachmentNav 
+                                        reportId={this.state.reportId}                                    
+                                        onArrowPress={this.onArrowPress}
+                                        sourceURL={this.state.sourceURL}
+                                    />
                                 )}
                             </>
-                        )}
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
@@ -272,22 +254,9 @@ class AttachmentModal extends PureComponent {
                             });
                         }
                     },
-                    show: () => {
-                        const attachments = Object.values(this.props.reportActions)
-                            .reduce((arr, rep) => {
-                                const matches = CONST.REGEX.ATTACHMENT_SRC.exec(rep.originalMessage?.html)
-                                if(matches){
-                                    const url = matches[1].replace(
-                                        Config.EXPENSIFY.EXPENSIFY_URL,
-                                        Config.EXPENSIFY.URL_API_ROOT,
-                                    )
-                                    arr.push(url)
-                                }                                    
-                                return arr
-                            }, [])
-                        
-                        const page = attachments.findIndex(a => a.includes(this.props.sourceURL))
-                        this.setState({attachments, page, isModalOpen: true});
+                    show: () => {                        
+                        const reportId = Navigation.getActiveRoute().replace('/r/', "")
+                        this.setState({ reportId, isModalOpen: true});
                     },
                 })}
             </>
@@ -300,10 +269,4 @@ AttachmentModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        reportActions: {
-            key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
-            canEvict: true
-        },
-    }),
 )(AttachmentModal);

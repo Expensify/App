@@ -1,7 +1,6 @@
 import React from 'react';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Config from '../../../CONFIG';
-import Navigation from '../../../libs/Navigation/Navigation';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
@@ -49,7 +48,6 @@ const ImageRenderer = (props) => {
         <AttachmentModal
             allowDownload
             sourceURL={source}
-            reportId={Navigation.getActiveRoute().replace('/r/', "")}
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
         >
