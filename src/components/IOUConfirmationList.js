@@ -225,6 +225,7 @@ class IOUConfirmationList extends Component {
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
+                isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedSelectedParticipants,
