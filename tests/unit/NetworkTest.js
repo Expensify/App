@@ -466,25 +466,25 @@ test('test bad response will log alert', () => {
         });
 });
 
-test('test Failed to fetch error for requests not flagged with shouldRetry will throw API OFFLINE error', () => {
+test('test Failed to fetch error for requests not flagged with shouldRetry will resolve with an offline jsonCode', () => {
     // Setup xhr handler that rejects once with a 502 Bad Gateway
     global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
-    const onRejected = jest.fn();
+    const onResolved = jest.fn();
 
     // Given we have a request made while online
     return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
         .then(() => {
             // When network calls with are made
-            Network.post('mock command', {param1: 'value1', shouldRetry: false})
-                .catch(onRejected);
+            Network.post('MockCommand', {param1: 'value1', shouldRetry: false})
+                .then(onResolved);
 
             return waitForPromisesToResolve();
         })
         .then(() => {
-            const error = onRejected.mock.calls[0][0];
-            expect(onRejected).toHaveBeenCalled();
-            expect(error.message).toBe(CONST.ERROR.API_OFFLINE);
+            const response = onResolved.mock.calls[0][0];
+            expect(onResolved).toHaveBeenCalled();
+            expect(response.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
         });
 });
 

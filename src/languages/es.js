@@ -30,6 +30,7 @@ export default {
         lastName: 'Apellido',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
+        phoneNumberPlaceholder: '(prefijo) + (número)',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
@@ -177,6 +178,8 @@ export default {
     reportActionsView: {
         begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -700,7 +703,6 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '(prefijo) + (número)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
@@ -980,5 +982,19 @@ export default {
             helpTextConcierge: 'Si el problema persiste, comuníquese con',
         },
         refresh: 'Refresh',
+    },
+    fileDownload: {
+        success: {
+            title: 'Descargado!',
+            message: 'Archivo descargado correctamente',
+        },
+        generalError: {
+            title: 'Error en la descarga',
+            message: 'No se puede descargar el archivo adjunto',
+        },
+        permissionError: {
+            title: 'Se necesita acceso',
+            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
     },
 };

@@ -6,7 +6,6 @@ import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import InlineErrorText from './InlineErrorText';
-import * as FormUtils from '../libs/FormUtils';
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -27,29 +26,20 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
     forwardedRef: PropTypes.func,
 
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
-    isFormInput: false,
     inputID: undefined,
     style: [],
     label: undefined,
@@ -86,7 +76,6 @@ const CheckboxWithLabel = (props) => {
                     label={props.label}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
-                    isFormInput={props.isFormInput}
                     inputID={props.inputID}
                     shouldSaveDraft={props.shouldSaveDraft}
                 />

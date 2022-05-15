@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import WorkspaceReimburseNoVBAView from './WorkspaceReimburseNoVBAView';
-import WorkspaceReimburseVBAView from './WorkspaceReimburseVBAView';
+import WorkspaceReimburseView from './WorkspaceReimburseView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import CONST from '../../../CONST';
 
@@ -26,13 +25,7 @@ const WorkspaceReimbursePage = props => (
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
     >
         {(hasVBA, policyID) => (
-            <>
-                {!hasVBA ? (
-                    <WorkspaceReimburseNoVBAView policyID={policyID} />
-                ) : (
-                    <WorkspaceReimburseVBAView policyID={policyID} />
-                )}
-            </>
+            <WorkspaceReimburseView policyID={policyID} hasVBA={hasVBA} />
         )}
     </WorkspacePageWithSections>
 );
