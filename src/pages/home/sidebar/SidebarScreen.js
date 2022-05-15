@@ -47,6 +47,7 @@ class SidebarScreen extends Component {
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
         this.showCreateMenu = this.showCreateMenu.bind(this);
+        this.dragOverListener = this.dragOverListener.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
@@ -68,6 +69,7 @@ class SidebarScreen extends Component {
         this.setState({
             isCreateMenuActive: true,
         });
+        document.addEventListener('dragover', this.dragOverListener);
     }
 
     /**
@@ -83,6 +85,7 @@ class SidebarScreen extends Component {
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
+        document.removeEventListener('dragover', this.dragOverListener);
         this.setState({
             isCreateMenuActive: false,
         });
@@ -94,6 +97,15 @@ class SidebarScreen extends Component {
     startTimer() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         Performance.markStart(CONST.TIMING.SWITCH_REPORT);
+    }
+
+    /**
+     * Method called when dragover events window
+     *
+     * @param {Object} e native Event
+     */
+    dragOverListener() {
+        this.hideCreateMenu();
     }
 
     render() {
