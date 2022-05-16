@@ -413,7 +413,7 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <View style={[this.props.isComposerFullSize && styles.flex0]}>
+            <>
                 <FloatingMessageCounter
                     active={this.state.isFloatingMessageCounterVisible}
                     count={this.state.messageCounterCount}
@@ -432,7 +432,7 @@ class ReportActionsView extends React.Component {
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
-            </View>
+            </>
         );
     }
 }
