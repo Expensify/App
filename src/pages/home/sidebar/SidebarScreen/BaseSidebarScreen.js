@@ -5,26 +5,33 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {withNavigation} from '@react-navigation/compat';
-import styles from '../../../styles/styles';
-import SidebarLinks from './SidebarLinks';
-import PopoverMenu from '../../../components/PopoverMenu';
-import FAB from '../../../components/FAB';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import Timing from '../../../libs/actions/Timing';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Permissions from '../../../libs/Permissions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as Policy from '../../../libs/actions/Policy';
-import Performance from '../../../libs/Performance';
-import * as Welcome from '../../../libs/actions/Welcome';
+import styles from '../../../../styles/styles';
+import SidebarLinks from '../SidebarLinks';
+import PopoverMenu from '../../../../components/PopoverMenu';
+import FAB from '../../../../components/FAB';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import Timing from '../../../../libs/actions/Timing';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import CONST from '../../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import Permissions from '../../../../libs/Permissions';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import * as Policy from '../../../../libs/actions/Policy';
+import Performance from '../../../../libs/Performance';
+import * as Welcome from '../../../../libs/actions/Welcome';
 
 const propTypes = {
+
+    /* Create Listener callback */
+    afterShowCreateMenu: PropTypes.func,
+
+    /* Remove Listener callback */
+    beforeHideCreateMenu: PropTypes.func,
+
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
@@ -36,10 +43,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
+    beforeHideCreateMenu: () => {},
+    afterShowCreateMenu: () => {},
     isCreatingWorkspace: false,
 };
 
-class SidebarScreen extends Component {
+class BaseSidebarScreen extends Component {
     constructor(props) {
         super(props);
 
@@ -47,9 +56,6 @@ class SidebarScreen extends Component {
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
         this.showCreateMenu = this.showCreateMenu.bind(this);
-        if (window.document) {
-            this.dragOverListener = this.dragOverListener.bind(this);
-        }
 
         this.state = {
             isCreateMenuActive: false,
@@ -71,8 +77,8 @@ class SidebarScreen extends Component {
         this.setState({
             isCreateMenuActive: true,
         });
-        if (window.document) {
-            window.document.addEventListener('dragover', this.dragOverListener);
+        if (this.props.afterShowCreateMenu) {
+            this.props.afterShowCreateMenu(this);
         }
     }
 
@@ -89,8 +95,8 @@ class SidebarScreen extends Component {
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
-        if (window.document) {
-            window.document.removeEventListener('dragover', this.dragOverListener);
+        if (this.props.beforeHideCreateMenu) {
+            this.props.beforeHideCreateMenu();
         }
         this.setState({
             isCreateMenuActive: false,
@@ -202,8 +208,8 @@ class SidebarScreen extends Component {
     }
 }
 
-SidebarScreen.propTypes = propTypes;
-SidebarScreen.defaultProps = defaultProps;
+BaseSidebarScreen.propTypes = propTypes;
+BaseSidebarScreen.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
@@ -220,4 +226,4 @@ export default compose(
             key: ONYXKEYS.IS_CREATING_WORKSPACE,
         },
     }),
-)(SidebarScreen);
+)(BaseSidebarScreen);
