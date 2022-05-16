@@ -2,7 +2,6 @@ import React from 'react';
 import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -36,7 +35,6 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const participants = lodashGet(props.report, 'participants', []);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
@@ -48,7 +46,7 @@ const ReportActionItemCreated = (props) => {
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report, participants)}>
+                <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                     <RoomHeaderAvatars
                         icons={icons}
                         shouldShowLargeAvatars={isPolicyExpenseChat}

@@ -108,7 +108,7 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report, participants)}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             {shouldShowSubscript ? (
