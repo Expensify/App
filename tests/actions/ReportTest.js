@@ -13,6 +13,7 @@ import * as Report from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -42,7 +43,7 @@ describe('actions/Report', () => {
     afterEach(() => {
         // Unsubscribe from account channel after each test since we subscribe in the function
         // subscribeToUserEvents and we don't want duplicate event subscriptions.
-        Pusher.unsubscribe('private-user-accountID-1');
+        Pusher.unsubscribe(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
     });
 
     it('should store a new report action in Onyx when reportComment event is handled via Pusher', () => {
@@ -103,7 +104,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
-                const channel = Pusher.getChannel('private-user-accountID-1');
+                const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.REPORT_COMMENT, {
                     reportID: REPORT_ID,
                     reportAction: {...REPORT_ACTION, clientID},
@@ -157,7 +158,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportTogglePinned
                 // Pusher event so we can verify that pinning was handled correctly and merged into the report.
-                const channel = Pusher.getChannel('private-user-accountID-1');
+                const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.REPORT_TOGGLE_PINNED, {
                     reportID: REPORT_ID,
                     isPinned: true,
@@ -191,20 +192,20 @@ describe('actions/Report', () => {
                 },
             }))
             .then(() => {
-                global.fetch = jest.fn()
-                    .mockImplementation(() => Promise.resolve({
-                        json: () => Promise.resolve({
-                            jsonCode: 200,
-                        }),
-                    }));
+                global.fetch = TestHelper.getGlobalFetchMock();
 
-                // WHEN we add 1 less than the max before a log packet is sent
-                for (let i = 0; i < LOGGER_MAX_LOG_LINES; i++) {
+                // WHEN we add enough logs to send a packet
+                for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
                     Log.info('Test log info');
                 }
 
-                // And leave a comment on a report which will trigger the log packet to be sent in the same call
+                // And leave a comment on a report
                 Report.addAction(REPORT_ID, 'Testing a comment');
+
+                // Then we should expect that there is on persisted request
+                expect(PersistedRequests.getAll().length).toBe(1);
+
+                // When we wait for the queue to run
                 return waitForPromisesToResolve();
             })
             .then(() => {

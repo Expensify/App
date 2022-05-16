@@ -100,8 +100,8 @@ const webViewStyles = {
 
         pre: {
             ...baseCodeTagStyles,
-            paddingTop: 4,
-            paddingBottom: 5,
+            paddingTop: 12,
+            paddingBottom: 12,
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
@@ -381,6 +381,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonExtraLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeExtraLarge,
+        paddingTop: 12,
+        paddingRight: 18,
+        paddingBottom: 12,
+        paddingLeft: 18,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         fontFamily: fontFamily.GTA_BOLD,
@@ -397,6 +407,13 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonExtraLargeText: {
+        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -1025,9 +1042,9 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+    onlyEmojisText: {
+        fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: {
@@ -2359,7 +2376,7 @@ const styles = {
         height: 20,
     },
 
-    reportMarkerBadgeWrapper: {
+    floatingMessageCounterWrapper: {
         position: 'absolute',
         left: '50%',
         top: 0,
@@ -2367,7 +2384,7 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeWrapperAndroid: {
+    floatingMessageCounterWrapperAndroid: {
         left: 0,
         width: '100%',
         alignItems: 'center',
@@ -2377,17 +2394,17 @@ const styles = {
         ...visibility('hidden'),
     },
 
-    reportMarkerBadgeSubWrapperAndroid: {
+    floatingMessageCounterSubWrapperAndroid: {
         left: '50%',
         width: 'auto',
     },
 
-    reportMarkerBadge: {
+    floatingMessageCounter: {
         left: '-50%',
         ...visibility('visible'),
     },
 
-    reportMarkerBadgeTransformation: translateY => ({
+    floatingMessageCounterTransformation: translateY => ({
         transform: [
             {translateY},
         ],
@@ -2490,6 +2507,17 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
+    },
+
+    userSelectText: {
+        userSelect: 'text',
+    },
+
+    screenCenteredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        marginBottom: 40,
+        padding: 16,
     },
 };
 

@@ -28,7 +28,7 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,10 +56,13 @@ const defaultProps = {
     loginList: [],
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -292,7 +295,6 @@ class ProfilePage extends Component {
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
-                                key={`timezonePicker-${this.state.isAutomaticTimezone}`}
                             />
                         </View>
                         <CheckboxWithLabel

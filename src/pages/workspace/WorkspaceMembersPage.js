@@ -7,7 +7,6 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -22,7 +21,6 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
-import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
@@ -31,9 +29,6 @@ import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './wit
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
@@ -214,8 +209,9 @@ class WorkspaceMembersPage extends React.Component {
                     />
                     <View style={styles.flex1}>
                         <OptionRow
+                            onSelectRow={() => this.toggleUser(item.login)}
                             forceTextUnreadStyle
-                            isDisabled
+                            isDisabled={!canBeRemoved}
                             option={{
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),
@@ -240,10 +236,6 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
-            Log.info('Not showing workspace people page because user is not on free plan beta');
-            return <Navigation.DismissModal />;
-        }
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         const data = _.chain(policyEmployeeList)
@@ -332,9 +324,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspaceMembersPage);
