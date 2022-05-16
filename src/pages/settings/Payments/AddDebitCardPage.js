@@ -117,50 +117,46 @@ class DebitCardPage extends Component {
     /**
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
-        if (!ValidationUtils.isValidCardName(this.state.nameOnCard)) {
-            errors.nameOnCard = true;
+
+        if (!ValidationUtils.isValidCardName(values.nameOnCard)) {
+            errors.nameOnCard = this.props.translate('addDebitCardPage.error.invalidName');
         }
 
-        if (!ValidationUtils.isValidDebitCard(this.state.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = true;
+        if (!ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+            errors.cardNumber = this.props.translate('addDebitCardPage.error.debitCardNumber');
         }
 
-        if (!ValidationUtils.isValidExpirationDate(this.state.expirationDate)) {
-            errors.expirationDate = true;
+        if (!ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+            errors.expirationDate = this.props.translate('addDebitCardPage.error.expirationDate');
         }
 
-        if (!ValidationUtils.isValidSecurityCode(this.state.securityCode)) {
-            errors.securityCode = true;
+        if (!ValidationUtils.isValidSecurityCode(values.securityCode)) {
+            errors.securityCode = this.props.translate('addDebitCardPage.error.securityCode');
         }
 
-        if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
-            errors.addressStreet = true;
-        }
+        // if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
+        //     errors.addressStreet = this.props.translate('addDebitCardPage.error.invalidName');
+        // }
 
-        if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
-            errors.addressZipCode = true;
-        }
+        // if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+        //     errors.addressZipCode = this.props.translate('addDebitCardPage.error.invalidName');
+        // }
 
-        if (!this.state.addressState) {
-            errors.addressState = true;
-        }
+        // if (!this.state.addressState) {
+        //     errors.addressState = this.props.translate('addDebitCardPage.error.invalidName');
+        // }
 
-        if (_.isEmpty(this.state.password.trim())) {
-            errors.password = true;
-        }
+        // if (_.isEmpty(this.state.password.trim())) {
+        //     errors.password = this.props.translate('addDebitCardPage.error.invalidName');
+        // }
 
-        if (!this.state.acceptedTerms) {
-            errors.acceptedTerms = true;
-        }
+        // if (!this.state.acceptedTerms) {
+        //     errors.acceptedTerms = this.props.translate('addDebitCardPage.error.invalidName');
+        // }
 
-        const hasErrors = _.size(errors) > 0;
-        this.setState({
-            errors,
-            shouldShowAlertPrompt: hasErrors,
-        });
-        return !hasErrors;
+        return errors;
     }
 
     submit() {
@@ -227,7 +223,7 @@ class DebitCardPage extends Component {
                     />
                     <Form
                        formID="test"
-                       validate={() => {}}
+                       validate={this.validate}
                        onSubmit={() => {}}
                        submitButtonText="Save"
                        style={[styles.mh5, styles.mb5]}
@@ -245,7 +241,7 @@ class DebitCardPage extends Component {
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex1, styles.mr2]}>
                                 <TextInput
-                                    inputID="expiration"
+                                    inputID="expirationDate"
                                     label={this.props.translate('addDebitCardPage.expiration')}
                                     placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
@@ -253,7 +249,7 @@ class DebitCardPage extends Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextInput
-                                    inputID="cvv"
+                                    inputID="securityCode"
                                     label={this.props.translate('addDebitCardPage.cvv')}
                                     maxLength={4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
