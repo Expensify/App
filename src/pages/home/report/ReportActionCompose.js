@@ -447,9 +447,9 @@ class ReportActionCompose extends React.Component {
         this.updateComment('');
         this.setTextInputShouldClear(true);
         if (this.props.isComposerFullSize) {
-            this.setState({isFullComposerAvailable: false});
             Report.setIsComposerFullSize(this.props.reportID, false);
         }
+        this.setState({isFullComposerAvailable: false});
 
         // Important to reset the selection on Submit action
         this.textInput.setNativeProps({selection: {start: 0, end: 0}});
