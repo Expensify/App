@@ -129,7 +129,7 @@ jobs:
         run: exit 1
 
       - name: Auto-merge the PR
-        run: gh pr merge --merge --delete-branch
+        run: gh pr merge --merge --delete-branch || sleep 5 && gh pr merge --merge --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
