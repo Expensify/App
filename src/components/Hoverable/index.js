@@ -65,7 +65,7 @@ class Hoverable extends Component {
     }
 
     /**
-     * Toggle scrolling status and set the hover state
+     * Toggle scrolling status and call debounced reset
      */
     setScrollingAndStartUnsetListener() {
         if (!this.state.isScrolling) {
