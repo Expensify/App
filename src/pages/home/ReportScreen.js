@@ -192,7 +192,6 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
-                            isComposerFullSize={this.props.isComposerFullSize}
                         />
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (

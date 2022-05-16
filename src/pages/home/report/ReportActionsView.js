@@ -2,7 +2,6 @@ import React from 'react';
 import {
     Keyboard,
     AppState,
-    View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -32,7 +31,6 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -69,9 +67,6 @@ const propTypes = {
 
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
-
-    /** Is the composer full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -189,10 +184,6 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
-            return true;
-        }
-
-        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
             return true;
         }
 
