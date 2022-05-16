@@ -69,6 +69,9 @@ Please follow these steps to propose a job:
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+## Posting Ideas
+Additionally if you want to discuss an idea with the community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
+
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
@@ -83,7 +86,7 @@ Please follow these steps to propose a job:
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 #### Propose a solution for the job
-4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
+4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief written technical explanation of the changes you will make. Include "Proposal" as the first word in your comment. 
     - Note: Issues that have not had the `External` label applied have not yet been approved for implementation. This means, if you propose a solution to an issue without the `External` label (which you are allowed to do) it is possible that the issue will be fixed internally. If the `External` label has not yet been applied, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution. This process covers the very rare instance where we need or want to fix an issue internally.
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).

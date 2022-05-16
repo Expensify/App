@@ -36,7 +36,7 @@ const customHTMLElementModels = {
     }),
 };
 
-const defaultViewProps = {style: {alignItems: 'flex-start'}};
+const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
