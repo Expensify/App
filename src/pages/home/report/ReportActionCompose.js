@@ -202,7 +202,6 @@ class ReportActionCompose extends React.Component {
     }
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
-        console.log('ReportActionCompose isFullComposerAvailable = ', isFullComposerAvailable);
         this.setState({isFullComposerAvailable});
     }
 
