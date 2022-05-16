@@ -560,6 +560,7 @@ export default {
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
+            bankAccountAlreadyExists: 'Bank Account Already Exists.',
         },
     },
     addPersonalBankAccountPage: {

@@ -6,6 +6,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -63,10 +64,6 @@ function fetchPlaidBankAccounts(publicToken, bank) {
             // Filter out any accounts that already exist since they cannot be used again.
             plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
 
-            if (plaidBankAccounts.length === 0) {
-                Growl.error(Localize.translateLocal('bankAccount.error.noBankAccountAvailable'));
-            }
-
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
                 error: {
                     title: response.title,
@@ -79,6 +76,11 @@ function fetchPlaidBankAccounts(publicToken, bank) {
                 })),
                 bankName,
             });
+
+            if (plaidBankAccounts.length === 0) {
+                Navigation.goBack();
+                Growl.error(Localize.translateLocal('bankAccount.error.noBankAccountAvailable'));
+            }
         });
 }
 

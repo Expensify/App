@@ -89,6 +89,8 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
 
             if (response.message === 'Incorrect Expensify password entered') {
                 ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
+            } else if (response.title === 'Bank Account Already Exists') {
+                ReimbursementAccount.showBankAccountErrorModal(Localize.translateLocal('bankAccount.error.bankAccountAlreadyExists'));
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })

@@ -560,6 +560,7 @@ export default {
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
+            bankAccountAlreadyExists: 'Bank Account Already Exists.',
         },
     },
     addPersonalBankAccountPage: {

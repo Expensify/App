@@ -134,6 +134,7 @@ class AddPlaidBankAccount extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.setBankAccountFormValidationErrors({});
+        BankAccounts.showBankAccountErrorModal('');
     }
 
     /**
