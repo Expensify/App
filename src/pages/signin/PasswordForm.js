@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
@@ -47,6 +48,7 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.resetPassword = this.resetPassword.bind(this);
 
         this.state = {
             formError: false,
@@ -56,15 +58,15 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
+        if (!canFocusInputOnScreenFocus() || !this.inputPassword || !this.props.isVisible) {
             return;
         }
-        this.input.focus();
+        this.inputPassword.focus();
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isVisible && this.props.isVisible) {
-            this.input.focus();
+            this.inputPassword.focus();
         }
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
             this.clearPassword();
@@ -75,7 +77,17 @@ class PasswordForm extends React.Component {
      * Clear Password from the state
      */
     clearPassword() {
-        this.setState({password: ''}, this.input.clear);
+        this.setState({password: ''}, this.inputPassword.clear);
+    }
+
+    /**
+     * Trigger the reset password flow and ensure the 2FA input field is reset to avoid it being permanently hidden
+     */
+    resetPassword() {
+        if (this.input2FA) {
+            this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
+        }
+        Session.resetPassword();
     }
 
     /**
@@ -89,6 +101,11 @@ class PasswordForm extends React.Component {
 
         if (!this.state.password.trim()) {
             this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            return;
+        }
+
+        if (!ValidationUtils.isValidPassword(this.state.password)) {
+            this.setState({formError: 'passwordForm.error.incorrectLoginOrPassword'});
             return;
         }
 
@@ -109,7 +126,7 @@ class PasswordForm extends React.Component {
             <>
                 <View style={[styles.mv3]}>
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={el => this.inputPassword = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
@@ -124,7 +141,7 @@ class PasswordForm extends React.Component {
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={Session.resetPassword}
+                            onPress={this.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
@@ -137,6 +154,7 @@ class PasswordForm extends React.Component {
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
                         <TextInput
+                            ref={el => this.input2FA = el}
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}

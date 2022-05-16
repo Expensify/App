@@ -32,7 +32,7 @@ import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -44,6 +44,7 @@ import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -87,16 +88,20 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape({
+        /** Primary login of the user */
+        login: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -106,9 +111,9 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -128,6 +133,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.getIOUOptions = this.getIOUOptions.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -234,6 +240,45 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Returns the list of IOU Options
+     *
+     * @param {Array} reportParticipants
+     * @returns {Array<object>}
+     */
+    getIOUOptions(reportParticipants) {
+        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
+        const hasMultipleParticipants = participants.length > 1;
+        const iouOptions = [];
+
+        if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
+            return [];
+        }
+
+        if (hasMultipleParticipants) {
+            return [{
+                icon: Expensicons.Receipt,
+                text: this.props.translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+            }];
+        }
+
+        iouOptions.push({
+            icon: Expensicons.MoneyCircle,
+            text: this.props.translate('iou.requestMoney'),
+            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+        });
+        if (Permissions.canUseIOUSend(this.props.betas)) {
+            iouOptions.push({
+                icon: Expensicons.Send,
+                text: this.props.translate('iou.sendMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+            });
+        }
+        return iouOptions;
+    }
+
+    /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
@@ -304,7 +349,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.trim().length === 0,
+            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });
 
         // Indicate that draft has been created.
@@ -371,7 +416,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (!trimmedComment || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -392,8 +437,6 @@ class ReportActionCompose extends React.Component {
         }
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
@@ -417,7 +460,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        isUploadingAttachment
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -449,47 +492,7 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                animationIn="fadeInUp"
-                                                animationOut="fadeOutDown"
-                                                menuItems={[
-                                                    ...(!hasExcludedIOUEmails
-                                                        && Permissions.canUseIOU(this.props.betas) ? [
-                                                            hasMultipleParticipants
-                                                                ? {
-                                                                    icon: Expensicons.Receipt,
-                                                                    text: this.props.translate('iou.splitBill'),
-                                                                    onSelected: () => {
-                                                                        Navigation.navigate(
-                                                                            ROUTES.getIouSplitRoute(
-                                                                                this.props.reportID,
-                                                                            ),
-                                                                        );
-                                                                    },
-                                                                } : {
-                                                                    icon: Expensicons.MoneyCircle,
-                                                                    text: this.props.translate('iou.requestMoney'),
-                                                                    onSelected: () => {
-                                                                        Navigation.navigate(
-                                                                            ROUTES.getIouRequestRoute(
-                                                                                this.props.reportID,
-                                                                            ),
-                                                                        );
-                                                                    },
-                                                                },
-                                                        ] : []),
-                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
-                                                        {
-                                                            icon: Expensicons.Send,
-                                                            text: this.props.translate('iou.sendMoney'),
-                                                            onSelected: () => {
-                                                                Navigation.navigate(
-                                                                    ROUTES.getIOUSendRoute(
-                                                                        this.props.reportID,
-                                                                    ),
-                                                                );
-                                                            },
-                                                        },
-                                                    ] : []),
+                                                menuItems={[...this.getIOUOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -638,6 +641,9 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);
