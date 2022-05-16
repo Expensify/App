@@ -131,6 +131,7 @@ const webViewStyles = {
     },
 
     baseFontStyle: {
+        ...whiteSpace.pre,
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
