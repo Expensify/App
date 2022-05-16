@@ -487,9 +487,10 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
  * Navigate to the details page of a given report
  *
  * @param {Object} report
- * @param {Array} participants
  */
-function navigateToDetailsPage(report, participants) {
+function navigateToDetailsPage(report) {
+    const participants = lodashGet(report, 'participants', []);
+
     if (isChatRoom(report) || isPolicyExpenseChat(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
