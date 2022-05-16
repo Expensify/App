@@ -230,132 +230,97 @@ class DebitCardPage extends Component {
                        validate={() => {}}
                        onSubmit={() => {}}
                        submitButtonText="Save"
+                       style={[styles.mh5, styles.mb5]}
                     >
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <TextInput
-                                label={this.props.translate('addDebitCardPage.nameOnCard')}
-                                onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard', nameOnCard)}
-                                value={this.state.nameOnCard}
-                                errorText={this.getErrorText('nameOnCard')}
-                            />
-                            <TextInput
-                                label={this.props.translate('addDebitCardPage.debitCardNumber')}
-                                containerStyles={[styles.mt4]}
-                                onChangeText={cardNumber => this.clearErrorAndSetValue('cardNumber', cardNumber)}
-                                value={this.state.cardNumber}
-                                errorText={this.getErrorText('cardNumber')}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
-                            <View style={[styles.flexRow, styles.mt4]}>
-                                <View style={[styles.flex1, styles.mr2]}>
-                                    <TextInput
-                                        label={this.props.translate('addDebitCardPage.expiration')}
-                                        placeholder={this.props.translate('addDebitCardPage.expirationDate')}
-                                        value={this.state.expirationDate}
-                                        errorText={this.getErrorText('expirationDate')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                        onChangeText={this.addOrRemoveSlashToExpiryDate}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <TextInput
-                                        label={this.props.translate('addDebitCardPage.cvv')}
-                                        onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
-                                        value={this.state.securityCode}
-                                        maxLength={4}
-                                        errorText={this.getErrorText('securityCode')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    />
-                                </View>
-                            </View>
-                            <AddressSearch
-                                label={this.props.translate('addDebitCardPage.billingAddress')}
-                                containerStyles={[styles.mt4]}
-                                value={this.state.addressStreet}
-                                onInputChange={(values) => {
-                                    const renamedFields = {
-                                        street: 'addressStreet',
-                                        state: 'addressState',
-                                        zipCode: 'addressZipCode',
-                                    };
-                                    _.each(values, (value, inputKey) => {
-                                        if (inputKey === 'city') {
-                                            return;
-                                        }
-                                        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                        this.clearErrorAndSetValue(renamedInputKey, value);
-                                    });
-                                }}
-                                errorText={this.getErrorText('addressStreet')}
-                            />
-                            <View style={[styles.flexRow, styles.mt4]}>
-                                <View style={[styles.flex2, styles.mr2]}>
-                                    <TextInput
-                                        label={this.props.translate('common.zip')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                                        value={this.state.addressZipCode}
-                                        errorText={this.getErrorText('addressZipCode')}
-                                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <StatePicker
-                                        onInputChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                        value={this.state.addressState}
-                                        errorText={this.getErrorText('addressState')}
-                                    />
-                                </View>
-                            </View>
-                            <View style={[styles.mt4]}>
+                        <TextInput
+                            inputID="nameOnCard"
+                            label={this.props.translate('addDebitCardPage.nameOnCard')}
+                        />
+                        <TextInput
+                            inputID="cardNumber"
+                            label={this.props.translate('addDebitCardPage.debitCardNumber')}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        />
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex1, styles.mr2]}>
                                 <TextInput
-                                    label={this.props.translate('addDebitCardPage.expensifyPassword')}
-                                    onChangeText={password => this.clearErrorAndSetValue('password', password)}
-                                    value={this.state.password}
-                                    errorText={this.getErrorText('password')}
-                                    textContentType="password"
-                                    autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                                    secureTextEntry
+                                    inputID="expiration"
+                                    label={this.props.translate('addDebitCardPage.expiration')}
+                                    placeholder={this.props.translate('addDebitCardPage.expirationDate')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
                             </View>
-                            <CheckboxWithLabel
-                                isChecked={this.state.acceptedTerms}
-                                onInputChange={() => {
-                                    this.setState(prevState => ({
-                                        acceptedTerms: !prevState.acceptedTerms,
-                                        errors: {
-                                            ...prevState.errors,
-                                            acceptedTerms: false,
-                                        },
-                                    }));
-                                }}
-                                LabelComponent={() => (
-                                    <>
-                                        <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
-                                        <TextLink href="https://use.expensify.com/terms">
-                                            {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
-                                        </TextLink>
-                                    </>
-                                )}
-                                style={styles.mt4}
-                                errorText={this.getErrorText('acceptedTerms')}
+                            <View style={[styles.flex1]}>
+                                <TextInput
+                                    inputID="cvv"
+                                    label={this.props.translate('addDebitCardPage.cvv')}
+                                    maxLength={4}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                />
+                            </View>
+                        </View>
+                        <AddressSearch
+                            inputID="address"
+                            label={this.props.translate('addDebitCardPage.billingAddress')}
+                            containerStyles={[styles.mt4]}
+                            onInputChange={(values) => {
+                                const renamedFields = {
+                                    street: 'addressStreet',
+                                    state: 'addressState',
+                                    zipCode: 'addressZipCode',
+                                };
+                                _.each(values, (value, inputKey) => {
+                                    if (inputKey === 'city') {
+                                        return;
+                                    }
+                                    const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                    this.clearErrorAndSetValue(renamedInputKey, value);
+                                });
+                            }}
+                            errorText={this.getErrorText('addressStreet')}
+                        />
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex2, styles.mr2]}>
+                                <TextInput
+                                    label={this.props.translate('common.zip')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                    onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                                    value={this.state.addressZipCode}
+                                    errorText={this.getErrorText('addressZipCode')}
+                                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <StatePicker
+                                    onInputChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                    value={this.state.addressState}
+                                    errorText={this.getErrorText('addressState')}
+                                />
+                            </View>
+                        </View>
+                        <View style={[styles.mt4]}>
+                            <TextInput
+                                label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                onChangeText={password => this.clearErrorAndSetValue('password', password)}
+                                value={this.state.password}
+                                errorText={this.getErrorText('password')}
+                                textContentType="password"
+                                autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                                secureTextEntry
                             />
                         </View>
-                        {!_.isEmpty(this.props.addDebitCardForm.error) && (
-                            <View style={[styles.mh5, styles.mb5]}>
-                                <Text style={[styles.formError]}>
-                                    {this.props.addDebitCardForm.error}
-                                </Text>
-                            </View>
-                        )}
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={this.state.shouldShowAlertPrompt}
-                            buttonText={this.props.translate('common.save')}
-                            onSubmit={this.submit}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
-                            isLoading={this.props.addDebitCardForm.submitting}
+                        <CheckboxWithLabel
+                            inputID="acceptedTerms"
+                            LabelComponent={() => (
+                                <>
+                                    <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
+                                    <TextLink href="https://use.expensify.com/terms">
+                                        {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
+                                    </TextLink>
+                                </>
+                            )}
+                            style={[styles.mt4, styles.mb5]}
                         />
                     </Form>
                 </KeyboardAvoidingView>
