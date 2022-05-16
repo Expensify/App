@@ -24,7 +24,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
-import FormScrollView from '../../../components/FormScrollView';
+import Form from '../../../components/Form';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -225,8 +225,11 @@ class DebitCardPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <FormScrollView
-                        ref={el => this.form = el}
+                    <Form
+                       formID="test"
+                       validate={() => {}}
+                       onSubmit={() => {}}
+                       submitButtonText="Save"
                     >
                         <View style={[styles.mh5, styles.mb5]}>
                             <TextInput
@@ -354,7 +357,7 @@ class DebitCardPage extends Component {
                             }}
                             isLoading={this.props.addDebitCardForm.submitting}
                         />
-                    </FormScrollView>
+                    </Form>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
