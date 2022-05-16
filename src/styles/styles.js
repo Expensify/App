@@ -100,8 +100,8 @@ const webViewStyles = {
 
         pre: {
             ...baseCodeTagStyles,
-            paddingTop: 4,
-            paddingBottom: 5,
+            paddingTop: 12,
+            paddingBottom: 12,
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
@@ -2511,6 +2511,13 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+    },
+
+    screenCenteredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        marginBottom: 40,
+        padding: 16,
     },
 };
 

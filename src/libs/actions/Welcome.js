@@ -2,23 +2,66 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
+import createOnReadyTask from '../createOnReadyTask';
 
-/* Flag for new users used to show welcome actions on first load */
-let isFirstTimeNewExpensifyUser = false;
+const readyTask = createOnReadyTask();
+
+let isFirstTimeNewExpensifyUser;
+let isLoadingReportData = true;
+let isLoadingPolicyData = true;
+
+/**
+ * Check that a few requests have completed so that the welcome action can proceed:
+ *
+ * - Whether we are a first time new expensify user
+ * - Whether we have loaded all policies the server knows about
+ * - Whether we have loaded all reports the server knows about
+ */
+function checkOnReady() {
+    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingPolicyData || isLoadingReportData) {
+        return;
+    }
+
+    readyTask.setIsReady();
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    callback: val => isFirstTimeNewExpensifyUser = val,
+    initWithStoredValues: false,
+    callback: (val) => {
+        isFirstTimeNewExpensifyUser = val;
+        checkOnReady();
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (val) => {
+        isLoadingReportData = val;
+        checkOnReady();
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_POLICY_DATA,
+    initWithStoredValues: false,
+    callback: (val) => {
+        isLoadingPolicyData = val;
+        checkOnReady();
+    },
 });
 
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    initWithStoredValues: false,
     callback: (val, key) => {
         if (!val || !key) {
             return;
@@ -45,12 +88,10 @@ Onyx.connect({
  *
  * @param {Object} params
  * @param {Object} params.routes
- * @param {Function} params.hideCreateMenu
+ * @param {Function} params.showCreateMenu
  */
-function show({routes, hideCreateMenu}) {
-    // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
-    // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
-    setTimeout(() => {
+function show({routes, showCreateMenu}) {
+    readyTask.isReady().then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
@@ -72,15 +113,19 @@ function show({routes, hideCreateMenu}) {
         const exitingToWorkspaceRoute = lodashGet(loginWithShortLivedTokenRoute, 'params.exitTo', '') === 'workspace/new';
         const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
-        // It's also possible that we already have a workspace policy. In either case we will not hide the menu but do still want to set the NVP in this case
-        // since the user does not need to create a workspace.
+        // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
+        // we will show the create menu.
         if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
-            hideCreateMenu();
+            showCreateMenu();
         }
-    }, 1500);
+    });
+}
+
+function resetReadyCheck() {
+    readyTask.reset();
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     show,
+    resetReadyCheck,
 };

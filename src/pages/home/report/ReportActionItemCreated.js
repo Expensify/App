@@ -6,7 +6,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 
 const propTypes = {

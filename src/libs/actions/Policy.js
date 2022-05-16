@@ -5,6 +5,7 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
@@ -209,9 +210,11 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
+    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
                 return;
             }
 
@@ -223,6 +226,8 @@ function getPolicyList() {
             if (!_.isEmpty(policyCollection)) {
                 updateAllPolicies(policyCollection);
             }
+
+            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
         });
 }
 
@@ -513,7 +518,7 @@ function updateLastAccessedWorkspace(policyID) {
  */
 function subscribeToPolicyEvents() {
     _.each(allPolicies, (policy, key) => {
-        const pusherChannelName = `public-policyEditor-${policy.id}`;
+        const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
             const policyWithoutEmployee = _.clone(policy);
             policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
