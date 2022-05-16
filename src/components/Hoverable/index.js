@@ -13,12 +13,13 @@ class Hoverable extends Component {
         super(props);
         this.state = {
             isHovered: false,
+            isScrolling: false,
         };
 
         this.wrapperView = null;
 
         this.resetHoverStateOnOutsideClick = this.resetHoverStateOnOutsideClick.bind(this);
-        this.unsetScrollingAndSetHovered = _.debounce(this.unsetScrollingAndSetHovered, 100);
+        this.unsetScrolling = _.debounce(this.unsetScrolling.bind(this), 100);
         this.setScrollingAndStartUnsetListener = this.setScrollingAndStartUnsetListener.bind(this);
     }
 
@@ -53,12 +54,6 @@ class Hoverable extends Component {
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
-        this.hovering = isHovered;
-
-        // When hover is activated and user is scrolling, do not set the hover state to true
-        if (isHovered && this.isScrolling) {
-            return;
-        }
         if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
@@ -73,19 +68,15 @@ class Hoverable extends Component {
      * Toggle scrolling status and set the hover state
      */
     setScrollingAndStartUnsetListener() {
-        this.isScrolling = true;
-        this.unsetScrollingAndSetHovered();
+        if (!this.state.isScrolling) {
+            this.setState({isScrolling: true});
+        }
+        this.unsetScrolling.cancel();
+        this.unsetScrolling();
     }
 
-    /**
-     * Unset the scrolling status and set the hover state to true when user is hovering the component.
-     */
-    unsetScrollingAndSetHovered() {
-        this.isScrolling = false;
-        if (!this.hovering) {
-            return;
-        }
-        this.setIsHovered(true);
+    unsetScrolling() {
+        this.setState({isScrolling: false});
     }
 
     /**
@@ -107,6 +98,8 @@ class Hoverable extends Component {
     }
 
     render() {
+        const hovered = this.state.isHovered && !this.state.isScrolling;
+
         if (this.props.absolute && React.isValidElement(this.props.children)) {
             return React.cloneElement(React.Children.only(this.props.children), {
                 ref: (el) => {
@@ -131,7 +124,7 @@ class Hoverable extends Component {
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
                     _.isFunction(this.props.children)
-                        ? this.props.children(this.state.isHovered)
+                        ? this.props.children(hovered)
                         : this.props.children
                 }
             </View>
