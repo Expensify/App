@@ -192,6 +192,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
+            return true;
+        }
+
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
