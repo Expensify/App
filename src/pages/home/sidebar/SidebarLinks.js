@@ -24,7 +24,7 @@ import participantPropTypes from '../../../components/participantPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 
@@ -41,8 +41,13 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     reports: PropTypes.objectOf(PropTypes.shape({
+        /** ID of the report */
         reportID: PropTypes.number,
+
+        /** Name of the report */
         reportName: PropTypes.string,
+
+        /** Number of unread actions on the report */
         unreadActionCount: PropTypes.number,
     })),
 
