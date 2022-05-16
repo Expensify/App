@@ -43,7 +43,7 @@ describe('actions/Report', () => {
     afterEach(() => {
         // Unsubscribe from account channel after each test since we subscribe in the function
         // subscribeToUserEvents and we don't want duplicate event subscriptions.
-        Pusher.unsubscribe(`private-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
+        Pusher.unsubscribe(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
     });
 
     it('should store a new report action in Onyx when reportComment event is handled via Pusher', () => {
@@ -104,7 +104,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
-                const channel = Pusher.getChannel(`private-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
+                const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.REPORT_COMMENT, {
                     reportID: REPORT_ID,
                     reportAction: {...REPORT_ACTION, clientID},
@@ -158,7 +158,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportTogglePinned
                 // Pusher event so we can verify that pinning was handled correctly and merged into the report.
-                const channel = Pusher.getChannel(`private-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
+                const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.REPORT_TOGGLE_PINNED, {
                     reportID: REPORT_ID,
                     isPinned: true,
