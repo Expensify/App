@@ -39,7 +39,7 @@ class BasePicker extends React.Component {
                 onClose={this.props.onClose}
                 pickerProps={{
                     onFocus: this.props.onOpen,
-                    onBlur: this.props.onBlur,
+                    onBlur: this.props.onClose,
                     ref: this.props.innerRef,
                 }}
             />
