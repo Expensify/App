@@ -119,7 +119,6 @@ class Composer extends React.Component {
                 start: initialValue.length,
                 end: initialValue.length,
             },
-            isFullComposerAvailable: null,
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
@@ -332,12 +331,13 @@ class Composer extends React.Component {
      * divide by line height to get the total number of rows for the textarea.
      */
     updateNumberOfLines() {
-        // Update the parent's isFullComposerAvailable state
+        // Hide the composer expand button so we can get an accurate reading of
+        // the height of the text input
         this.props.setIsFullComposerAvailable(false);
 
         // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
-        this.setState({numberOfLines: 1, isFullComposerAvailable: false}, () => {
+        this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
@@ -359,9 +359,8 @@ class Composer extends React.Component {
         if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
             isFullComposerAvailable = true;
         }
-        if (isFullComposerAvailable !== this.state.isFullComposerAvailable) {
+        if (isFullComposerAvailable !== this.props.isFullComposerAvailable) {
             this.props.setIsFullComposerAvailable(isFullComposerAvailable);
-            this.setState({isFullComposerAvailable});
         }
     }
 
