@@ -332,13 +332,29 @@ class Composer extends React.Component {
      * divide by line height to get the total number of rows for the textarea.
      */
     updateNumberOfLines() {
-        const computedStyle = window.getComputedStyle(this.textInput);
-        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
-        const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+        // Update the parent's isFullComposerAvailable state
+        this.props.setIsFullComposerAvailable(false);
 
-        // Update isFullComposerAvailable if needed
+        // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
+        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
+        this.setState({numberOfLines: 1, isFullComposerAvailable: false}, () => {
+            const computedStyle = window.getComputedStyle(this.textInput);
+            const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
+            + parseInt(computedStyle.paddingTop, 10);
+            const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            this.updateIsFullComposerAvailable(numberOfLines);
+            this.setState({
+                numberOfLines,
+            });
+        });
+    }
+
+    /**
+     * Update isFullComposerAvailable if needed
+     * @param {Number} numberOfLines The number of lines in the text input
+     */
+    updateIsFullComposerAvailable(numberOfLines) {
         let isFullComposerAvailable = false;
         if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
             isFullComposerAvailable = true;
@@ -347,14 +363,6 @@ class Composer extends React.Component {
             this.props.setIsFullComposerAvailable(isFullComposerAvailable);
             this.setState({isFullComposerAvailable});
         }
-
-        // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
-        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
-        this.setState({numberOfLines: 1}, () => {
-            this.setState({
-                numberOfLines,
-            });
-        });
     }
 
     render() {
