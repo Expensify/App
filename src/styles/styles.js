@@ -1361,6 +1361,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    chatFooterFullCompose: {
+        flex: '1 0 100%',
+    },
+
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,

@@ -196,7 +196,7 @@ class ReportScreen extends React.Component {
                         />
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.flex1]}>
+                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {
                                 isArchivedRoom
                                     ? (
