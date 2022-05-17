@@ -115,22 +115,13 @@ class Composer extends React.Component {
      * @param {Event} e
      */
     updateNumberOfLines(e) {
-        // Hide the composer expand button so we can get an accurate reading of
-        // the height of the text input
-        this.props.setIsFullComposerAvailable(false);
-
-        // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
-        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         const lineHeight = this.state.propStyles.lineHeight;
-        console.log('lineHeight', lineHeight);
-        console.log('e', e);
         const paddingTopAndBottom = this.state.propStyles.paddingVertical * 2;
         const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
         if (!inputHeight) {
             return;
         }
         const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
-        console.log('numberOfLines', numberOfLines);
         this.updateIsFullComposerAvailable(numberOfLines);
     }
 
