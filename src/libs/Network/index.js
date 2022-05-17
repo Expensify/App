@@ -32,10 +32,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             shouldUseSecure,
         };
 
+        // By default, request are retry-able and cancellable
+        // (e.g. any requests currently happening when the user logs out are cancelled)
         request.data = {
             ...data,
-
-            // By default, requests are cancellable and any requests currently happening when the user logs out are cancelled.
+            shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
             appversion: version,
         };
@@ -43,13 +44,6 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         const shouldPersist = lodashGet(request, 'data.persist', false);
         if (shouldPersist) {
             SequentialQueue.push(request);
-            return;
-        }
-
-        // If we are offline and attempting to make a read request then we will resolve this promise with a non-200 jsonCode that implies it
-        // could not succeed. We do this any so any requests that block the UI will be able to handle this case (e.g. reset loading flag)
-        if (NetworkStore.isOffline()) {
-            resolve({jsonCode: CONST.JSON_CODE.OFFLINE});
             return;
         }
 

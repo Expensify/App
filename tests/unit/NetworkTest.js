@@ -305,35 +305,6 @@ test('Non-retryable request will not be retried if connection is lost in flight'
         });
 });
 
-test('Non-retryable request will not be retried if we are offline', () => {
-    // Given a xhr mock that will fail as if network connection dropped
-    const xhr = jest.spyOn(HttpUtils, 'xhr');
-    let promise;
-    return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true})
-        .then(() => {
-            // Given a regular non retryable request
-            promise = Network.post('Get');
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // When network connection is recovered
-            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // Advance the network request queue by 1 second so that it can realize it's back online
-            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // Then the request should not have been attempted at all and we should get an offline jsonCode
-            expect(xhr).toHaveBeenCalledTimes(0);
-
-            // And the promise should be resolved with the special offline jsonCode
-            return expect(promise).resolves.toEqual({jsonCode: CONST.JSON_CODE.OFFLINE});
-        });
-});
-
 test('Retryable requests should be persisted while offline', () => {
     // We don't expect calls `xhr` so we make the test fail if such call is made
     const xhr = jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
@@ -568,7 +539,6 @@ test('several actions made while offline will get added in the order they are cr
     // Given offline state where all requests will eventualy succeed without issue
     const xhr = jest.spyOn(HttpUtils, 'xhr')
         .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
-    let nonPersistableRequest;
     return Onyx.multiSet({
         [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
         [ONYXKEYS.NETWORK]: {isOffline: true},
@@ -579,7 +549,7 @@ test('several actions made while offline will get added in the order they are cr
             Network.post('MockCommand', {content: 'value1', persist: true});
             Network.post('MockCommand', {content: 'value2', persist: true});
             Network.post('MockCommand', {content: 'value3', persist: true});
-            nonPersistableRequest = Network.post('MockCommand', {content: 'not-persisted'});
+            Network.post('MockCommand', {content: 'not-persisted'});
             Network.post('MockCommand', {content: 'value4', persist: true});
             Network.post('MockCommand', {content: 'value5', persist: true});
             Network.post('MockCommand', {content: 'value6', persist: true});
@@ -598,14 +568,6 @@ test('several actions made while offline will get added in the order they are cr
             expect(xhr.mock.calls[3][1].content).toBe('value4');
             expect(xhr.mock.calls[4][1].content).toBe('value5');
             expect(xhr.mock.calls[5][1].content).toBe('value6');
-
-            // Move main queue forward
-            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // We should not expect the request that could not be retried to resolve
-            expect(nonPersistableRequest).resolves.toEqual({jsonCode: CONST.JSON_CODE.OFFLINE});
         });
 });
 
