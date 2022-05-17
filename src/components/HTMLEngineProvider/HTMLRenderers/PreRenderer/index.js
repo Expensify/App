@@ -30,6 +30,10 @@ class PreRenderer extends React.Component {
     scrollNode(event) {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
+
+        /* if the user scrolls horizontally while scrolling with two fingers on the touchpads,
+        the fingers may go up a little during that scroll, and the page will start to scroll
+        vertically due to this going up. With this sensitive we eliminate this bug. */
         const isVerticalScrolling = Math.abs(event.deltaY) > 3; // This is for touchpads sensitive
         if ((event.currentTarget === node) && horizontalOverflow && !isVerticalScrolling) {
             node.scrollLeft += event.deltaX;
