@@ -25,7 +25,7 @@ const propTypes = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
 
-    /** Function for using fallback avatar */
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 };
 
