@@ -1042,9 +1042,9 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+    onlyEmojisText: {
+        fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: {
