@@ -140,7 +140,6 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {submitting: true});
     API.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
@@ -152,7 +151,7 @@ function addBillingCard(params) {
         isP2PDebitCard: true,
         password: params.password,
     }).then(((response) => {
-        let errorMessage = '';
+        let serverErrorMessage = '';
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
@@ -173,12 +172,12 @@ function addBillingCard(params) {
             Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             continueSetup();
         } else {
-            errorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
+            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
 
         Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-            submitting: false,
-            error: errorMessage,
+            isSubmitting: false,
+            serverErrorMessage,
         });
     }));
 }
