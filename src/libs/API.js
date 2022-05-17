@@ -107,11 +107,12 @@ function DeleteFund(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
+ * @param {Boolean} parameters.shouldRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword'],
+    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
 
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request

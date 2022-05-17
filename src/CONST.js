@@ -313,7 +313,6 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        OFFLINE: 'offline',
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     ERROR: {
