@@ -1,7 +1,7 @@
-// Taken from GetCurrencyList API.
-
 import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
+
+// Taken from GetCurrencyList API.
 import currencyList from './currencyList.json';
 
 const currencyCodeList = _.keys(currencyList);
