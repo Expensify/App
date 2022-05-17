@@ -82,16 +82,6 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Keep TextInput focused if no amount is entered.
-     */
-    focusEmptyInput() {
-        if (this.state.amount !== '') {
-            return;
-        }
-        this.textInput.focus();
-    }
-
-    /**
      * Focus text input
      */
     focusTextInput() {

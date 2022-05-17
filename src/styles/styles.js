@@ -100,8 +100,8 @@ const webViewStyles = {
 
         pre: {
             ...baseCodeTagStyles,
-            paddingTop: 4,
-            paddingBottom: 5,
+            paddingTop: 12,
+            paddingBottom: 12,
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
@@ -1042,9 +1042,9 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+    onlyEmojisText: {
+        fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: {
