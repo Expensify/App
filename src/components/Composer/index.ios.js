@@ -140,24 +140,19 @@ class Composer extends React.Component {
     }
 
     render() {
-        // Selection Property not worked in IOS properly, So removed from props.
-        const propStyles = StyleSheet.flatten(this.props.style);
-        // const inputHeight = this.props.isComposerFullSize ? '100%' : 'auto';
-        // propStyles.height = inputHeight;
-        const propsWithoutStyles = _.omit(this.props, 'style', 'selection');
+        // Remove the selection property since it doesn't work in iOS
+        const propsToPass = _.omit(this.props, 'selection');
         return (
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                onChange={() => {
-                    this.updateNumberOfLines();
-                }}
+                onChange={() => this.updateNumberOfLines()}
                 onContentSizeChange={e => this.updateNumberOfLines(e)}
                 rejectResponderTermination={false}
-                style={propStyles}
+                style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
+                {...propsToPass}
                 editable={!this.props.isDisabled}
             />
         );
