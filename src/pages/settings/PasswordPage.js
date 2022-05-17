@@ -138,7 +138,7 @@ class PasswordPage extends Component {
 
     render() {
         const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld
-        && !this.props.account.errorInCurrentPassword && !this.props.account.errorToNotAllowPasswordChange;
+        && this.props.account.errorType !== 'current' && this.props.account.errorType !== 'generic';
         return (
             <ScreenWrapper onTransitionEnd={() => {
                 if (!this.currentPasswordInputRef) {
@@ -181,7 +181,7 @@ class PasswordPage extends Component {
                                             value={this.state.currentPassword}
                                             onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
                                             returnKeyType="done"
-                                            hasError={this.state.errors.currentPassword || this.props.account.errorInCurrentPassword}
+                                            hasError={this.state.errors.currentPassword || this.props.account.errorType === 'current'}
                                             errorText={this.getErrorText('currentPassword')}
                                             onSubmitEditing={this.submit}
                                         />
@@ -193,7 +193,7 @@ class PasswordPage extends Component {
                                             autoCompleteType="password"
                                             textContentType="password"
                                             value={this.state.newPassword}
-                                            hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
+                                            hasError={this.state.errors.newPassword || this.props.account.errorType === 'generic'}
                                             errorText={this.state.errors.newPasswordSameAsOld
                                                 ? this.getErrorText('newPasswordSameAsOld')
                                                 : this.getErrorText('newPassword')}
