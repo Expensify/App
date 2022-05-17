@@ -256,8 +256,6 @@ class WorkspaceMembersPage extends React.Component {
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
-        console.log(this.state.showTooltipForLogin);
-
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
