@@ -79,6 +79,7 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
+ * @param {Boolean} [parameters.shouldRetry]
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
