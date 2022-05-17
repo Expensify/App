@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashEndsWith from 'lodash/endsWith';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -20,77 +18,20 @@ import StatePicker from '../../../components/StatePicker';
 import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 
 const propTypes = {
-    addDebitCardForm: PropTypes.shape({
-        /** Error message from API call */
-        error: PropTypes.string,
-
-        /** Whether or not the form is submitting */
-        submitting: PropTypes.bool,
-    }),
-
     /* Onyx Props */
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    addDebitCardForm: {
-        error: '',
-        submitting: false,
-    },
 };
 
 class DebitCardPage extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            nameOnCard: '',
-            cardNumber: '',
-            expirationDate: '',
-            securityCode: '',
-            addressStreet: '',
-            addressState: '',
-            addressZipCode: '',
-            acceptedTerms: false,
-            password: '',
-            errors: {},
-            shouldShowAlertPrompt: false,
-        };
-
-        this.requiredFields = [
-            'nameOnCard',
-            'cardNumber',
-            'expirationDate',
-            'securityCode',
-            'addressStreet',
-            'addressState',
-            'addressZipCode',
-            'password',
-            'acceptedTerms',
-        ];
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            nameOnCard: 'addDebitCardPage.error.invalidName',
-            cardNumber: 'addDebitCardPage.error.debitCardNumber',
-            expirationDate: 'addDebitCardPage.error.expirationDate',
-            securityCode: 'addDebitCardPage.error.securityCode',
-            addressStreet: 'addDebitCardPage.error.addressStreet',
-            addressState: 'addDebitCardPage.error.addressState',
-            addressZipCode: 'addDebitCardPage.error.addressZipCode',
-            acceptedTerms: 'common.error.acceptedTerms',
-            password: 'addDebitCardPage.error.password',
-        };
-
         this.submit = this.submit.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.getErrorText = this.getErrorText.bind(this);
         this.addOrRemoveSlashToExpiryDate = this.addOrRemoveSlashToExpiryDate.bind(this);
         this.validate = this.validate.bind(this);
     }
@@ -100,18 +41,6 @@ class DebitCardPage extends Component {
      */
     componentWillUnmount() {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {String}
-     */
-    getErrorText(inputKey) {
-        if (!lodashGet(this.state.errors, inputKey, false)) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[inputKey]);
     }
 
     /**
@@ -164,22 +93,6 @@ class DebitCardPage extends Component {
     }
 
     /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: false,
-            },
-        }));
-    }
-
-    /**
      * @param {String} inputExpiryDate
      */
     addOrRemoveSlashToExpiryDate(inputExpiryDate) {
@@ -219,11 +132,11 @@ class DebitCardPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <Form
-                        formID={ONYXKEYS.FORM.ADD_DEBIT_CARD}
+                        formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                         validate={this.validate}
                         onSubmit={() => {}}
                         submitButtonText="Save"
-                        style={[styles.mh5, styles.mb5]}
+                        style={[styles.mh5, styles.flexGrow1]}
                     >
                         <TextInput
                             inputID="nameOnCard"
@@ -253,26 +166,13 @@ class DebitCardPage extends Component {
                                 />
                             </View>
                         </View>
-                        <AddressSearch
-                            inputID="addressStreet"
-                            label={this.props.translate('addDebitCardPage.billingAddress')}
-                            containerStyles={[styles.mt4]}
-                            onInputChange={(values) => {
-                                const renamedFields = {
-                                    street: 'addressStreet',
-                                    state: 'addressState',
-                                    zipCode: 'addressZipCode',
-                                };
-                                _.each(values, (value, inputKey) => {
-                                    if (inputKey === 'city') {
-                                        return;
-                                    }
-                                    const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                    this.clearErrorAndSetValue(renamedInputKey, value);
-                                });
-                            }}
-                            errorText={this.getErrorText('addressStreet')}
-                        />
+                        <View>
+                            <AddressSearch
+                                inputID="addressStreet"
+                                label={this.props.translate('addDebitCardPage.billingAddress')}
+                                containerStyles={[styles.mt4]}
+                            />
+                        </View>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <TextInput
@@ -307,7 +207,7 @@ class DebitCardPage extends Component {
                                     </TextLink>
                                 </>
                             )}
-                            style={[styles.mt4, styles.mb5]}
+                            style={[styles.mt4]}
                         />
                     </Form>
                 </KeyboardAvoidingView>
@@ -317,13 +217,5 @@ class DebitCardPage extends Component {
 }
 
 DebitCardPage.propTypes = propTypes;
-DebitCardPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        addDebitCardForm: {
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-        },
-    }),
-    withLocalize,
-)(DebitCardPage);
+export default withLocalize(DebitCardPage);
