@@ -27,7 +27,6 @@ const WorkspaceCardVBANoECardView = props => (
                 {
                     title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
-                        Navigation.dismissModal();
                         Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                         User.subscribeToExpensifyCardUpdates();
                     },
