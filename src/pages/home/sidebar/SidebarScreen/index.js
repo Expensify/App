@@ -1,40 +1,29 @@
-import React, {PureComponent} from 'react';
+import React, {useRef} from 'react';
 import BaseSidebarScreen from './BaseSidebarScreen';
 
-class SidebarScreen extends PureComponent {
+export default function (props) {
+    const BaseSidebarScreenRef = useRef(null);
+
     /**
-     * Method create event listener and bind.
-     * @param {BaseSidebarScreen} baseComponent
+     * Method create event listener
      */
-    createDragoverListener= (baseComponent) => {
-        this.dragOverListener = this.dragOverListener.bind(baseComponent);
-        document.addEventListener('dragover', this.dragOverListener);
-    }
+    const createDragoverListener = () => {
+        document.addEventListener('dragover', BaseSidebarScreenRef.current.hideCreateMenu);
+    };
 
     /**
      * Method remove event listener.
      */
-    removeDragoverListener= () => {
-        document.removeEventListener('dragover', this.dragOverListener);
-    }
-
-    /**
-     * Method called when dragover events on document.
-     */
-    dragOverListener() {
-        this.hideCreateMenu();
-    }
-
-    render() {
-        return (
-            <BaseSidebarScreen
-                afterShowCreateMenu={this.createDragoverListener}
-                beforeHideCreateMenu={this.removeDragoverListener}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-            />
-        );
-    }
+    const removeDragoverListener = () => {
+        document.removeEventListener('dragover', BaseSidebarScreenRef.current.hideCreateMenu);
+    };
+    return (
+        <BaseSidebarScreen
+            innerRef={BaseSidebarScreenRef}
+            onShowCreateMenu={createDragoverListener}
+            onHideCreateMenu={removeDragoverListener}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
 }
-
-export default SidebarScreen;
