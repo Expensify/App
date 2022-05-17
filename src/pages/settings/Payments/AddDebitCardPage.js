@@ -19,7 +19,6 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import StatePicker from '../../../components/StatePicker';
 import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
@@ -93,6 +92,7 @@ class DebitCardPage extends Component {
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
         this.addOrRemoveSlashToExpiryDate = this.addOrRemoveSlashToExpiryDate.bind(this);
+        this.validate = this.validate.bind(this);
     }
 
     /**
@@ -120,41 +120,41 @@ class DebitCardPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (!ValidationUtils.isValidCardName(values.nameOnCard)) {
+        if (!values.nameOnCard || !ValidationUtils.isValidCardName(values.nameOnCard)) {
             errors.nameOnCard = this.props.translate('addDebitCardPage.error.invalidName');
         }
 
-        if (!ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (!values.cardNumber || !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = this.props.translate('addDebitCardPage.error.debitCardNumber');
         }
 
-        if (!ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        if (!values.expirationDate || !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
             errors.expirationDate = this.props.translate('addDebitCardPage.error.expirationDate');
         }
 
-        if (!ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (!values.securityCode || !ValidationUtils.isValidSecurityCode(values.securityCode)) {
             errors.securityCode = this.props.translate('addDebitCardPage.error.securityCode');
         }
 
-        // if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
-        //     errors.addressStreet = this.props.translate('addDebitCardPage.error.invalidName');
-        // }
+        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = this.props.translate('addDebitCardPage.error.addressStreet');
+        }
 
-        // if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
-        //     errors.addressZipCode = this.props.translate('addDebitCardPage.error.invalidName');
-        // }
+        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = this.props.translate('addDebitCardPage.error.addressZipCode');
+        }
 
-        // if (!this.state.addressState) {
-        //     errors.addressState = this.props.translate('addDebitCardPage.error.invalidName');
-        // }
+        if (!values.addressState || !values.addressState) {
+            errors.addressState = this.props.translate('addDebitCardPage.error.addressState');
+        }
 
-        // if (_.isEmpty(this.state.password.trim())) {
-        //     errors.password = this.props.translate('addDebitCardPage.error.invalidName');
-        // }
+        if (!values.password || _.isEmpty(values.password.trim())) {
+            errors.password = this.props.translate('addDebitCardPage.error.password');
+        }
 
-        // if (!this.state.acceptedTerms) {
-        //     errors.acceptedTerms = this.props.translate('addDebitCardPage.error.invalidName');
-        // }
+        if (!values.acceptedTerms) {
+            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        }
 
         return errors;
     }
@@ -222,11 +222,11 @@ class DebitCardPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <Form
-                       formID="test"
-                       validate={this.validate}
-                       onSubmit={() => {}}
-                       submitButtonText="Save"
-                       style={[styles.mh5, styles.mb5]}
+                        formID="test"
+                        validate={this.validate}
+                        onSubmit={() => {}}
+                        submitButtonText="Save"
+                        style={[styles.mh5, styles.mb5]}
                     >
                         <TextInput
                             inputID="nameOnCard"
@@ -257,7 +257,7 @@ class DebitCardPage extends Component {
                             </View>
                         </View>
                         <AddressSearch
-                            inputID="address"
+                            inputID="addressStreet"
                             label={this.props.translate('addDebitCardPage.billingAddress')}
                             containerStyles={[styles.mt4]}
                             onInputChange={(values) => {
@@ -279,28 +279,22 @@ class DebitCardPage extends Component {
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <TextInput
+                                    inputID="addressZipCode"
                                     label={this.props.translate('common.zip')}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                                    value={this.state.addressZipCode}
-                                    errorText={this.getErrorText('addressZipCode')}
                                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
                                 <StatePicker
-                                    onInputChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                    value={this.state.addressState}
-                                    errorText={this.getErrorText('addressState')}
+                                    inputID="addressState"
                                 />
                             </View>
                         </View>
                         <View style={[styles.mt4]}>
                             <TextInput
+                                inputID="password"
                                 label={this.props.translate('addDebitCardPage.expensifyPassword')}
-                                onChangeText={password => this.clearErrorAndSetValue('password', password)}
-                                value={this.state.password}
-                                errorText={this.getErrorText('password')}
                                 textContentType="password"
                                 autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                                 secureTextEntry
