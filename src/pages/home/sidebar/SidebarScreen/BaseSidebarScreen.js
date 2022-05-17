@@ -27,10 +27,10 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 const propTypes = {
 
     /* Create Listener callback */
-    afterShowCreateMenu: PropTypes.func,
+    onShowCreateMenu: PropTypes.func,
 
     /* Remove Listener callback */
-    beforeHideCreateMenu: PropTypes.func,
+    onHideCreateMenu: PropTypes.func,
 
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -43,8 +43,8 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    beforeHideCreateMenu: () => {},
-    afterShowCreateMenu: () => {},
+    onHideCreateMenu: () => {},
+    onShowCreateMenu: () => {},
     isCreatingWorkspace: false,
 };
 
@@ -68,6 +68,9 @@ class BaseSidebarScreen extends Component {
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
+        if (this.props.innerRef) {
+            this.props.innerRef.current = this;
+        }
     }
 
     /**
@@ -77,9 +80,7 @@ class BaseSidebarScreen extends Component {
         this.setState({
             isCreateMenuActive: true,
         });
-        if (this.props.afterShowCreateMenu) {
-            this.props.afterShowCreateMenu(this);
-        }
+        this.props.onShowCreateMenu();
     }
 
     /**
@@ -95,9 +96,7 @@ class BaseSidebarScreen extends Component {
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
-        if (this.props.beforeHideCreateMenu) {
-            this.props.beforeHideCreateMenu();
-        }
+        this.props.onHideCreateMenu();
         this.setState({
             isCreateMenuActive: false,
         });
@@ -109,15 +108,6 @@ class BaseSidebarScreen extends Component {
     startTimer() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-    }
-
-    /**
-     * Method called when dragover events window
-     *
-     * @param {Object} e native Event
-     */
-    dragOverListener() {
-        this.hideCreateMenu();
     }
 
     render() {

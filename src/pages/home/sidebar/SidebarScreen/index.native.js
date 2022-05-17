@@ -1,11 +1,7 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import BaseSidebarScreen from './BaseSidebarScreen';
 
-class SidebarScreen extends PureComponent {
-    render() {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return (<BaseSidebarScreen {...this.props} />);
-    }
+export default function SidebarScreen(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <BaseSidebarScreen {...props} />;
 }
-
-export default SidebarScreen;
