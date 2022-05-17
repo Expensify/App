@@ -148,13 +148,10 @@ class WorkspaceMembersPage extends React.Component {
 
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved) {
+            // Show growl notification to inform the user that they can not remove themselves.
             this.setState({
                 showTooltipForLogin: login,
-            }, () => {
-                this.setState({
-                    showTooltipForLogin: '',
-                });
-            });
+            }, () => this.setState({showTooltipForLogin: ''}));
         }
 
         return !canBeRemoved;
