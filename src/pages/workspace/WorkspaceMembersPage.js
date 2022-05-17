@@ -148,7 +148,13 @@ class WorkspaceMembersPage extends React.Component {
 
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved) {
-            this.setState({showTooltipForLogin: login});
+            this.setState({
+                showTooltipForLogin: login,
+            }, () => {
+                this.setState({
+                    showTooltipForLogin: '',
+                });
+            });
         }
 
         return !canBeRemoved;
