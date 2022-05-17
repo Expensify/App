@@ -147,6 +147,7 @@ class Composer extends React.Component {
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
+                maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
                 onChange={() => this.updateNumberOfLines()}
                 onContentSizeChange={e => this.updateNumberOfLines(e)}
                 rejectResponderTermination={false}
