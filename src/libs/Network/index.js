@@ -4,7 +4,6 @@ import CONST from '../../CONST';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';
 import {version} from '../../../package.json';
-import * as NetworkStore from './NetworkStore';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
