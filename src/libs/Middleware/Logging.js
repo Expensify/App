@@ -101,7 +101,7 @@ function Logging(response, request) {
             } else if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
-                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {error: error.title});
+                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {error: error.title, status: error.status});
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request - ${error.message}`, {
