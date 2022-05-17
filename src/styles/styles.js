@@ -1328,8 +1328,12 @@ const styles = {
     },
 
     chatItemFullComposeRow: {
-        ...flex.flex1,
         ...sizing.h100,
+    },
+
+    debugRed: {
+        borderColor: 'red',
+        borderWidth: 2,
     },
 
     chatItemComposeBoxColor: {
@@ -1350,6 +1354,7 @@ const styles = {
     chatItemFullComposeBox: {
         ...flex.flex1,
         ...spacing.mt4,
+        height: '100%',
     },
 
     chatFooter: {
@@ -1362,7 +1367,9 @@ const styles = {
     },
 
     chatFooterFullCompose: {
-        flex: '1 0 100%',
+        flex: 1,
+        flexShrink: 1,
+        flexBasis: '100%',
     },
 
     textInputCompose: addOutlineWidth({
@@ -1389,11 +1396,12 @@ const styles = {
 
     textInputFullCompose: {
         alignSelf: 'flex-end',
-        textAlignVertical: 'flex-end',
+
+        // textAlignVertical: 'flex-end',
         flex: 1,
         maxHeight: '100%',
         marginVertical: 0,
-        overflowY: 'hidden',
+        overflow: 'hidden',
         paddingVertical: 5,
     },
 

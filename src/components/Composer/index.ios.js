@@ -1,6 +1,8 @@
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
@@ -35,6 +37,19 @@ const propTypes = {
         end: PropTypes.number,
     }),
 
+    /** Whether the full composer can be opened */
+    isFullComposerAvailable: PropTypes.bool.isRequired,
+
+    /** Allow the full composer to be opened */
+    setIsFullComposerAvailable: PropTypes.func,
+
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
+    /** General styles to apply to the text input */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
 };
 
 const defaultProps = {
@@ -47,9 +62,19 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    setIsFullComposerAvailable: () => {},
+    style: null,
 };
 
 class Composer extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            propStyles: StyleSheet.flatten(this.props.style),
+        };
+    }
+
     componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -71,19 +96,78 @@ class Composer extends React.Component {
         this.props.onClear();
     }
 
+    /**
+     * Calculates the max number of lines the text input can have
+     *
+     * @param {Number} lineHeight
+     * @param {Number} paddingTopAndBottom
+     * @param {Number} scrollHeight
+     *
+     * @returns {Number}
+     */
+    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
+        return Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
+    }
+
+    /**
+     * Check the current scrollHeight of the textarea (minus any padding) and
+     * divide by line height to get the total number of rows for the textarea.
+     * @param {Event} e
+     */
+    updateNumberOfLines(e) {
+        // Hide the composer expand button so we can get an accurate reading of
+        // the height of the text input
+        this.props.setIsFullComposerAvailable(false);
+
+        // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
+        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
+        const lineHeight = this.state.propStyles.lineHeight;
+        console.log('lineHeight', lineHeight);
+        console.log('e', e);
+        const paddingTopAndBottom = this.state.propStyles.paddingVertical * 2;
+        const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
+        if (!inputHeight) {
+            return;
+        }
+        const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
+        console.log('numberOfLines', numberOfLines);
+        this.updateIsFullComposerAvailable(numberOfLines);
+    }
+
+    /**
+     * Update isFullComposerAvailable if needed
+     * @param {Number} numberOfLines The number of lines in the text input
+     */
+    updateIsFullComposerAvailable(numberOfLines) {
+        let isFullComposerAvailable = false;
+        if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
+            isFullComposerAvailable = true;
+        }
+        if (isFullComposerAvailable !== this.props.isFullComposerAvailable) {
+            this.props.setIsFullComposerAvailable(isFullComposerAvailable);
+        }
+    }
+
     render() {
         // Selection Property not worked in IOS properly, So removed from props.
-        const propsToPass = _.omit(this.props, 'selection');
+        const propStyles = StyleSheet.flatten(this.props.style);
+        // const inputHeight = this.props.isComposerFullSize ? '100%' : 'auto';
+        // propStyles.height = inputHeight;
+        const propsWithoutStyles = _.omit(this.props, 'style', 'selection');
         return (
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                maxHeight={CONST.COMPOSER_MAX_HEIGHT}
+                onChange={() => {
+                    this.updateNumberOfLines();
+                }}
+                onContentSizeChange={e => this.updateNumberOfLines(e)}
                 rejectResponderTermination={false}
-                editable={!this.props.isDisabled}
+                style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsToPass}
+                {...propsWithoutStyles}
+                editable={!this.props.isDisabled}
             />
         );
     }

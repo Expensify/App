@@ -474,7 +474,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime ? styles.chatItemComposeWithFirstRow : styles.chatItemFullComposeRow]}>
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow, styles.debugRed]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -485,6 +485,7 @@ class ReportActionCompose extends React.Component {
                     styles.chatItemComposeBox,
                     this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                     hasExceededMaxCommentLength && styles.borderColorDanger,
+                    styles.debugRed,
                 ]}
                 >
                     <AttachmentModal
@@ -500,7 +501,7 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween]}>
+                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween, styles.debugRed]}>
                                                 {this.props.isComposerFullSize && (
                                                     <Tooltip text={this.props.translate('reportActionCompose.collapseComposer')}>
                                                         <TouchableOpacity
@@ -603,7 +604,7 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4, styles.debugRed]}
                                     defaultValue={this.props.comment}
                                     maxLines={this.getMaxLines()}
                                     onFocus={() => this.setIsFocused(true)}
@@ -614,7 +615,9 @@ class ReportActionCompose extends React.Component {
                                     isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
+                                    isFullComposerAvailable={this.state.isFullComposerAvailable}
                                     setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                    isComposerFullSize={this.props.isComposerFullSize}
                                 />
                             </>
                         )}
