@@ -474,7 +474,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow, styles.debugRed]}>
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -485,7 +485,6 @@ class ReportActionCompose extends React.Component {
                     styles.chatItemComposeBox,
                     this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                     hasExceededMaxCommentLength && styles.borderColorDanger,
-                    styles.debugRed,
                 ]}
                 >
                     <AttachmentModal
@@ -501,7 +500,7 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween, styles.debugRed]}>
+                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween]}>
                                                 {this.props.isComposerFullSize && (
                                                     <Tooltip text={this.props.translate('reportActionCompose.collapseComposer')}>
                                                         <TouchableOpacity
@@ -604,7 +603,7 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4, styles.debugRed]}
+                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                     defaultValue={this.props.comment}
                                     maxLines={this.getMaxLines()}
                                     onFocus={() => this.setIsFocused(true)}

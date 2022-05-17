@@ -184,7 +184,7 @@ class ReportScreen extends React.Component {
 
                     <View
                         nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.debugRed]}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     >
                         {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
                         {!this.shouldShowLoader() && !this.props.isComposerFullSize && (
