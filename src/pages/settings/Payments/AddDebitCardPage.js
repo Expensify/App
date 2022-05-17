@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import lodashEndsWith from 'lodash/endsWith';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -44,6 +43,7 @@ class DebitCardPage extends Component {
     }
 
     /**
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
     validate(values) {
@@ -88,6 +88,9 @@ class DebitCardPage extends Component {
         return errors;
     }
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
     submit(values) {
         PaymentMethods.addBillingCard(values);
     }
