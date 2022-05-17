@@ -210,6 +210,9 @@ class ReportActionItemMessageEdit extends React.Component {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
+                        onBlur={() => {
+                            toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
+                        }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />

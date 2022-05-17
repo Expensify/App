@@ -31,7 +31,6 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -118,8 +117,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        Session.setShouldShowComposeInput(true);
-
         this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!Visibility.isVisible() || this.props.isDrawerOpen) {
                 return;
@@ -246,7 +243,6 @@ class ReportActionsView extends React.Component {
         if (shouldRecordMaxAction && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
             Report.updateLastReadActionID(this.props.reportID);
-            Session.setShouldShowComposeInput(true);
         }
     }
 
