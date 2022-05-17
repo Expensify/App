@@ -64,7 +64,7 @@ const propTypes = {
     /** Whether the menu item should be interactive at all */
     interactive: PropTypes.bool,
 
-    /** Function for using fallback avatar */
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 };
 

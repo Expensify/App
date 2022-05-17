@@ -53,7 +53,7 @@ const propTypes = {
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
-    /** Function for using fallback avatar */
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
     ...withLocalizePropTypes,
