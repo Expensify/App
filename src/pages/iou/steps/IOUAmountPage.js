@@ -194,10 +194,10 @@ class IOUAmountPage extends React.Component {
 
     navigateToCurrencySelectionPage() {
         Navigation.navigate(
-        	this.props.hasMultipleParticipants
-            ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID)
-            );
+            this.props.hasMultipleParticipants
+                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID),
+        );
     }
 
     render() {
