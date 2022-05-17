@@ -63,6 +63,10 @@ const propTypes = {
         end: PropTypes.number,
     }),
 
+    /** Whether the full composer can be opened */
+    isFullComposerAvailable: PropTypes.bool.isRequired,
+
+    /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
     ...withLocalizePropTypes,

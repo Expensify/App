@@ -15,7 +15,7 @@ import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
-import KeyboardSpacer from '../../components/KeyboardSpacer';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -184,25 +184,26 @@ class ReportScreen extends React.Component {
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
+                <KeyboardAvoidingView>
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
 
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                >
-                    {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                    {!this.shouldShowLoader() && (
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.debugRed]}
+                    >
+                        {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
+                        {!this.shouldShowLoader() && !this.props.isComposerFullSize && (
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             session={this.props.session}
                         />
-                    )}
-                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        )}
+                        {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
                         <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {
                                 isArchivedRoom
@@ -224,9 +225,9 @@ class ReportScreen extends React.Component {
                                     )
                             }
                         </View>
-                    )}
-                    <KeyboardSpacer />
-                </View>
+                        )}
+                    </View>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
