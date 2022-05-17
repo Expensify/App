@@ -141,17 +141,24 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {Boolean} Return true if the tooltip was displayed so we can use the state of it in other functions.
      */
     willTooltipShowForLogin(login, wasHovered = false) {
+        const isSmallOrMediumScreen = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth;
+
         // Small screens only show the tooltip on press, so ignore hovered event on those cases.
-        if (wasHovered && (this.props.isSmallScreenWidth || this.props.isMediumScreenWidth)) {
+        if (wasHovered && isSmallOrMediumScreen) {
             return false;
         }
 
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved) {
-            // Show growl notification to inform the user that they can not remove themselves.
             this.setState({
                 showTooltipForLogin: login,
-            }, () => this.setState({showTooltipForLogin: ''}));
+            }, () => {
+                // Immediately reset the login to deactivate the tooltip trigger, otherwise, the tooltip will not be open again on further interactions on small screens.
+                if (!isSmallOrMediumScreen) {
+                    return;
+                }
+                this.setState({showTooltipForLogin: ''});
+            });
         }
 
         return !canBeRemoved;
@@ -248,6 +255,8 @@ class WorkspaceMembersPage extends React.Component {
             .value();
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
+
+        console.log(this.state.showTooltipForLogin);
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
