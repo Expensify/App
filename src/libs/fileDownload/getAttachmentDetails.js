@@ -6,11 +6,9 @@ import Config from '../../CONFIG';
  * @param {String} html
  * @returns {Object}
  */
-
 export default function getAttachmentName(html) {
     // Files can be rendered either as anchor tag or as an image so based on that we have to form regex.
-    const IMG_TAG_REGEX = /<img([\w\W]+?)\/>/i;
-    const IS_IMAGE_TAG = IMG_TAG_REGEX.test(html);
+    const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');
     const SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}*=*"(.+?)"`, 'i');
     const ORIGINAL_FILENAME_REGEX = IS_IMAGE_TAG ? new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}*=*"(.+?)"`, 'i') : new RegExp('<a[^>]*>([^<]+)</a>', 'i');
