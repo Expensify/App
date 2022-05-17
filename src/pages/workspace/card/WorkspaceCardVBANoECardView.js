@@ -7,7 +7,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as Link from '../../../libs/actions/Link';
 import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
