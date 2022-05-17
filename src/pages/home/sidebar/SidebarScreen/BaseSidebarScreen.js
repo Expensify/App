@@ -2,9 +2,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {withNavigation} from '@react-navigation/compat';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -13,13 +11,11 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import CONST from '../../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
+import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Permissions from '../../../../libs/Permissions';
-import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
@@ -201,19 +197,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default compose(
-    withNavigation,
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isCreatingWorkspace: {
-            key: ONYXKEYS.IS_CREATING_WORKSPACE,
-        },
-    }),
-)(BaseSidebarScreen);
+export default BaseSidebarScreen;
