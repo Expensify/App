@@ -159,11 +159,8 @@ class DebitCardPage extends Component {
         return errors;
     }
 
-    submit() {
-        if (!this.validate()) {
-            return;
-        }
-        PaymentMethods.addBillingCard(this.state);
+    submit(values) {
+        PaymentMethods.addBillingCard(values);
     }
 
     /**
@@ -222,7 +219,7 @@ class DebitCardPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <Form
-                        formID="test"
+                        formID={ONYXKEYS.FORM.ADD_DEBIT_CARD}
                         validate={this.validate}
                         onSubmit={() => {}}
                         submitButtonText="Save"
@@ -325,7 +322,7 @@ DebitCardPage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         addDebitCardForm: {
-            key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
         },
     }),
     withLocalize,
