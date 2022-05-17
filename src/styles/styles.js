@@ -1332,11 +1332,6 @@ const styles = {
         ...sizing.h100,
     },
 
-    debugRed: {
-        borderColor: 'red',
-        borderWidth: 2,
-    },
-
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
