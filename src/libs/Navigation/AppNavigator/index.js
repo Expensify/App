@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import PublicScreens from './PublicScreens';
 import AuthScreens from './AuthScreens';
+import NavigationReadyDetector from './NavigationReadyDetector';
 
 const propTypes = {
     /** If we have an authToken this is true */
@@ -13,7 +14,10 @@ const AppNavigator = props => (
         ? (
 
             // These are the protected screens and only accessible when an authToken is present
-            <AuthScreens />
+            <>
+                <AuthScreens />
+                <NavigationReadyDetector />
+            </>
         )
         : (
             <PublicScreens />
