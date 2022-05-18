@@ -14,8 +14,6 @@ import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import SubscriptAvatar from '../../components/SubscriptAvatar';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import participantPropTypes from '../../components/participantPropTypes';
@@ -28,9 +26,6 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
-    /** The ID of the report */
-    reportID: PropTypes.number.isRequired,
-
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
@@ -121,15 +116,7 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onPress={() => {
-                                if (isChatRoom || isPolicyExpenseChat) {
-                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.reportID));
-                                }
-                                if (participants.length === 1) {
-                                    return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
-                                }
-                                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.reportID));
-                            }}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             {shouldShowSubscript ? (

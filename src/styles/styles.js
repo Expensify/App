@@ -135,6 +135,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        whiteSpace: 'pre',
     },
 };
 
