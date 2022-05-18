@@ -44,5 +44,5 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
-    minHeightToShowGraphics: 854,
+    minHeightToShowGraphics: 854, // below this height UI was broken on login form layout as there isn't enough height to show forma and graphics.
 };
