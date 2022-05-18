@@ -92,21 +92,26 @@ const AddressSearch = (props) => {
             // that was initially passed to the autocomplete component. Google Places can truncate details
             // like Apt # and this is the best way we have to tell that the new value it's giving us is less
             // specific than the one the user entered manually.
-            values.street = street;
+            values.addressStreet = street;
         }
         if (city) {
-            values.city = city;
+            values.addressCity = city;
         }
         if (zipCode) {
-            values.zipCode = zipCode;
+            values.addressZipCode = zipCode;
         }
         if (state) {
-            values.state = state;
+            values.addressState = state;
         }
         if (_.size(values) === 0) {
             return;
         }
-        props.onInputChange(values);
+        // We need to set the input's value here (convert to controlled input)
+        // maybe pass a param to set other fields only when using it in the AddressForm component
+        _.forEach(values, (value, key) => {
+            props.onInputChange(value, key);
+        })
+        // props.onInputChange(values);
     };
 
     return (
@@ -141,7 +146,8 @@ const AddressSearch = (props) => {
                     }}
                     requestUrl={{
                         useOnPlatform: 'web',
-                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        // url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        url: `https://expensify-cmartins.ngrok.io/api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
