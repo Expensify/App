@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';

@@ -108,6 +108,8 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData(false);
 
+        App.fixAccountAndReloadData();
+
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {

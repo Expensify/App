@@ -137,6 +137,7 @@ class SetPasswordPage extends Component {
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
                             isAlertVisible={!_.isEmpty(error)}
+                            isDisabled={!this.state.isFormValid}
                         />
                     </View>
                 </SignInPageLayout>

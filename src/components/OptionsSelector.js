@@ -30,6 +30,9 @@ const propTypes = {
 
         /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
+
+        /** Whether this section items disabled for selection */
+        isDisabled: PropTypes.bool,
     })).isRequired,
 
     /** Value in the search input field */
