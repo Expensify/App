@@ -153,7 +153,7 @@ class WorkspaceMembersPage extends React.Component {
             this.setState({
                 showTooltipForLogin: login,
             }, () => {
-                // Immediately reset the login to deactivate the tooltip trigger, otherwise, the tooltip will not be open again on further interactions on small screens.
+                // Immediately reset the login to deactivate the tooltip trigger, otherwise, the tooltip will not open again on further interactions on small screens.
                 if (!isSmallOrMediumScreen) {
                     return;
                 }
