@@ -201,6 +201,10 @@ function setIsNavigationReady() {
     navigationReadyTask.setIsReady();
 }
 
+function resetIsNavigationReady() {
+    navigationReadyTask.reset();
+}
+
 /**
  * Alternative to the `Navigation.dismissModal()` function that we can use inside
  * the render function of other components to avoid breaking React rules about side-effects.
@@ -241,6 +245,7 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
+    resetIsNavigationReady,
 };
 
 export {

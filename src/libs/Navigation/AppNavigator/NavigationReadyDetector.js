@@ -2,8 +2,12 @@ import React from 'react';
 import Navigation from '../Navigation';
 
 class NavigationReadyDetector extends React.Component {
-    componentDidUpdate() {
+    componentDidMount() {
         Navigation.setIsNavigationReady();
+    }
+
+    componentWillUnmount() {
+        Navigation.resetIsNavigationReady();
     }
 
     render() {
