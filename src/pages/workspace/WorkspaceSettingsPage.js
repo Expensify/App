@@ -153,6 +153,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     fill={defaultTheme.iconSuccessFill}
                                 />
                             )}
+                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[styles.mb3]}
                             anchorPosition={{top: 172, right: 18}}
                             isUsingDefaultAvatar={!this.state.previewAvatarURL}
