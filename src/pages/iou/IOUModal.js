@@ -434,7 +434,7 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isGroupSplit={this.steps.length === 2}
+                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}
