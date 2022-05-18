@@ -500,7 +500,11 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentBetween]}>
+                                            <View style={[
+                                                styles.dFlex, styles.flexColumn,
+                                                (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                            ]}
+                                            >
                                                 {this.props.isComposerFullSize && (
                                                     <Tooltip text={this.props.translate('reportActionCompose.collapseComposer')}>
                                                         <TouchableOpacity
