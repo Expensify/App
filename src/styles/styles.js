@@ -1490,6 +1490,16 @@ const styles = {
         width: 39,
     },
 
+    composerSizeButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
+    },
+
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
