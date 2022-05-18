@@ -62,8 +62,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Whether this is an IOU split and belongs to a group report */
-    isGroupSplit: PropTypes.bool.isRequired,
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -225,6 +225,7 @@ class IOUConfirmationList extends Component {
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
+                isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedSelectedParticipants,
@@ -350,6 +351,7 @@ class IOUConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
+        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
         return (
             <>
                 <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
@@ -362,7 +364,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        isDisabled={!this.props.isGroupSplit}
+                        isDisabled={!canModifyParticipants}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>

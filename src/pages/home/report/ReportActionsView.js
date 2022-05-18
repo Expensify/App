@@ -119,7 +119,9 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.updateNewMarkerPosition = this.updateNewMarkerPosition.bind(this);
         this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
+        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
         this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
         this.scrollToReportActionID = this.scrollToReportActionID.bind(this);
         this.recordReportActionIDRendered = this.recordReportActionIDRendered.bind(this);
@@ -508,6 +510,7 @@ class ReportActionsView extends React.Component {
                     scrollToReportActionID={this.scrollToReportActionID}
                     onItemRendered={this.recordReportActionIDRendered}
                     onMeasurementEnd={this.recordMeasurementDone}
+                    loadMoreChats={this.loadMoreChats}
                 />
                 <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />

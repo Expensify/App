@@ -8,7 +8,7 @@ import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
@@ -64,6 +64,9 @@ const propTypes = {
 
     /** Callback for when measurement is done */
     onMeasurementEnd: PropTypes.func.isRequired,
+
+    /** Function to load more chats */
+    loadMoreChats: PropTypes.func.isRequired,
 
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
@@ -176,7 +179,7 @@ class ReportActionsList extends React.Component {
                 keyExtractor={this.keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={this.calculateInitialNumToRender()}
-                onEndReached={this.loadMoreChats}
+                onEndReached={this.props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.props.isLoadingReportActions
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
