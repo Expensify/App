@@ -20,9 +20,10 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const internalExpensifyPath = (attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.DEV_NEW_EXPENSIFY_URL, ''))
-        || (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
-        || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+
+    // Let's get the routing path here. We use url.pathname since it will remove port easily from the localhost URL so a URL created on different ports on dev will still work and centralizes the logic for the others.
+    const internalExpensifyPath = attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) || attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) || attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL)
+        ? (new URL(attrHref)).pathname : '';
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
