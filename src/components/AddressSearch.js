@@ -112,7 +112,7 @@ const AddressSearch = (props) => {
         _.forEach(values, (value, key) => {
             props.onInputChange(value, key);
         })
-        inputRef.setNativeProps({value: values.addressStreet});
+        inputRef.setNativeProps({value: values.addressStreet})
     };
 
     return (
