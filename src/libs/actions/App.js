@@ -135,6 +135,14 @@ function fixAccountAndReloadData() {
         });
 }
 
+/**
+ * Store drawer status to Onxy
+ * @param {String} defaultDrawerStatus
+ */
+function setDefaultDrawerStatus(defaultDrawerStatus) {
+    Onyx.set(ONYXKEYS.DEFAULT_DRAWER_STATUS, defaultDrawerStatus);
+}
+
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => getAppData(true, false));
 
@@ -142,6 +150,7 @@ export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
+    setDefaultDrawerStatus,
     getLocale,
     getAppData,
     fixAccountAndReloadData,

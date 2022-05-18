@@ -193,4 +193,7 @@ export default {
 
     // Validating Email?
     USER_SIGN_UP: 'userSignUp',
+
+    // Store default drawer status
+    DEFAULT_DRAWER_STATUS: 'defaultDrawerStatus',
 };

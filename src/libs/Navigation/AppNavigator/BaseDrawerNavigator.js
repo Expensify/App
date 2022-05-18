@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import * as App from '../../actions/App';
 
 import Navigation from '../Navigation';
 
@@ -65,6 +66,19 @@ class BaseDrawerNavigator extends Component {
                         this.props.isSmallScreenWidth,
                     ),
                     swipeEdgeWidth: 500,
+                }}
+                screenListeners={{
+                    state: (e) => {
+                        const state = e.data.state;
+
+                        // Get the history that has drawer type to get the status.
+                        const hasDrawerHistory = _.find(state.history || [], h => h.type === 'drawer');
+
+                        // hasDrawerHistory will has undefined value if the route drawer is equal to initial route drawer.
+                        // Using the default status if hasDrawerHistory is undefined and get the status from the current route
+                        // if the value provided.
+                        App.setDefaultDrawerStatus(hasDrawerHistory ? hasDrawerHistory.status : state.default);
+                    },
                 }}
             >
                 {_.map(this.props.screens, screen => (

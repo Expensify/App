@@ -16,6 +16,12 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
+let defaultDrawerStatus = 'open';
+Onyx.connect({
+    key: ONYXKEYS.DEFAULT_DRAWER_STATUS,
+    callback: val => defaultDrawerStatus = val,
+});
+
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
 // If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
 // so it doesn't cover the report we're trying to link to.
@@ -76,7 +82,16 @@ function getDefaultDrawerState(isSmallScreenWidth) {
     if (didTapNotificationBeforeReady) {
         return 'closed';
     }
-    return isSmallScreenWidth ? 'open' : 'closed';
+
+    if (isSmallScreenWidth) {
+        const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
+
+        // If the initial route path is HOME SCREEN,
+        // return open for default status drawer instead of using value from Onxy
+        return path === '/' ? 'open' : defaultDrawerStatus;
+    }
+
+    return 'closed';
 }
 
 /**
