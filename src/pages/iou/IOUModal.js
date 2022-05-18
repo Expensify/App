@@ -404,6 +404,7 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 selectedAmount={this.state.amount}
                                                 navigation={this.props.navigation}
+                                                iouType={this.props.iouType}
                                             />
                                         </AnimatedStep>
                                     )}
