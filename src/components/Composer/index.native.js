@@ -7,13 +7,6 @@ import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
-/**
- * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
- * the way of the view
- * On Android, the selection prop is required on the TextInput but this prop has issues on IOS
- * https://github.com/facebook/react-native/issues/29063
- */
-
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
     shouldClear: PropTypes.bool,
@@ -140,7 +133,10 @@ class Composer extends React.Component {
     }
 
     render() {
-        // Remove the selection property since it doesn't work on iOS
+        // On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
+        // the way of the view.
+        // On Android, the selection prop is required on the TextInput but this prop has issues on IOS
+        // https://github.com/facebook/react-native/issues/29063
         const propsToPass = Platform.OS === 'ios' ? _.omit(this.props, 'selection') : this.props;
         return (
             <RNTextInput
