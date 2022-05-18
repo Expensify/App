@@ -13,7 +13,6 @@ import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
-import {getEnvironmentURL} from '../../../../libs/Environment/Environment';
 
 /**
  * Gets the HTML version of the message in an action.

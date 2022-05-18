@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -36,6 +35,7 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
+    /** The reportActionID thats currently selected */
     selectedReportActionID: PropTypes.number.isRequired,
 
     /** Sorted actions prepared for display */
@@ -136,7 +136,7 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                isSelected={this.props.selectedReportActionID == item.action.reportActionID}
+                isSelected={this.props.selectedReportActionID === parseInt(item.action.reportActionID, 10)}
                 onItemRendered={this.props.onItemRendered}
             />
         );

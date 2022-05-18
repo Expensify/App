@@ -57,10 +57,12 @@ class BaseInvertedFlatList extends Component {
     }
 
     componentDidMount() {
-        if (!this.props.shouldMeasureItems) {
-            // For native devices since we're not measuring let's make this callback sooner.
-            this.props.onMeasurementEnd();
+        if (this.props.shouldMeasureItems) {
+            return;
         }
+
+        // For native devices since we're not measuring let's make this callback sooner.
+        this.props.onMeasurementEnd();
     }
 
     /**

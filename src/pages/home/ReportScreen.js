@@ -129,6 +129,16 @@ class ReportScreen extends React.Component {
     }
 
     /**
+     * Get the currently viewed report ID as number
+     *
+     * @returns {Number}
+     */
+    getReportActionID() {
+        const params = this.props.route.params;
+        return Number.parseInt(params.reportActionID || 0, 10);
+    }
+
+    /**
      * When reports change there's a brief time content is not ready to be displayed
      *
      * @returns {Boolean}
@@ -156,16 +166,6 @@ class ReportScreen extends React.Component {
             return;
         }
         Report.updateCurrentlyViewedReportID(reportID);
-    }
-
-    /**
-     * Get the currently viewed report ID as number
-     *
-     * @returns {Number}
-     */
-    getReportActionID() {
-        const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID || 0, 10);
     }
 
     render() {
