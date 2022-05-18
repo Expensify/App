@@ -65,7 +65,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
-    const [inputValue, setInputValue] = useState(props.value);
+    let inputRef = null;
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -109,10 +109,10 @@ const AddressSearch = (props) => {
         }
 
         // maybe pass a param to set other fields only when using it in the AddressForm component
-        setInputValue(values.addressStreet);
         _.forEach(values, (value, key) => {
             props.onInputChange(value, key);
         })
+        inputRef.setNativeProps({value: values.addressStreet});
     };
 
     return (
@@ -153,6 +153,7 @@ const AddressSearch = (props) => {
                     textInputProps={{
                         InputComp: TextInput,
                         ref: (node) => {
+                            inputRef = node;
                             if (!props.innerRef) {
                                 return;
                             }
@@ -169,7 +170,7 @@ const AddressSearch = (props) => {
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
                         hint: props.hint,
-                        value: inputValue,
+                        value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
