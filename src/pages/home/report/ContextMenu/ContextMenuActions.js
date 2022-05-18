@@ -12,6 +12,8 @@ import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDet
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
+import * as Environment from '../../../../libs/Environment/Environment';
+import {getEnvironmentURL} from '../../../../libs/Environment/Environment';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -120,8 +122,14 @@ export default [
         shouldShow: () => true,
         onPress: (closePopover, {reportAction, reportID}) => {
             const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-            const text = `http://localhost:8080/r/${reportID}/${reportActionID}`;
-            Clipboard.setString(text);
+            // const text = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}/r/${reportID}/${reportActionID}`;
+            // Clipboard.setString(text);
+            Environment.getEnvironmentURL()
+                .then((environmentURL) => {
+                    debugger;
+                    const text = `${environmentURL}/r/${reportID}/${reportActionID}`;
+                    Clipboard.setString(text);
+                });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
