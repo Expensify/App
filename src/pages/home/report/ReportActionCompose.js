@@ -511,7 +511,7 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
-                                                            style={styles.chatItemAttachButton}
+                                                            style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
@@ -527,7 +527,7 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
-                                                            style={styles.chatItemAttachButton}
+                                                            style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
