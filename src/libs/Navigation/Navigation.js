@@ -9,6 +9,7 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import CONST from '../../CONST';
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -16,7 +17,7 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-let defaultDrawerStatus = 'open';
+let defaultDrawerStatus = CONST.DRAWER_STATUS.OPEN;
 Onyx.connect({
     key: ONYXKEYS.DEFAULT_DRAWER_STATUS,
     callback: val => defaultDrawerStatus = val,
@@ -80,7 +81,7 @@ function closeDrawer() {
  */
 function getDefaultDrawerState(isSmallScreenWidth) {
     if (didTapNotificationBeforeReady) {
-        return 'closed';
+        return CONST.DRAWER_STATUS.CLOSED;
     }
 
     if (isSmallScreenWidth) {
@@ -88,10 +89,10 @@ function getDefaultDrawerState(isSmallScreenWidth) {
 
         // If the initial route path is HOME SCREEN,
         // return open for default status drawer instead of using value from Onyx
-        return path === '/' ? 'open' : defaultDrawerStatus;
+        return path === '/' ? CONST.DRAWER_STATUS.OPEN : defaultDrawerStatus;
     }
 
-    return 'closed';
+    return CONST.DRAWER_STATUS.CLOSED;
 }
 
 /**
