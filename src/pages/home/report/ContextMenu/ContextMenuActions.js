@@ -122,13 +122,9 @@ export default [
         shouldShow: () => true,
         onPress: (closePopover, {reportAction, reportID}) => {
             const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-            // const text = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}/r/${reportID}/${reportActionID}`;
-            // Clipboard.setString(text);
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {
-                    debugger;
-                    const text = `${environmentURL}/r/${reportID}/${reportActionID}`;
-                    Clipboard.setString(text);
+                    Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
                 });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
