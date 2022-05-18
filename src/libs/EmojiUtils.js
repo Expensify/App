@@ -77,7 +77,7 @@ function isSingleEmoji(message) {
  * @returns {Boolean}
  */
 function containsOnlyEmojis(message) {
-    const trimmedMessage = message.replace(/ /g, '').replaceAll('\n', '');
+    const trimmedMessage = message.replace(/ /g, '').replace(/\n/g, '');
     const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
     if (!match) {
