@@ -15,6 +15,9 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import KYCWall from './KYCWall';
 
 const propTypes = {
+    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
+    onPress: PropTypes.func.isRequired,
+
     /** Settlement currency type */
     currency: PropTypes.string,
 

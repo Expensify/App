@@ -21,6 +21,8 @@ import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import withFullPolicy from './withFullPolicy';
+import Button from '../../components/Button';
+import MenuItem from '../../components/MenuItem';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -110,25 +112,27 @@ class WorkspaceBankAccountPage extends React.Component {
                     <Section
                         title={this.props.translate('workspace.bankAccount.almostDone')}
                         icon={Illustrations.BankArrowPink}
-                        menuItems={[
-                            {
-                                title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                                icon: Expensicons.Bank,
-                                onPress: this.navigateToBankAccountRoute,
-                                shouldShowRightIcon: true,
-                            },
-                            {
-                                title: this.props.translate('workspace.bankAccount.startOver'),
-                                icon: Expensicons.RotateLeft,
-                                onPress: BankAccounts.requestResetFreePlanBankAccount,
-                                shouldShowRightIcon: true,
-                            },
-                        ]}
                     >
                         <Text>
                             {this.props.translate('workspace.bankAccount.youreAlmostDone')}
                         </Text>
                     </Section>
+                    <Button
+                        text={this.props.translate('workspace.bankAccount.continueWithSetup')}
+                        onPress={this.navigateToBankAccountRoute}
+                        icon={Expensicons.Bank}
+                        style={[styles.mh3, styles.mt2]}
+                        iconStyles={[styles.mr5]}
+                        shouldShowRightIcon
+                        extraLarge
+                        success
+                    />
+                    <MenuItem
+                        title={this.props.translate('workspace.bankAccount.startOver')}
+                        icon={Expensicons.RotateLeft}
+                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        shouldShowRightIcon
+                    />
                 </ScrollView>
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>

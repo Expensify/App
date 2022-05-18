@@ -20,7 +20,7 @@ const Template = (args) => {
     return (
         <AddressSearch
             value={value}
-            onChange={({street}) => setValue(street)}
+            onInputChange={({street}) => setValue(street)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />

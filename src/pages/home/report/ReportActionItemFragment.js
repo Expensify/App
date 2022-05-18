@@ -68,7 +68,7 @@ const defaultProps = {
 
 const ReportActionItemFragment = (props) => {
     switch (props.fragment.type) {
-        case 'COMMENT':
+        case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
                 return (
@@ -97,6 +97,16 @@ const ReportActionItemFragment = (props) => {
                 );
             }
 
+            // If the only difference between fragment.text and fragment.html is <br /> tags
+            // we replace them with line breaks and render it as text, not as html.
+            // This is done to render emojis with line breaks between them as text.
+            const differByLineBreaksOnly = props.fragment.html.replaceAll('<br />', ' ') === props.fragment.text;
+            if (differByLineBreaksOnly) {
+                const textWithLineBreaks = props.fragment.html.replaceAll('<br />', '\n');
+                // eslint-disable-next-line no-param-reassign
+                props.fragment = {...props.fragment, text: textWithLineBreaks, html: textWithLineBreaks};
+            }
+
             // Only render HTML if we have html in the fragment
             return props.fragment.html !== props.fragment.text
                 ? (
@@ -106,7 +116,7 @@ const ReportActionItemFragment = (props) => {
                 ) : (
                     <Text
                         selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={EmojiUtils.isSingleEmoji(props.fragment.text) ? styles.singleEmojiText : undefined}
+                        style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
                     >
                         {Str.htmlDecode(props.fragment.text)}
                         {props.fragment.isEdited && (
@@ -114,13 +124,12 @@ const ReportActionItemFragment = (props) => {
                                 fontSize={variables.fontSizeSmall}
                                 color={themeColors.textSupporting}
                             >
-                                {/* Native devices do not support margin between nested Text */}
-                                <Text style={styles.w1}>{' '}</Text>
-                                {props.translate('reportActionCompose.edited')}
+                                {` ${props.translate('reportActionCompose.edited')}`}
                             </Text>
                         )}
                     </Text>
                 );
+        }
         case 'TEXT':
             return (
                 <Tooltip text={props.tooltipText}>

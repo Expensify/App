@@ -6,17 +6,13 @@ import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import InlineErrorText from './InlineErrorText';
-import * as FormUtils from '../libs/FormUtils';
 
 const propTypes = {
     /** Whether the checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: PropTypes.bool,
 
     /** Called when the checkbox or label is pressed */
-    onPress: PropTypes.func.isRequired,
-
-    /** Called when the checkbox or label is pressed */
-    onChange: PropTypes.func,
+    onInputChange: PropTypes.func.isRequired,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -30,40 +26,42 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
+    /** The default value for the checkbox */
+    defaultValue: PropTypes.bool,
 
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** React ref being forwarded to the Checkbox input */
+    forwardedRef: PropTypes.func,
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
-    onChange: () => {},
-    isFormInput: false,
     inputID: undefined,
     style: [],
     label: undefined,
     LabelComponent: undefined,
     errorText: '',
     shouldSaveDraft: false,
+    isChecked: false,
+    defaultValue: false,
+    forwardedRef: () => {},
 };
 
-const CheckboxWithLabel = React.forwardRef((props, ref) => {
+const CheckboxWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 
+    // We keep track of the checkbox "state" in a local variable so that this component has an uncontrolled input interface
+    let isChecked = props.defaultValue ? props.defaultValue : props.isChecked;
+
     function toggleCheckbox() {
-        props.onPress(!props.isChecked);
-        props.onChange(!props.isChecked);
+        props.onInputChange(!isChecked);
+        isChecked = !isChecked;
     }
 
     if (!props.label && !LabelComponent) {
@@ -73,12 +71,11 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
         <>
             <View style={wrapperStyles}>
                 <Checkbox
-                    isChecked={props.isChecked}
+                    isChecked={isChecked}
                     onPress={toggleCheckbox}
                     label={props.label}
                     hasError={Boolean(props.errorText)}
-                    forwardedRef={ref}
-                    isFormInput={props.isFormInput}
+                    forwardedRef={props.forwardedRef}
                     inputID={props.inputID}
                     shouldSaveDraft={props.shouldSaveDraft}
                 />
@@ -107,10 +104,13 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
             </InlineErrorText>
         </>
     );
-});
+};
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default CheckboxWithLabel;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <CheckboxWithLabel {...props} forwardedRef={ref} />
+));

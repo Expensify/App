@@ -6,7 +6,6 @@ import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import BankAccount from '../../src/libs/models/BankAccount';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
 
 const TEST_BANK_ACCOUNT_ID = 1;
 const TEST_BANK_ACCOUNT_CITY = 'Opa-locka';
@@ -33,9 +32,10 @@ Onyx.connect({
     callback: val => reimbursementAccount = val,
 });
 
+beforeAll(() => Onyx.init());
+
 beforeEach(() => Onyx.clear()
     .then(() => {
-        NetworkStore.setHasReadRequiredDataFromStorage(true);
         TestHelper.signInWithTestUser();
         return waitForPromisesToResolve();
     }));

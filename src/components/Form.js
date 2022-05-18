@@ -135,16 +135,20 @@ class Form extends React.Component {
                 });
             }
 
-            // We check if the child has the isFormInput prop.
+            // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
-            if (!child.props.isFormInput) {
+            if (!child.props.inputID) {
                 return child;
             }
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
             const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
-            this.inputValues[inputID] = defaultValue;
+
+            // We want to initialize the input value if it's undefined
+            if (_.isUndefined(this.inputValues[inputID])) {
+                this.inputValues[inputID] = defaultValue;
+            }
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,

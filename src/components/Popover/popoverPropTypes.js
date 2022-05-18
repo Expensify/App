@@ -20,6 +20,9 @@ const propTypes = {
 const defaultProps = {
     ...(_.omit(defaultModalProps, ['type', 'popoverAnchorPosition'])),
 
+    animationIn: 'fadeIn',
+    animationOut: 'fadeOut',
+
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
     disableAnimation: true,

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -9,7 +9,6 @@ import styles from '../styles/styles';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import * as FormUtils from '../libs/FormUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -17,16 +16,8 @@ import * as FormUtils from '../libs/FormUtils';
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
-    /**
-     * The ID used to uniquely identify the input
-     *
-     * @param {Object} props - props passed to the input
-     * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-     */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
@@ -37,14 +28,20 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Hint text to display */
+    hint: PropTypes.string,
+
     /** The label to display for the field */
     label: PropTypes.string.isRequired,
 
     /** The value to set the field to initially */
     value: PropTypes.string,
 
+    /** The value to set the field to initially */
+    defaultValue: PropTypes.string,
+
     /** A callback function when the value of this field has changed */
-    onChange: PropTypes.func.isRequired,
+    onInputChange: PropTypes.func.isRequired,
 
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -53,12 +50,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isFormInput: false,
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
     errorText: '',
+    hint: '',
     value: undefined,
+    defaultValue: undefined,
     containerStyles: [],
 };
 
@@ -67,11 +65,6 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
-
-    // We use `skippedFirstOnChangeTextRef` to work around a feature of the library:
-    // The library is calling onChangeText with '' at the start and we don't need this
-    // https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
-    const skippedFirstOnChangeTextRef = useRef(false);
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -113,7 +106,7 @@ const AddressSearch = (props) => {
         if (_.size(values) === 0) {
             return;
         }
-        props.onChange(values);
+        props.onInputChange(values);
     };
 
     return (
@@ -168,17 +161,18 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
+                        hint: props.hint,
                         value: props.value,
-                        isFormInput: props.isFormInput,
+                        defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: props.onBlur,
                         autoComplete: 'off',
-                        onChangeText: (text) => {
-                            if (skippedFirstOnChangeTextRef.current) {
-                                props.onChange({street: text});
+                        onInputChange: (text) => {
+                            if (props.inputID) {
+                                props.onInputChange(text);
                             } else {
-                                skippedFirstOnChangeTextRef.current = true;
+                                props.onInputChange({street: text});
                             }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering

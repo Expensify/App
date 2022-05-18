@@ -12,7 +12,7 @@ import Permissions from '../../Permissions';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
-import * as ReportUtils from '../../reportUtils';
+import * as ReportUtils from '../../ReportUtils';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
