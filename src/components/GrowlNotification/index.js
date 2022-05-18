@@ -12,7 +12,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
-import Growl, {setIsReady} from '../../libs/Growl';
+import * as Growl from '../../libs/Growl';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
@@ -46,8 +46,7 @@ class GrowlNotification extends Component {
     }
 
     componentDidMount() {
-        Growl.show('test', CONST.GROWL.SUCCESS);
-        setIsReady();
+        Growl.setIsReady();
     }
 
     /**
