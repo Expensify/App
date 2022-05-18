@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
-import replaceAll from 'string.prototype.replaceall';
+import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 
@@ -78,7 +78,7 @@ function isSingleEmoji(message) {
  * @returns {Boolean}
  */
 function containsOnlyEmojis(message) {
-    const trimmedMessage = replaceAll(message.replace(/ /g, ''), '\n', '');
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
     if (!match) {

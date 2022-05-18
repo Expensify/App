@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {ActivityIndicator, ImageBackground, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import replaceAll from 'string.prototype.replaceall';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
@@ -101,9 +100,9 @@ const ReportActionItemFragment = (props) => {
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we replace them with line breaks and render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
+            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
             if (differByLineBreaksOnly) {
-                const textWithLineBreaks = replaceAll(props.fragment.html, '<br />', '\n');
+                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
                 // eslint-disable-next-line no-param-reassign
                 props.fragment = {...props.fragment, text: textWithLineBreaks, html: textWithLineBreaks};
             }
