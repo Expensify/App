@@ -161,6 +161,11 @@ class Form extends React.Component {
                 onInputChange: (value, key) => {
                     const inputKey = key ? key : inputID;
                     this.inputValues[inputKey] = value;
+
+                    // If we are setting another input value, we should set it's native prop to update the UI
+                    if (key && this.inputRefs[inputKey]) {
+                        this.inputRefs[inputKey].setNativeProps({value});
+                    }
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }

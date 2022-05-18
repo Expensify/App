@@ -65,7 +65,6 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
-    let inputRef = null;
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -108,11 +107,10 @@ const AddressSearch = (props) => {
             return;
         }
 
-        // maybe pass a param to set other fields only when using it in the AddressForm component
+        // TODO: maybe pass a param to omit unnecessary fields
         _.forEach(values, (value, key) => {
             props.onInputChange(value, key);
         })
-        inputRef.setNativeProps({value: values.addressStreet})
     };
 
     return (
@@ -148,12 +146,13 @@ const AddressSearch = (props) => {
                     requestUrl={{
                         useOnPlatform: 'web',
                         // url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+
+                        // TODO: Adding this to avoid CORS errors in Storybook. Remove once PR is done and uncomment comment above
                         url: `https://expensify-cmartins.ngrok.io/api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
                         ref: (node) => {
-                            inputRef = node;
                             if (!props.innerRef) {
                                 return;
                             }
