@@ -65,6 +65,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [inputValue, setInputValue] = useState(props.value);
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -85,9 +86,9 @@ const AddressSearch = (props) => {
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
         const values = {
-            street: props.value ? props.value.trim() : '',
+            addressStreet: props.value ? props.value.trim() : '',
         };
-        if (street && street.length >= values.street.length) {
+        if (street && street.length >= values.addressStreet.length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
             // like Apt # and this is the best way we have to tell that the new value it's giving us is less
@@ -106,12 +107,12 @@ const AddressSearch = (props) => {
         if (_.size(values) === 0) {
             return;
         }
-        // We need to set the input's value here (convert to controlled input)
+
         // maybe pass a param to set other fields only when using it in the AddressForm component
+        setInputValue(values.addressStreet);
         _.forEach(values, (value, key) => {
             props.onInputChange(value, key);
         })
-        // props.onInputChange(values);
     };
 
     return (
@@ -168,7 +169,7 @@ const AddressSearch = (props) => {
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
                         hint: props.hint,
-                        value: props.value,
+                        value: inputValue,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
