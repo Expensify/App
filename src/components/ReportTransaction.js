@@ -1,18 +1,16 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {
-    View, Pressable, ActivityIndicator,
-} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import * as IOU from '../libs/actions/IOU';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import Text from './Text';
+import Button from './Button';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -88,30 +86,13 @@ class ReportTransaction extends Component {
                 </ReportActionItemSingle>
                 {this.props.canBeRejected && (
                     <View style={[styles.flexRow, styles.justifyContentStart]}>
-                        <Pressable
-                            style={[
-                                styles.buttonSmall,
-                                styles.chatItemComposeSecondaryRowOffset,
-                                styles.mb3,
-                                styles.iouRejectButton,
-                            ]}
+                        <Button
+                            small
+                            text={this.props.rejectButtonLabelText}
+                            style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
                             onPress={this.rejectTransaction}
-                        >
-                            {
-                            this.isBeingRejected()
-                                ? (
-                                    <ActivityIndicator
-                                        color={themeColors.text}
-                                        style={[styles.flex1]}
-                                    />
-                                )
-                                : (
-                                    <Text style={[styles.buttonSmallText]}>
-                                        {this.props.rejectButtonLabelText}
-                                    </Text>
-                                )
-                            }
-                        </Pressable>
+                            isLoading={this.isBeingRejected()}
+                        />
                     </View>
                 )}
             </View>
