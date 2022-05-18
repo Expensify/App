@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -140,8 +140,8 @@ class Composer extends React.Component {
     }
 
     render() {
-        // Remove the selection property since it doesn't work in iOS
-        const propsToPass = _.omit(this.props, 'selection');
+        // Remove the selection property since it doesn't work on iOS
+        const propsToPass = Platform.OS === 'ios' ? _.omit(this.props, 'selection') : this.props;
         return (
             <RNTextInput
                 autoComplete="off"
