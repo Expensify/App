@@ -4,7 +4,6 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -15,8 +14,6 @@ import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import SubscriptAvatar from '../../components/SubscriptAvatar';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import participantPropTypes from '../../components/participantPropTypes';
@@ -24,7 +21,7 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
@@ -41,9 +38,6 @@ const propTypes = {
 
         /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** ID of the report */
-        reportID: PropTypes.number,
 
         /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
@@ -74,23 +68,12 @@ const HeaderView = (props) => {
     }
 
     const participants = lodashGet(props.report, 'participants', []);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = _.map(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, firstName, login}) => {
-            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
-
-            return {
-                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                tooltip: Str.removeSMSDomain(login),
-            };
-        },
-    );
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = (isChatRoom || isPolicyExpenseChat)
-        ? props.report.reportName
-        : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const title = ReportUtils.getReportName(props.report, participantPersonalDetails, props.policies);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
@@ -125,15 +108,7 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onPress={() => {
-                                if (isChatRoom || isPolicyExpenseChat) {
-                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
-                                }
-                                if (participants.length === 1) {
-                                    return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
-                                }
-                                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.reportID));
-                            }}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             {shouldShowSubscript ? (

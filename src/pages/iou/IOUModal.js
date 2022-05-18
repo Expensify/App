@@ -429,12 +429,12 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={this.state.participants}
+                                                participants={_.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isGroupSplit={this.steps.length === 2}
+                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

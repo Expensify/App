@@ -30,6 +30,7 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'and',
         details: 'Details',
@@ -177,6 +178,8 @@ export default {
     reportActionsView: {
         begginningOfArchivedRoomPartOne: 'You missed the party in ',
         begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -532,6 +535,7 @@ export default {
         buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
+            noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
@@ -698,7 +702,6 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
@@ -978,5 +981,19 @@ export default {
             helpTextConcierge: 'If the problem persists, reach out to',
         },
         refresh: 'Refresh',
+    },
+    fileDownload: {
+        success: {
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded!',
+        },
+        generalError: {
+            title: 'Attachment Error',
+            message: 'Attachment cannot be downloaded',
+        },
+        permissionError: {
+            title: 'Access needed',
+            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
     },
 };

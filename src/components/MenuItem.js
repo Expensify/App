@@ -39,6 +39,7 @@ const defaultProps = {
     iconType: 'icon',
     onPress: () => {},
     interactive: true,
+    fallbackIcon: Expensicons.FallbackAvatar,
 };
 
 const MenuItem = props => (
@@ -59,7 +60,7 @@ const MenuItem = props => (
     >
         {({hovered, pressed}) => (
             <>
-                <View style={[styles.flexRow, styles.pointerEventsNone]}>
+                <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
                     {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
@@ -87,10 +88,11 @@ const MenuItem = props => (
                             <Avatar
                                 imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                 source={props.icon}
+                                fallbackIcon={props.fallbackIcon}
                             />
                         </View>
                     )}
-                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
+                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                         <Text
                             style={[
                                 styles.popoverMenuText,
@@ -101,8 +103,11 @@ const MenuItem = props => (
                         >
                             {props.title}
                         </Text>
-                        {props.description && (
-                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                        {Boolean(props.description) && (
+                            <Text
+                                style={[styles.textLabelSupporting, styles.ml3, styles.mt1, styles.breakAll]}
+                                numberOfLines={2}
+                            >
                                 {props.description}
                             </Text>
                         )}
