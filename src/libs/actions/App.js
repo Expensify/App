@@ -136,7 +136,7 @@ function fixAccountAndReloadData() {
 }
 
 /**
- * Store drawer status to Onxy
+ * Store drawer status to Onyx
  * @param {String} defaultDrawerStatus
  */
 function setDefaultDrawerStatus(defaultDrawerStatus) {

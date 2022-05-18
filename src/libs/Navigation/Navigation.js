@@ -87,7 +87,7 @@ function getDefaultDrawerState(isSmallScreenWidth) {
         const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
 
         // If the initial route path is HOME SCREEN,
-        // return open for default status drawer instead of using value from Onxy
+        // return open for default status drawer instead of using value from Onyx
         return path === '/' ? 'open' : defaultDrawerStatus;
     }
 
