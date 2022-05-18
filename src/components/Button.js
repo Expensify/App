@@ -173,14 +173,11 @@ class Button extends Component {
             return <ContentComponent />;
         }
 
-        if (this.props.isLoading) {
-            return <ActivityIndicator color={themeColors.textReversed} />;
-        }
-
         const textComponent = (
             <Text
                 selectable={false}
                 style={[
+                    this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
@@ -273,6 +270,12 @@ class Button extends Component {
                         ]}
                     >
                         {this.renderContent()}
+                        {this.props.isLoading && (
+                        <ActivityIndicator
+                            color={themeColors.textReversed}
+                            style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        />
+                        )}
                     </OpacityView>
                 )}
             </Pressable>

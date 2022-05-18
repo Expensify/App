@@ -15,6 +15,12 @@ export default {
     tn8: {
         top: -32,
     },
+    l0: {
+        left: 0,
+    },
+    r0: {
+        right: 0,
+    },
     r4: {
         right: 16,
     },
