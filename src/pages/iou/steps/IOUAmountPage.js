@@ -75,6 +75,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
+        this.focusEmptyInput = this.focusEmptyInput.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -91,6 +92,16 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    /**
+     * Keep TextInput focused if no amount is entered.
+     */
+    focusEmptyInput() {
+        if (this.state.amount !== '') {
+            return;
+        }
+        this.textInput.focus();
     }
 
     /**
@@ -217,9 +228,14 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                    <TouchableOpacity onPress={() => {
+                        if (this.props.hasMultipleParticipants) {
+                            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+                        }
+                        return Navigation.navigate(this.props.iouType === CONST.IOU.IOU_TYPE.SEND
+                            ? ROUTES.getIouSendCurrencyRoute(this.props.reportID)
+                            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+                    }}
                     >
                         <Text style={styles.iouAmountText}>
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
@@ -236,6 +252,7 @@ class IOUAmountPage extends React.Component {
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        onBlur={this.focusEmptyInput}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
