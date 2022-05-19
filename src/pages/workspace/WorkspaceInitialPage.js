@@ -156,6 +156,8 @@ class WorkspaceInitialPage extends React.Component {
                                                 containerStyles={styles.avatarLarge}
                                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                                 source={this.props.policy.avatarURL}
+                                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                size={CONST.AVATAR_SIZE.LARGE}
                                             />
                                         )
                                         : (
