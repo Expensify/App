@@ -62,7 +62,9 @@ function Logging(response, request) {
                 if (persisted) {
                     PersistedRequests.remove(request);
                 }
-                return;
+
+                // Re-throw this error so the next handler can manage it
+                throw error;
             }
 
             if (error.message === CONST.ERROR.FAILED_TO_FETCH) {

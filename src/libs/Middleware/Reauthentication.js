@@ -18,6 +18,12 @@ import Log from '../Log';
 function Reauthentication(response, request, isFromSequentialQueue) {
     return response
         .then((data) => {
+            // If there is no data for some reason then we cannot reauthenticate
+            if (!data) {
+                Log.hmmm('Undefined data in Reauthentication');
+                return;
+            }
+
             if (NetworkStore.isOffline()) {
                 // If we are offline and somehow handling this response we do not want to reauthenticate
                 throw new Error('Unable to reauthenticate because we are offline');
