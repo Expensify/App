@@ -127,7 +127,6 @@ class ReportActionItemMessageEdit extends React.Component {
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      * @param {String} newDraft
      */
-
     debouncedSaveDraft(newDraft) {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
