@@ -591,7 +591,7 @@ class ReportActionCompose extends React.Component {
                 </View>
                 <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
                     <View>
-                        {this.props.network.isOffline ? (
+                        {this.props.network.isOffline && (
                             <View style={[
                                 styles.chatItemComposeSecondaryRowOffset,
                                 styles.flexRow,
@@ -606,7 +606,9 @@ class ReportActionCompose extends React.Component {
                                     {this.props.translate('reportActionCompose.youAppearToBeOffline')}
                                 </Text>
                             </View>
-                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
+                        )}
+
+                        <ReportTypingIndicator reportID={this.props.reportID} />
                     </View>
                     {hasExceededMaxCommentLength && (
                         <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
