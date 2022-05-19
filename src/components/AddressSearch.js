@@ -108,9 +108,9 @@ const AddressSearch = (props) => {
         }
 
         // TODO: maybe pass a param to omit unnecessary fields
-        _.forEach(values, (value, key) => {
+        _.each(values, (value, key) => {
             props.onInputChange(value, key);
-        })
+        });
     };
 
     return (
@@ -168,7 +168,7 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        hint: props.hint,
+                        hint: !displayListViewBorder && props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,

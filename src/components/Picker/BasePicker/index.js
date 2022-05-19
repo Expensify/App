@@ -19,6 +19,10 @@ class BasePicker extends React.Component {
         this.setNativeProps = this.setNativeProps.bind(this);
     }
 
+    setNativeProps(selectedValue) {
+        this.setState({selectedValue: selectedValue.value});
+    }
+
     updateSelectedValueAndExecuteOnChange(value) {
         this.props.onInputChange(value);
         this.setState({selectedValue: value});
@@ -28,10 +32,6 @@ class BasePicker extends React.Component {
         // Picker's onClose is not executed on Web and Desktop, so props.onClose has to be called with onBlur callback.
         this.props.onClose();
         this.props.onBlur();
-    }
-
-    setNativeProps(selectedValue) {
-        this.setState({selectedValue: selectedValue.value})
     }
 
     render() {
@@ -49,12 +49,14 @@ class BasePicker extends React.Component {
                 fixAndroidTouchableBug
                 onOpen={this.props.onOpen}
                 onClose={this.props.onClose}
-                ref={node => {
-                    if (!node){
+                ref={(node) => {
+                    if (!node) {
                         return;
                     }
                     if (_.isFunction(this.props.innerRef)) {
                         this.props.innerRef(node);
+
+                        // eslint-disable-next-line no-param-reassign
                         node.setNativeProps = this.setNativeProps;
                     }
                 }}
