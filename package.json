@@ -7,6 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "prepare": "scripts/react-native-web-prepare.sh",
     "postinstall": "scripts/react-native-web.sh && cd desktop && npm install",
     "clean": "react-native clean-project-auto",
     "android": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && react-native run-android",
