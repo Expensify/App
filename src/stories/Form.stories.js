@@ -55,6 +55,7 @@ const Template = (args) => {
                 inputID="addressStreet"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
+                omitFields={['addressCity', 'addressZipCode']}
             />
             <DatePicker
                 label="Date of birth"

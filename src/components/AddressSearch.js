@@ -46,6 +46,9 @@ const propTypes = {
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** The fields that shouldn't be set by the address lookup */
+    omitFields: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -58,6 +61,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
+    omitFields: [],
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -108,9 +112,11 @@ const AddressSearch = (props) => {
         }
 
         // TODO: maybe pass a param to omit unnecessary fields
-        _.each(values, (value, key) => {
-            props.onInputChange(value, key);
-        });
+        _.chain(values)
+            .omit(props.omitFields)
+            .each((value, key) => {
+                props.onInputChange(value, key);
+            });
     };
 
     return (
