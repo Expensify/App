@@ -23,8 +23,7 @@ function resetHasReadRequiredDataFromStorage() {
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
-    if (!authToken || !credentials) {
-        resetHasReadRequiredDataFromStorage();
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
         return;
     }
 
