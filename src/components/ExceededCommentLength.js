@@ -10,8 +10,7 @@ const propTypes = {
 };
 
 const ExceededCommentLength = (props) => {
-    const hasExceededMaxCommentLength = props.commentLength > CONST.MAX_COMMENT_LENGTH;
-    if (!hasExceededMaxCommentLength) {
+    if (props.commentLength <= CONST.MAX_COMMENT_LENGTH) {
         return null;
     }
 
