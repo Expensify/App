@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import createCallback from '../createCallback';
-import createOnReadyTask from '../createOnReadyTask';
 
 let credentials;
 let authToken;
@@ -12,7 +11,11 @@ let offline = false;
 let authenticating = false;
 
 const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const requiredDataReadyTask = createOnReadyTask();
+
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 /**
  * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
@@ -23,11 +26,14 @@ function checkRequiredData() {
         return;
     }
 
-    requiredDataReadyTask.setIsReady();
+    resolveIsReadyPromise();
 }
 
 function resetHasReadRequiredDataFromStorage() {
-    requiredDataReadyTask.reset();
+    // Create a new promise and a new resolve function
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 Onyx.connect({
@@ -104,7 +110,7 @@ function getCurrentUserEmail() {
  * @returns {Promise}
  */
 function hasReadRequiredDataFromStorage() {
-    return requiredDataReadyTask.isReady();
+    return isReadyPromise;
 }
 
 /**
