@@ -765,3 +765,27 @@ test('persistable request will move directly to the SequentialQueue when we are 
             expect(thirdRequestCommandName).toBe('MockCommandTwo');
         });
 });
+
+test('cancelled requests should not be retried', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+
+    // GIVEN a mock that will return a "cancelled" request error
+    global.fetch = jest.fn()
+        .mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // WHEN we make a few requests and then cancel them
+            Network.post('MockCommandOne');
+            Network.post('MockCommandTwo');
+            Network.post('MockCommandThree');
+
+            // WHEN we wait for the requests to all cancel
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN expect our queue to be empty and for no requests to have been retried
+            expect(MainQueue.getAll().length).toBe(0);
+            expect(xhr.mock.calls.length).toBe(3);
+        });
+});
