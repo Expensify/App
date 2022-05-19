@@ -58,7 +58,7 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    isComposerFullSize: PropTypes.bool.isRequired,
+    isComposerFullSize: PropTypes.bool,
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -75,6 +75,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    isComposerFullSize: false,
     betas: [],
 };
 
