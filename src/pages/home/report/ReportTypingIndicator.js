@@ -49,7 +49,8 @@ class ReportTypingIndicator extends React.Component {
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
             case 0:
-                return <></>;
+                return null;
+
             case 1:
                 return (
                     <TextWithEllipsis
@@ -60,6 +61,7 @@ class ReportTypingIndicator extends React.Component {
                         leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
                     />
                 );
+
             default:
                 return (
                     <Text
