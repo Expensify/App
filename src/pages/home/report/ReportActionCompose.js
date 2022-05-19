@@ -532,7 +532,7 @@ class ReportActionCompose extends React.Component {
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
-                                                            <Icon src={Expensicons.UpArrow} />
+                                                            <Icon src={Expensicons.Expand} />
                                                         </TouchableOpacity>
                                                     </Tooltip>
                                                 )}
