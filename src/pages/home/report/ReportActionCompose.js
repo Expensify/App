@@ -589,7 +589,7 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <View>
                         {this.props.network.isOffline ? (
                             <View style={[
