@@ -19,7 +19,7 @@ const propTypes = {
 
 const YouAppearToBeOffline = (props) => {
     if (!props.network.isOffline) {
-        //return null;
+        return null;
     }
     return (
         <View style={[styles.flexRow]}>
