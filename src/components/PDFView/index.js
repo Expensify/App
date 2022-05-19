@@ -31,8 +31,8 @@ class PDFView extends PureComponent {
         this.state = {
             numPages: null,
             windowWidth: Dimensions.get('window').width,
-            requestPassword: false,
-            password: null,
+            requestPassword: true,
+            passwordInvalid: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.onPassword = this.onPassword.bind(this);
@@ -40,50 +40,71 @@ class PDFView extends PureComponent {
     }
 
     /**
-     * Callback to be called to set the number of pages on PDF
+     * Callback to be called to set the number of pages on PDF.
+     * Also update state to hide/reset PDF password form.
      *
      * @param {*} {numPages} No of pages in the rendered PDF
      * @memberof PDFView
      */
     onDocumentLoadSuccess({numPages}) {
-        // console.log("load success", numPages)
-        this.setState({numPages});
-        this.setState({requestPassword: false, password: null});
+        this.setState({
+            numPages,
+            requestPassword: false,
+            passwordInvalid: false,
+        });
     }
 
+    /**
+     * Event handler for password-protected PDFs. The react-pdf/Document
+     * component calls this handler to indicate that a PDF requires a
+     * password, or to indicate that a previously provided password was
+     * invalid.
+     *
+     * The PasswordResponses constants were copied from react-pdf because
+     * they're not exported in entry.webpack.
+     *
+     * @param {*} callback Callback used to send password to react-pdf
+     * @param {number} reason Reason code for password request
+     */
     onPassword(callback, reason) {
+        this.onPasswordCallback = callback;
+
         const PasswordResponses = {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
         };
 
         if (reason === PasswordResponses.NEED_PASSWORD) {
-            if (this.state.password) {
-                // console.log("already have password - doing callback");
-                callback(this.state.password);
-            } else {
-                // console.log("password required");
-                this.setState({requestPassword: true});
-                this.onPasswordCallback = callback;
-            }
-        } else if (reason === PasswordResponses.INCORRECT_PASSWORD) {
-            // console.log("password incorrect");
             this.setState({requestPassword: true});
-            this.onPasswordCallback = callback;
+        } else if (reason === PasswordResponses.INCORRECT_PASSWORD) {
+            this.setState({requestPassword: true, passwordInvalid: true});
         } else {
             Log.warn('[PDFView] pdf password requested for unknown reason: ', reason);
         }
     }
 
+    /**
+     * Event handler for PDFPasswordForm submission. When a password
+     * is received from the password form the handler calls the password
+     * callback previously received from react-pdf.
+     *
+     * @param {string} password The password entered in the form
+     */
     onPasswordFormSubmit(password) {
-        // console.log("onSubmitPasswordForm", password)
-        this.setState({requestPassword: false, password});
+        this.onPasswordCallback(password);
     }
 
+    /**
+     * Generate markup for PDFPasswordForm. This form is only displayed if a
+     * password is required to open a PDF.
+     *
+     * @returns {*} JSX markup for PDFPasswordForm
+     */
     renderPasswordForm() {
         return (
             <PDFPasswordForm
                 onSubmit={this.onPasswordFormSubmit}
+                passwordInvalid={this.state.passwordInvalid}
             />
         );
     }
@@ -93,13 +114,16 @@ class PDFView extends PureComponent {
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
             ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
+        const pdfShowHideStyle = this.state.requestPassword ? [styles.PDFView, styles.dNone] : styles.PDFView;
 
         return (
             <View
                 style={[styles.PDFView, this.props.style]}
                 onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
             >
-                {this.state.requestPassword ? this.renderPasswordForm() : (
+                {this.state.requestPassword && this.renderPasswordForm()}
+
+                <View style={pdfShowHideStyle}>
                     <Document
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
@@ -124,7 +148,8 @@ class PDFView extends PureComponent {
                             )
                         }
                     </Document>
-                )}
+                </View>
+
             </View>
         );
     }
