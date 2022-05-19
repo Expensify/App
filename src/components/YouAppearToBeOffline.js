@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import Icon from './Icon';
@@ -18,10 +19,10 @@ const propTypes = {
 
 const YouAppearToBeOffline = (props) => {
     if (!props.network.isOffline) {
-        return null;
+        //return null;
     }
     return (
-        <>
+        <View style={[styles.flexRow]}>
             <Icon
                 src={Expensicons.Offline}
                 width={variables.iconSizeExtraSmall}
@@ -30,7 +31,7 @@ const YouAppearToBeOffline = (props) => {
             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                 {props.translate('reportActionCompose.youAppearToBeOffline')}
             </Text>
-        </>
+        </View>
     );
 };
 
