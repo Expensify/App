@@ -76,6 +76,9 @@ import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Connect from '../../../assets/images/connect.svg';
+import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 
 export {
     ActiveRoomAvatar,
@@ -103,6 +106,7 @@ export {
     Connect,
     CreditCard,
     DeletedRoomAvatar,
+    DomainRoomAvatar,
     DownArrow,
     Download,
     Emoji,
@@ -112,6 +116,8 @@ export {
     Eye,
     EyeDisabled,
     ExpensifyCard,
+    FallbackAvatar,
+    FallbackWorkspaceAvatar,
     Gallery,
     Gear,
     Hashtag,
