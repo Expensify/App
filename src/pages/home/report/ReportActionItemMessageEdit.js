@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -210,9 +211,9 @@ class ReportActionItemMessageEdit extends React.Component {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
-                        onBlur={({nativeEvent}) => {
+                        onBlur={(event) => {
                             // Return to prevent re-render when save button is pressed which cancels the onPress event by re-rendering
-                            if (nativeEvent.relatedTarget.id === 'saveButton') {
+                            if (lodashGet(event, 'nativeEvent.relatedTarget.id') === 'saveButton') {
                                 return;
                             }
 
