@@ -57,18 +57,13 @@ class ReportTypingIndicator extends React.Component {
                         leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
                         trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={styles.chatItemComposeSecondaryRow}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
                     />
                 );
 
             default:
                 return (
                     <Text
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
+                        style={[styles.chatItemComposeSecondaryRowSubText]}
                         numberOfLines={1}
                     >
                         {this.props.translate('reportTypingIndicator.multipleUsers')}
