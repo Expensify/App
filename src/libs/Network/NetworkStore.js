@@ -30,21 +30,20 @@ let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-function resetHasReadRequiredDataFromStorage() {
-    requiredDataReadyTask.reset();
-}
-
 /**
  * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
-    if (!authToken || !credentials) {
-        resetHasReadRequiredDataFromStorage();
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
         return;
     }
 
     resolveIsReadyPromise();
+}
+
+function resetHasReadRequiredDataFromStorage() {
+    requiredDataReadyTask.reset();
 }
 
 Onyx.connect({
