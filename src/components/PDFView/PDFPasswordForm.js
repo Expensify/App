@@ -11,6 +11,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    passwordInvalid: false,
+};
+
 class PDFPasswordForm extends PureComponent {
     constructor(props) {
         super(props);
@@ -43,6 +47,12 @@ class PDFPasswordForm extends PureComponent {
                     autoFocus
                 />
 
+                {this.props.passwordInvalid && (
+                    <Text style={[styles.formError]}>
+                        {this.props.translate('attachmentView.incorrectPDFPassword')}
+                    </Text>
+                )}
+
                 <Button
                     success
                     textStyles={[styles.buttonConfirmText]}
@@ -58,8 +68,7 @@ class PDFPasswordForm extends PureComponent {
 }
 
 PDFPasswordForm.propTypes = propTypes;
-
-// PDFPasswordForm.defaultProps = defaultProps;
+PDFPasswordForm.defaultProps = defaultProps;
 PDFPasswordForm.displayName = 'PDFPasswordForm';
 
 export default compose(
