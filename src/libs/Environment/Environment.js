@@ -19,6 +19,11 @@ function isDevelopment() {
     return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
 }
 
+/**
+ * Get the URL based on the environment we are in
+ *
+ * @returns {Promise<unknown>}
+ */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
         getEnvironment()

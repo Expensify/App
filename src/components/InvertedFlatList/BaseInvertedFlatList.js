@@ -77,8 +77,6 @@ class BaseInvertedFlatList extends Component {
     getItemLayout(data, index) {
         const size = this.sizeMap[index];
 
-        // console.log(`over here getItemLayout. Index: ${index}`);
-
         if (size) {
             return {
                 length: size.length,
@@ -115,7 +113,7 @@ class BaseInvertedFlatList extends Component {
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
 
-        // Unclear why but some items will read 0 for height when onLayout runs
+        // Before an item is rendered on screen its possible its computedHeight is 0 so let's return early and once its rendered it will it this method again with proper values.
         if (computedHeight === 0) {
             return;
         }
