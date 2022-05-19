@@ -40,6 +40,7 @@ const AnchorRenderer = (props) => {
     }
 
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
+    // As we store attachments under expensify.com URL we don't want it working the same as links.
     if (internalExpensifyPath && !isAttachment) {
         return (
             <Text
