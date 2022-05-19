@@ -269,21 +269,9 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onInputChange={(values) => {
-                                    const renamedFields = {
-                                        street: 'addressStreet',
-                                        state: 'addressState',
-                                        zipCode: 'addressZipCode',
-                                    };
-                                    _.each(values, (value, inputKey) => {
-                                        if (inputKey === 'city') {
-                                            return;
-                                        }
-                                        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                        this.clearErrorAndSetValue(renamedInputKey, value);
-                                    });
-                                }}
+                                onInputChange={(value, key) => this.clearErrorAndSetValue(key, value)}
                                 errorText={this.getErrorText('addressStreet')}
+                                omitFields={['addressCity']}
                             />
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex2, styles.mr2]}>
