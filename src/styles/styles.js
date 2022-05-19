@@ -2188,6 +2188,8 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     cursorPointer: {
