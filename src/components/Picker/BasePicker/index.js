@@ -16,6 +16,7 @@ class BasePicker extends React.Component {
 
         this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
+        this.setNativeProps = this.setNativeProps.bind(this);
     }
 
     updateSelectedValueAndExecuteOnChange(value) {
@@ -29,6 +30,10 @@ class BasePicker extends React.Component {
         this.props.onBlur();
     }
 
+    setNativeProps(selectedValue) {
+        this.setState({selectedValue: selectedValue.value})
+    }
+
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
         return (
@@ -38,16 +43,24 @@ class BasePicker extends React.Component {
                 style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
-                value={this.props.value || this.state.selectedValue}
+                value={this.state.selectedValue}
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug
                 onOpen={this.props.onOpen}
                 onClose={this.props.onClose}
+                ref={node => {
+                    if (!node){
+                        return;
+                    }
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(node);
+                        node.setNativeProps = this.setNativeProps;
+                    }
+                }}
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
-                    ref: this.props.innerRef,
                 }}
             />
         );

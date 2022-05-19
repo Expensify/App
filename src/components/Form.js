@@ -159,11 +159,12 @@ class Form extends React.Component {
                     this.validate(this.inputValues);
                 },
                 onInputChange: (value, key) => {
-                    const inputKey = key ? key : inputID;
+                    const inputKey = key ?? inputID;
+                    const inputRef = this.inputRefs[inputKey];
                     this.inputValues[inputKey] = value;
-
+                    
                     // If we are setting another input value, we should set it's native prop to update the UI
-                    if (key && this.inputRefs[inputKey]) {
+                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
                         this.inputRefs[inputKey].setNativeProps({value});
                     }
                     if (child.props.shouldSaveDraft) {
