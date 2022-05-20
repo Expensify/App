@@ -12,7 +12,7 @@ const propTypes = {
     sliderLineWidth: PropTypes.number,
 
     /** Callback to execute when user panning slider */
-    panSliderGestureEventHandler: PropTypes.func,
+    onGestureEventHandler: PropTypes.func,
 
     /** X posion of the slider knob */
     sliderValue: PropTypes.shape({value: PropTypes.number}),
@@ -20,7 +20,7 @@ const propTypes = {
 
 const defaultProps = {
     sliderLineWidth: 0,
-    panSliderGestureEventHandler: () => { },
+    onGestureEventHandler: () => { },
     sliderValue: {},
 };
 
@@ -31,7 +31,7 @@ const Slider = (props) => {
 
     return (
         <View style={[{width: props.sliderLineWidth}, styles.sliderLine]}>
-            <PanGestureHandler onGestureEvent={props.panSliderGestureEventHandler}>
+            <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
                 <AnimatedView style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>
         </View>
