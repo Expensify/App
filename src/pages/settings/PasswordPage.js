@@ -241,7 +241,6 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            errorType: '',
         },
     }),
 )(PasswordPage);
