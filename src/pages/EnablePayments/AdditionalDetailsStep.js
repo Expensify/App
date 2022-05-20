@@ -273,7 +273,18 @@ class AdditionalDetailsStep extends React.Component {
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
                                         containerStyles={[styles.mt4]}
-                                        onInputChange={(value, key) => this.clearErrorAndSetValue(key, value)}
+                                        onInputChange={(values) => {
+                                            const renamedFields = {
+                                                street: 'addressStreet',
+                                                state: 'addressState',
+                                                zipCode: 'addressZip',
+                                                city: 'addressCity',
+                                            };
+                                            _.each(values, (value, inputKey) => {
+                                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                            });
+                                        }}
                                         errorText={this.getErrorText('addressStreet')}
                                         hint={this.props.translate('common.noPO')}
                                     />

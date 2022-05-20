@@ -19,31 +19,16 @@ const propTypes = {
     /** Form values */
     values: PropTypes.shape({
         /** Address street field */
-        addressStreet: PropTypes.string,
+        street: PropTypes.string,
 
         /** Address city field */
-        addressCity: PropTypes.string,
+        city: PropTypes.string,
 
         /** Address state field */
-        addressState: PropTypes.string,
+        state: PropTypes.string,
 
         /** Address zip code field */
-        addressZipCode: PropTypes.string,
-    }),
-
-    /** Form input keys */
-    values: PropTypes.shape({
-        /** Address street field */
-        addressStreet: PropTypes.string,
-
-        /** Address city field */
-        addressCity: PropTypes.string,
-
-        /** Address state field */
-        addressState: PropTypes.string,
-
-        /** Address zip code field */
-        addressZipCode: PropTypes.string,
+        zipCode: PropTypes.string,
     }),
 
     /** Any errors that can arise from form validation */
@@ -59,12 +44,6 @@ const defaultProps = {
         state: '',
         zipCode: '',
     },
-    inputKeys: {
-        addressStreet: 'addressStreet',
-        addressCity: 'addressCity',
-        addressState: 'addressState',
-        addressZipCode: 'addressZipCode',
-    },
     errors: {},
 };
 
@@ -73,25 +52,24 @@ const AddressForm = props => (
         <AddressSearch
             label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
-            value={props.values.addressStreet}
-            onInputChange={(value, key) => props.onFieldChange(value, key)}
+            value={props.values.street}
+            onInputChange={props.onFieldChange}
             errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
             hint={props.translate('common.noPO')}
-            streetInputKey={props.inputKeys.addressStreet}
         />
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
                 <TextInput
                     label={props.translate('common.city')}
-                    value={props.values.addressCity}
-                    onChangeText={value => props.onFieldChange(value, props.addressCity)}
+                    value={props.values.city}
+                    onChangeText={value => props.onFieldChange({city: value})}
                     errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 />
             </View>
             <View style={[styles.flex1]}>
                 <StatePicker
-                    value={props.values.addressState}
-                    onInputChange={value => props.onFieldChange(value, props.addressState)}
+                    value={props.values.state}
+                    onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
             </View>
@@ -100,8 +78,8 @@ const AddressForm = props => (
             label={props.translate('common.zip')}
             containerStyles={[styles.mt4]}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-            value={props.values.addressZipCode}
-            onChangeText={value => props.onFieldChange(value, props.addressZipCode)}
+            value={props.values.zipCode}
+            onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
         />

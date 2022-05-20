@@ -269,7 +269,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onInputChange={(value, key) => this.clearErrorAndSetValue(key, value)}
+                                onInputChange={values => _.each(values, (value, inputKey) => this.clearErrorAndSetValue(inputKey, value))}
                                 errorText={this.getErrorText('addressStreet')}
                                 omitFields={['addressCity']}
                             />

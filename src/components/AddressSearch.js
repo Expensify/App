@@ -184,7 +184,7 @@ const AddressSearch = (props) => {
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
-                                props.onInputChange(text, props.streetInputKey);
+                                props.onInputChange({[props.streetInputKey]: text});
                             }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
