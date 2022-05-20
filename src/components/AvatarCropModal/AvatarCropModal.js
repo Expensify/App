@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {
-    memo, useCallback, useEffect, useState,
+    useCallback, useEffect, useState,
 } from 'react';
 import {
     Image, Pressable, SafeAreaView, View,
@@ -302,4 +302,4 @@ AvatarCropModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-)(memo(AvatarCropModal));
+)(AvatarCropModal);
