@@ -215,32 +215,18 @@ class CompanyStep extends React.Component {
                     <AddressForm
                         streetTranslationKey="common.companyAddress"
                         values={{
-                            street: this.state.addressStreet,
-                            city: this.state.addressCity,
-                            zipCode: this.state.addressZipCode,
-                            state: this.state.addressState,
+                            addressStreet: this.state.addressStreet,
+                            addressCity: this.state.addressCity,
+                            addressZipCode: this.state.addressZipCode,
+                            addressState: this.state.addressState,
                         }}
                         errors={{
-                            street: this.getErrors().addressStreet,
-                            city: this.getErrors().addressCity,
-                            zipCode: this.getErrors().addressZipCode,
-                            state: this.getErrors().addressState,
+                            addressStreet: this.getErrors().addressStreet,
+                            addressCity: this.getErrors().addressCity,
+                            addressZipCode: this.getErrors().addressZipCode,
+                            addressState: this.getErrors().addressState,
                         }}
-                        onFieldChange={(values) => {
-                            const renamedFields = {
-                                street: 'addressStreet',
-                                state: 'addressState',
-                                city: 'addressCity',
-                                zipCode: 'addressZipCode',
-                            };
-                            const renamedValues = {};
-                            _.each(values, (value, inputKey) => {
-                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                renamedValues[renamedInputKey] = value;
-                            });
-                            this.setValue(renamedValues);
-                            this.clearErrors(_.keys(renamedValues));
-                        }}
+                        onFieldChange={(value, key) => this.clearErrorAndSetValue(key, value)}
                     />
                     <TextInput
                         label={this.props.translate('common.phoneNumber')}
