@@ -19,8 +19,11 @@ function RecheckConnection(response) {
     const cancelRequestTimeoutTimer = startRecheckTimeoutTimer();
     return response
         .catch((error) => {
-            // Because we ran into an error we assume we might be offline and do a "connection" health test
-            NetworkConnection.recheckNetworkConnection();
+            if (error.name !== CONST.ERROR.REQUEST_CANCELLED) {
+                // Because we ran into an error we assume we might be offline and do a "connection" health test
+                NetworkConnection.recheckNetworkConnection();
+            }
+
             throw error;
         })
         .finally(cancelRequestTimeoutTimer);
