@@ -771,7 +771,7 @@ test('cancelled requests should not be retried', () => {
 
     // GIVEN a mock that will return a "cancelled" request error
     global.fetch = jest.fn()
-        .mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+        .mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
     return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
         .then(() => {
