@@ -19,6 +19,7 @@ import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import PasswordConfirmationScreen from './PasswordConfirmationScreen';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -138,7 +139,7 @@ class PasswordPage extends Component {
 
     render() {
         const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld
-        && this.props.account.errorType !== 'current' && this.props.account.errorType !== 'generic';
+        && this.props.account.errorType !== CONST.PASSWORD_PAGE.ERROR_TYPE.CURRENT && this.props.account.errorType !== CONST.PASSWORD_PAGE.ERROR_TYPE.GENERIC;
         return (
             <ScreenWrapper onTransitionEnd={() => {
                 if (!this.currentPasswordInputRef) {
@@ -181,8 +182,8 @@ class PasswordPage extends Component {
                                             value={this.state.currentPassword}
                                             onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
                                             returnKeyType="done"
-                                            hasError={this.state.errors.currentPassword || this.props.account.errorType === 'current'}
                                             errorText={this.getErrorText('currentPassword')}
+                                            hasError={this.state.errors.currentPassword || this.props.account.errorType === CONST.PASSWORD_PAGE.ERROR_TYPE.CURRENT}
                                             onSubmitEditing={this.submit}
                                         />
                                     </View>
