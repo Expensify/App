@@ -2190,6 +2190,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },

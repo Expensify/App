@@ -7,15 +7,25 @@ import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
+import PressableWithSecondaryInteraction from '../../components/PressableWithSecondaryInteraction';
+import ControlSelection from '../../libs/ControlSelection';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const AppDownloadLinksPage = (props) => {
+    let popoverAnchor;
+
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
@@ -24,6 +34,7 @@ const AppDownloadLinksPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
+            link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
@@ -32,6 +43,7 @@ const AppDownloadLinksPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS);
             },
+            link: CONST.APP_DOWNLOAD_LINKS.IOS,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
@@ -40,8 +52,24 @@ const AppDownloadLinksPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
             },
+            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
         },
     ];
+
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     * @param {string} [selection] - A copy text.
+     */
+    const showPopover = (event, selection) => {
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+            event,
+            selection,
+            popoverAnchor,
+        );
+    };
 
     return (
         <ScreenWrapper>
@@ -53,14 +81,24 @@ const AppDownloadLinksPage = (props) => {
             />
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, item => (
-                    <MenuItem
+                    <PressableWithSecondaryInteraction
                         key={item.translationKey}
-                        title={props.translate(item.translationKey)}
-                        icon={item.icon}
-                        iconRight={item.iconRight}
-                        onPress={() => item.action()}
-                        shouldShowRightIcon
-                    />
+                        onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
+                        onSecondaryInteraction={e => showPopover(e, item.link)}
+                        ref={el => popoverAnchor = el}
+                        onKeyDown={(event) => {
+                            event.target.blur();
+                        }}
+                    >
+                        <MenuItem
+                            title={props.translate(item.translationKey)}
+                            icon={item.icon}
+                            iconRight={item.iconRight}
+                            onPress={() => item.action()}
+                            shouldShowRightIcon
+                        />
+                    </PressableWithSecondaryInteraction>
                 ))}
             </ScrollView>
         </ScreenWrapper>
@@ -70,4 +108,7 @@ const AppDownloadLinksPage = (props) => {
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default withLocalize(AppDownloadLinksPage);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(AppDownloadLinksPage);

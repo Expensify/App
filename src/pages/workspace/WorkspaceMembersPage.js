@@ -141,14 +141,24 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {Boolean} Return true if the tooltip was displayed so we can use the state of it in other functions.
      */
     willTooltipShowForLogin(login, wasHovered = false) {
+        const isSmallOrMediumScreen = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth;
+
         // Small screens only show the tooltip on press, so ignore hovered event on those cases.
-        if (wasHovered && (this.props.isSmallScreenWidth || this.props.isMediumScreenWidth)) {
+        if (wasHovered && isSmallOrMediumScreen) {
             return false;
         }
 
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved) {
-            this.setState({showTooltipForLogin: login});
+            this.setState({
+                showTooltipForLogin: login,
+            }, () => {
+                // Immediately reset the login to deactivate the tooltip trigger, otherwise, the tooltip will not open again on further interactions on small screens.
+                if (!isSmallOrMediumScreen) {
+                    return;
+                }
+                this.setState({showTooltipForLogin: ''});
+            });
         }
 
         return !canBeRemoved;
