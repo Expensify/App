@@ -158,18 +158,27 @@ class Form extends React.Component {
                     this.setTouchedInput(inputID);
                     this.validate(this.inputValues);
                 },
-                onInputChange: (value, key) => {
-                    const inputKey = key ?? inputID;
-                    const inputRef = this.inputRefs[inputKey];
-                    this.inputValues[inputKey] = value;
+                onInputChange: (value) => {
+                    if (!_.isObject(value)) {
+                        this.inputValues[inputID] = value;
                     
-                    // If we are setting another input value, we should set it's native prop to update the UI
-                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
-                        this.inputRefs[inputKey].setNativeProps({value});
+                        if (child.props.shouldSaveDraft) {
+                            FormActions.setDraftValues(this.props.formID, {[inputID]: value});
+                        }
+                        this.validate(this.inputValues);
+                        return;
                     }
-                    if (child.props.shouldSaveDraft) {
-                        FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
-                    }
+
+                    this.inputValues = value;
+                    _.each(value, (val, key) => {
+                        const inputRef = this.inputRefs[key];
+                        if (inputRef && _.isFunction(inputRef.setNativeProps)) {
+                            inputRef.setNativeProps({value: val});
+                        }
+                        if (child.props.shouldSaveDraft) {
+                            FormActions.setDraftValues(this.props.formID, {key: val});
+                        }
+                    })
                     this.validate(this.inputValues);
                 },
             });

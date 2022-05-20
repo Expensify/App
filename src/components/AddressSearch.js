@@ -115,12 +115,7 @@ const AddressSearch = (props) => {
             return;
         }
 
-        // TODO: maybe pass a param to omit unnecessary fields
-        _.chain(values)
-            .omit(props.omitFields)
-            .each((value, key) => {
-                props.onInputChange(value, key);
-            });
+        props.onInputChange(_.omit(values, props.omitFields));
     };
 
     return (
