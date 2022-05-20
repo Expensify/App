@@ -854,6 +854,7 @@ function fetchAllReports(
                             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
                             reportIOUData[iouReportKey] = getSimplifiedIOUReport(iouReportObject, iouReportObject.chatReportID);
                             simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
+                            simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
                         });
 
                         // We use mergeCollection such that it updates the collection in one go.
