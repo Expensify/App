@@ -45,6 +45,11 @@ function retryFailedRequest(queuedRequest, error) {
 function Retry(response, request, isFromSequentialQueue) {
     return response
         .catch((error) => {
+            // Do not retry any requests that are cancelled
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                return;
+            }
+
             if (isFromSequentialQueue) {
                 const retryCount = PersistedRequests.incrementRetries(request);
                 Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
