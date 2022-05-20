@@ -16,8 +16,8 @@ const propTypes = {
     /** Size of the image container that will be rendered */
     containerSize: PropTypes.number,
 
-    /** Callback to be called when user crops image */
-    style: PropTypes.arrayOf(PropTypes.object),
+    /** Styles for image component */
+    imageStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** Callback to execute when the Image lays out */
     onLayout: PropTypes.func,
@@ -29,7 +29,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
-    style: null,
+    imageStyle: null,
     onLayout: () => { },
     panGestureEvent: () => { },
 };
@@ -42,7 +42,7 @@ const ImageCropView = props => (
                 width: props.containerSize,
             }, styles.imageCropContainer]}
             >
-                <AnimatedImage style={props.style} onLayout={props.onLayout} source={{uri: props.imageUri}} resizeMode="contain" />
+                <AnimatedImage style={props.imageStyle} onLayout={props.onLayout} source={{uri: props.imageUri}} resizeMode="contain" />
                 <View style={[{
                     width: props.containerSize,
                     height: props.containerSize,
