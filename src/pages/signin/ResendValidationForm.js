@@ -13,7 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import * as ReportUtils from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */

@@ -10,6 +10,9 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
+import Tooltip from '../../Tooltip';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import styles from '../../../styles/styles';
 
 /*
  * This is a default anchor component for regular links.
@@ -38,6 +41,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
     render() {
         let linkRef;
         const rest = _.omit(this.props, _.keys(propTypes));
+        const defaultTextStyle = canUseTouchScreen() || this.props.isSmallScreenWidth ? {} : styles.userSelectText;
+
         return (
             this.props.isAttachment
                 ? (
@@ -70,20 +75,22 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         }
                     }
                     >
-                        <Text
-                            ref={el => linkRef = el}
-                            style={StyleSheet.flatten(this.props.style)}
-                            accessibilityRole="link"
-                            href={this.props.href}
-                            hrefAttrs={{
-                                rel: this.props.rel,
-                                target: this.props.target,
-                            }}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
-                        >
-                            {this.props.children}
-                        </Text>
+                        <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
+                            <Text
+                                ref={el => linkRef = el}
+                                style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
+                                accessibilityRole="link"
+                                href={this.props.href}
+                                hrefAttrs={{
+                                    rel: this.props.rel,
+                                    target: this.props.target,
+                                }}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...rest}
+                            >
+                                {this.props.children}
+                            </Text>
+                        </Tooltip>
                     </PressableWithSecondaryInteraction>
                 )
         );

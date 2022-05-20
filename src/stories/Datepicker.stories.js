@@ -13,7 +13,7 @@ export default {
         onChange: {action: 'date changed'},
     },
     args: {
-        value: '',
+        defaultValue: '',
         label: 'Select Date',
         placeholder: 'Date Placeholder',
         errorText: '',
@@ -34,7 +34,7 @@ Default.args = {
 
 PreFilled.args = {
     label: 'Select Date',
-    value: new Date(2018, 7, 21),
+    defaultValue: new Date(2018, 7, 21),
 };
 
 export {

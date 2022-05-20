@@ -2,21 +2,20 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as NetworkEvents from './NetworkEvents';
+import createCallback from '../createCallback';
 
 let credentials;
 let authToken;
 let currentUserEmail;
-let hasReadRequiredData = false;
-let isAuthenticating = false;
-let isOffline = false;
+let offline = false;
+let authenticating = false;
 
-/**
- * @param {Boolean} val
- */
-function setHasReadRequiredDataFromStorage(val) {
-    hasReadRequiredData = val;
-}
+const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
+
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 /**
  * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
@@ -27,7 +26,14 @@ function checkRequiredData() {
         return;
     }
 
-    setHasReadRequiredDataFromStorage(true);
+    resolveIsReadyPromise();
+}
+
+function resetHasReadRequiredDataFromStorage() {
+    // Create a new promise and a new resolve function
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 Onyx.connect({
@@ -57,19 +63,26 @@ Onyx.connect({
         }
 
         // Client becomes online emit connectivity resumed event
-        if (isOffline && !network.isOffline) {
-            NetworkEvents.triggerConnectivityResumed();
+        if (offline && !network.isOffline) {
+            triggerConnectivityResumed();
         }
 
-        isOffline = network.isOffline;
+        offline = network.isOffline;
     },
 });
 
 /**
+ * @returns {Object}
+ */
+function getCredentials() {
+    return credentials;
+}
+
+/**
  * @returns {Boolean}
  */
-function getIsOffline() {
-    return isOffline;
+function isOffline() {
+    return offline;
 }
 
 /**
@@ -87,13 +100,6 @@ function setAuthToken(newAuthToken) {
 }
 
 /**
- * @returns {Object}
- */
-function getCredentials() {
-    return credentials;
-}
-
-/**
  * @returns {String}
  */
 function getCurrentUserEmail() {
@@ -101,34 +107,35 @@ function getCurrentUserEmail() {
 }
 
 /**
- * @returns {Boolean}
+ * @returns {Promise}
  */
 function hasReadRequiredDataFromStorage() {
-    return hasReadRequiredData;
-}
-
-/**
- * @param {Boolean} value
- */
-function setIsAuthenticating(value) {
-    isAuthenticating = value;
+    return isReadyPromise;
 }
 
 /**
  * @returns {Boolean}
  */
-function getIsAuthenticating() {
-    return isAuthenticating;
+function isAuthenticating() {
+    return authenticating;
+}
+
+/**
+ * @param {Boolean} val
+ */
+function setIsAuthenticating(val) {
+    authenticating = val;
 }
 
 export {
     getAuthToken,
     setAuthToken,
-    getCredentials,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
-    setHasReadRequiredDataFromStorage,
+    resetHasReadRequiredDataFromStorage,
+    isOffline,
+    onConnectivityResumed,
+    isAuthenticating,
     setIsAuthenticating,
-    getIsAuthenticating,
-    getIsOffline,
+    getCredentials,
 };

@@ -5,13 +5,27 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
+import Navigation from './Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 let sessionEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => sessionEmail = val ? val.email : null,
+});
+
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        preferredLocale = val;
+    },
 });
 
 /**
@@ -80,20 +94,6 @@ function canDeleteReportAction(reportAction) {
 }
 
 /**
- * Whether the provided report is a default room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
- */
-function isDefaultRoom(report) {
-    return _.contains([
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], lodashGet(report, ['chatType'], ''));
-}
-
-/**
  * Whether the provided report is an Admin room
  * @param {Object} report
  * @param {String} report.chatType
@@ -111,6 +111,30 @@ function isAdminRoom(report) {
  */
 function isAnnounceRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
+ * Whether the provided report is a default room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDefaultRoom(report) {
+    return _.contains([
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+    ], lodashGet(report, ['chatType'], ''));
+}
+
+/**
+ * Whether the provided report is a Domain room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDomainRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
@@ -226,6 +250,9 @@ function getRoomWelcomeMessage(report, policiesMap) {
     if (isArchivedRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+    } else if (isDomainRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
@@ -290,16 +317,6 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Check if the comment is deleted
- * @param {Object} action
- * @returns {Boolean}
- */
-function isDeletedAction(action) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    return action.message.length === 0 || action.message[0].html === '';
-}
-
-/**
  * Trim the last message text to a fixed limit.
  * @param {String} lastMessageText
  * @returns {String}
@@ -338,6 +355,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
     }
+    if (isDomainRoom(report)) {
+        return [Expensicons.DomainRoomAvatar];
+    }
     if (isAdminRoom(report)) {
         return [Expensicons.AdminRoomAvatar];
     }
@@ -373,9 +393,117 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     return _.map(sortedParticipants, item => item.avatar);
 }
 
+/**
+ * Get the displayName for a single report participant.
+ *
+ * @param {Object} participant
+ * @param {String} participant.displayName
+ * @param {String} participant.firstName
+ * @param {String} participant.login
+ * @param {Boolean} [shouldUseShortForm]
+ * @returns {String}
+ */
+function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
+    if (!participant) {
+        return '';
+    }
+
+    const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
+    let longName = participant.displayName || loginWithoutSMSDomain;
+    if (Str.isSMSLogin(longName)) {
+        longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
+    }
+    const shortName = participant.firstName || longName;
+
+    return shouldUseShortForm ? shortName : longName;
+}
+
+/**
+ * @param {Object} participants
+ * @param {Boolean} isMultipleParticipantReport
+ * @returns {Array}
+ */
+function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
+    return _.map(participants, (participant) => {
+        const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
+        const tooltip = Str.removeSMSDomain(participant.login);
+
+        let pronouns = participant.pronouns;
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+        }
+
+        return {
+            displayName,
+            tooltip,
+            pronouns,
+        };
+    });
+}
+
+/**
+ * Get the title for a report.
+ *
+ * @param {Object} report
+ * @param {Object} [personalDetailsForParticipants]
+ * @param {Object} [policies]
+ * @returns {String}
+ */
+function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
+    if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
+        return lodashGet(report, 'reportName', '');
+    }
+
+    let formattedName;
+    if (isChatRoom(report)) {
+        formattedName = `#${report.reportName}`;
+    }
+
+    if (isPolicyExpenseChat(report)) {
+        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.reportName;
+        formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
+    }
+
+    if (isArchivedRoom(report)) {
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
+    }
+
+    if (formattedName) {
+        return formattedName;
+    }
+
+    // Not a room or PolicyExpenseChat, generate title from participants
+    const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
+        participants.length > 1,
+    );
+    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+}
+
+/**
+ * Navigate to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function navigateToDetailsPage(report) {
+    const participants = lodashGet(report, 'participants', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report)) {
+        Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+        return;
+    }
+    if (participants.length === 1) {
+        Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+        return;
+    }
+    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+}
+
 export {
     getReportParticipantsTitle,
-    isDeletedAction,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
@@ -398,4 +526,7 @@ export {
     getDefaultAvatar,
     getIcons,
     getRoomWelcomeMessage,
+    getDisplayNamesWithTooltips,
+    getReportName,
+    navigateToDetailsPage,
 };
