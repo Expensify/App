@@ -44,6 +44,14 @@ class ThumbnailImage extends PureComponent {
         };
     }
 
+    /**
+     * Compute the thumbnails width and height given original image dimensions.
+     *
+     * @param {Number} width - Width of the original image.
+     * @param {Number} height - Height of the original image.
+     * @returns {Object} - Object containing thumbnails width and height.
+     */
+
     calculateThumbnailImageSize(width, height) {
         if (!width || !height) { return {}; }
 
@@ -66,8 +74,8 @@ class ThumbnailImage extends PureComponent {
     }
 
     updateImageSize({width, height}) {
-        const {width: thumbnailScreenWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize(width, height);
-        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
+        const {width: thumbnailWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize(width, height);
+        this.setState({thumbnailWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
     }
 
     render() {
