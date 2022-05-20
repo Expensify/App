@@ -194,7 +194,7 @@ class PasswordPage extends Component {
                                             autoCompleteType="password"
                                             textContentType="password"
                                             value={this.state.newPassword}
-                                            hasError={this.state.errors.newPassword || this.props.account.errorType === 'generic'}
+                                            hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
                                             errorText={this.state.errors.newPasswordSameAsOld
                                                 ? this.getErrorText('newPasswordSameAsOld')
                                                 : this.getErrorText('newPassword')}
