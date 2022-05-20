@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -67,7 +68,6 @@ const MainDrawerNavigator = (props) => {
         return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
     }
 
-    debugger;
     const routeContainsReportID = !_.isEmpty(lodashGet(props, 'route.params.params.reportID'));
 
     // After the app initializes and reports are available the home navigation is mounted

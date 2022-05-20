@@ -75,7 +75,9 @@ function pushDrawerRoute(route) {
         const newScreenParams = getParamsFromState(newStateFromRoute);
 
         // When we are navigating away from a non-drawer navigator we need to first dismiss any screens pushed onto the main stack.
+        console.log('over here change drawer state 1');
         if (currentState.type !== 'drawer') {
+            console.log('over here change drawer state 2');
             navigateBackToRootDrawer();
         }
 
@@ -84,7 +86,9 @@ function pushDrawerRoute(route) {
         const activeState = getActiveState();
         const activeScreenName = getScreenNameFromState(activeState);
         const activeScreenParams = getParamsFromState(activeState);
+        console.log('over here change drawer state 3');
         if (newScreenName === activeScreenName && _.isEqual(activeScreenParams, newScreenParams)) {
+            console.log('over here change drawer state 4');
             return DrawerActions.closeDrawer();
         }
 
@@ -103,6 +107,7 @@ function pushDrawerRoute(route) {
         // Force drawer to close
         // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
         const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
+        console.log('over here change drawer state 5');
         if (!hasDrawerhistory || currentState.type !== 'drawer') {
             history.push({
                 type: 'drawer',

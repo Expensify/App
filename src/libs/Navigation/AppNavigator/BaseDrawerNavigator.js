@@ -44,7 +44,6 @@ class BaseDrawerNavigator extends Component {
     constructor(props) {
         super(props);
 
-        console.log(`over here drawer: ${props.openDrawer} : ${props.isSmallScreenWidth}`);
         this.state = {
             // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
             // Directly passing the dynamically calculated defaultStatus to drawer Navigator breaks the internal state
