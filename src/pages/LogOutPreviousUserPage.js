@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -34,7 +35,11 @@ class LogOutPreviousUserPage extends Component {
         const sessionEmail = lodashGet(this.props.session, 'email', '');
         if (paramsEmail !== sessionEmail) {
             Session.signOutAndRedirectToSignIn();
+            return;
         }
+
+        // Set isNavigationReady so that we can navigate in the AuthScreens
+        Navigation.setIsNavigationReady();
     }
 
     render() {
