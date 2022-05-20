@@ -49,6 +49,9 @@ const propTypes = {
     /** The fields that shouldn't be set by the address lookup */
     omitFields: PropTypes.arrayOf(PropTypes.string),
 
+    //** Key to use for street input */
+    streetInputKey: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -62,6 +65,7 @@ const defaultProps = {
     defaultValue: undefined,
     containerStyles: [],
     omitFields: [],
+    streetInputKey: 'addressStreet',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -185,7 +189,7 @@ const AddressSearch = (props) => {
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
-                                props.onInputChange(text, 'addressStreet');
+                                props.onInputChange(text, props.streetInputKey);
                             }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering

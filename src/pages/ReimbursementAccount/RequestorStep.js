@@ -202,14 +202,20 @@ class RequestorStep extends React.Component {
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
-                                street: this.state.requestorAddressStreet,
-                                state: this.state.requestorAddressState,
-                                city: this.state.requestorAddressCity,
-                                zipCode: this.state.requestorAddressZipCode,
+                                addressStreet: this.state.requestorAddressStreet,
+                                addressState: this.state.requestorAddressState,
+                                addressCity: this.state.requestorAddressCity,
+                                addressZipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
                             }}
                             errors={this.props.reimbursementAccount.errors}
+                            inputKeys={{
+                                addressStreet: 'requestorAddressStreet',
+                                addressState: 'requestorAddressState',
+                                addressCity: 'requestorAddressCity',
+                                addressZipCode: 'requestorZipCode',
+                            }}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
