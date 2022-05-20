@@ -24,8 +24,8 @@ const propTypes = {
 
             /** The reportActionID of the report to scroll to */
             reportActionID: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
+        }),
+    }),
 
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(PropTypes.shape({
@@ -37,6 +37,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    route: {
+        params: {},
+    },
     reports: {},
     betas: [],
 };
@@ -65,7 +68,7 @@ const MainDrawerNavigator = (props) => {
     }
 
     debugger;
-    const routeContainsReportID = !_.isEmpty(props.route.params.reportID);
+    const routeContainsReportID = !_.isEmpty(lodashGet(props, 'route.params.params.reportID'));
 
     // After the app initializes and reports are available the home navigation is mounted
     // This way routing information is updated (if needed) based on the initial report ID resolved.
@@ -80,7 +83,7 @@ const MainDrawerNavigator = (props) => {
                     initialParams,
                 },
             ]}
-            collapseDrawer={routeContainsReportID}
+            openDrawer={!routeContainsReportID}
             isMainScreen
         />
     );
