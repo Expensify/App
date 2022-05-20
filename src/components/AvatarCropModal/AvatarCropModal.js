@@ -143,7 +143,7 @@ const AvatarCropModal = (props) => {
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
     */
-    const panGestureEvent = useAnimatedGestureHandler({
+    const panGestureEventHandler = useAnimatedGestureHandler({
         onStart: (_, context) => {
             // we have to assign translate values to a context
             // since that is required for proper work of turbo modules.
@@ -164,7 +164,7 @@ const AvatarCropModal = (props) => {
      * Calculates new scale value and updates images offset to ensure
      * that image stays in the center of the container after changing scale.
     */
-    const panSliderGestureEvent = useAnimatedGestureHandler({
+    const panSliderGestureEventHandler = useAnimatedGestureHandler({
         onStart: (_, context) => {
             // we have to assign this value to a context
             // since that is required for proper work of turbo modules.
@@ -265,7 +265,7 @@ const AvatarCropModal = (props) => {
                         imageUri={props.imageUri}
                         imageStyle={[imageStyle, styles.h100, styles.w100]}
                         containerSize={imageContainerSize}
-                        panGestureEventHandler={panGestureEvent}
+                        panGestureEventHandler={panGestureEventHandler}
                         onLayout={initializeImage}
                     />
                     {/* To avoid layout shift we should hide this component until the parent container is initialized */}
@@ -273,7 +273,7 @@ const AvatarCropModal = (props) => {
                         <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
                             <Icon src={Expensicons.Zoom} fill={colors.gray3} />
                             <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
-                                <Slider sliderValue={translateSlider} onGestureEvent={panSliderGestureEvent} sliderLineWidth={sliderLineWidth} />
+                                <Slider sliderValue={translateSlider} panSliderGestureEventHandler={panSliderGestureEventHandler} sliderLineWidth={sliderLineWidth} />
                             </View>
                             <Pressable
                                 onPress={rotateImage}
