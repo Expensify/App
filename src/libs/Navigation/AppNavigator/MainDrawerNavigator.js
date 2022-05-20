@@ -15,6 +15,18 @@ import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 
 const propTypes = {
+    /** Navigation route context info provided by react navigation */
+    route: PropTypes.shape({
+        /** Route specific parameters used on this screen */
+        params: PropTypes.shape({
+            /** The ID of the report this screen should display */
+            reportID: PropTypes.string,
+
+            /** The reportActionID of the report to scroll to */
+            reportActionID: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
+
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -52,6 +64,9 @@ const MainDrawerNavigator = (props) => {
         return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
     }
 
+    debugger;
+    const routeContainsReportID = !_.isEmpty(props.route.params.reportID);
+
     // After the app initializes and reports are available the home navigation is mounted
     // This way routing information is updated (if needed) based on the initial report ID resolved.
     // This is usually needed after login/create account and re-launches
@@ -65,6 +80,7 @@ const MainDrawerNavigator = (props) => {
                     initialParams,
                 },
             ]}
+            collapseDrawer={routeContainsReportID}
             isMainScreen
         />
     );

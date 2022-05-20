@@ -26,6 +26,8 @@ const propTypes = {
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
 
+    collapseDrawer: PropTypes.bool,
+
     /** If it's the main screen, don't wrap the content even if it's a full screen modal. */
     isMainScreen: PropTypes.bool,
 
@@ -45,7 +47,7 @@ class BaseDrawerNavigator extends Component {
             // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
             // Directly passing the dynamically calculated defaultStatus to drawer Navigator breaks the internal state
             // And prevents the drawer actions from reaching to active Drawer Navigator while screen is resized on from Web to mobile Web.
-            defaultStatus: Navigation.getDefaultDrawerState(props.isSmallScreenWidth),
+            defaultStatus: Navigation.getDefaultDrawerState(props.collapseDrawer && props.isSmallScreenWidth),
         };
     }
 
