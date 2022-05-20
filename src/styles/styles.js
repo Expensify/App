@@ -135,6 +135,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        whiteSpace: 'pre',
     },
 };
 
@@ -2187,6 +2188,11 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     cursorPointer: {
