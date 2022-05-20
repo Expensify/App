@@ -23,7 +23,7 @@ const propTypes = {
     onLayout: PropTypes.func,
 
     /** Callback to execute when user panning image */
-    panGestureEvent: PropTypes.func,
+    panGestureEventHandler: PropTypes.func,
 };
 
 const defaultProps = {
@@ -31,11 +31,11 @@ const defaultProps = {
     containerSize: 0,
     imageStyle: null,
     onLayout: () => { },
-    panGestureEvent: () => { },
+    panGestureEventHandler: () => { },
 };
 
 const ImageCropView = props => (
-    <PanGestureHandler onGestureEvent={props.panGestureEvent}>
+    <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
         <Animated.View>
             <View style={[{
                 height: props.containerSize,

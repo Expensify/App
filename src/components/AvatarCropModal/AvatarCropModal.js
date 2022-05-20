@@ -265,7 +265,7 @@ const AvatarCropModal = (props) => {
                         imageUri={props.imageUri}
                         imageStyle={[imageStyle, styles.h100, styles.w100]}
                         containerSize={imageContainerSize}
-                        panGestureEvent={panGestureEvent}
+                        panGestureEventHandler={panGestureEvent}
                         onLayout={initializeImage}
                     />
                     {/* To avoid layout shift we should hide this component until the parent container is initialized */}
