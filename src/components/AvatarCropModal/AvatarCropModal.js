@@ -263,7 +263,7 @@ const AvatarCropModal = (props) => {
                 <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
                     <ImageCropView
                         imageUri={props.imageUri}
-                        style={[imageStyle, styles.h100, styles.w100]}
+                        imageStyle={[imageStyle, styles.h100, styles.w100]}
                         containerSize={imageContainerSize}
                         panGestureEvent={panGestureEvent}
                         onLayout={initializeImage}
