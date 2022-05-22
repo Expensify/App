@@ -125,44 +125,17 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
-        const width = imageWidth;
-        const height = imageHeight;
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
-        // return if image not loaded yet
-        if (imageHeight <= 0 && containerHeight <= 0) {
+        if (imageHeight <= 0 || containerHeight <= 0) {
             return;
         }
-
-        let imgLeft = (this.props.windowWidth - width) / 2;
-        let imgRight = ((this.props.windowWidth - width) / 2) + width;
-        let imgTop = (this.props.windowHeight - height) / 2;
-        let imgBottom = ((this.props.windowHeight - height) / 2) + height;
-        const isScreenWiderThanImage = (this.props.windowWidth / width) > 1;
-        const isScreenTallerThanImage = (this.props.windowHeight / height) > 1;
-        const aspect = width / height;
-        if (aspect > 1 && !isScreenWiderThanImage) {
-            // In case Width fit Screen width and Height not fit the Screen height
-            const fitRate = this.props.windowWidth / width;
-            imgLeft = 0;
-            imgRight = this.props.windowWidth;
-            imgTop = (this.props.windowHeight - (fitRate * height)) / 2;
-            imgBottom = imgTop + (fitRate * height);
-        } else if (aspect <= 1 && !isScreenTallerThanImage) {
-            // In case Height fit Screen height and Width not fit the Screen width
-            const fitRate = this.props.windowHeight / height;
-            imgTop = 0;
-            imgBottom = this.props.windowHeight;
-            imgLeft = (this.props.windowWidth - (fitRate * width)) / 2;
-            imgRight = imgLeft + (fitRate * width);
-        }
-
-        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
 
         this.setState({
-            imgWidth: width,
-            imgHeight: height,
+            imgWidth: imageWidth,
+            imgHeight: imageHeight,
             zoomScale: newZoomScale,
         });
     }
