@@ -125,18 +125,17 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
-        if (imageHeight <= 0) {
-            return;
-        }
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
-        const width = imageWidth;
-        const height = imageHeight;
-        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
+
+        if (imageHeight <= 0 || containerHeight <= 0) {
+            return;
+        }
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
 
         this.setState({
-            imgWidth: width,
-            imgHeight: height,
+            imgWidth: imageWidth,
+            imgHeight: imageHeight,
             zoomScale: newZoomScale,
         });
     }

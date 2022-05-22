@@ -8,7 +8,6 @@ import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
@@ -29,8 +28,6 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
-            thumbnailWidth: 100,
-            thumbnailHeight: 100,
             imageWidth: undefined,
             imageHeight: undefined,
             interactionPromise: undefined,
@@ -138,11 +135,6 @@ class ImageView extends PureComponent {
                         });
                     }}
                 >
-                    <Image
-                        source={{uri: this.props.url}}
-                        style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
-                        resizeMode="contain"
-                    />
                     <FullscreenLoadingIndicator
                         style={[styles.opacity1, styles.bgTransparent]}
                     />
