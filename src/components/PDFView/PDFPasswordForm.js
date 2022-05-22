@@ -24,7 +24,9 @@ class PDFPasswordForm extends PureComponent {
     }
 
     onSubmit = () => {
-        // console.debug("on submit - password is", this.state.password)
+        if (!this.state.password) {
+            return;
+        }
         this.props.onSubmit(this.state.password);
     }
 
@@ -58,8 +60,9 @@ class PDFPasswordForm extends PureComponent {
                     textStyles={[styles.buttonConfirmText]}
                     text={this.props.translate('common.confirm')}
                     onPress={this.onSubmit}
-                    pressOnEnter
                     style={styles.mt4}
+                    isDisabled={!this.state.password}
+                    isFocused
                 />
 
             </View>
