@@ -20,6 +20,8 @@ import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -60,8 +62,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Whether this is an IOU split and belongs to a group report */
-    isGroupSplit: PropTypes.bool.isRequired,
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -93,10 +95,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -110,7 +109,6 @@ const defaultProps = {
     },
     onUpdateComment: null,
     comment: '',
-    network: {},
     myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
@@ -227,6 +225,7 @@ class IOUConfirmationList extends Component {
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
+                isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedSelectedParticipants,
@@ -352,6 +351,7 @@ class IOUConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
+        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
         return (
             <>
                 <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
@@ -364,7 +364,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        isDisabled={!this.props.isGroupSplit}
+                        isDisabled={!canModifyParticipants}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>
@@ -416,6 +416,7 @@ IOUConfirmationList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
@@ -423,9 +424,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
         betas: {
             key: ONYXKEYS.BETAS,

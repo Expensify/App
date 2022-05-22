@@ -21,10 +21,14 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
+
+    /** Does the user has a VBA into its account? */
+    hasVBA: PropTypes.bool.isRequired,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -44,7 +48,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class WorkspaceReimburseNoVBAView extends React.Component {
+class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -187,29 +191,52 @@ class WorkspaceReimburseNoVBAView extends React.Component {
                     </View>
                 </Section>
 
-                <Section
-                    title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                    icon={Illustrations.JewelBoxGreen}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.common.bankAccount'),
-                            onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID)),
-                            icon: Expensicons.Bank,
-                            shouldShowRightIcon: true,
-                        },
-                    ]}
-                >
-                    <View style={[styles.mv4]}>
-                        <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                    </View>
-                </Section>
+                {!this.props.hasVBA && (
+                    <Section
+                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                        icon={Illustrations.JewelBoxGreen}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                        </View>
+                        <Button
+                            text={this.props.translate('workspace.common.bankAccount')}
+                            onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
+                            icon={Expensicons.Bank}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.mr5]}
+                            shouldShowRightIcon
+                            extraLarge
+                            success
+                        />
+                    </Section>
+                )}
+                {Boolean(this.props.hasVBA) && (
+                    <Section
+                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                        icon={Illustrations.BankUserGreen}
+                        menuItems={[
+                            {
+                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                icon: Expensicons.Bank,
+                                shouldShowRightIcon: true,
+                                iconRight: Expensicons.NewWindow,
+                            },
+                        ]}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                        </View>
+                    </Section>
+                )}
             </>
         );
     }
 }
 
-WorkspaceReimburseNoVBAView.propTypes = propTypes;
-WorkspaceReimburseNoVBAView.displayName = 'WorkspaceReimburseNoVBAView';
+WorkspaceReimburseView.propTypes = propTypes;
+WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
 export default compose(
     withFullPolicy,
@@ -219,4 +246,4 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
-)(WorkspaceReimburseNoVBAView);
+)(WorkspaceReimburseView);

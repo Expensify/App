@@ -7,6 +7,7 @@ import Icon from './Icon';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -23,6 +24,9 @@ const propTypes = {
 
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon: PropTypes.func,
 };
 
 const defaultProps = {
@@ -31,9 +35,17 @@ const defaultProps = {
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
+    fallbackIcon: Expensicons.FallbackAvatar,
 };
 
 class Avatar extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            imageError: false,
+        };
+    }
+
     render() {
         if (!this.props.source) {
             return null;
@@ -45,13 +57,21 @@ class Avatar extends PureComponent {
         ];
 
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
+
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {
-                _.isFunction(this.props.source)
-                    ? <Icon src={this.props.source} fill={this.props.fill} height={iconSize} width={iconSize} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />
-            }
+                {_.isFunction(this.props.source) || this.state.imageError
+                    ? (
+                        <Icon
+                            src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                            height={iconSize}
+                            width={iconSize}
+                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                        />
+                    )
+                    : (
+                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({imageError: true})} />
+                    )}
             </View>
         );
     }
