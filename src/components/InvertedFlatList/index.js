@@ -25,7 +25,9 @@ class InvertedFlatList extends React.Component {
         super(props);
 
         this.invertedWheelEvent = this.invertedWheelEvent.bind(this);
+        this.invertedKeyboardScrollEvent = this.invertedKeyboardScrollEvent.bind(this);
         this.list = undefined;
+        this.lastKeyDown = 0;
     }
 
     componentDidMount() {
@@ -40,6 +42,8 @@ class InvertedFlatList extends React.Component {
             this.list
                 .getScrollableNode()
                 .addEventListener('wheel', this.invertedWheelEvent);
+            this.list.getScrollableNode()
+                .addEventListener('keydown', this.invertedKeyboardScrollEvent);
 
             this.list.setNativeProps({
                 style: {
@@ -52,11 +56,73 @@ class InvertedFlatList extends React.Component {
     componentWillUnmount() {
         this.list.getScrollableNode()
             .removeEventListener('wheel', this.invertedWheelEvent);
+        this.list.getScrollableNode()
+            .removeEventListener('keydown', this.invertedKeyboardScrollEvent);
     }
 
     invertedWheelEvent(e) {
         this.list.getScrollableNode().scrollTop -= e.deltaY;
         e.preventDefault();
+    }
+
+    invertedKeyboardScrollEvent(e) {
+        const node = this.list.getScrollableNode();
+        const DELTA = 40;
+        const PAGE = node.clientHeight;
+        const TOTAL = node.scrollHeight;
+        const behavior = (Date.now() - this.lastKeyDown) > 60 ? 'smooth' : 'instant';
+        this.lastKeyDown = Date.now();
+        if (e.code === 'ArrowDown') {
+            node.scroll({
+                top: node.scrollTop - DELTA,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'ArrowUp') {
+            node.scroll({
+                top: node.scrollTop + DELTA,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'PageDown') {
+            node.scroll({
+                top: node.scrollTop - PAGE,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'PageUp') {
+            node.scroll({
+                top: node.scrollTop + PAGE,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'Space' && !e.shiftKey) {
+            node.scroll({
+                top: node.scrollTop - PAGE,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'Space' && e.shiftKey) {
+            node.scroll({
+                top: node.scrollTop + PAGE,
+                left: 0,
+                behavior,
+            });
+        } else if (e.code === 'End') {
+            node.scroll({
+                top: 0,
+                left: 0,
+                behavior: 'smooth',
+            });
+        } else if (e.code === 'Home') {
+            node.scroll({
+                top: TOTAL,
+                left: 0,
+                behavior: 'smooth',
+            });
+        }
+        e.preventDefault();
+        e.stopPropagation();
     }
 
     render() {
