@@ -13,21 +13,24 @@ function AttachmentsNav({ reportActions, onArrowPress, sourceURL }) {
     const [page, setPage] = useState(-1)
     const [attachments, setAttachments] = useState([])
     useEffect(function(){
-        const nextAttachments = actionsArr.reduce((arr, rep, index) => {
-            const matches = CONST.REGEX.ATTACHMENT_SRC.exec(rep.originalMessage?.html)
-            if(matches){
-                if(matches[1].includes(sourceURL))
-                    setPage(arr.length)        
-                const url = matches[1].replace(
-                    CONFIG.EXPENSIFY.EXPENSIFY_URL,
-                    CONFIG.EXPENSIFY.URL_API_ROOT,
-                )
-                arr.push(url)
-            }                                    
+        const nextAttachments = actionsArr.reduce((arr, rep) => {
+            const matchesIt = rep.originalMessage?.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)
+            if(matchesIt){
+                const matches = [...matchesIt]
+                if(matches.length === 2){
+                    const [src, name] = matches
+                    if(src[2].includes(sourceURL))
+                        setPage(arr.length)
+                    const url = src[2].replace(
+                        CONFIG.EXPENSIFY.EXPENSIFY_URL,
+                        CONFIG.EXPENSIFY.URL_API_ROOT,
+                    )
+                    arr.push({src: url, file: {name: name[2]}})
+                }
+            }                                                    
             return arr
         }, [])
         setAttachments(nextAttachments)
-
     }, [actionsArr.length])
 
     function handlePress(isBack){

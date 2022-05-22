@@ -85,7 +85,7 @@ class AttachmentModal extends PureComponent {
             attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
-            file: null,
+            file: {name: props.originalFileName || ""},
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
@@ -100,8 +100,8 @@ class AttachmentModal extends PureComponent {
      * delegates AttachmentNav to change the sourceUrl
      * @param {*} sourceUrl 
      */
-    onArrowPress(sourceURL){
-        this.setState({sourceURL})
+    onArrowPress({src, file}){
+        this.setState({sourceURL: src, file})
     }
 
     /**
@@ -109,7 +109,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
+        const fullFileName = lodashGet(this.state, 'file.name', '').trim();
         const splittedFileName = fullFileName.split('.');
         const fileExtension = splittedFileName.pop();
         const fileName = splittedFileName.join('.');
@@ -202,16 +202,16 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={attachmentViewStyles}>
-                            <>                        
-                                <AttachmentView sourceURL={sourceURL} file={this.state.file} />                                                                     
-                                {this.state.reportId && ( 
-                                    <AttachmentNav 
-                                        reportId={this.state.reportId}                                    
-                                        onArrowPress={this.onArrowPress}
-                                        sourceURL={this.state.sourceURL}
-                                    />
-                                )}
-                            </>
+                        <>                        
+                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />                                                                     
+                            {this.state.reportId && ( 
+                                <AttachmentNav 
+                                    reportId={this.state.reportId}                                    
+                                    onArrowPress={this.onArrowPress}
+                                    sourceURL={this.state.sourceURL}
+                                />
+                            )}
+                        </>
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
