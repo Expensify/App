@@ -5,13 +5,14 @@ import compose from '../../../../libs/compose';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import withLocalize from '../../../../components/withLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import propTypes from './sidebarPropTypes';
+import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 const SidebarScreen = props => <BaseSidebarScreen {...props} />;
 
-SidebarScreen.propTypes = propTypes;
+SidebarScreen.propTypes = sidebarPropTypes;
+SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default compose(
