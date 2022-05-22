@@ -396,9 +396,6 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
-
-        this.textInput.blur();
-        this.textInput.focus();
     }
 
     /**

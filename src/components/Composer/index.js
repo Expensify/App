@@ -239,6 +239,8 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, markdownText);
             this.updateNumberOfLines();
+            this.textInput.blur();
+            this.textInput.focus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }
