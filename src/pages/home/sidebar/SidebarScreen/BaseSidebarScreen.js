@@ -11,14 +11,13 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
-import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import CONST from '../../../../CONST';
-import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
+import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 
 const propTypes = {
 
@@ -28,20 +27,12 @@ const propTypes = {
     /* Remove Listener callback */
     onHideCreateMenu: PropTypes.func,
 
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /* Is workspace is being created by the user? */
-    isCreatingWorkspace: PropTypes.bool,
-
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
+    ...sidebarPropTypes,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
-    isCreatingWorkspace: false,
+    ...sidebarDefaultProps,
 };
 
 class BaseSidebarScreen extends Component {
@@ -64,9 +55,6 @@ class BaseSidebarScreen extends Component {
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
-        if (this.props.innerRef) {
-            this.props.innerRef.current = this;
-        }
     }
 
     /**
