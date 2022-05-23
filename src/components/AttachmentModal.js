@@ -75,6 +75,7 @@ class AttachmentModal extends PureComponent {
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+            isSendOnEnterEnabled: true,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -180,7 +181,13 @@ class AttachmentModal extends PureComponent {
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                            <AttachmentView
+                                sourceURL={sourceURL}
+                                file={this.state.file}
+                                onUserInputRequired={(isRequired) => {
+                                    this.setState({isSendOnEnterEnabled: !isRequired});
+                                }}
+                            />
                         )}
                     </View>
 
@@ -192,7 +199,7 @@ class AttachmentModal extends PureComponent {
                             textStyles={[styles.buttonConfirmText]}
                             text={this.props.translate('common.send')}
                             onPress={this.submitAndClose}
-                            pressOnEnter
+                            pressOnEnter={this.state.isSendOnEnterEnabled}
                         />
                     )}
                 </Modal>
