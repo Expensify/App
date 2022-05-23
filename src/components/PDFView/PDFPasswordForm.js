@@ -1,4 +1,4 @@
-import React, {PureComponent, memo} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Button from '../Button';
@@ -6,7 +6,6 @@ import Text from '../Text';
 import TextInput from '../TextInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -78,7 +77,4 @@ PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
 PDFPasswordForm.displayName = 'PDFPasswordForm';
 
-export default compose(
-    memo,
-    withLocalize,
-)(PDFPasswordForm);
+export default withLocalize(PDFPasswordForm);
