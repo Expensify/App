@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as API from '../../API';
+import * as DeprecatedAPI from '../../deprecatedAPI';
 import CONST from '../../../CONST';
 import * as store from './store';
 import Growl from '../../Growl';
@@ -24,7 +24,7 @@ function resetFreePlanBankAccount() {
     // If the API request fails we will set this data back into Onyx.
     const previousACHData = {...store.getReimbursementAccountInSetup()};
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    API.DeleteBankAccount({bankAccountID, ownerEmail: store.getCredentials().login})
+    DeprecatedAPI.DeleteBankAccount({bankAccountID, ownerEmail: store.getCredentials().login})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Unable to delete bank account so we restore the bank account details
@@ -46,7 +46,7 @@ function resetFreePlanBankAccount() {
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
 
             // Clear the NVP for the bank account so the user can add a new one and navigate back to bank account page
-            API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
+            DeprecatedAPI.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
             Navigation.navigate(ROUTES.getBankAccountRoute());
         });
 }

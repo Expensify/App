@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -51,7 +51,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
     const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
         bankAccount.plaidAccountID === account.plaidAccountID
     ));
-    API.BankAccount_Create({
+    DeprecatedAPI.BankAccount_Create({
         accountNumber: unmaskedAccount.accountNumber,
         addressName: unmaskedAccount.addressName,
         allowDebit: false,
@@ -103,7 +103,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
  * @param {Number} bankAccountID
  */
 function deleteBankAccount(bankAccountID) {
-    API.DeleteBankAccount({
+    DeprecatedAPI.DeleteBankAccount({
         bankAccountID,
     }).then((response) => {
         if (response.jsonCode === 200) {

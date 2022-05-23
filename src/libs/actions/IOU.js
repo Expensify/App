@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
@@ -19,7 +19,7 @@ import Log from '../Log';
  * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
  */
 function getIOUReportsForNewTransaction(requestParams) {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'reportStuff',
         reportIDList: _.pluck(requestParams, 'reportID').join(','),
         shouldLoadOptionalKeys: true,
@@ -109,7 +109,7 @@ function startLoadingAndResetError() {
  */
 function createIOUTransaction(params) {
     startLoadingAndResetError();
-    API.CreateIOUTransaction(params)
+    DeprecatedAPI.CreateIOUTransaction(params)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 processIOUErrorResponse(response);
@@ -134,7 +134,7 @@ function createIOUSplit(params) {
     startLoadingAndResetError();
 
     let chatReportID;
-    API.CreateChatReport({
+    DeprecatedAPI.CreateChatReport({
         emailList: _.map(params.splits, participant => participant.email).join(','),
     })
         .then((response) => {
@@ -143,7 +143,7 @@ function createIOUSplit(params) {
             }
 
             chatReportID = response.reportID;
-            return API.CreateIOUSplit({
+            return DeprecatedAPI.CreateIOUSplit({
                 ...params,
                 splits: JSON.stringify(params.splits),
                 reportID: response.reportID,
@@ -186,7 +186,7 @@ function createIOUSplit(params) {
 function createIOUSplitGroup(params) {
     startLoadingAndResetError();
 
-    API.CreateIOUSplit({
+    DeprecatedAPI.CreateIOUSplit({
         ...params,
         splits: JSON.stringify(params.splits),
     })
@@ -215,7 +215,7 @@ function rejectTransaction({
     Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
         [transactionID]: true,
     });
-    API.RejectTransaction({
+    DeprecatedAPI.RejectTransaction({
         reportID,
         transactionID,
         comment,
@@ -295,8 +295,8 @@ function payIOUReport({
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
 
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID, newIOUReportDetails})
-        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
+        ? DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
+        : DeprecatedAPI.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
     // Build the url for the user's platform of choice if they have selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
     let url;

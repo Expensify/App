@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {beforeEach, jest, test} from '@jest/globals';
-import * as API from '../../src/libs/API';
+import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -56,7 +56,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
             // data.
             HttpUtils.xhr
 
-                // This will make the call to API.Get() below return with an expired session code
+                // This will make the call to DeprecatedAPI.Get() below return with an expired session code
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }))
@@ -70,7 +70,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
                 }));
 
             // When we attempt to fetch the chatList via the API
-            API.Get({returnValueList: 'chatList'});
+            DeprecatedAPI.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve();
         })
         .then(() => {

@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
@@ -121,7 +121,7 @@ function formatPersonalDetails(personalDetailsList) {
  * @returns {Promise}
  */
 function fetchPersonalDetails() {
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -201,7 +201,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -274,7 +274,7 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)})
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {
@@ -300,7 +300,7 @@ function setPersonalDetails(details, shouldGrowl) {
  * @returns {Object}
  */
 function getCurrencyList() {
-    return API.GetCurrencyList()
+    return DeprecatedAPI.GetCurrencyList()
         .then((data) => {
             const currencyListObject = JSON.parse(data.currencyList);
             Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
@@ -319,7 +319,7 @@ function fetchLocalCurrency() {
         isRetrievingCurrency: true,
     });
 
-    API.GetLocalCurrency({...coords})
+    DeprecatedAPI.GetLocalCurrency({...coords})
         .then((data) => {
             currency = data.currency;
         })
@@ -341,7 +341,7 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
@@ -366,7 +366,7 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 

@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
@@ -49,7 +49,7 @@ Onyx.connect({
 function changePasswordAndNavigate(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    return API.ChangePassword({oldPassword, password})
+    return DeprecatedAPI.ChangePassword({oldPassword, password})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
@@ -71,7 +71,7 @@ function changePasswordAndNavigate(oldPassword, password) {
  * @param {String} message optional reason for closing account
  */
 function closeAccount(message) {
-    API.User_Delete({message}).then((response) => {
+    DeprecatedAPI.User_Delete({message}).then((response) => {
         console.debug('User_Delete: ', JSON.stringify(response));
 
         if (response.jsonCode === 200) {
@@ -86,7 +86,7 @@ function closeAccount(message) {
 }
 
 function getBetas() {
-    API.User_GetBetas().then((response) => {
+    DeprecatedAPI.User_GetBetas().then((response) => {
         if (response.jsonCode !== 200) {
             return;
         }
@@ -99,7 +99,7 @@ function getBetas() {
  * Fetches the data needed for user settings
  */
 function getUserDetails() {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'account, loginList, nameValuePairs',
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
@@ -139,7 +139,7 @@ function getUserDetails() {
  * @param {String} login
  */
 function resendValidateCode(login) {
-    API.ResendValidateCode({email: login});
+    DeprecatedAPI.ResendValidateCode({email: login});
 }
 
 /**
@@ -150,7 +150,7 @@ function resendValidateCode(login) {
 function setExpensifyNewsStatus(subscribed) {
     Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
 
-    API.UpdateAccount({subscribed})
+    DeprecatedAPI.UpdateAccount({subscribed})
         .then((response) => {
             if (response.jsonCode === 200) {
                 return;
@@ -173,7 +173,7 @@ function setExpensifyNewsStatus(subscribed) {
 function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    return API.User_SecondaryLogin_Send({
+    return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
         password,
     }).then((response) => {
@@ -211,7 +211,7 @@ function validateLogin(accountID, validateCode) {
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.ValidateEmail({
+    DeprecatedAPI.ValidateEmail({
         accountID,
         validateCode,
     }).then((response) => {
@@ -273,13 +273,13 @@ function getDomainInfo() {
     }
 
     // If it is not a common public domain, check the API
-    API.User_IsFromPublicDomain({email: sessionEmail})
+    DeprecatedAPI.User_IsFromPublicDomain({email: sessionEmail})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
-                API.User_IsUsingExpensifyCard()
+                DeprecatedAPI.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                     });
@@ -415,7 +415,7 @@ function joinScreenShare(accessToken, roomName) {
  */
 function generateStatementPDF(period) {
     Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    return API.GetStatementPDF({period})
+    return DeprecatedAPI.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
                 Log.info('[User] Failed to generate statement PDF', false, {response});

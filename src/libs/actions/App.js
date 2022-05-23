@@ -2,7 +2,7 @@ import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
@@ -49,13 +49,13 @@ function setCurrentURL(url) {
 */
 function setLocale(locale) {
     if (currentUserAccountID) {
-        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
     }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
 function getLocale() {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'nameValuePairs',
         nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
     }).then((response) => {
@@ -125,7 +125,7 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
  * because some migrations might create new chat reports or their change data.
  */
 function fixAccountAndReloadData() {
-    API.User_FixAccount()
+    DeprecatedAPI.User_FixAccount()
         .then((response) => {
             if (!response.changed) {
                 return;
