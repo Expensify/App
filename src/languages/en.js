@@ -570,7 +570,7 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
-        pdfPasswordRequired: 'This PDF is password protected. Please enter the password to continue.',
+        pdfPasswordRequired: 'This PDF is password protected. Please enter the password to view it.',
         incorrectPDFPassword: 'Incorrect password. Please try again.',
     },
     pronouns: {

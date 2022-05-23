@@ -64,7 +64,6 @@ class PDFPasswordForm extends PureComponent {
                 )}
 
                 <Button
-                    success
                     textStyles={[styles.buttonConfirmText]}
                     text={this.props.translate('common.confirm')}
                     onPress={this.onSubmit}
