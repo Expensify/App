@@ -8,6 +8,7 @@ import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -35,34 +36,48 @@ const SignInPageLayout = (props) => {
         </SignInPageContent>
     );
 
+    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
+
+    const graphicLayout = (
+        <Pressable
+            style={[
+                styles.flex1,
+                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
+            ]}
+            onPress={() => {
+                Link.openExternalLink(backgroundStyle.redirectUri);
+            }}
+            disabled={!hasRedirect}
+        >
+            <SVGImage
+                width="100%"
+                height="100%"
+                src={backgroundStyle.backgroundImageUri}
+                resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
+            />
+        </Pressable>
+    );
+
     if (props.isSmallScreenWidth) {
         return content;
     }
 
-    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
+    if (props.isMediumScreenWidth && props.windowHeight >= variables.minHeigthToShowGraphics) {
+        return (
+            <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
+                {graphicLayout}
+                <View style={styles.flex1}>
+                    {content}
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.flex1, styles.signInPageInner]}>
             <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
                 {content}
-                <Pressable
-                    style={[
-                        styles.flexGrow1,
-                        StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-                        props.isMediumScreenWidth && styles.alignItemsCenter,
-                    ]}
-                    onPress={() => {
-                        Link.openExternalLink(backgroundStyle.redirectUri);
-                    }}
-                    disabled={!hasRedirect}
-                >
-                    <SVGImage
-                        width="100%"
-                        height="100%"
-                        src={backgroundStyle.backgroundImageUri}
-                        resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
-                    />
-                </Pressable>
+                {graphicLayout}
             </View>
         </View>
     );

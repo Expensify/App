@@ -69,6 +69,9 @@ Please follow these steps to propose a job:
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+## Posting Ideas
+Additionally if you want to discuss an idea with the community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
+
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
