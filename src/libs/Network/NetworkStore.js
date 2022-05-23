@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import createCallback from '../createCallback';
 
 let credentials;
 let authToken;
@@ -10,7 +9,17 @@ let currentUserEmail;
 let offline = false;
 let authenticating = false;
 
-const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
+// Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
+let reconnectCallback;
+function triggerReconnectCallback() {
+    if (!_.isFunction(reconnectCallback)) {
+        return;
+    }
+    return reconnectCallback();
+};
+function onReconnection(callbackFunction) {
+    reconnectCallback = callbackFunction;
+}
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -64,7 +73,7 @@ Onyx.connect({
 
         // Client becomes online emit connectivity resumed event
         if (offline && !network.isOffline) {
-            triggerConnectivityResumed();
+            triggerReconnectCallback();
         }
 
         offline = network.isOffline;
@@ -134,7 +143,7 @@ export {
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
     isOffline,
-    onConnectivityResumed,
+    onReconnection,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

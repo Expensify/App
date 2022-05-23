@@ -75,7 +75,7 @@ function isRunning() {
 }
 
 // Flush the queue when the connection resumes
-NetworkStore.onConnectivityResumed(flush);
+NetworkStore.onReconnection(flush);
 
 /**
  * @param {Object} request
