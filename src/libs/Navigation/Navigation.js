@@ -9,9 +9,11 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
-import createOnReadyTask from '../createOnReadyTask';
 
-const navigationReadyTask = createOnReadyTask();
+let resolveNavigationIsReadyPromise;
+let navigationIsReadyPromise = new Promise((resolve) => {
+    resolveNavigationIsReadyPromise = resolve;
+});
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -43,7 +45,6 @@ function canNavigate(methodName, params = {}) {
     }
 
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
-    navigationReadyTask.reset();
     return false;
 }
 
@@ -191,18 +192,20 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * @returns {Boolean} isNavigationReady
+ * @returns {Promise}
  */
 function isNavigationReady() {
-    return navigationReadyTask.isReady();
+    return navigationIsReadyPromise;
 }
 
 function setIsNavigationReady() {
-    navigationReadyTask.setIsReady();
+    resolveNavigationIsReadyPromise();
 }
 
 function resetIsNavigationReady() {
-    navigationReadyTask.reset();
+    navigationIsReadyPromise = new Promise((resolve) => {
+        resolveNavigationIsReadyPromise = resolve;
+    });
 }
 
 export default {
