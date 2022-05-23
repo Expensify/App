@@ -114,6 +114,7 @@ class AuthScreens extends React.Component {
         Linking.getInitialURL()
             .then((url) => {
                 if (!url) {
+                    Policy.getPolicyList();
                     return;
                 }
                 Navigation.isNavigationReady().then(() => {
