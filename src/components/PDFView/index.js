@@ -31,8 +31,8 @@ class PDFView extends PureComponent {
         this.state = {
             numPages: null,
             windowWidth: Dimensions.get('window').width,
-            requestPassword: true,
-            passwordInvalid: false,
+            shouldRequestPassword: true,
+            isPasswordInvalid: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.onPassword = this.onPassword.bind(this);
@@ -49,8 +49,8 @@ class PDFView extends PureComponent {
     onDocumentLoadSuccess({numPages}) {
         this.setState({
             numPages,
-            requestPassword: false,
-            passwordInvalid: false,
+            shouldRequestPassword: false,
+            isPasswordInvalid: false,
         });
     }
 
@@ -64,7 +64,7 @@ class PDFView extends PureComponent {
      * they're not exported in entry.webpack.
      *
      * @param {*} callback Callback used to send password to react-pdf
-     * @param {number} reason Reason code for password request
+     * @param {Number} reason Reason code for password request
      */
     onPassword(callback, reason) {
         this.onPasswordCallback = callback;
@@ -75,9 +75,9 @@ class PDFView extends PureComponent {
         };
 
         if (reason === PasswordResponses.NEED_PASSWORD) {
-            this.setState({requestPassword: true});
+            this.setState({shouldRequestPassword: true});
         } else if (reason === PasswordResponses.INCORRECT_PASSWORD) {
-            this.setState({requestPassword: true, passwordInvalid: true});
+            this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
         } else {
             Log.warn('[PDFView] pdf password requested for unknown reason: ', reason);
         }
@@ -88,7 +88,7 @@ class PDFView extends PureComponent {
      * is received from the password form the handler calls the password
      * callback previously received from react-pdf.
      *
-     * @param {string} password The password entered in the form
+     * @param {String} password The password entered in the form
      */
     onPasswordFormSubmit(password) {
         this.onPasswordCallback(password);
@@ -98,13 +98,13 @@ class PDFView extends PureComponent {
      * Generate markup for PDFPasswordForm. This form is only displayed if a
      * password is required to open a PDF.
      *
-     * @returns {*} JSX markup for PDFPasswordForm
+     * @returns {Object} JSX markup for PDFPasswordForm
      */
     renderPasswordForm() {
         return (
             <PDFPasswordForm
                 onSubmit={this.onPasswordFormSubmit}
-                passwordInvalid={this.state.passwordInvalid}
+                isPasswordInvalid={this.state.isPasswordInvalid}
             />
         );
     }
@@ -121,7 +121,7 @@ class PDFView extends PureComponent {
         // If we're requesting a password then we need to set the background to
         // defaultModalContainer color (white) and hide - but still render -
         // the PDF component.
-        if (this.state.requestPassword) {
+        if (this.state.shouldRequestPassword) {
             pdfStyle.push(styles.invisible);
             containerStyle.push(styles.defaultModalContainer);
         }
@@ -159,7 +159,7 @@ class PDFView extends PureComponent {
                     </Document>
                 </View>
 
-                {this.state.requestPassword && this.renderPasswordForm()}
+                {this.state.shouldRequestPassword && this.renderPasswordForm()}
 
             </View>
         );

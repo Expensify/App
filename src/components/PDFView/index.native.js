@@ -42,11 +42,11 @@ class PDFView extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            requestPassword: false,
-            passwordInvalid: false,
+            shouldRequestPassword: false,
+            isPasswordInvalid: false,
             password: '',
-            attemptPdfLoad: true,
-            pdfLoaded: false,
+            shouldAttemptPdfLoad: true,
+            isPdfLoaded: false,
         };
         this.onError = this.onError.bind(this);
         this.onPasswordFormSubmit = this.onPasswordFormSubmit.bind(this);
@@ -68,30 +68,35 @@ class PDFView extends PureComponent {
         }
 
         // Render password form, and don't render PDF.
-        this.setState({requestPassword: true, attemptPdfLoad: false});
+        this.setState({shouldRequestPassword: true, shouldAttemptPdfLoad: false});
 
         // The error message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
         // that if a password was already entered then it's an invalid password error.
         if (this.state.password) {
-            this.setState({passwordInvalid: true});
+            this.setState({isPasswordInvalid: true});
         }
     }
 
     /**
-     * Handler called by PDFPasswordForm when the password form is submitted.
+     * When the password is submitted via PDFPasswordForm, save the password
+     * in state and attempt to load the PDF.
      *
-     * @param {string} submittedPassword Password submitted in PDFPasswordForm
+     * @param {String} password Password submitted via PDFPasswordForm
      */
-    onPasswordFormSubmit(submittedPassword) {
+    onPasswordFormSubmit(password) {
         // Render PDF in invisible state. It's invisible because at this
-        // point in the password challenge process pdfLoaded is false.
-        this.setState({password: submittedPassword, attemptPdfLoad: true});
+        // stage of the password challenge process isPdfLoaded is false.
+        this.setState({password, shouldAttemptPdfLoad: true});
     }
 
+    /**
+     * When the PDF is loaded, hide PDFPasswordForm and make PDF component
+     * visible.
+     */
     onLoadComplete() {
         // Don't render PDFPasswordForm, and do render PDF in visible state.
-        this.setState({requestPassword: false, pdfLoaded: true});
+        this.setState({shouldRequestPassword: false, isPdfLoaded: true});
     }
 
     render() {
@@ -104,7 +109,7 @@ class PDFView extends PureComponent {
         // react-native-pdf/PDF component so that PDFPasswordForm is positioned
         // nicely. We're just hiding it because we still need to render the PDF so
         // that it can validate the password.
-        if (!this.state.pdfLoaded) {
+        if (!this.state.isPdfLoaded) {
             pdfStyles.push(styles.invisible);
         }
 
@@ -113,7 +118,7 @@ class PDFView extends PureComponent {
 
                 <View>
 
-                    {this.state.attemptPdfLoad && (
+                    {this.state.shouldAttemptPdfLoad && (
                         <PDF
                             activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
@@ -124,10 +129,10 @@ class PDFView extends PureComponent {
                         />
                     )}
 
-                    {this.state.requestPassword && (
+                    {this.state.shouldRequestPassword && (
                         <PDFPasswordForm
                             onSubmit={this.onPasswordFormSubmit}
-                            passwordInvalid={this.state.passwordInvalid}
+                            isPasswordInvalid={this.state.isPasswordInvalid}
                         />
                     )}
 

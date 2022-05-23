@@ -1,4 +1,5 @@
 import React, {PureComponent, memo} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Button from '../Button';
 import Text from '../Text';
@@ -8,11 +9,13 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 
 const propTypes = {
+    /** If the submitted password is invalid */
+    isPasswordInvalid: PropTypes.bool,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    passwordInvalid: false,
+    isPasswordInvalid: false,
 };
 
 class PDFPasswordForm extends PureComponent {
@@ -23,6 +26,10 @@ class PDFPasswordForm extends PureComponent {
         };
     }
 
+    /**
+     * When the form is submitted, call the props.onSubmit() if the password
+     * input field contains text.
+     */
     onSubmit = () => {
         if (!this.state.password) {
             return;
@@ -49,7 +56,7 @@ class PDFPasswordForm extends PureComponent {
                     autoFocus
                 />
 
-                {this.props.passwordInvalid && (
+                {this.props.isPasswordInvalid && (
                     <Text style={[styles.formError]}>
                         {this.props.translate('attachmentView.incorrectPDFPassword')}
                     </Text>
