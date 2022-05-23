@@ -389,7 +389,7 @@ function getLoginPagePromoStyle() {
  * @param {Boolean} [isHovered]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false) {
+function getReportActionItemStyle(isHovered = false, isPending = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
