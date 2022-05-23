@@ -5,11 +5,14 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
-import createOnReadyTask from '../createOnReadyTask';
 
-// Create a deferred task to hook into and immediately set it as ready
-const queueProcessTask = createOnReadyTask();
-queueProcessTask.setIsReady();
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+// Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
+resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
 
@@ -44,7 +47,11 @@ function flush() {
     }
 
     isSequentialQueueRunning = true;
-    queueProcessTask.reset();
+
+    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -54,7 +61,7 @@ function flush() {
             process()
                 .finally(() => {
                     isSequentialQueueRunning = false;
-                    queueProcessTask.setIsReady();
+                    resolveIsReadyPromise();
                 });
         },
     });
@@ -84,7 +91,7 @@ function push(request) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        queueProcessTask.isReady().then(flush);
+        isReadyPromise.then(flush);
         return;
     }
 
