@@ -23,6 +23,9 @@ Request.use(Middleware.Reauthentication);
 // Retry - Handles retrying any failed requests.
 Request.use(Middleware.Retry);
 
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+Request.use(Middleware.SaveResponseInOnyx);
+
 /**
  * @param {Object} parameters
  * @returns {Promise}
