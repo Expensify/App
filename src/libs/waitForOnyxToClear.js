@@ -1,26 +1,24 @@
-import createOnReadyTask from './createOnReadyTask';
-
-const onyxClearReadyTask = createOnReadyTask();
-onyxClearReadyTask.setIsReady();
+// By default Onyx is done clearing
+let onyxClearPromise = Promise.resolve();
 
 /**
  * @returns {Promise}
  */
 function waitForOnyxToClear() {
-    return onyxClearReadyTask.isReady();
+    return onyxClearPromise;
 }
 
-function reset() {
-    onyxClearReadyTask.reset();
+function setOnyxClearing() {
+    onyxClearPromise = new Promise();
 }
 
-function setIsReady() {
-    onyxClearReadyTask.setIsReady();
+function setOnyxDoneClearing() {
+    onyxClearPromise.resolve();
 }
 
 export default waitForOnyxToClear;
 
 export {
-    reset,
-    setIsReady,
+    setOnyxClearing,
+    setOnyxDoneClearing,
 };
