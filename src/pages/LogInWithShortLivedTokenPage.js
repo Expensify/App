@@ -16,11 +16,7 @@ const propTypes = {
             /** The email of the transitioning user */
             email: PropTypes.string,
         }),
-    }),
-};
-
-const defaultProps = {
-    route: null,
+    }).isRequired,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
@@ -39,6 +35,5 @@ class LogInWithShortLivedTokenPage extends Component {
 }
 
 LogInWithShortLivedTokenPage.propTypes = propTypes;
-LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
 export default LogInWithShortLivedTokenPage;

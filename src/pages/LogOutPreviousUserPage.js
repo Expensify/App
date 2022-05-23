@@ -15,18 +15,13 @@ const propTypes = {
             /** The email of the transitioning user */
             email: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
     session: PropTypes.shape({
         /** The user's email for the current session */
         email: PropTypes.string,
-    }),
-};
-
-const defaultProps = {
-    route: null,
-    session: null,
+    }).isRequired,
 };
 
 class LogOutPreviousUserPage extends Component {
@@ -48,7 +43,6 @@ class LogOutPreviousUserPage extends Component {
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
-LogOutPreviousUserPage.defaultProps = defaultProps;
 
 export default withOnyx({
     session: {
