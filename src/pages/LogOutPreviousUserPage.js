@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
