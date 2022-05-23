@@ -16,7 +16,11 @@ function triggerReconnectCallback() {
         return;
     }
     return reconnectCallback();
-};
+}
+
+/**
+ * @param {Function} callbackFunction
+ */
 function onReconnection(callbackFunction) {
     reconnectCallback = callbackFunction;
 }
