@@ -1,5 +1,10 @@
+let resolveOnyxClearPromise;
+let onyxClearPromise = new Promise((resolve) => {
+    resolveOnyxClearPromise = resolve;
+});
+
 // By default Onyx is done clearing
-let onyxClearPromise = Promise.resolve();
+resolveOnyxClearPromise();
 
 /**
  * @returns {Promise}
@@ -9,11 +14,13 @@ function waitForOnyxToClear() {
 }
 
 function setOnyxClearing() {
-    onyxClearPromise = new Promise();
+    onyxClearPromise = new Promise((resolve) => {
+        resolveOnyxClearPromise = resolve;
+    });
 }
 
 function setOnyxDoneClearing() {
-    onyxClearPromise.resolve();
+    resolveOnyxClearPromise();
 }
 
 export default waitForOnyxToClear;
