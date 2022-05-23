@@ -398,6 +398,9 @@ function getReportActionItemStyle(isHovered = false, isPending = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
+        opacity: isPending
+            ? 0.5
+            : 1,
         cursor: 'default',
     };
 }
