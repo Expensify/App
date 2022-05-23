@@ -124,7 +124,7 @@ class AuthScreens extends React.Component {
                     const email = params.get('email');
                     const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
                     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION))
+                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
                     if (shouldCreateFreePolicy) {
                         Policy.createAndGetPolicyList();
@@ -238,7 +238,7 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.TRANSITION}
+                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     component={LogOutPreviousUserPage}
                 />

@@ -103,7 +103,7 @@ function show({routes, showCreateMenu}) {
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
         const topRouteName = lodashGet(_.last(routes), 'name', '');
-        const transitionRoute = _.find(routes, route => route.name === SCREENS.TRANSITION);
+        const transitionRoute = _.find(routes, route => route.name === SCREENS.TRANSITION_FROM_OLD_DOT);
         const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
         const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
