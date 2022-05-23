@@ -114,16 +114,25 @@ class PDFView extends PureComponent {
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
             ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
-        const pdfShowHideStyle = this.state.requestPassword ? [styles.PDFView, styles.dNone] : styles.PDFView;
+
+        const pdfStyle = [styles.PDFView];
+        const containerStyle = [styles.PDFView, this.props.style];
+
+        // If we're requesting a password then we need to set the background to
+        // defaultModalContainer color (white) and hide - but still render -
+        // the PDF component.
+        if (this.state.requestPassword) {
+            pdfStyle.push(styles.invisible);
+            containerStyle.push(styles.defaultModalContainer);
+        }
 
         return (
+
             <View
-                style={[styles.PDFView, this.props.style]}
+                style={containerStyle}
                 onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
             >
-                {this.state.requestPassword && this.renderPasswordForm()}
-
-                <View style={pdfShowHideStyle}>
+                <View style={pdfStyle}>
                     <Document
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
@@ -149,6 +158,8 @@ class PDFView extends PureComponent {
                         }
                     </Document>
                 </View>
+
+                {this.state.requestPassword && this.renderPasswordForm()}
 
             </View>
         );
