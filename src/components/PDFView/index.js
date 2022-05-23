@@ -39,8 +39,8 @@ class PDFView extends PureComponent {
             isPasswordInvalid: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
-        this.onPassword = this.onPassword.bind(this);
-        this.onPasswordFormSubmit = this.onPasswordFormSubmit.bind(this);
+        this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
+        this.openPdfWithPassword = this.openPdfWithPassword.bind(this);
     }
 
     /**
@@ -61,19 +61,18 @@ class PDFView extends PureComponent {
     }
 
     /**
-     * Event handler for password-protected PDFs. The react-pdf/Document
+     * Initiate password challenge process. The react-pdf/Document
      * component calls this handler to indicate that a PDF requires a
      * password, or to indicate that a previously provided password was
-     * invalid. If a password is required then show the PDFPasswordForm
-     * and alert the parent component that we're waiting for user input.
+     * invalid.
      *
-     * The PasswordResponses constants were copied from react-pdf because
-     * they're not exported in entry.webpack.
+     * The PasswordResponses constants below were copied from react-pdf
+     * because they're not exported in entry.webpack.
      *
      * @param {*} callback Callback used to send password to react-pdf
      * @param {Number} reason Reason code for password request
      */
-    onPassword(callback, reason) {
+    initiatePasswordChallenge(callback, reason) {
         this.onPasswordCallback = callback;
 
         const PasswordResponses = {
@@ -93,13 +92,12 @@ class PDFView extends PureComponent {
     }
 
     /**
-     * Event handler for PDFPasswordForm submission. When a password
-     * is received from the password form the handler calls the password
-     * callback previously received from react-pdf.
+     * Send submitted password to react-pdf via its callback so it can attempt to
+     * open the password-protected PDf.
      *
      * @param {String} password The password entered in the form
      */
-    onPasswordFormSubmit(password) {
+    openPdfWithPassword(password) {
         this.onPasswordCallback(password);
     }
 
@@ -112,7 +110,7 @@ class PDFView extends PureComponent {
     renderPasswordForm() {
         return (
             <PDFPasswordForm
-                onSubmit={this.onPasswordFormSubmit}
+                onSubmit={this.openPdfWithPassword}
                 isPasswordInvalid={this.state.isPasswordInvalid}
             />
         );
@@ -151,7 +149,7 @@ class PDFView extends PureComponent {
                         }}
                         externalLinkTarget="_blank"
                         onLoadSuccess={this.onDocumentLoadSuccess}
-                        onPassword={this.onPassword}
+                        onPassword={this.initiatePasswordChallenge}
                     >
                         {
                             Array.from(
