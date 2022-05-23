@@ -18,11 +18,15 @@ const propTypes = {
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
+
+    /** Notify parent that we're requesting input from user */
+    onUserInputRequired: PropTypes.func,
 };
 
 const defaultProps = {
     sourceURL: '',
     style: {},
+    onUserInputRequired: () => {},
 };
 
 class PDFView extends PureComponent {
@@ -40,8 +44,9 @@ class PDFView extends PureComponent {
     }
 
     /**
-     * Callback to be called to set the number of pages on PDF.
-     * Also update state to hide/reset PDF password form.
+     * Upon successful document load, set the number of pages on PDF,
+     * hide/reset PDF password form, and notify parent component that
+     * user input is no longer required.
      *
      * @param {*} {numPages} No of pages in the rendered PDF
      * @memberof PDFView
@@ -52,13 +57,15 @@ class PDFView extends PureComponent {
             shouldRequestPassword: false,
             isPasswordInvalid: false,
         });
+        this.props.onUserInputRequired(false);
     }
 
     /**
      * Event handler for password-protected PDFs. The react-pdf/Document
      * component calls this handler to indicate that a PDF requires a
      * password, or to indicate that a previously provided password was
-     * invalid.
+     * invalid. If a password is required then show the PDFPasswordForm
+     * and alert the parent component that we're waiting for user input.
      *
      * The PasswordResponses constants were copied from react-pdf because
      * they're not exported in entry.webpack.
@@ -76,8 +83,10 @@ class PDFView extends PureComponent {
 
         if (reason === PasswordResponses.NEED_PASSWORD) {
             this.setState({shouldRequestPassword: true});
+            this.props.onUserInputRequired(true);
         } else if (reason === PasswordResponses.INCORRECT_PASSWORD) {
             this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
+            this.props.onUserInputRequired(true);
         } else {
             Log.warn('[PDFView] pdf password requested for unknown reason: ', reason);
         }

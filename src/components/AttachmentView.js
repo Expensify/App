@@ -28,6 +28,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Notify parent that we're requesting input from user (e.g. a PDF password) */
+    onUserInputRequired: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +40,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
+    onUserInputRequired: () => {},
 };
 
 const AttachmentView = (props) => {
@@ -45,10 +49,13 @@ const AttachmentView = (props) => {
     if (Str.isPDF(props.sourceURL)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (
+
             <PDFView
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
+                onUserInputRequired={props.onUserInputRequired}
             />
+
         );
     }
 

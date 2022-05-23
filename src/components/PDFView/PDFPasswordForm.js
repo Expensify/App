@@ -11,6 +11,7 @@ import compose from '../../libs/compose';
 const propTypes = {
     /** If the submitted password is invalid */
     isPasswordInvalid: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
