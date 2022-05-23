@@ -149,7 +149,8 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     fetchData() {
-        // We can specify a step to navigate to by using route params when the component mounts.
+        // We can specify a step to navigate to by using route params when the component mounts or when the network status changes.
+        // We initialize this variable because the route parameters may have changed when we toggle between offline and online states.
         const stepToOpen = this.getStepToOpenFromRouteParams();
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
