@@ -132,7 +132,9 @@ class AuthScreens extends React.Component {
                     }
                     Policy.getPolicyList();
                     if (!isLoggingInAsNewUser && exitTo) {
-                        this.navigateToExitRoute(exitTo);
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
                     }
                 });
             });
@@ -179,17 +181,6 @@ class AuthScreens extends React.Component {
         Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * Navigate to the transition exit route
-     *
-     * @param {String} exitTo
-     */
-    navigateToExitRoute(exitTo) {
-        // We must call dismissModal() to remove the /transition route from history
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
     }
 
     render() {
