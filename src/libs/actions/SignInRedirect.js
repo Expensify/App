@@ -25,10 +25,10 @@ function clearStorageAndRedirect(errorMessage) {
     const preferredLocale = currentPreferredLocale;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    waitForOnyxToClear.reset();
+    waitForOnyxToClear.setOnyxClearing();
     Onyx.clear()
         .then(() => {
-            waitForOnyxToClear.setIsReady();
+            waitForOnyxToClear.setOnyxDoneClearing();
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
