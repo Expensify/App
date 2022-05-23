@@ -145,13 +145,17 @@ function fixAccountAndReloadData() {
 }
 
 /**
- * Wait for the navigation to be ready, then create a new free policy if needed,
- * load policies, and navigate to the transition exit route if needed.
+ * Wait for the navigation to be ready, get the initial URL and make sure the
+ * user is logged in. Next, create a new free policy if needed, load policies,
+ * and navigate to the transition exit route if needed.
  */
 function setUpPoliciesAndNavigate() {
     Navigation.isNavigationReady()
         .then(Linking.getInitialURL)
         .then((url) => {
+            if (!lodashGet(session, 'authToken', null)) {
+                return;
+            }
             if (!url) {
                 Policy.getPolicyList();
                 return;
