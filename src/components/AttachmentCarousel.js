@@ -8,7 +8,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import {BackArrow, ArrowRight} from './Icon/Expensicons';
 import Icon from './Icon'
 
-function AttachmentsNav({ reportActions, onArrowPress, sourceURL }) {
+function AttachmentCarousel({ reportActions, onArrowPress, sourceURL }) {
     const actionsArr = Object.values(reportActions)
     const [page, setPage] = useState(-1)
     const [attachments, setAttachments] = useState([])
@@ -58,4 +58,4 @@ export default withOnyx({
         key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
         canEvict: true
     },
-})(AttachmentsNav)
+})(AttachmentCarousel)

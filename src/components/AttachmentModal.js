@@ -9,7 +9,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import AttachmentView from './AttachmentView';
-import AttachmentNav from './AttachmentNav';
+import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
@@ -97,7 +97,7 @@ class AttachmentModal extends PureComponent {
     }
     
     /**
-     * delegates AttachmentNav to change the sourceUrl
+     * delegates AttachmentCarousel to change the sourceUrl
      * @param {*} sourceUrl 
      */
     onArrowPress({src, file}){
@@ -205,7 +205,7 @@ class AttachmentModal extends PureComponent {
                         <>                        
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />                                                                     
                             {this.state.reportId && ( 
-                                <AttachmentNav 
+                                <AttachmentCarousel 
                                     reportId={this.state.reportId}                                    
                                     onArrowPress={this.onArrowPress}
                                     sourceURL={this.state.sourceURL}
@@ -254,9 +254,12 @@ class AttachmentModal extends PureComponent {
                             });
                         }
                     },
-                    show: () => {                        
-                        const reportId = Navigation.getActiveRoute().replace('/r/', "")
-                        this.setState({ reportId, isModalOpen: true});
+                    show: () => {
+                        const state = {isModalOpen: true}
+                        const route = Navigation.getActiveRoute()
+                        if(route.includes("/r/"))
+                            state.reportId = route.replace('/r/', "")
+                        this.setState(state)
                     },
                 })}
             </>
