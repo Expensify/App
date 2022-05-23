@@ -100,6 +100,10 @@ class PDFView extends PureComponent {
             StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
         ];
 
+        // If we haven't yet successfully loaded the PDF then we need to hide the
+        // react-native-pdf/PDF component so that PDFPasswordForm is positioned
+        // nicely. We're just hiding it because we still need to render the PDF so
+        // that it can validate the password.
         if (!this.state.pdfLoaded) {
             pdfStyles.push(styles.invisible);
         }
