@@ -1,6 +1,7 @@
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -15,6 +16,8 @@ import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -35,6 +38,12 @@ let currentPreferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
+let session;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => session = val,
 });
 
 /**
@@ -135,6 +144,39 @@ function fixAccountAndReloadData() {
         });
 }
 
+/**
+ * Wait for the navigation to be ready, then create a new free policy if needed,
+ * load policies, and navigate to the transition exit route if needed.
+ */
+function setUpPoliciesAndNavigate() {
+    Navigation.isNavigationReady()
+        .then(Linking.getInitialURL)
+        .then((url) => {
+            if (!url) {
+                Policy.getPolicyList();
+                return;
+            }
+            const path = new URL(url).pathname;
+            const params = new URLSearchParams(url);
+            const exitTo = params.get('exitTo');
+            const email = params.get('email');
+            const isLoggingInAsNewUser = session && session.email !== email;
+            const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && exitTo === ROUTES.WORKSPACE_NEW;
+            if (shouldCreateFreePolicy) {
+                Policy.createAndGetPolicyList();
+                return;
+            }
+            Policy.getPolicyList();
+            if (!isLoggingInAsNewUser && exitTo) {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            }
+        });
+}
+
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => getAppData(true, false));
 
@@ -145,4 +187,5 @@ export {
     getLocale,
     getAppData,
     fixAccountAndReloadData,
+    setUpPoliciesAndNavigate,
 };

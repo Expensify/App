@@ -1,7 +1,5 @@
 import React from 'react';
-import {Linking} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -109,35 +107,7 @@ class AuthScreens extends React.Component {
         App.getAppData(false);
 
         App.fixAccountAndReloadData();
-
-        // Load policies, maybe creating a new policy first.
-        Linking.getInitialURL()
-            .then((url) => {
-                if (!url) {
-                    Policy.getPolicyList();
-                    return;
-                }
-                Navigation.isNavigationReady().then(() => {
-                    const path = new URL(url).pathname;
-                    const params = new URLSearchParams(url);
-                    const exitTo = params.get('exitTo');
-                    const email = params.get('email');
-                    const isLoggingInAsNewUser = this.props.session && this.props.session.email !== email;
-                    const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
-                        && exitTo === ROUTES.WORKSPACE_NEW;
-                    if (shouldCreateFreePolicy) {
-                        Policy.createAndGetPolicyList();
-                        return;
-                    }
-                    Policy.getPolicyList();
-                    if (!isLoggingInAsNewUser && exitTo) {
-                        // We must call dismissModal() to remove the /transition route from history
-                        Navigation.dismissModal();
-                        Navigation.navigate(exitTo);
-                    }
-                });
-            });
+        App.setUpPoliciesAndNavigate();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -351,9 +321,4 @@ AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
     withNetwork(),
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
 )(AuthScreens);
