@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 
 const propTypes = {
-    /** If the submitted password is invalid */
+    /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid: PropTypes.bool,
 
     ...withLocalizePropTypes,
@@ -25,13 +25,10 @@ class PDFPasswordForm extends PureComponent {
         this.state = {
             password: null,
         };
+        this.submitPassword = this.submitPassword.bind(this);
     }
 
-    /**
-     * When the form is submitted, call the props.onSubmit() if the password
-     * input field contains text.
-     */
-    onSubmit = () => {
+    submitPassword() {
         if (!this.state.password) {
             return;
         }
@@ -52,7 +49,7 @@ class PDFPasswordForm extends PureComponent {
                     textContentType="password"
                     onChangeText={password => this.setState({password})}
                     returnKeyType="done"
-                    onSubmitEditing={this.onSubmit}
+                    onSubmitEditing={this.submitPassword}
                     secureTextEntry
                     autoFocus
                 />
@@ -66,7 +63,7 @@ class PDFPasswordForm extends PureComponent {
                 <Button
                     textStyles={[styles.buttonConfirmText]}
                     text={this.props.translate('common.confirm')}
-                    onPress={this.onSubmit}
+                    onPress={this.submitPassword}
                     style={styles.mt4}
                     isDisabled={!this.state.password}
                     isFocused

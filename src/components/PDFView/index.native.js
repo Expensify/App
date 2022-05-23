@@ -48,29 +48,30 @@ class PDFView extends PureComponent {
             shouldAttemptPdfLoad: true,
             isPdfLoaded: false,
         };
-        this.onError = this.onError.bind(this);
-        this.onPasswordFormSubmit = this.onPasswordFormSubmit.bind(this);
-        this.onLoadComplete = this.onLoadComplete.bind(this);
+        this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
+        this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
+        this.terminatePasswordChallenge = this.terminatePasswordChallenge.bind(this);
     }
 
     /**
-     * The react-native-pdf/PDF calls this handler when a password is required,
-     * or if the specified password is invalid.
+     * Initiate password challenge if message received from react-native-pdf/PDF
+     * indicates that a password is required is invalid.
      *
-     * The message is "Password required or incorrect password." Note that the message
-     * doesn't specify whether the password is simply empty or rather invalid.
+     * For a password challenge the message is "Password required or incorrect password."
+     * Note that the message doesn't specify whether the password is simply empty or
+     * rather invalid.
      *
-     * @param {Object} error
+     * @param {String} message
      */
-    onError(error) {
-        if (!error.message.match(/password/i)) {
+    initiatePasswordChallenge({message}) {
+        if (!message.match(/password/i)) {
             return;
         }
 
         // Render password form, and don't render PDF.
         this.setState({shouldRequestPassword: true, shouldAttemptPdfLoad: false});
 
-        // The error message provided by react-native-pdf doesn't indicate whether this
+        // The message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
         // that if a password was already entered then it's an invalid password error.
         if (this.state.password) {
@@ -84,17 +85,17 @@ class PDFView extends PureComponent {
      *
      * @param {String} password Password submitted via PDFPasswordForm
      */
-    onPasswordFormSubmit(password) {
+    attemptPdfLoadWithPassword(password) {
         // Render PDF in invisible state. It's invisible because at this
         // stage of the password challenge process isPdfLoaded is false.
         this.setState({password, shouldAttemptPdfLoad: true});
     }
 
     /**
-     * When the PDF is loaded, hide PDFPasswordForm and make PDF component
-     * visible.
+     * When the PDF is successfully loaded, terminate password challenge by hiding
+     * PDFPasswordForm and making the PDF component visible.
      */
-    onLoadComplete() {
+    terminatePasswordChallenge() {
         // Don't render PDFPasswordForm, and do render PDF in visible state.
         this.setState({shouldRequestPassword: false, isPdfLoaded: true});
     }
@@ -105,9 +106,9 @@ class PDFView extends PureComponent {
             StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
         ];
 
-        // If we haven't yet successfully loaded the PDF then we need to hide the
+        // If we haven't yet successfully loaded the PDF, then we need to hide the
         // react-native-pdf/PDF component so that PDFPasswordForm is positioned
-        // nicely. We're just hiding it because we still need to render the PDF so
+        // nicely. We're specifically hiding it because we still need to render the PDF so
         // that it can validate the password.
         if (!this.state.isPdfLoaded) {
             pdfStyles.push(styles.invisible);
@@ -123,15 +124,15 @@ class PDFView extends PureComponent {
                             activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
-                            onError={error => this.onError(error)}
+                            onError={this.initiatePasswordChallenge}
                             password={this.state.password}
-                            onLoadComplete={this.onLoadComplete}
+                            onLoadComplete={this.terminatePasswordChallenge}
                         />
                     )}
 
                     {this.state.shouldRequestPassword && (
                         <PDFPasswordForm
-                            onSubmit={this.onPasswordFormSubmit}
+                            onSubmit={this.attemptPdfLoadWithPassword}
                             isPasswordInvalid={this.state.isPasswordInvalid}
                         />
                     )}
