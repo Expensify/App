@@ -30,11 +30,7 @@ class LogOutPreviousUserPage extends Component {
         const sessionEmail = lodashGet(this.props.session, 'email', '');
         if (paramsEmail !== sessionEmail) {
             Session.signOutAndRedirectToSignIn();
-            return;
         }
-
-        // Set isNavigationReady so that we can navigate in the AuthScreens
-        Navigation.setIsNavigationReady();
     }
 
     render() {
