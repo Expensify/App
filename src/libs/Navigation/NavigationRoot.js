@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
-import * as Navigation from './Navigation';
+import navigationRef from './navigationRef';
+import Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import * as App from '../actions/App';
@@ -40,8 +41,10 @@ class NavigationRoot extends Component {
      */
     parseAndStoreRoute(state) {
         if (!state) {
+            Navigation.resetIsNavigationReady();
             return;
         }
+        Navigation.setIsNavigationReady();
 
         const path = getPathFromState(state, linkingConfig.config);
 
@@ -66,7 +69,7 @@ class NavigationRoot extends Component {
                 onStateChange={this.parseAndStoreRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
-                ref={Navigation.navigationRef}
+                ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
                     enabled: false,
