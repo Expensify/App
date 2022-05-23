@@ -1782,7 +1782,6 @@ const styles = {
     },
 
     pdfPasswordForm: {
-        ...spacing.m5,
         maxWidth: 350,
     },
 
