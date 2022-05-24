@@ -31,7 +31,7 @@ const propTypes = {
     }),
 
     /** Whether the full composer can be opened */
-    isFullComposerAvailable: PropTypes.bool.isRequired,
+    isFullComposerAvailable: PropTypes.bool,
 
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
@@ -55,6 +55,7 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     style: null,
 };
