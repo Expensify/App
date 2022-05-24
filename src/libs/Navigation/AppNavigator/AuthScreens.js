@@ -1,5 +1,5 @@
 import React from 'react';
-import Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -107,7 +107,7 @@ class AuthScreens extends React.Component {
         App.getAppData(false);
 
         App.fixAccountAndReloadData();
-        App.setUpPoliciesAndNavigate();
+        App.setUpPoliciesAndNavigate(this.props.session);
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -321,4 +321,9 @@ AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
     withNetwork(),
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
 )(AuthScreens);
