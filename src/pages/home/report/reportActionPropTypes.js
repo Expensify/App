@@ -23,4 +23,11 @@ export default {
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
     }),
+
+    // Used to indicate the pending state.
+    // Pending means the addComment request is waiting to be sent to the server.
+    isPending: PropTypes.bool,
+
+    // Error message that's come back from the server.
+    error: PropTypes.string,
 };
