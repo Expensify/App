@@ -111,7 +111,6 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName() {
-		console.log(lodashGet(this.state, 'file.name', ''));
         const fullFileName = lodashGet(this.state, 'file.name', '').trim();
         const splittedFileName = fullFileName.split('.');
         const fileExtension = splittedFileName.pop();
