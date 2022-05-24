@@ -27,8 +27,8 @@ const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
 
-    /** Does the user has a VBA into its account? */
-    hasVBA: PropTypes.bool.isRequired,
+    /** Does the user have a VBA in their account? */
+    hasVBA: PropTypes.bool,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -46,6 +46,10 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    hasVBA: null,
 };
 
 class WorkspaceReimburseView extends React.Component {
@@ -191,7 +195,7 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                 </Section>
 
-                {!this.props.hasVBA && (
+                {this.props.hasVBA === false && (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.JewelBoxGreen}
@@ -236,6 +240,7 @@ class WorkspaceReimburseView extends React.Component {
 }
 
 WorkspaceReimburseView.propTypes = propTypes;
+WorkspaceReimburseView.defaultProps = defaultProps;
 WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
 export default compose(
