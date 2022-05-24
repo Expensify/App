@@ -139,9 +139,26 @@ function fixAccountAndReloadData() {
 }
 
 /**
- * Wait for the navigation to be ready, get the initial URL and make sure the
- * user is logged in. Next, create a new free policy if needed, load policies,
- * and navigate to the transition exit route if needed.
+ * This action runs every time the AuthScreens are mounted. The navigator may
+ * not be ready yet, and therefore we need to wait before navigating within this
+ * action and any actions this method calls.
+ *
+ * getInitialURL allows us to access params from the transition link more easily
+ * than trying to extract them from the navigation state.
+
+ * The transition link contains an exitTo param that contains the route to
+ * navigate to after the user is signed in. A user can transition from OldDot
+ * with a different account than the one they are currently signed in with, so
+ * we only navigate if they are not signing in as a new user. Once they are
+ * signed in as that new user, this action will run again and the navigation
+ * will occur.
+
+ * When the exitTo route is 'workspace/new', we create a new
+ * workspace and navigate to it via Policy.createAndGetPolicyList.
+ *
+ * We subscribe to the session using withOnyx in the AuthScreens and
+ * pass it in as a parameter. withOnyx guarantees that the value has been read
+ * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
  */
 function setUpPoliciesAndNavigate(session) {
