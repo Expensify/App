@@ -7,20 +7,23 @@ import Onyx from 'react-native-onyx';
  */
 function SaveResponseInOnyx(response, request) {
     return response
-        .then((responseObject) => {
-            let data;
-            if (responseObject.jsonCode === 200) {
-                data = [
-                    ...request.successData,
-                    ...responseObject.onyxData,
-                ];
-            } else {
-                data = [
-                    ...request.failureData,
-                    ...responseObject.onyxData,
-                ];
+        .then((responseData) => {
+            if (responseData.onyxData) {
+                let data;
+                if (responseData.jsonCode === 200) {
+                    data = [
+                        ...request.successData,
+                        ...responseData.onyxData,
+                    ];
+                } else {
+                    data = [
+                        ...request.failureData,
+                        ...responseData.onyxData,
+                    ];
+                }
+                Onyx.update(data);
             }
-            Onyx.update(data);
+            return responseData;
         });
 }
 
