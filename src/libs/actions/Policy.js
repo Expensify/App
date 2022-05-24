@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -127,7 +127,7 @@ function updateAllPolicies(policyCollection) {
 function create(name = '') {
     Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
-    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
@@ -176,7 +176,7 @@ function createAndNavigate(name = '') {
  * @returns {Promise}
  */
 function deletePolicy(policyID) {
-    return API.Policy_Delete({policyID})
+    return DeprecatedAPI.Policy_Delete({policyID})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
@@ -211,7 +211,7 @@ function deletePolicy(policyID) {
  */
 function getPolicyList() {
     Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
-    API.GetPolicySummaryList()
+    DeprecatedAPI.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {
                 Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
@@ -248,7 +248,7 @@ function createAndGetPolicyList() {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
-    API.GetFullPolicy(policyID)
+    DeprecatedAPI.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode !== 200) {
                 return;
@@ -301,7 +301,7 @@ function removeMembers(members, policyID) {
     Onyx.set(key, policy);
 
     // Make the API call to remove a login from the policy
-    API.Policy_Employees_Remove({
+    DeprecatedAPI.Policy_Employees_Remove({
         emailList: members.join(','),
         policyID,
     })
@@ -339,7 +339,7 @@ function invite(logins, welcomeNote, policyID) {
     Onyx.merge(key, policy);
 
     // Make the API call to merge the login into the policy
-    API.Policy_Employees_Merge({
+    DeprecatedAPI.Policy_Employees_Merge({
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
@@ -387,7 +387,7 @@ function updateLocalPolicyValues(policyID, values) {
  */
 function update(policyID, values, shouldGrowl = false) {
     updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
-    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 throw new Error();
@@ -414,7 +414,7 @@ function update(policyID, values, shouldGrowl = false) {
  */
 function uploadAvatar(policyID, file) {
     updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {
                 // Update the policy with the new avatarURL as soon as we get it
@@ -450,7 +450,7 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} values
  */
 function setCustomUnit(policyID, values) {
-    API.Policy_CustomUnit_Update({
+    DeprecatedAPI.Policy_CustomUnit_Update({
         policyID: policyID.toString(),
         customUnit: JSON.stringify(values),
         lastModified: null,
@@ -479,7 +479,7 @@ function setCustomUnit(policyID, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, customUnitID, values) {
-    API.Policy_CustomUnitRate_Update({
+    DeprecatedAPI.Policy_CustomUnitRate_Update({
         policyID: policyID.toString(),
         customUnitID: customUnitID.toString(),
         customUnitRate: JSON.stringify(values),
