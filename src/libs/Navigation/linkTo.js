@@ -5,20 +5,16 @@ import {
 import linkingConfig from './linkingConfig';
 
 export default function linkTo(navigation, path) {
-    console.log('over here linkTo 1');
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     if (navigation === undefined) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    console.log('over here linkTo 2');
     const state = linkingConfig.getStateFromPath
         ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
         : getStateFromPath(normalizedPath, linkingConfig.config);
 
-    console.log('over here linkTo 3');
     if (!state) {
-        console.log('over here linkTo 4');
         throw new Error('Failed to parse the path to a navigation state.');
     }
 
@@ -31,14 +27,10 @@ export default function linkTo(navigation, path) {
         root = current;
     }
 
-    console.log('over here linkTo 5');
     const action = getActionFromState(state, linkingConfig.config);
-
     if (action !== undefined) {
-        console.log(`over here linkTo 6: ${JSON.stringify(action)}`);
         root.dispatch(action);
     } else {
-        console.log('over here linkTo 7');
         root.reset(state);
     }
 }

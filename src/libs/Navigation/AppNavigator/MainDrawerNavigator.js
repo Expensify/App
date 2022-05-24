@@ -70,7 +70,6 @@ const MainDrawerNavigator = (props) => {
     }
 
     const routeContainsReportID = !_.isEmpty(lodashGet(props, 'route.params.params.reportID'));
-    console.log(`over here route contains reportID: ${routeContainsReportID}`);
 
     // After the app initializes and reports are available the home navigation is mounted
     // This way routing information is updated (if needed) based on the initial report ID resolved.

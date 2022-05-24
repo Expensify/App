@@ -48,7 +48,6 @@ function canNavigate(methodName, params = {}) {
  * @private
  */
 function openDrawer() {
-    console.log('over here open drawer');
     if (!canNavigate('openDrawer')) {
         return;
     }
@@ -62,7 +61,6 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
-    console.log('over here close drawer');
     if (!canNavigate('closeDrawer')) {
         return;
     }
@@ -87,7 +85,6 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @param {Boolean} shouldOpenDrawer
  */
 function goBack(shouldOpenDrawer = true) {
-    console.log('over here drawer go back');
     if (!canNavigate('goBack')) {
         return;
     }
@@ -122,15 +119,11 @@ function isDrawerRoute(route) {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
-    console.log('over here navigate 1');
     if (!canNavigate('navigate', {route})) {
-        console.log('over here navigate 2');
         return;
     }
 
-    console.log('over here navigate 3');
     if (route === ROUTES.HOME) {
-        console.log('over here navigate 4');
         if (isLoggedIn) {
             openDrawer();
             return;
@@ -142,13 +135,10 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    console.log('over here navigate 5');
     if (isDrawerRoute(route)) {
-        console.log('over here navigate 6');
         navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
         return;
     }
-    console.log('over here navigate 7');
 
     linkTo(navigationRef.current, route);
 }
