@@ -13,19 +13,19 @@ function waitForOnyxToClear() {
     return onyxClearPromise;
 }
 
-function setOnyxClearing() {
+function setIsOnyxClearing() {
     onyxClearPromise = new Promise((resolve) => {
         resolveOnyxClearPromise = resolve;
     });
 }
 
-function setOnyxDoneClearing() {
+function setOnyxIsDoneClearing() {
     resolveOnyxClearPromise();
 }
 
 export default waitForOnyxToClear;
 
 export {
-    setOnyxClearing,
-    setOnyxDoneClearing,
+    setIsOnyxClearing,
+    setOnyxIsDoneClearing,
 };
