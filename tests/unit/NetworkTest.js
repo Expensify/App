@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import {
     beforeEach, jest, test, expect, afterEach,
 } from '@jest/globals';
-import * as API from '../../src/libs/API';
+import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import * as TestHelper from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
@@ -102,7 +102,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
                 }));
 
             // This should first trigger re-authentication and then a Failed to fetch
-            API.Get({returnValueList: 'chatList'});
+            DeprecatedAPI.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -174,7 +174,7 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             HttpUtils.xhr = jest.fn();
             HttpUtils.xhr
 
-                // This will make the first call to API.Get() return with an expired session code
+                // This will make the first call to DeprecatedAPI.Get() return with an expired session code
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }))
@@ -213,15 +213,15 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
                 }));
 
             // And then make 3 API requests in quick succession with an expired authToken and handle the response
-            API.Get({returnValueList: 'chatList'})
+            DeprecatedAPI.Get({returnValueList: 'chatList'})
                 .then((response) => {
                     Onyx.merge('test_chatList', response.chatList);
                 });
-            API.Get({returnValueList: 'personalDetailsList'})
+            DeprecatedAPI.Get({returnValueList: 'personalDetailsList'})
                 .then((response) => {
                     Onyx.merge('test_personalDetailsList', response.personalDetailsList);
                 });
-            API.Get({returnValueList: 'account'})
+            DeprecatedAPI.Get({returnValueList: 'account'})
                 .then((response) => {
                     Onyx.merge('test_account', response.account);
                 });
@@ -763,5 +763,29 @@ test('persistable request will move directly to the SequentialQueue when we are 
             const thirdRequest = xhr.mock.calls[2];
             const [thirdRequestCommandName] = thirdRequest;
             expect(thirdRequestCommandName).toBe('MockCommandTwo');
+        });
+});
+
+test('cancelled requests should not be retried', () => {
+    const xhr = jest.spyOn(HttpUtils, 'xhr');
+
+    // GIVEN a mock that will return a "cancelled" request error
+    global.fetch = jest.fn()
+        .mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
+
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            // WHEN we make a few requests and then cancel them
+            Network.post('MockCommandOne');
+            Network.post('MockCommandTwo');
+            Network.post('MockCommandThree');
+
+            // WHEN we wait for the requests to all cancel
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // THEN expect our queue to be empty and for no requests to have been retried
+            expect(MainQueue.getAll().length).toBe(0);
+            expect(xhr.mock.calls.length).toBe(3);
         });
 });
