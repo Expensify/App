@@ -67,7 +67,7 @@ const propTypes = {
 const defaultProps = {
     sourceURL: null,
     onConfirm: null,
-    originalFileName: null,
+    originalFileName: "",
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -85,7 +85,7 @@ class AttachmentModal extends PureComponent {
             attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
-            file: {name: props.originalFileName || ""},
+            file: {name: lodashGet(props, "originalFileName", "")},
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
@@ -97,11 +97,13 @@ class AttachmentModal extends PureComponent {
     }
     
     /**
-     * delegates AttachmentCarousel to change the sourceUrl
-     * @param {*} sourceUrl 
+     * callback in used in AttachmentCarousel to delegate when a user presses an arrow
+     * @param {Object} attachmentItem
      */
-    onArrowPress({src, file}){
-        this.setState({sourceURL: src, file})
+    onArrowPress(attachmentItem){
+        const sourceURL = lodashGet(attachmentItem, "sourceURL", "")
+        const file = lodashGet(attachmentItem, "file", {name: ""})
+        this.setState({sourceURL, file})
     }
 
     /**
@@ -109,6 +111,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName() {
+		console.log(lodashGet(this.state, 'file.name', ''));
         const fullFileName = lodashGet(this.state, 'file.name', '').trim();
         const splittedFileName = fullFileName.split('.');
         const fileExtension = splittedFileName.pop();
@@ -255,11 +258,11 @@ class AttachmentModal extends PureComponent {
                         }
                     },
                     show: () => {
-                        const state = {isModalOpen: true}
+                        const showState = {isModalOpen: true}
                         const route = Navigation.getActiveRoute()
                         if(route.includes("/r/"))
-                            state.reportId = route.replace('/r/', "")
-                        this.setState(state)
+                            showState.reportId = route.replace('/r/', "")
+                        this.setState(showState)
                     },
                 })}
             </>
