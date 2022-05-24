@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
-import navigationRef from './navigationRef';
-import Navigation from './Navigation';
+import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import * as App from '../actions/App';
