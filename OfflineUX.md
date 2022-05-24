@@ -1,6 +1,5 @@
 #### Offline UX Patterns
 
-
 ### Contents
 * [Motivation & Philosophy](#motivation-&-philosophy)
 * [UX Pattern Flowchart](#ux-pattern-flowchart)
@@ -31,8 +30,6 @@ If the user is offline, do we need to wait for the API request to finish before 
 
 The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, like removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. That would have serious consequences for the user. This is why we have developed different ways of handling these cases. These are called the UX Patterns, which are explained below.
 
-
-
 ### UX Pattern Flow Chart
 
 The following flowchart can be used to determine which UX pattern should be used.
@@ -43,32 +40,26 @@ The following flowchart can be used to determine which UX pattern should be used
 
 The numbers in this section correlate to the numbers in each decision box above (the diamond shapes).
 
-
 1. Does the feature interact with the server?
 
 If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES.
 If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored or retrieved, then the answer is YES.
 
-
 2. What type of request is being made?
 
 This question can be answered by thinking about what’s happening in the server. If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
-
 
 3. Do we need to show up-to-date data?
 
 You should answer yes to this question if it’s important that the user sees current data/content. An example is viewing a chat. Even though the user won’t be able to see new chat messages, it’s still important for us to show the user the old ones.
 
-
 4. Is the UI a form?
 
 Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out fields that we want to save locally, answer YES to this question.
 
-
 5. Can the server response be anticipated?
 
 Assuming that the request succeeds when it’s sent to the server, do you know what would happen next? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing. Answer YES if it’s easy to tell what the response from the server would be. 
-
 
 6. Is there validation done on the server?
 
@@ -76,14 +67,11 @@ If there is some validation happening on the server that needs to happen before 
 
 This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
 
-
 7. Does the user need to know if the action was successful?
 
 Think back to the pinning example from above. In this case, the user doesn’t need to know that their pinned reports NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
 
-
 ### Detailed Descriptions of Each UX Pattern
-
 
 # None - No Offline Behavior
 
@@ -92,7 +80,6 @@ Think back to the pinning example from above. In this case, the user doesn’t n
 Used when…
 … there is no interaction with the server in any way
 … or data is READ from the server and does not need to show up- to- date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
-
 
 # A - Optimistic Without Feedback Pattern
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded. 
@@ -112,7 +99,6 @@ Used when…
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 How to implement: Use API.queue() to implement this pattern. 
-
 
 Handling the pending case
 
@@ -134,7 +120,6 @@ Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
     },
 });
 
-
 # C - Blocking Form UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
@@ -143,12 +128,9 @@ Used when…
 the server has to do some validation of the parameters that can’t be done in the client or
 the server response will be unknown so it cannot be done optimistically
 
-
 What: This pattern greys out the submit button on a form and does not allow the form to be submitted. Importantly, we do let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
 When: This should be used when we cannot allow the user to submit the form while offline.
-
-
 
 # D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
@@ -164,8 +146,4 @@ Note: This pattern will only be used in the following flows, and since it is use
 Listing payment methods (eg. https://new.expensify.com/settings/payments)
 Adding a bank account (eg. https://new.expensify.com/workspace/4EA57948DC3347F9/bank-account)
 
-
 What: This pattern blocks the user from interacting with an entire page.
-
-
-
