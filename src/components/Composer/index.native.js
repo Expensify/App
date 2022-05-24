@@ -148,6 +148,7 @@ class Composer extends React.Component {
                 onChange={() => this.updateNumberOfLines()}
                 onContentSizeChange={e => this.updateNumberOfLines(e)}
                 rejectResponderTermination={false}
+                textAlignVertical="center"
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
