@@ -164,6 +164,12 @@ function GetIOUReport(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function GetIOUReportAndIOUActions() {
+    const commandName = 'GetIOUReportAndIOUActions';
+    requireParameters(['reportID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 /**
  * @returns {Promise}
  * @param {String} policyID
@@ -943,6 +949,7 @@ export {
     GetShortLivedAuthToken,
     GetStatementPDF,
     GetIOUReport,
+    GetIOUReportAndIOUActions,
     GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
