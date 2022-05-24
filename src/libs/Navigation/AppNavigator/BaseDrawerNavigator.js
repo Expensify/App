@@ -43,6 +43,7 @@ const defaultProps = {
 class BaseDrawerNavigator extends Component {
     constructor(props) {
         super(props);
+        console.log(`over here BaseDrawerNavigator: ${Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}`);
 
         this.state = {
             // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
@@ -53,6 +54,10 @@ class BaseDrawerNavigator extends Component {
     }
 
     render() {
+        const defaultState = Navigation.getDefaultDrawerState(this.props.openDrawer && this.props.isSmallScreenWidth);
+        console.log(`over here open drawer: ${this.props.openDrawer}`);
+        const test = this.props;
+
         const content = (
             <Drawer.Navigator
                 backBehavior="none"
