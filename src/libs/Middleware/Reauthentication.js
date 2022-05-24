@@ -82,6 +82,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
             }
 
             request.resolve(data);
+            return data;
         });
 }
 
