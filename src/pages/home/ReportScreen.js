@@ -185,6 +185,11 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
 
+        // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
+        if (this.getReportActionID()) {
+            Navigation.closeDrawer();
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
