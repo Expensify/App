@@ -26,8 +26,6 @@ const propTypes = {
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
 
-    openDrawer: PropTypes.bool.isRequired,
-
     /** If it's the main screen, don't wrap the content even if it's a full screen modal. */
     isMainScreen: PropTypes.bool,
 
