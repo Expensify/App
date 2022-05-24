@@ -14,6 +14,7 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import Navigation from '../Navigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -69,6 +70,7 @@ const MainDrawerNavigator = (props) => {
     }
 
     const routeContainsReportID = !_.isEmpty(lodashGet(props, 'route.params.params.reportID'));
+    console.log(`over here route contains reportID: ${routeContainsReportID}`);
 
     // After the app initializes and reports are available the home navigation is mounted
     // This way routing information is updated (if needed) based on the initial report ID resolved.

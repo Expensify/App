@@ -35,8 +35,8 @@ export default function linkTo(navigation, path) {
     const action = getActionFromState(state, linkingConfig.config);
 
     if (action !== undefined) {
-        console.log('over here linkTo 6');
-        // root.dispatch(action);
+        console.log(`over here linkTo 6: ${JSON.stringify(action)}`);
+        root.dispatch(action);
     } else {
         console.log('over here linkTo 7');
         root.reset(state);

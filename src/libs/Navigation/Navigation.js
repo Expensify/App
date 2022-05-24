@@ -48,6 +48,7 @@ function canNavigate(methodName, params = {}) {
  * @private
  */
 function openDrawer() {
+    console.log('over here open drawer');
     if (!canNavigate('openDrawer')) {
         return;
     }
@@ -77,6 +78,7 @@ function getDefaultDrawerState(isSmallScreenWidth) {
     if (didTapNotificationBeforeReady) {
         return 'closed';
     }
+
     return isSmallScreenWidth ? 'open' : 'closed';
 }
 
@@ -85,6 +87,7 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @param {Boolean} shouldOpenDrawer
  */
 function goBack(shouldOpenDrawer = true) {
+    console.log('over here drawer go back');
     if (!canNavigate('goBack')) {
         return;
     }

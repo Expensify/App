@@ -107,7 +107,7 @@ function pushDrawerRoute(route) {
         // Force drawer to close
         // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
         const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
-        console.log('over here change drawer state 5');
+        console.log(`over here change drawer state 5: ${currentState.default}`);
         if (!hasDrawerhistory || currentState.type !== 'drawer') {
             history.push({
                 type: 'drawer',
