@@ -189,7 +189,7 @@ class ReportActionItem extends Component {
         const interpolatedBackgroundColor = this.animatedBackgroundColor.interpolate(
             {
                 inputRange: [0, 1],
-                outputRange: [colors.white, colors.greenHover],
+                outputRange: [colors.white, colors.greenCommentHighlight],
             },
         );
         const animatedBackgroundStyle = {
