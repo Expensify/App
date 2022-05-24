@@ -73,7 +73,7 @@ Onyx.connect({
 
 const allPolicies = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
+    key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
         if (!val || !key) {
             return;
@@ -92,6 +92,7 @@ Onyx.connect({
  */
 function show({routes, showCreateMenu}) {
     readyTask.isReady().then(() => {
+        isFirstTimeNewExpensifyUser = true;
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
