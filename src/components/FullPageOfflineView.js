@@ -18,6 +18,12 @@ const propTypes = {
 };
 
 const FullPageOfflineView = (props) => {
+    if (ONYXKEYS.NETWORK.isOffline) {
+        return <View>
+            <Text>{props.translate('reportActionCompose.youAppearToBeOffline')}</Text>
+        </View>
+    }
+
     if (props.isLoading) { 
         return <FullScreenLoadingIndicator/>;
     }
@@ -30,6 +36,8 @@ FullPageOfflineView.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
     }),
 )(FullPageOfflineView);
