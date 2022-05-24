@@ -164,9 +164,9 @@ function GetIOUReport(parameters) {
     return Network.post(commandName, parameters);
 }
 
-function GetIOUReportAndIOUActions() {
+function GetIOUReportAndIOUActions(iouReportID) {
     const commandName = 'GetIOUReportAndIOUActions';
-    requireParameters(['reportID'], parameters, commandName);
+    requireParameters(['reportID'], iouReportID, commandName);
     return Network.post(commandName, parameters);
 }
 
