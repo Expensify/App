@@ -67,11 +67,11 @@ class ImageView extends PureComponent {
         const {width, height} = e.nativeEvent.layout;
         const imageWidth = this.state.imgWidth;
         const imageHeight = this.state.imgHeight;
-        const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+
+        this.setScale(width, height, imageWidth, imageHeight);
         this.setState({
             containerHeight: height,
             containerWidth: width,
-            zoomScale: scale,
         });
     }
 
@@ -120,7 +120,7 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When open image, set image width, height and zoomScale.
+     * When open image, set image width, height.
      * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
@@ -128,16 +128,30 @@ class ImageView extends PureComponent {
         const containerHeight = this.state.containerHeight;
         const containerWidth = this.state.containerWidth;
 
-        if (imageHeight <= 0 || containerHeight <= 0) {
+        if (imageHeight <= 0) {
             return;
         }
-        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
 
+        this.setScale(containerWidth, containerHeight, imageWidth, imageHeight);
         this.setState({
             imgWidth: imageWidth,
             imgHeight: imageHeight,
-            zoomScale: newZoomScale,
         });
+    }
+
+    /**
+     * When image and container have width calculate and set the zoomScale.
+     * @param {Number} containerWidth
+     * @param {Number} containerHeight
+     * @param {Number} imageWidth
+     * @param {Number} imageHeight
+     */
+    setScale(containerWidth, containerHeight, imageWidth, imageHeight) {
+        if (!containerWidth || !imageWidth) {
+            return;
+        }
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
+        this.setState({zoomScale: newZoomScale});
     }
 
     /**
