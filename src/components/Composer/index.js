@@ -244,6 +244,8 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, markdownText);
             this.updateNumberOfLines();
+            // Manually make text input scroll to appropriate position, otherwise the text insertion
+            // point will goes out of sight when we paste a large paragraph on Chrome or Desktop
             this.textInput.blur();
             this.textInput.focus();
         // eslint-disable-next-line no-empty
