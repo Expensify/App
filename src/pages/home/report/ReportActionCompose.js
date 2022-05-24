@@ -516,7 +516,7 @@ class ReportActionCompose extends React.Component {
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
-                                                            <Icon src={Expensicons.DownArrow} />
+                                                            <Icon src={Expensicons.Collapse} />
                                                         </TouchableOpacity>
                                                     </Tooltip>
 
