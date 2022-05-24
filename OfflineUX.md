@@ -78,16 +78,17 @@ Think back to the pinning example from above. In this case, the user doesn’t n
  There’s no specific UI for this case. The feature either looks totally normal and works as expected (because it doesn’t need the server to function) or the feature looks like it did whenever connection was lost. 
 
 Used when…
-… there is no interaction with the server in any way
-… or data is READ from the server and does not need to show up- to- date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
+ - there is no interaction with the server in any way
+ - or data is READ from the server and does not need to show up- to- date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
 
 # A - Optimistic Without Feedback Pattern
+
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded. 
 
 Used when…
-… the user should be given instant feedback and
-there is no error handling in the server and
-the user does not need to know that the change is being made on the server in the background
+ - the user should be given instant feedback and
+ - there is no error handling in the server and
+ - the user does not need to know that the change is being made on the server in the background
 
 How to implement: Use API.queue() to implement this pattern. 
 
@@ -95,7 +96,7 @@ How to implement: Use API.queue() to implement this pattern.
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet.
 
 Used when…
-… the user needs feedback that data is being synced to the server
+ - the user needs feedback that data is being synced to the server
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 How to implement: Use API.queue() to implement this pattern. 
@@ -124,9 +125,9 @@ Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
 This pattern blocks the user from interacting with an entire page.
 
 Used when…
-… a form is used to make a WRITE request to the server and 
-the server has to do some validation of the parameters that can’t be done in the client or
-the server response will be unknown so it cannot be done optimistically
+ - a form is used to make a WRITE request to the server and 
+ - server has to do some validation of the parameters that can’t be done in the client or
+ - server response will be unknown so it cannot be done optimistically
 
 What: This pattern greys out the submit button on a form and does not allow the form to be submitted. Importantly, we do let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
@@ -136,10 +137,9 @@ When: This should be used when we cannot allow the user to submit the form while
 This pattern blocks the user from interacting with an entire page.
 
 Used when…
-… a blocking READ is being performed.
-This occurs when the data that a user sees cannot be stale data and the data can only be displayed after fetching it from the server (eg. Plaid's list of bank accounts)
-… the app is offline and the data cannot be fetched
-… an error occurs when fetching the data and the user needs instructions on what to do next
+ - blocking READ is being performed. This occurs when the data that a user sees cannot be stale data and the data can only be displayed after fetching it from the server (eg. Plaid's list of bank accounts)
+ - the app is offline and the data cannot be fetched
+ - an error occurs when fetching the data and the user needs instructions on what to do next
 This should only be used in the most extreme cases when all other options have been completely and utterly exhausted
 
 Note: This pattern will only be used in the following flows, and since it is used very minimally, a very simple solution will be used which does not provide any method of enforcing the pattern.
