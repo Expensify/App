@@ -21,10 +21,10 @@ import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 
 const propTypes = {
 
-    /* Create Listener callback */
+    /* A callback to call when we show create menu */
     onShowCreateMenu: PropTypes.func,
 
-    /* Remove Listener callback */
+    /* A callback to call when we hide create menu */
     onHideCreateMenu: PropTypes.func,
 
     ...sidebarPropTypes,
