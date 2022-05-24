@@ -65,10 +65,7 @@ class ImageView extends PureComponent {
      */
     onContainerLayoutChanged(e) {
         const {width, height} = e.nativeEvent.layout;
-        const imageWidth = this.state.imgWidth;
-        const imageHeight = this.state.imgHeight;
-
-        this.setScale(width, height, imageWidth, imageHeight);
+        this.setScale(width, height, this.state.imgWidth, this.state.imgHeight);
         this.setState({
             containerHeight: height,
             containerWidth: width,
@@ -125,14 +122,11 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
-        const containerHeight = this.state.containerHeight;
-        const containerWidth = this.state.containerWidth;
-
         if (imageHeight <= 0) {
             return;
         }
 
-        this.setScale(containerWidth, containerHeight, imageWidth, imageHeight);
+        this.setScale(this.state.containerWidth, this.state.containerHeight, imageWidth, imageHeight);
         this.setState({
             imgWidth: imageWidth,
             imgHeight: imageHeight,
@@ -140,7 +134,6 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When image and container have width calculate and set the zoomScale.
      * @param {Number} containerWidth
      * @param {Number} containerHeight
      * @param {Number} imageWidth
