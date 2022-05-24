@@ -387,6 +387,7 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
+ * @param {Boolean} [isPending]
  * @returns {Object}
  */
 function getReportActionItemStyle(isHovered = false, isPending = false) {
