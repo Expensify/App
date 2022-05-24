@@ -72,7 +72,9 @@ Assuming that the request succeeds when it’s sent to the server, do you know w
 
 6. Is there validation done on the server?
 
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. For example, if we want to set up a bank account then our answer to question 5 is YES (because we could imagine that the server returns a 200 and we would know what the next page would look like), but our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. min/max characters in a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+
+This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
 
 
 7. Does the user need to know if the action was successful?
