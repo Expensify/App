@@ -7,7 +7,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as Link from '../../../libs/actions/Link';
 import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -27,7 +26,6 @@ const WorkspaceCardVBANoECardView = props => (
                 {
                     title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
-                        Navigation.dismissModal();
                         Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                         User.subscribeToExpensifyCardUpdates();
                     },
