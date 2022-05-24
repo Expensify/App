@@ -86,6 +86,7 @@ jobs:
             --body "Update version to ${{ env.NEW_VERSION }}" \
             --label "automerge" \
             --base ${{ github.event.inputs.TARGET_BRANCH }}
+          sleep 5
           echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
