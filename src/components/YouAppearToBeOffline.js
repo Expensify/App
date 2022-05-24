@@ -17,7 +17,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const YouAppearToBeOffline = (props) => {
+const OfflineIndicator = (props) => {
     if (!props.network.isOffline) {
         return null;
     }
@@ -35,10 +35,10 @@ const YouAppearToBeOffline = (props) => {
     );
 };
 
-YouAppearToBeOffline.propTypes = propTypes;
-YouAppearToBeOffline.displayName = 'YouAppearToBeOffline';
+OfflineIndicator.propTypes = propTypes;
+OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default compose(
     withLocalize,
     withNetwork(),
-)(YouAppearToBeOffline);
+)(OfflineIndicator);
