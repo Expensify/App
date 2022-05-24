@@ -17,6 +17,12 @@ class BasePicker extends React.Component {
         this.setNativeProps = this.setNativeProps.bind(this);
     }
 
+    /**
+     * This method mimicks RN's setNativeProps method. It's exposed to Picker's ref and can be used by other components 
+     * to directly manipulate Picker's value when Picker is used as an uncontrolled input.
+     *
+     * @param {*} value 
+     */
     setNativeProps({value}) {
         this.pickerValue = value;
     }
