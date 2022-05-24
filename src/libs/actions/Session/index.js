@@ -21,6 +21,7 @@ import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
+import waitForOnyxToClear from '../../waitForOnyxToClear';
 
 let credentials = {};
 Onyx.connect({
@@ -275,22 +276,23 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} exitTo
  */
 function signInWithShortLivedToken(email, shortLivedToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    // Wait for Onyx to clear so that our updates won't be overridden when the
+    // default key states are initialized
+    waitForOnyxToClear()
+        .then(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+            return createTemporaryLogin(shortLivedToken, email);
+        })
+        .then((response) => {
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
 
-    createTemporaryLogin(shortLivedToken, email, false).then((response) => {
-        if (response.jsonCode === 200) {
             User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-        }
-
-        User.getUserDetails();
-        Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-    });
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
 }
 
 /**
