@@ -15,7 +15,7 @@
 
 Understanding the offline behavior of our app is vital to becoming a productive contributor to the Expensify codebase. Our mission is to support our users in every possible environment, and often our app is used in places where a stable internet connection is not guaranteed. 
 
-The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We allow the user to proceed as if their request succeeded when really we’ve stored it away for later to be sent when they’re back online. We call this an optimistic response. Here, we use the word optimistic to indicate that we’re confident the request will succeed when the user is online. 
+The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we’re confident the request will succeed when the user is online. 
 
 <div style="margin: 15px; padding: 15px; border: 3px solid grey">
 Example: Pinning a chat
@@ -28,11 +28,11 @@ The chat should go to the top of the list with the other pinned chats, and the p
 If the user is offline, do we need to wait for the API request to finish before doing all that visual stuff? No! We are optimistic that the API request will succeed once it’s sent. In the meantime, we let the user continue using the app. 
 </div>
 
-The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, like removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. That would have serious consequences for the user. This is why we have developed different ways of handling these cases. These are called the UX Patterns, which are explained below.
+The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. That would have serious consequences for the user. This is why we have developed different ways of handling these cases. These are called the UX Patterns, which are explained below.
 
 ### UX Pattern Flow Chart
 
-The following flowchart can be used to determine which UX pattern should be used.
+The following flowchart can be used to determine which UX pattern should be used. This diagram is a useful reference, but may not make sense if you aren't already familiar with the patterns. If this is your first time reading, we recommend you head straight for the [Descriptions of the UX Patterns](#descriptions-of-the-ux-patterns) section.
 
 ![New Expensify Data Flow Chart](/web/OfflineUX_Patterns_Flowchart.png)
 
@@ -71,7 +71,7 @@ This question can be tricky, so if you’re unsure, please ask a question in #ex
 
 Think back to the pinning example from above. In this case, the user doesn’t need to know that their pinned reports NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
 
-### Detailed Descriptions of Each UX Pattern
+### Descriptions of the UX Patterns
 
 # None - No Offline Behavior
 
