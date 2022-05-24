@@ -101,26 +101,6 @@ This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, 
 
 How to implement: Use API.queue() to implement this pattern. 
 
-Handling the pending case
-
-We’ve already got a pending state set for optimistic report comments (see 4 in the bulleted list above). Since we are standardizing on isPending to indicate a pending action we will just update the loading here and here to isLoading. 
-Update getReportActionItemStyle() to have a second argument called isPending that will receive action.isLoading && network.isOffline
-if isPending === true add the color: themeColors.textSupporting style
-Update ReportActionItem.js to pass a second argument to getReportActionItemStyle() with the value this.props.action.isLoading && network.isOffline
-
-Handling the error case:
-
-When any action that modifies a report action returns an error we must associate the error with the action so it can be shown inline. It can either be an action that already exists or might not be created yet, but we can add the error translation key for the error to a new field of error on the report action itself.
-
-e.g. when handling a Report_AddComment error we are handling some existing errors here by rolling back the temporary action. These errors should instead be handled by setting Onyx data like this:
-
-Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-    [optimisticReportActionID]: {
-        error: <error-translation-key>,
-        isLoading: false,    
-    },
-});
-
 # C - Blocking Form UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
@@ -143,7 +123,7 @@ Used when…
 This should only be used in the most extreme cases when all other options have been completely and utterly exhausted
 
 Note: This pattern will only be used in the following flows, and since it is used very minimally, a very simple solution will be used which does not provide any method of enforcing the pattern.
-Listing payment methods (eg. https://new.expensify.com/settings/payments)
-Adding a bank account (eg. https://new.expensify.com/workspace/4EA57948DC3347F9/bank-account)
+1. Listing payment methods (eg. https://new.expensify.com/settings/payments)
+2. Adding a bank account (eg. https://new.expensify.com/workspace/4EA57948DC3347F9/bank-account)
 
 What: This pattern blocks the user from interacting with an entire page.
