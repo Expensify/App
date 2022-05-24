@@ -42,7 +42,7 @@ import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import YouAppearToBeOffline from '../../../components/YouAppearToBeOffline';
+import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 
 const propTypes = {
@@ -453,7 +453,7 @@ class ReportActionCompose extends React.Component {
                         )}
 
                     <View style={[styles.mr3]}>
-                        <YouAppearToBeOffline />
+                        <OfflineIndicator />
                     </View>
 
                     <View style={[styles.mr3]}>
