@@ -164,7 +164,7 @@ function setUpPoliciesAndNavigate() {
             const params = new URLSearchParams(url);
             const exitTo = params.get('exitTo');
             const email = params.get('email');
-            const isLoggingInAsNewUser = session && session.email !== email;
+            const isLoggingInAsNewUser = session.email !== email;
             const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
