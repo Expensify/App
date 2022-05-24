@@ -148,6 +148,7 @@ jobs:
             --body "🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
             --label "automerge" \
             --base "staging"
+          sleep 5
           echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
