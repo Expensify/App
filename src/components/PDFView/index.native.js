@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
@@ -38,7 +38,7 @@ const defaultProps = {
  * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
  * is (temporarily) rendered.
  */
-class PDFView extends PureComponent {
+class PDFView extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -145,6 +145,5 @@ class PDFView extends PureComponent {
 
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
-PDFView.displayName = 'PDFView';
 
 export default withWindowDimensions(PDFView);

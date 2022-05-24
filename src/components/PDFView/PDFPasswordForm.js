@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Button from '../Button';
@@ -18,7 +18,7 @@ const defaultProps = {
     isPasswordInvalid: false,
 };
 
-class PDFPasswordForm extends PureComponent {
+class PDFPasswordForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -75,6 +75,5 @@ class PDFPasswordForm extends PureComponent {
 
 PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
-PDFPasswordForm.displayName = 'PDFPasswordForm';
 
 export default withLocalize(PDFPasswordForm);
