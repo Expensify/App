@@ -139,7 +139,7 @@ class WorkspaceSettingsPage extends React.Component {
                     </FixedFooter>
                 )}
             >
-                {hasVBA => (
+                {(isLoadingVBA, hasVBA) => (
                     <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                         <AvatarWithImagePicker
                             isUploading={this.props.policy.isAvatarUploading}
