@@ -56,13 +56,8 @@ class BaseInvertedFlatList extends Component {
         this.sizeMap = {};
     }
 
-    componentDidMount() {
-        if (this.props.shouldMeasureItems) {
-            return;
-        }
-
-        // For native devices since we're not measuring let's make this callback sooner.
-        this.props.onMeasurementEnd();
+    componentDidUpdate() {
+        console.log('over here BaseInvertedFlatList did update');
     }
 
     /**
@@ -165,10 +160,13 @@ class BaseInvertedFlatList extends Component {
             );
         }
 
+        // For native devices since we're not measuring let's make this callback sooner.
+        this.props.onMeasurementEnd(false);
         return this.props.renderItem({item, index});
     }
 
     render() {
+        console.log('over here BaseInvertedFlatList render');
         return (
             <FlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading

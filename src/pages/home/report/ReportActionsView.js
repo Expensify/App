@@ -314,6 +314,7 @@ class ReportActionsView extends React.Component {
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
         const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        console.log(`over here load more chats: ${this.props.reportID}, ${offset}, ${minSequenceNumber}`);
         Report.fetchActionsWithLoadingState(this.props.reportID, offset);
     }
 
@@ -448,15 +449,22 @@ class ReportActionsView extends React.Component {
      */
     recordReportActionIDRendered(reportActionID) {
         this.renderedActionIDs.add(parseInt(reportActionID, 10));
+        const test = Array.from(this.renderedActionIDs).join(' ');
+        console.log(`over here render: ${test}`);
         this.checkScrollToReportAction();
     }
 
     /**
-     * Records when our FlatList is done measuring the heights and offset of items.
+     * Records when our FlatList is done measuring the heights and offset of items. Since native will hit this block immediately we'll use a param checkScrollToReportAction to prevent
+     * calling the scroll method unnecessarily until the item has been rendered.
+     *
+     * @param {boolean} checkScrollToReportAction
      */
-    recordMeasurementDone() {
+    recordMeasurementDone(checkScrollToReportAction = true) {
         this.doneMeasuring = true;
-        this.checkScrollToReportAction();
+        if (checkScrollToReportAction) {
+            this.checkScrollToReportAction();
+        }
     }
 
     /**
@@ -468,13 +476,17 @@ class ReportActionsView extends React.Component {
             return;
         }
 
+        console.log(`over here check scroll 1: ${this.doneMeasuring} : ${!this.doneScrollingToReportActionID}`);
         if (this.doneMeasuring && !this.doneScrollingToReportActionID) {
+            console.log('over here check scroll 2');
             if (this.renderedActionIDs.has(this.props.reportActionID)) {
+                console.log('over here check scroll 3');
                 this.doneScrollingToReportActionID = true;
 
                 // We give a slight delay because if we attempt this too fast the scroll is buggy.
                 setTimeout(this.scrollToReportActionID, 500);
             } else if (this.renderedActionIDs.size === this.sortedReportActions.length && this.scrollToReportActionIDAttempt < 3) {
+                console.log('over here check scroll 4');
                 this.loadMoreChats();
                 ++this.scrollToReportActionIDAttempt;
             }
