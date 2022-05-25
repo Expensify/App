@@ -160,9 +160,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.scrollToReportActionIDAttempt = 0;
             this.doneMeasuring = false;
-            this.doneScrollingToReportActionID = false;
             this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
             this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
@@ -489,6 +487,9 @@ class ReportActionsView extends React.Component {
                 console.log('over here check scroll 4');
                 this.loadMoreChats();
                 ++this.scrollToReportActionIDAttempt;
+            } else {
+                // Mark it as done so that as the user scrolls up it does not auto scroll later
+                this.doneScrollingToReportActionID = true;
             }
         }
     }
