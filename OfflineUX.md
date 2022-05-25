@@ -95,7 +95,7 @@ This is the pattern where we queue the request to be sent when the user is onlin
 Used when…
  - the user should be given instant feedback and
  - there is no error handling in the server and
- - the user does not need to know that the change is being made on the server in the background
+ - the user does not need to know when the change is done on the server in the background
 
 How to implement: Use API.queue() to implement this pattern. 
 
@@ -115,6 +115,8 @@ Used when…
  - a form is used to make a WRITE request to the server and 
  - server has to do some validation of the parameters that can’t be done in the client or
  - server response will be unknown so it cannot be done optimistically
+ - If the request is moving money 
+ - If the request is related to security
 
 What: This pattern greys out the submit button on a form and does not allow the form to be submitted. Importantly, we do let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
