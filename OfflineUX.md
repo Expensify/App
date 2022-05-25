@@ -15,7 +15,7 @@
 
 Understanding the offline behavior of our app is vital to becoming a productive contributor to the Expensify codebase. Our mission is to support our users in every possible environment, and often our app is used in places where a stable internet connection is not guaranteed. 
 
-The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we’re confident the request will succeed when the user is online, and we know what that successfull repsonse will look like. 
+The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we’re confident the request will succeed when the user is online, and we know what that successful response will look like. 
 
 <div style="margin: 15px; padding: 15px; border: 3px solid grey">
 Example: Pinning a chat
@@ -29,7 +29,13 @@ When a user clicks the pin button <img style="height: 10px; width: 10px; filter:
 If the user is offline, do we need to wait for the API request to finish before doing all that visual stuff? No! We are optimistic that the API request will succeed once it’s sent. In the meantime, we let the user continue using the app. 
 </div>
 
-The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. That would have serious consequences for the user. This is why we have developed different ways of handling these cases. These are called the UX Patterns, which are explained below.
+The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. Here are some reasons why:
+
+1. In some instances, we simply wouldn't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
+
+2. In other cases, we may be able to guess what a successful request would look like, but we don't want to misguide the user into believing their action was completed. For example, we don't want the user to believe that a financial transaction has been made when it actually hasn't. 
+
+To handle these problems (and some problems we haven't mentioned yet) we have developed handy offline patterns and provided guidance on when to use them. These are called the Offline UX Patterns, which are explained below.
 
 ### UX Pattern Flow Chart
 
@@ -70,7 +76,7 @@ This question can be tricky, so if you’re unsure, please ask a question in #ex
 
 7. Does the user need to know if the action was successful?
 
-Think back to the pinning example from above. In this case, the user doesn’t need to know that their pinned reports NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
+Think back to the pinning example from above. In this case, the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
 
 ### Descriptions of the UX Patterns
 
