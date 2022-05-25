@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import * as API from '../../API';
+import * as DeprecatedAPI from '../../deprecatedAPI';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as navigation from './navigation';
@@ -30,7 +30,7 @@ function fetchNameValuePairsAndBankAccount() {
     let bankAccountID;
     let failedValidationAttemptsName;
 
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'nameValuePairs',
         name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
     })
@@ -40,7 +40,7 @@ function fetchNameValuePairsAndBankAccount() {
             failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
-            return API.Get({
+            return DeprecatedAPI.Get({
                 returnValueList: 'nameValuePairs, bankAccountList',
                 nvpNames: [
                     failedValidationAttemptsName,
