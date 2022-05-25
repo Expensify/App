@@ -161,7 +161,6 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.scrollToReportActionIDAttempt = 0;
-            this.renderedActionIDs = new Set();
             this.doneMeasuring = false;
             this.doneScrollingToReportActionID = false;
             this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
@@ -218,9 +217,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID) {
+        if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID && this.props.reportID === prevProps.reportID) {
             this.actionIndexID = -1;
-            this.scrollToReportActionID();
+            this.doneScrollingToReportActionID = false;
+            this.checkScrollToReportAction();
         }
 
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
@@ -431,10 +431,6 @@ class ReportActionsView extends React.Component {
      * Scrolls to a specific report action ID
      */
     scrollToReportActionID() {
-        if (this.props.reportActionID === 0) {
-            return;
-        }
-
         this.actionIndexID = _.findIndex(this.sortedReportActions, (
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
