@@ -56,9 +56,9 @@ If you’re making a new feature, think about whether any data would need to be 
 
 This question can be answered by thinking about what’s happening in the server. If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
 
-3. Do we need to show up-to-date data?
+3. Is it OK for the user to see stale data?
 
-You should answer yes to this question if it’s important that the user sees current data/content. An example is viewing a chat. Even though the user won’t be able to see new chat messages, it’s still important for us to show the user the old ones.
+Example: the payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
 
 4. Is the UI a form?
 
@@ -66,7 +66,7 @@ Any easy way to tell if something is a form is to try and find a submit button. 
 
 5. Can the server response be anticipated?
 
-Assuming that the request succeeds when it’s sent to the server, do you know what would happen next? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if it’s easy to tell what the response from the server would be. 
+Assuming that the request succeeds when it’s sent to the server, do you know what would the request return? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if you can anticipate what the response from the server would be. 
 
 6. Is there validation done on the server?
 
