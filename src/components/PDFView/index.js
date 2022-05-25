@@ -1,35 +1,15 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
 import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
 import styles from '../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions from '../withWindowDimensions';
 import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
 import Log from '../../libs/Log';
 import CONST from '../../CONST';
-
-const propTypes = {
-    /** URL to full-sized image */
-    sourceURL: PropTypes.string,
-
-    ...windowDimensionsPropTypes,
-
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
-
-    /** Notify parent that we're requesting input from user */
-    onUserInputRequired: PropTypes.func,
-};
-
-const defaultProps = {
-    sourceURL: '',
-    style: {},
-    onUserInputRequired: () => {},
-};
+import {propTypes, defaultProps} from './pdfViewPropTypes';
 
 class PDFView extends Component {
     constructor(props) {

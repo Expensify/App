@@ -1,28 +1,12 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions from '../withWindowDimensions';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
-
-const propTypes = {
-    /** URL to full-sized image */
-    sourceURL: PropTypes.string,
-
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
-
-    ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    sourceURL: '',
-    style: {},
-};
+import {propTypes, defaultProps} from './pdfViewPropTypes';
 
 /**
  * On the native layer, we use a pdf library to display PDFs. If a PDF is
