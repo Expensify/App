@@ -510,6 +510,16 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
         });
 }
 
+function julesTesting(chatReportID, iouReportID) {
+    return API.GetIOUReportAndIOUActions({
+        reportID: chatReportID,
+        iouReportID: iouReportID,
+    }).then((resp) => {
+        console.log(resp);
+        return resp;
+    });
+}
+
 /**
  * If an iouReport is open (has an IOU, but is not yet paid) then we sync the reportIDs of both chatReport and
  * iouReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU components:
@@ -1575,6 +1585,7 @@ export {
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
+    julesTesting,
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
