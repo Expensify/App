@@ -214,7 +214,7 @@ class WorkspaceReimburseView extends React.Component {
                         />
                     </Section>
                 )}
-                {!this.props.isLoadingVBA && Boolean(this.props.hasVBA) && (
+                {!this.props.isLoadingVBA && this.props.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}
