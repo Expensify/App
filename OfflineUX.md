@@ -76,7 +76,7 @@ This question can be tricky, so if you’re unsure, please ask a question in #ex
 
 7. Does the user need to know if the action was successful?
 
-Think back to the pinning example from above. In this case, the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
+Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
 
 ### Descriptions of the UX Patterns
 
