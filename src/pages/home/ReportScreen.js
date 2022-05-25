@@ -58,6 +58,7 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
     /** Beta features list */
@@ -188,13 +189,14 @@ class ReportScreen extends React.Component {
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     >
                         {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                        {!this.shouldShowLoader() && !this.props.isComposerFullSize && (
-                        <ReportActionsView
-                            reportID={reportID}
-                            reportActions={this.props.reportActions}
-                            report={this.props.report}
-                            session={this.props.session}
-                        />
+                        {!this.shouldShowLoader() && (
+                            <ReportActionsView
+                                reportID={reportID}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                            />
                         )}
                         {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
                         <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>

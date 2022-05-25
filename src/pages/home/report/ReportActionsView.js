@@ -62,6 +62,9 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
@@ -186,6 +189,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
+            return true;
+        }
+
+        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
             return true;
         }
 
@@ -405,22 +412,27 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <FloatingMessageCounter
-                    active={this.state.isFloatingMessageCounterVisible}
-                    count={this.state.messageCounterCount}
-                    onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideFloatingMessageCounter}
-                />
+                {!this.props.isComposerFullSize && (
+                    <FloatingMessageCounter
+                        active={this.state.isFloatingMessageCounterVisible}
+                        count={this.state.messageCounterCount}
+                        onClick={this.scrollToBottomAndUpdateLastRead}
+                        onClose={this.hideFloatingMessageCounter}
+                    />
+                )}
                 <ReportActionsList
                     report={this.props.report}
                     onScroll={this.trackScroll}
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                    isComposerFullSize={this.props.isComposerFullSize}
                     isLoadingReportActions={this.props.isLoadingReportActions}
                     loadMoreChats={this.loadMoreChats}
                 />
-                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                {!this.props.isComposerFullSize && (
+                    <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>

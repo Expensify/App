@@ -47,6 +47,9 @@ const propTypes = {
     /** The sequence number of the most recent IOU report connected with the shown report */
     mostRecentIOUReportSequenceNumber: PropTypes.number,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool.isRequired,
 
@@ -164,6 +167,7 @@ class ReportActionsList extends React.Component {
                 contentContainerStyle={[
                     styles.chatContentScrollView,
                     shouldShowReportRecipientLocalTime && styles.pt0,
+                    this.props.isComposerFullSize && styles.dNone,
                 ]}
                 keyExtractor={this.keyExtractor}
                 initialRowHeight={32}
