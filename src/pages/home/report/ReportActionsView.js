@@ -482,13 +482,13 @@ class ReportActionsView extends React.Component {
                 console.log('over here check scroll 3');
                 this.doneScrollingToReportActionID = true;
 
-                // We give a slight delay because if we attempt this too fast the scroll is buggy.
+                // We give a slight delay because if we attempt this too fast the scroll gets buggy on iOS as more items need to render.
                 setTimeout(this.scrollToReportActionID, 500);
             } else if (this.renderedActionIDs.size === this.sortedReportActions.length && this.scrollToReportActionIDAttempt < 3) {
                 console.log('over here check scroll 4');
                 this.loadMoreChats();
                 ++this.scrollToReportActionIDAttempt;
-            } else {
+            } else if (this.scrollToReportActionIDAttempt === 3) {
                 // Mark it as done so that as the user scrolls up it does not auto scroll later
                 this.doneScrollingToReportActionID = true;
             }

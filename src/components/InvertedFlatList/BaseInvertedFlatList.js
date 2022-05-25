@@ -122,6 +122,7 @@ class BaseInvertedFlatList extends Component {
             length: computedHeight,
         };
 
+        console.log(`over here sizeMap: ${_.size(this.sizeMap)}, ${this.props.data.length}`);
         if (_.size(this.sizeMap) === this.props.data.length) {
             // All items have been measured so update the offset now that we have all heights
             for (let i = 0; i < this.props.data.length; i++) {
@@ -184,6 +185,7 @@ class BaseInvertedFlatList extends Component {
                 windowSize={15}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
+                onScrollToIndexFailed={() => {}}
             />
         );
     }
