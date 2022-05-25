@@ -47,7 +47,7 @@ function Retry(response, request, isFromSequentialQueue) {
         .catch((error) => {
             // Do not retry any requests that are cancelled
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                return;
+                return error;
             }
 
             if (isFromSequentialQueue) {
@@ -57,11 +57,11 @@ function Retry(response, request, isFromSequentialQueue) {
                     Log.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                     PersistedRequests.remove(request);
                 }
-                return;
+                return error;
             }
 
             if (retryFailedRequest(request, error)) {
-                return;
+                return error;
             }
 
             if (request.command !== 'Log') {
@@ -71,6 +71,8 @@ function Retry(response, request, isFromSequentialQueue) {
             }
 
             request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+
+            return error;
         });
 }
 
