@@ -514,8 +514,15 @@ function fetchIOUReportAndAllIOUActions(chatReportID, iouReportID) {
     return API.GetIOUReportAndIOUActions({
         reportID: chatReportID,
         iouReportID: iouReportID,
-    }).then((resp) => {
-        console.log(resp);
+    }).then((resp) => {setLocalIOUReportData
+        const simplifiedIOUReport = getSimplifiedIOUReport(resp.iouReport, chatReportID);
+        console.log('Put IOUReport in Onyx: ' + JSON.stringify(formattedIOUReport));
+
+        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIOUReport);
+
+        const indexedData = _.indexBy(data.history, 'sequenceNumber');
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+
         return resp;
     });
 }
