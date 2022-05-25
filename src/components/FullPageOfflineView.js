@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
-import withLocalize, { withLocalizePropTypes } from './withLocalize';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Child elements */
@@ -19,12 +21,14 @@ const propTypes = {
 
 const FullPageOfflineView = (props) => {
     if (ONYXKEYS.NETWORK.isOffline) {
-        return <View>
-            <Text>{props.translate('reportActionCompose.youAppearToBeOffline')}</Text>
-        </View>
+        return (
+            <View>
+                <Text>{props.translate('reportActionCompose.youAppearToBeOffline')}</Text>
+            </View>
+        );
     }
 
-    if (props.isLoading) { 
+    if (props.isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
