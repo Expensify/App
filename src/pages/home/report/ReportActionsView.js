@@ -160,7 +160,6 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.doneMeasuring = false;
             this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
             this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
             return true;
@@ -308,6 +307,8 @@ class ReportActionsView extends React.Component {
         if (minSequenceNumber === 0) {
             return;
         }
+
+        this.doneMeasuring = false;
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
