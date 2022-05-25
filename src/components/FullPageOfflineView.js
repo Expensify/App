@@ -25,7 +25,7 @@ const FullPageOfflineView = (props) => {
     }
 
     if (props.isLoading) { 
-        return <FullScreenLoadingIndicator/>;
+        return <FullScreenLoadingIndicator />;
     }
 
     return props.children;
