@@ -56,10 +56,6 @@ class BaseInvertedFlatList extends Component {
         this.sizeMap = {};
     }
 
-    componentDidUpdate() {
-        console.log('over here BaseInvertedFlatList did update');
-    }
-
     /**
      * Return default or previously cached height for
      * a renderItem row
@@ -122,7 +118,6 @@ class BaseInvertedFlatList extends Component {
             length: computedHeight,
         };
 
-        console.log(`over here sizeMap: ${_.size(this.sizeMap)}, ${this.props.data.length}`);
         if (_.size(this.sizeMap) === this.props.data.length) {
             // All items have been measured so update the offset now that we have all heights
             for (let i = 0; i < this.props.data.length; i++) {
@@ -167,7 +162,6 @@ class BaseInvertedFlatList extends Component {
     }
 
     render() {
-        console.log('over here BaseInvertedFlatList render');
         return (
             <FlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
