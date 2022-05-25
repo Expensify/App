@@ -15,7 +15,6 @@ const includeModules = [
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
-    'react-native-onyx',
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
