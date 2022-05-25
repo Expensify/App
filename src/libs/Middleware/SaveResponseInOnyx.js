@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 function SaveResponseInOnyx(response, request) {
     return response
         .then((responseData) => {
+            // We'll only save the onyxData, successData and failureData for the refactored commands
             if (responseData.onyxData) {
                 let data;
                 if (responseData.jsonCode === 200) {
