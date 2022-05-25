@@ -510,7 +510,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
         });
 }
 
-function julesTesting(chatReportID, iouReportID) {
+function fetchIOUReportAndAllIOUActions(chatReportID, iouReportID) {
     return API.GetIOUReportAndIOUActions({
         reportID: chatReportID,
         iouReportID: iouReportID,
@@ -1584,8 +1584,8 @@ export {
     fetchActions,
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
+    fetchIOUReportAndAllIOUActions,
     fetchIOUReportByID,
-    julesTesting,
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
