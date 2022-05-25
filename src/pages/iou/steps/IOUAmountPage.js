@@ -75,7 +75,6 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.focusEmptyInput = this.focusEmptyInput.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -92,16 +91,6 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
-    }
-
-    /**
-     * Keep TextInput focused if no amount is entered.
-     */
-    focusEmptyInput() {
-        if (this.state.amount !== '') {
-            return;
-        }
-        this.textInput.focus();
     }
 
     /**
@@ -252,7 +241,7 @@ class IOUAmountPage extends React.Component {
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        onBlur={this.focusEmptyInput}
+                        blurOnSubmit={this.state.amount !== ''}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
