@@ -23,8 +23,9 @@ Example: Pinning a chat
 
 When a user clicks the pin button <img style="height: 10px; width: 10px; filter: invert(.5) saturate(5);" src="./assets/images/pin.svg"/> on a chat, two things should happen. 
 
-We send a request to the API to keep track of that. After all, if the user signed in on a different device, we would want all of their pinned chats to show up (another way of saying this is we want their pinned chats to ‘persist’ across devices). 
-The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is the user’s visual feedback that clicking the pin button worked.
+1. We send a request to the API to keep track of the user's action. After all, if the user signed in on a different device, we would want all of their pinned chats to show up (another way of saying this is we want their pinned chats to ‘persist’ across devices). 
+
+2. The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is the user’s visual feedback that clicking the pin button worked.
 
 If the user is offline, do we need to wait for the API request to finish before doing all that visual stuff? No! We are optimistic that the API request will succeed once it’s sent. In the meantime, we let the user continue using the app. 
 </div>
