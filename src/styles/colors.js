@@ -10,7 +10,7 @@ export default {
     blueHover: '#0063bf',
     floralwhite: '#fffaf0',
     green: '#03d47c',
-    greenCommentHighlight: '#D6FAEC',
+    honeydew: '#E1FAEF',
     greenHover: '#03c775',
     orange: '#ff7101',
     pink: '#f68dfe',
