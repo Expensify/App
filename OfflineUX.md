@@ -50,7 +50,7 @@ The numbers in this section correlate to the numbers in each decision box above 
 1. Does the feature interact with the server?
 
 If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES.
-If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored or retrieved, then the answer is YES.
+If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to, or retrieved from the server, then the answer is YES.
 
 2. What type of request is being made?
 
@@ -62,15 +62,15 @@ You should answer yes to this question if it’s important that the user sees cu
 
 4. Is the UI a form?
 
-Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out fields that we want to save locally, answer YES to this question.
+Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
 
 5. Can the server response be anticipated?
 
-Assuming that the request succeeds when it’s sent to the server, do you know what would happen next? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing. Answer YES if it’s easy to tell what the response from the server would be. 
+Assuming that the request succeeds when it’s sent to the server, do you know what would happen next? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if it’s easy to tell what the response from the server would be. 
 
 6. Is there validation done on the server?
 
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. min/max characters in a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
 
 This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
 
