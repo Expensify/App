@@ -413,25 +413,25 @@ class ReportActionsView extends React.Component {
         return (
             <>
                 {!this.props.isComposerFullSize && (
-                    <FloatingMessageCounter
-                        active={this.state.isFloatingMessageCounterVisible}
-                        count={this.state.messageCounterCount}
-                        onClick={this.scrollToBottomAndUpdateLastRead}
-                        onClose={this.hideFloatingMessageCounter}
-                    />
-                )}
-                <ReportActionsList
-                    report={this.props.report}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.sortedReportActions}
-                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                    isComposerFullSize={this.props.isComposerFullSize}
-                    isLoadingReportActions={this.props.isLoadingReportActions}
-                    loadMoreChats={this.loadMoreChats}
-                />
-                {!this.props.isComposerFullSize && (
-                    <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    <>
+                        <FloatingMessageCounter
+                            active={this.state.isFloatingMessageCounterVisible}
+                            count={this.state.messageCounterCount}
+                            onClick={this.scrollToBottomAndUpdateLastRead}
+                            onClose={this.hideFloatingMessageCounter}
+                        />
+                        <ReportActionsList
+                            report={this.props.report}
+                            onScroll={this.trackScroll}
+                            onLayout={this.recordTimeToMeasureItemLayout}
+                            sortedReportActions={this.sortedReportActions}
+                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                            isLoadingReportActions={this.props.isLoadingReportActions}
+                            loadMoreChats={this.loadMoreChats}
+                        />
+                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    </>
                 )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
