@@ -3,7 +3,7 @@
 ### Contents
 * [Motivation & Philosophy](#motivation-&-philosophy)
 * [UX Pattern Flowchart](#ux-pattern-flowchart)
-* [How to Answer Questions on the Flow Chart](#how-to-answer-questions-on-the-flowchart)
+* [Answering Questions on the Flow Chart](#answering-questions-on-the-flowchart)
 * [Description of the Patterns](#description-of-the-patterns)
     - [None - No Offline Behavior](#none---no-offline-behavior)
     - [A - Optimistic Without Feedback](#a---optimistic-without-feedback)
@@ -43,7 +43,7 @@ The following flowchart can be used to determine which UX pattern should be used
 
 ![New Expensify Data Flow Chart](/web/OfflineUX_Patterns_Flowchart.png)
 
-### How to Answer Questions on the Flow Chart
+### Answering Questions on the Flow Chart
 
 The numbers in this section correlate to the numbers in each decision box above (the diamond shapes).
 
