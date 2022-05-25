@@ -97,7 +97,12 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
     };
 }
 
-function subscribeToPolicyEvent(policy, key) {
+/**
+ * Subscribe to a specific policy for public-policyEditor-[policyID] events.
+ * @param {Object} policy - object of policy
+ * @param {String} key - key of the policy
+ */
+function subscribeToPolicyEvents(policy, key) {
     const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
     Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
         const policyWithoutEmployee = _.clone(policy);
@@ -138,7 +143,7 @@ function updateAllPolicies(policyCollection) {
     _.each(policyCollection, (policyData, key) => {
         if (!allPolicies[key]) {
             // Subscribe to new policies
-            subscribeToPolicyEvent(policyData, key);
+            subscribeToPolicyEvents(policyData, key);
         }
         Onyx.merge(key, {...policyData, alertMessage: '', errors: null});
     });
@@ -543,9 +548,9 @@ function updateLastAccessedWorkspace(policyID) {
 /**
  * Subscribe to public-policyEditor-[policyID] events.
  */
-function subscribeToPolicyEvents() {
+function subscribeToAllPolicyEvents() {
     _.each(allPolicies, (policy, key) => {
-        subscribeToPolicyEvent(policy, key);
+        subscribeToPolicyEvents(policy, key);
     });
 }
 
@@ -566,5 +571,5 @@ export {
     setCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
-    subscribeToPolicyEvents,
+    subscribeToAllPolicyEvents,
 };

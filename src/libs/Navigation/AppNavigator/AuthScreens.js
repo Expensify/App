@@ -101,7 +101,7 @@ class AuthScreens extends React.Component {
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
+            Policy.subscribeToAllPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization
