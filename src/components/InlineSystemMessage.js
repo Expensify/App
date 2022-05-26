@@ -18,8 +18,8 @@ const InlineSystemMessage = (props) => {
     }
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-        <Icon src={Expensicons.Exclamation} fill={colors.red} />
-        <Text style={[styles.inlineSystemMessage]}>{props.message}</Text>
+            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+            <Text style={[styles.inlineSystemMessage]}>{props.message}</Text>
         </View>
     );
 };
