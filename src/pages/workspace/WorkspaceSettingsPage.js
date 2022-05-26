@@ -139,7 +139,7 @@ class WorkspaceSettingsPage extends React.Component {
                     </FixedFooter>
                 )}
             >
-                {hasVBA => (
+                {(isLoadingVBA, hasVBA) => (
                     <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                         <AvatarWithImagePicker
                             isUploading={this.props.policy.isAvatarUploading}
@@ -176,7 +176,7 @@ class WorkspaceSettingsPage extends React.Component {
                                 onInputChange={currency => this.setState({currency})}
                                 items={this.getCurrencyItems()}
                                 value={this.state.currency}
-                                isDisabled={hasVBA}
+                                isDisabled={isLoadingVBA || hasVBA}
                             />
                         </View>
                         <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
