@@ -98,7 +98,6 @@ class ReportActionsView extends React.Component {
         this.appStateChangeListener = null;
         this.actionIndexID = -1;
         this.renderedActionIDs = new Set();
-
         this.didLayout = false;
 
         this.state = {
@@ -510,7 +509,6 @@ class ReportActionsView extends React.Component {
                     sortedReportActions={this.sortedReportActions}
                     mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
                     isLoadingReportActions={this.props.isLoadingReportActions}
-                    scrollToReportActionID={this.scrollToReportActionID}
                     onItemRendered={this.recordReportActionIDRendered}
                     onMeasurementEnd={this.recordMeasurementDone}
                     loadMoreChats={this.loadMoreChats}

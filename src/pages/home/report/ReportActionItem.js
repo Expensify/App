@@ -78,6 +78,15 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.animatedBackgroundColor = new Animated.Value(0);
+        const interpolatedBackgroundColor = this.animatedBackgroundColor.interpolate(
+            {
+                inputRange: [0, 1],
+                outputRange: [colors.white, colors.honeydew],
+            },
+        );
+        this.animatedBackgroundStyle = {
+            backgroundColor: interpolatedBackgroundColor,
+        };
     }
 
     componentDidMount() {
@@ -186,16 +195,6 @@ class ReportActionItem extends Component {
                 );
         }
 
-        const interpolatedBackgroundColor = this.animatedBackgroundColor.interpolate(
-            {
-                inputRange: [0, 1],
-                outputRange: [colors.white, colors.honeydew],
-            },
-        );
-        const animatedBackgroundStyle = {
-            backgroundColor: interpolatedBackgroundColor,
-        };
-
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
@@ -210,7 +209,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
-                        <Animated.View style={animatedBackgroundStyle}>
+                        <Animated.View style={this.animatedBackgroundStyle}>
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
