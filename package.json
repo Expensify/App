@@ -40,7 +40,7 @@
     "@formatjs/intl-numberformat": "^6.2.5",
     "@formatjs/intl-pluralrules": "^4.0.13",
     "@onfido/react-native-sdk": "^2.2.0",
-    "@react-native-async-storage/async-storage": "^1.15.5",
+    "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "^4.1.2",
     "@react-native-community/cli": "6.2.0",
     "@react-native-community/clipboard": "^1.5.1",
@@ -111,7 +111,7 @@
     "save": "^2.4.0",
     "shim-keyboard-event-key": "^1.0.3",
     "underscore": "^1.13.1",
-    "urbanairship-react-native": "^11.0.2"
+    "urbanairship-react-native": "^13.0.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
