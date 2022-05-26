@@ -23,7 +23,8 @@ const propTypes = {
     onLayout: PropTypes.func,
 
     /** Callback to execute when user panning image */
-    panGestureEventHandler: PropTypes.func,
+    // eslint-disable-next-line react/forbid-prop-types
+    panGestureEventHandler: PropTypes.object,
 };
 
 const defaultProps = {
@@ -45,11 +46,7 @@ const ImageCropView = (props) => {
             <Animated.View>
                 <View style={[containerStyles, styles.imageCropContainer]}>
                     <AnimatedImage style={props.imageStyle} onLayout={props.onLayout} source={{uri: props.imageUri}} resizeMode="contain" />
-                    <View style={[{
-                        width: props.containerSize,
-                        height: props.containerSize,
-                    }, styles.l0, styles.b0, styles.pAbsolute]}
-                    >
+                    <View style={[containerStyles, styles.l0, styles.b0, styles.pAbsolute]}>
                         <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
                     </View>
                 </View>

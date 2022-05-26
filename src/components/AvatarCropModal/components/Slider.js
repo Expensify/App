@@ -12,7 +12,8 @@ const propTypes = {
     sliderLineWidth: PropTypes.number,
 
     /** Callback to execute when user panning slider */
-    onGestureEventHandler: PropTypes.func,
+    // eslint-disable-next-line react/forbid-prop-types
+    onGestureEventHandler: PropTypes.object,
 
     /** X posion of the slider knob */
     sliderValue: PropTypes.shape({value: PropTypes.number}),
