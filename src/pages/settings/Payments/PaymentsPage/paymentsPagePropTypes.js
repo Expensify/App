@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import walletTransferPropTypes from '../walletTransferPropTypes';
 import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import networkPropTypes from '../../../../components/networkPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -21,6 +22,9 @@ const propTypes = {
         /** The user's current wallet balance */
         currentBalance: PropTypes.number,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 
