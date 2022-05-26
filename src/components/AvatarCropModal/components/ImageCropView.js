@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {Image, View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
@@ -35,7 +35,7 @@ const defaultProps = {
 };
 
 const ImageCropView = (props) => {
-    const containerStyles = useAnimatedStyle(() => ({
+    const containerStyles = useMemo(() => ({
         height: props.containerSize,
         width: props.containerSize,
     }), [props.containerSize]);
