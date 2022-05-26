@@ -2543,6 +2543,8 @@ const styles = {
         alignItems: 'center',
     },
 
+    imageCropModal: {height: '100%', borderTopEndRadius: 0, borderTopStartRadius: 0},
+
     userSelectText: {
         userSelect: 'text',
     },

@@ -259,7 +259,7 @@ const AvatarCropModal = (props) => {
             type={props.isSmallScreenWidth
                 ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                 : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            containerStyle={props.isSmallScreenWidth && styles.h100}
+            containerStyle={props.isSmallScreenWidth && styles.imageCropModal}
         >
             <SafeAreaView style={[styles.flex1, styles.pb5]}>
                 <HeaderWithCloseButton
