@@ -2620,6 +2620,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'center',
+        backgroundColor: colors.black,
     },
 
     sliderKnob: {
