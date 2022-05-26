@@ -2648,6 +2648,18 @@ const styles = {
         alignItems: 'center',
     },
 
+    imageCropModal: {height: '100%', borderTopEndRadius: 0, borderTopStartRadius: 0},
+
+    userSelectText: {
+        userSelect: 'text',
+    },
+
+    screenCenteredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        marginBottom: 40,
+        padding: 16,
+    },
 };
 
 export default styles;
