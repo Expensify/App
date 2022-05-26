@@ -13,6 +13,9 @@ const propTypes = {
 };
 
 const InlineSystemMessage = (props) => {
+    if (props.message.length() === 0) {
+        return;
+    }
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
         <Icon src={Expensicons.Exclamation} fill={colors.red} />
