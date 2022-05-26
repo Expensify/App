@@ -181,7 +181,12 @@ class OptionsSelector extends Component {
                 }
 
                 this.selectRow(focusedOption);
+
+                // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
                 this.scrollToIndex(0);
+                this.setState({
+                    focusedIndex: this.props.selectedOptions.length,
+                });
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
