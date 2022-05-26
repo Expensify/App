@@ -98,7 +98,7 @@ What: This pattern blocks the user from interacting with an entire page.
 
 ### UX Pattern Flow Chart
 
-The following flowchart can be used to determine which UX pattern should be used. This diagram is a useful reference, but may not make sense if you aren't already familiar with the patterns. If this is your first time reading, we recommend you head straight for the [Descriptions of the UX Patterns](#descriptions-of-the-ux-patterns) section.
+The following flowchart can be used to determine which UX pattern should be used.
 
 ![New Expensify Data Flow Chart](/web/OfflineUX_Patterns_Flowchart.png)
 
